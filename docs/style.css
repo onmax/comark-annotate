@@ -106,10 +106,23 @@ body {
   font-weight: 500;
 }
 
-.top .gh {
-  padding: 0.3rem 0.65rem;
+.top nav {
+  gap: 0.25rem;
+}
+
+.top .icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
   border-radius: 6px;
-  box-shadow: inset 0 0 0 1px var(--line);
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+.top .icon:hover {
+  background: var(--soft);
 }
 
 .logo {
@@ -433,7 +446,7 @@ blockquote {
 }
 
 .ca {
-  --ca-color: #e5484d;
+  --ca-ring: var(--bg);
   font-size: 0.875rem;
 }
 
