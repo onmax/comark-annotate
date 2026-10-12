@@ -28,8 +28,8 @@ const example: NodeHandler = async ([, attrs, ...children], state) => {
   return (
     `<div class="example"><div class="example-bar"><div class="seg" role="group" aria-label="View">` +
     `<button type="button" data-view="preview" aria-pressed="true">Preview</button><button type="button" data-view="code" aria-pressed="false">Code</button></div></div>` +
-    `<div class="example-preview">${await state.flow(["div", {}, ...preview.nodes], state)}</div>` +
-    `<div class="example-code" hidden>${await state.one(pre, state)}</div></div>`
+    `<div class="example-body"><div class="example-preview">${await state.flow(["div", {}, ...preview.nodes], state)}</div>` +
+    `<div class="example-code" hidden>${await state.one(pre, state)}</div></div></div>`
   );
 };
 

@@ -38,10 +38,6 @@
   .shiki span {
     color: var(--shiki-dark) !important;
   }
-
-  .ca-frame img {
-    box-shadow: 0 0 0 1px var(--line) !important;
-  }
 }
 
 * {
@@ -431,7 +427,9 @@ blockquote {
   border-left: 2px solid var(--line);
 }
 
+/* One line per edge: the tabs carry only the selected underline, the Preview/Code switch shares their row, and the frame is a single soft ring. */
 .tabs {
+  position: relative;
   margin: 2.5rem 0 1rem;
 }
 
@@ -439,11 +437,9 @@ blockquote {
   display: flex;
   gap: 1.25rem;
   margin-bottom: 0.75rem;
-  border-bottom: 1px solid var(--line);
 }
 
 .tablist button {
-  margin-bottom: -1px;
   padding: 0.5rem 0;
   border: 0;
   border-bottom: 1px solid transparent;
@@ -467,15 +463,29 @@ blockquote {
 
 .example {
   margin: 1.25rem 0;
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 .example-bar {
   display: flex;
   justify-content: flex-end;
-  padding: 0.5rem;
-  border-bottom: 1px solid var(--line);
+  margin-bottom: 0.5rem;
+}
+
+.tabs .example {
+  margin: 0;
+}
+
+.tabs .example-bar {
+  position: absolute;
+  top: 0.3rem;
+  right: 0;
+  margin: 0;
+}
+
+.example-body {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px var(--line);
 }
 
 .seg {
@@ -514,18 +524,13 @@ blockquote {
 
 .example-code pre {
   margin: 0;
-  border-radius: 0 0 6px 6px;
+  border-radius: 6px;
   box-shadow: none;
   background: none !important;
 }
 
 [hidden] {
   display: none !important;
-}
-
-.ca {
-  width: min(var(--wide), 100vw - 3rem);
-  margin-inline: calc((100% - min(var(--wide), 100vw - 3rem)) / 2);
 }
 
 .ca {
