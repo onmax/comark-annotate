@@ -45,6 +45,9 @@ const text = (value: unknown) =>
 // Inline, YAML-block, and `:bound` props all land here, parsed the way Comark's own renderers see them.
 const props = (node: ElementNode, data: Data) =>
   resolveAttributes(node[1], data, { parseJson: true });
+// A `:bound` prop that can't resolve yet, such as one reading render-time `data`, is left to the renderer.
+const unresolved = (node: ElementNode, attrs: Record<string, unknown>, key: string) =>
+  attrs[key] === undefined && Object.hasOwn(node[1], `:${key}`);
 const isHttp = (url: string) => /^https?:\/\/\S/i.test(url);
 const named = new Set<string>(PALETTE);
 const isColor = (color: string) =>
@@ -76,9 +79,10 @@ export function readScreenshot(
   const attrs = props(node, data);
   const src = text(attrs.src);
   const where = `screenshot "${src || "?"}"`;
-  if (!src) issues.push(`${where}: \`src\` is required.`);
+  if (!src && !unresolved(node, attrs, "src")) issues.push(`${where}: \`src\` is required.`);
   const alt = text(attrs.alt);
-  if (!alt) issues.push(`${where}: \`alt\` is required. Describe what the screenshot shows.`);
+  if (!alt && !unresolved(node, attrs, "alt"))
+    issues.push(`${where}: \`alt\` is required. Describe what the screenshot shows.`);
   const url = text(attrs.url);
   if (url && !isHttp(url)) issues.push(`${where}: \`url\` must start with http:// or https://.`);
 
@@ -126,7 +130,12 @@ function readAnnotation(
 ): Omit<Annotation, "n"> {
   const attrs = props(node, data);
   const box = { x: 0, y: 0, w: 0, h: 0 };
+  let known = true;
   for (const key of ["x", "y", "w", "h"] as const) {
+    if (unresolved(node, attrs, key)) {
+      known = false;
+      continue;
+    }
     const value = Number(text(attrs[key]) || Number.NaN);
     const valid =
       key === "x" || key === "y" ? value >= 0 && value <= 100 : value > 0 && value <= 100;
@@ -136,7 +145,7 @@ function readAnnotation(
       );
     else box[key] = value;
   }
-  if (box.x + box.w > EDGE || box.y + box.h > EDGE)
+  if (known && (box.x + box.w > EDGE || box.y + box.h > EDGE))
     issues.push(
       `${where}: the box runs past the image edge (x + w and y + h must stay within 100).`,
     );

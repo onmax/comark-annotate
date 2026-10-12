@@ -87,6 +87,17 @@ describe("comark-annotate", () => {
     expect(html).toContain("ca-callout-right");
   });
 
+  it("leaves props bound to render-time data to the renderer", async () => {
+    const markdown = `::screenshot{src="a.png" alt="A"}\n:::annotation{:x="data.box.x" :y="data.box.y" w=10 h=10}\nNote\n:::\n::`;
+    const document = await parseMarkdown(markdown, { plugins: [annotate()] });
+    expect(document.meta.annotateIssues).toEqual([]);
+    const html = await renderHtmlFromDocument(document, {
+      components,
+      data: { box: { x: 30, y: 40 } },
+    });
+    expect(html).toContain("left:30%;top:40%;width:10%;height:10%");
+  });
+
   it("reports inherited object keys as marks instead of crashing", async () => {
     const { issues, html } = await run(
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=1 y=1 w=10 h=10 mark="toString"}\nNote\n:::\n::`,
