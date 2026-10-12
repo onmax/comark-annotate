@@ -28,5 +28,17 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm release:check
-      - run: pnpm docs:build
+      - name: Format
+        run: pnpm exec vp fmt --check
+      - name: Lint
+        run: pnpm lint
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Build
+        run: pnpm build
+      - name: Test
+        run: pnpm test
+      - name: Doctor
+        run: pnpm run doctor
+      - name: Docs
+        run: pnpm docs:build

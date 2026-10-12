@@ -14,13 +14,18 @@ const dist = new URL("dist/", root);
 const fonts = new URL("../node_modules/geist/dist/fonts/", root);
 const plugins = [annotate(), shiki({ themes: { light, dark } })];
 
-const isElement = (node: Node): node is ElementNode =>
-  Array.isArray(node) && typeof node[0] === "string";
-const str = (value: unknown) => (typeof value === "string" ? value : "");
+const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
+const str = (value: unknown) =>
+  value === undefined || value === null || value instanceof Object
+    ? ""
+    : // SAFETY: undefined, null, objects, and arrays returned above, so only a string, number, or boolean is left.
+      String(value as string | number | boolean);
+const isPre = (node: Node): node is ElementNode => isElement(node) && node[0] === "pre";
 
 // An example shows the Markdown in its code block twice: rendered, and as source.
 const example: NodeHandler = async ([, attrs, ...children], state) => {
-  const pre = children.find((child) => isElement(child) && child[0] === "pre") as ElementNode;
+  const pre = children.find(isPre);
+  if (!pre) throw new Error(`Example "${str(attrs.label)}" needs a fenced code block.`);
   const source = textContent(pre);
   const preview = await parseMarkdown(source, { plugins: [annotate()] });
   if (preview.meta.annotateIssues.length)
@@ -53,10 +58,9 @@ const document = await parseMarkdown(await readFile(new URL("index.md", root), "
 });
 if (document.meta.annotateIssues.length)
   throw new Error(`docs/index.md:\n${document.meta.annotateIssues.join("\n")}`);
-const { title, description, tagline, install } = document.frontmatter as Record<
-  "title" | "description" | "tagline" | "install",
-  string
->;
+const [title, description, tagline, install] = ["title", "description", "tagline", "install"].map(
+  (key) => str(document.frontmatter[key]),
+);
 
 const nav = document.nodes
   .filter(isElement)

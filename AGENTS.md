@@ -15,6 +15,6 @@ A Comark plugin for annotated screenshots and before/after comparisons. Agents w
 - Test through the public interface: parse plus render. Don't test internals.
 - Rendering never throws. Problems go in `meta.annotateIssues`.
 - Comments are rare and explain why, never what.
-- `pnpm ready` formats, builds, lints, and tests. Run it before opening a PR.
+- `pnpm ready` formats, lints, typechecks, builds, tests, and runs Vite Doctor with the strict TypeScript preset (`doctor.config.json`). Run it before opening a PR; CI runs the same steps.
 - Use conventional commit titles. uppt builds the release from them (see `RELEASING.md`).
 - Never comment on issues or pull requests without explicit consent.

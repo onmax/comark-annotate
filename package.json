@@ -13,6 +13,7 @@
   "homepage": "https://comark-annotate.onmax.me",
   "bugs": "https://github.com/onmax/comark-annotate/issues",
   "license": "MIT",
+  "author": "onmax",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/onmax/comark-annotate.git"
@@ -35,10 +36,13 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "docs:build": "node docs/build.ts",
+    "lint": "vp lint",
+    "typecheck": "tsc --noEmit",
     "test": "vp test",
+    "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
     "check": "vp check",
-    "ready": "vp fmt && pnpm build && vp lint && pnpm test",
-    "release:check": "vp fmt --check && pnpm build && vp lint && pnpm test",
+    "ready": "vp fmt && pnpm lint && pnpm typecheck && pnpm build && pnpm test && pnpm run doctor",
+    "release:check": "vp fmt --check && pnpm lint && pnpm typecheck && pnpm build && pnpm test && pnpm run doctor",
     "prepare": "vp config",
     "prepack": "pnpm build",
     "deploy": "pnpm docs:build && pnpm dlx wrangler deploy"
@@ -53,13 +57,17 @@
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
+    "vite-doctor": "catalog:",
     "vite-plus": "catalog:"
   },
   "peerDependencies": {
-    "comark": ">=0.7.0"
+    "@comark/html": "^0.7.0",
+    "comark": "^0.7.0"
   },
-  "engines": {
-    "node": ">=22.18.0"
+  "peerDependenciesMeta": {
+    "@comark/html": {
+      "optional": true
+    }
   },
   "packageManager": "pnpm@11.18.0"
 }
