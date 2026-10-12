@@ -1,6 +1,8 @@
 # comark-annotate
 
-Annotated screenshots and before/after comparisons for [Comark](https://comark.dev). Write Markdown, get hand-drawn marks with numbered notes as static HTML.
+Hand-drawn marks, numbered notes, and arrows on screenshots, written in Markdown. A [Comark](https://comark.dev) plugin that renders static HTML.
+
+[![A dashboard screenshot with a box, an underline, and a highlight, each joined by a hand-drawn arrow to a note beside the image, and one numbered note below it](https://comark-annotate.onmax.me/readme.png)](https://comark-annotate.onmax.me)
 
 **[Docs and live demo](https://comark-annotate.onmax.me)**
 
@@ -42,8 +44,6 @@ pnpm install
 pnpm ready       # format, lint, typecheck, build, test, doctor
 pnpm docs:build  # render docs/index.md into docs/dist
 ```
-
-Releases: see [RELEASING.md](./RELEASING.md).
 
 ## Credits
 

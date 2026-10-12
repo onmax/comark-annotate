@@ -16,5 +16,9 @@ A Comark plugin for annotated screenshots and before/after comparisons. Agents w
 - Rendering never throws. Problems go in `meta.annotateIssues`.
 - Comments are rare and explain why, never what.
 - `pnpm ready` formats, lints, typechecks, builds, tests, and runs Vite Doctor with the strict TypeScript preset (`doctor.config.json`). Run it before opening a PR; CI runs the same steps.
-- Use conventional commit titles. uppt builds the release from them (see `RELEASING.md`).
+- Use conventional commit titles. uppt builds the release from them (see Releasing below).
 - Never comment on issues or pull requests without explicit consent.
+
+## Releasing
+
+uppt opens a draft `release/vX.Y.Z` PR from conventional commits on `main`. Merging it tags the version and stages the package on npm through OIDC; Maxi approves it on npmjs.com with 2FA. If staging fails after the tag exists, run `gh workflow run release.yml --repo onmax/comark-annotate --ref vX.Y.Z`. The docs deploy through Cloudflare Workers Builds on every push to `main`.

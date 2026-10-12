@@ -1,7 +1,7 @@
 {
   "name": "comark-annotate",
   "version": "0.0.1",
-  "description": "Annotated screenshots and before/after comparisons for Comark.",
+  "description": "Hand-drawn marks, numbered notes, and arrows on screenshots, written in Markdown. A Comark plugin.",
   "keywords": [
     "annotation",
     "comark",

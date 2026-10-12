@@ -1,6 +1,6 @@
 ---
 title: comark-annotate
-description: Annotated screenshots for Comark.
+description: Hand-drawn marks, numbered notes, and arrows on screenshots, written in Markdown.
 tagline: Mark up screenshots in Markdown with hand-drawn marks, numbered notes, arrows, and before/after comparisons.
 install: pnpm add comark @comark/html comark-annotate
 ---
