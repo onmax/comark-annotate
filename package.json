@@ -1,0 +1,63 @@
+{
+  "name": "comark-annotate",
+  "version": "0.0.0",
+  "description": "Annotated screenshots and before/after comparisons for Comark.",
+  "keywords": [
+    "annotation",
+    "comark",
+    "markdown",
+    "mdc",
+    "plugin",
+    "screenshot"
+  ],
+  "homepage": "https://comark-annotate.onmax.me",
+  "bugs": "https://github.com/onmax/comark-annotate/issues",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onmax/comark-annotate.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./html": "./dist/html.mjs",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "docs:build": "node docs/build.ts",
+    "test": "vp test",
+    "check": "vp check",
+    "ready": "vp fmt && pnpm build && vp lint && pnpm test",
+    "release:check": "vp fmt --check && pnpm build && vp lint && pnpm test",
+    "prepare": "vp config",
+    "prepack": "pnpm build",
+    "deploy": "pnpm docs:build && pnpm dlx wrangler deploy"
+  },
+  "devDependencies": {
+    "@comark/html": "catalog:",
+    "@types/node": "catalog:",
+    "comark": "catalog:",
+    "pkg-pr-new": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "peerDependencies": {
+    "comark": ">=0.7.0"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "packageManager": "pnpm@11.18.0"
+}

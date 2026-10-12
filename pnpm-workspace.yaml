@@ -1,0 +1,14 @@
+catalogMode: prefer
+
+catalog:
+  "@comark/html": ^0.7.0
+  comark: ^0.7.0
+  pkg-pr-new: ^0.0.91
+  tsdown: ^0.23.1
+  typescript: ^6.0.3
+  "@types/node": ^24.0.0
+  vite: npm:@voidzero-dev/vite-plus-core@^1.1.0
+  vite-plus: ^1.1.0
+
+overrides:
+  vite: "catalog:"

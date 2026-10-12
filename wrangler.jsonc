@@ -1,0 +1,7 @@
+// The docs site: docs/dist served as static assets. Cloudflare Workers Builds runs `pnpm docs:build` and deploys on push to main.
+{
+  "name": "comark-annotate",
+  "compatibility_date": "2026-10-01",
+  "assets": { "directory": "./docs/dist" },
+  "routes": [{ "pattern": "comark-annotate.onmax.me", "custom_domain": true }],
+}
