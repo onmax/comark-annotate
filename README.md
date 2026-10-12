@@ -24,7 +24,7 @@ Five filters don't fit, so the toolbar wraps onto a second row.
 :::
 
 :::screenshot{src="after.png" alt="Filter toolbar on one row" viewport="900x360"}
-::::annotation{x=87.6 y=24.2 w=7.4 h=9.9 mark="check" color="#16a34a"}
+::::annotation{x=87.6 y=24.2 w=7.4 h=9.9 mark="check" color="green"}
 **Apply** lines up with the chips.
 ::::
 :::

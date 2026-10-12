@@ -3,7 +3,10 @@ import { textContent } from "comark/utils";
 import { type Mark, marks } from "./marks.ts";
 
 export interface Annotation {
+  /** Links the mark to its note; unique within a screenshot or compare. */
   n: number;
+  /** The number shown on the stamp. Side notes have none: their arrow links them. */
+  number?: number;
   x: number;
   y: number;
   w: number;
@@ -36,8 +39,14 @@ const SIDES = ["left", "right"] as const;
 // Side notes closer than this (in % of the image height) would overlap.
 const SIDE_GAP = 12;
 
-/** Reads a `::screenshot` node, numbering its annotations from `first`. Problems go to `issues`; rendering never throws. */
-export function readScreenshot(node: ElementNode, issues: string[], first = 1): Screenshot {
+/** Reads a `::screenshot` node, counting on from `start`. Problems go to `issues`; rendering never throws. */
+export function readScreenshot(
+  node: ElementNode,
+  issues: string[],
+  start = { n: 1, number: 1 },
+): Screenshot {
+  const first = start.n;
+  let number = start.number;
   const attrs = node[1];
   const src = text(attrs.src);
   const where = `screenshot "${src || "?"}"`;
@@ -57,7 +66,11 @@ export function readScreenshot(node: ElementNode, issues: string[], first = 1): 
         `${where}, annotation ${first + annotations.length}`,
         issues,
       );
-      annotations.push({ ...annotation, n: first + annotations.length });
+      annotations.push({
+        ...annotation,
+        n: first + annotations.length,
+        number: annotation.side ? undefined : number++,
+      });
     } else caption.push(child);
   }
   for (const side of SIDES) {
@@ -127,11 +140,11 @@ export function readCompare(node: ElementNode, issues: string[]): Screenshot[] {
   const shots: Screenshot[] = [];
   for (const child of children(node)) {
     if (isElement(child) && child[0] === "screenshot") {
-      const shot = readScreenshot(
-        child,
-        issues,
-        1 + shots.reduce((sum, item) => sum + item.annotations.length, 0),
-      );
+      const all = shots.flatMap((item) => item.annotations);
+      const shot = readScreenshot(child, issues, {
+        n: 1 + all.length,
+        number: 1 + all.filter((annotation) => annotation.number).length,
+      });
       shots.push({ ...shot, label: shot.label ?? (shots.length ? "After" : "Before") });
     } else if (isElement(child) || text(child))
       issues.push("compare: only `screenshot` blocks can go inside a compare.");

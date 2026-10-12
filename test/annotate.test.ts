@@ -60,8 +60,19 @@ describe("comark-annotate", () => {
     expect(issues).toEqual([]);
     expect(html).toContain('class="ca-screenshot ca-right"');
     expect(html).toMatch(/class="ca-arrow ca-arrow-right" data-n="1" style="top:15%;left:20%;/);
-    expect(html).toMatch(/class="ca-callout ca-callout-right" id="ca1-1" data-n="1"[^>]*>.*Beside/);
+    expect(html).toMatch(
+      /class="ca-callout ca-callout-right" id="ca1-1" data-n="1"[^>]*><div>Beside/,
+    );
+    expect(html).toContain('<span class="ca-stamp">1</span></a>');
     expect(html).toMatch(/<ol class="ca-notes"><li id="ca1-2" data-n="2">.*Listed/);
+  });
+
+  it("maps named colors to the palette and passes hex through", async () => {
+    const { html } = await run(
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10 color="amber"}\nA\n:::\n:::annotation{x=50 y=50 w=10 h=10 color="#123456"}\nB\n:::\n::`,
+    );
+    expect(html).toContain("--ca-color:var(--ca-amber);--ca-ink:var(--ca-amber-ink);");
+    expect(html).toContain("--ca-color:#123456;");
   });
 
   it.each([
