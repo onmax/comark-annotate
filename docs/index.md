@@ -145,7 +145,7 @@ Extra filters collapse into **+2 filters**.
 
 ### annotation
 
-A mark on the screenshot and its note. The content is the note. Props can be inline, in a YAML props block, or bound with `:x`. Notes in the list under the image are numbered. Side notes sit beside the image and point with an arrow instead.
+A mark on the screenshot and its note. The content is the note. Props can be inline, in a YAML props block, or bound with `:x`. Notes in the list under the image are numbered. Side notes sit beside or above the image and point with an arrow instead.
 
 ::example
 ```md
@@ -194,7 +194,7 @@ Fixed.
 
 ### Side notes
 
-`side="left"`, `side="right"`, or `side="top"` moves a note out of the list and next to or above the image, with a hand-drawn arrow to its mark. Pair it with `mark="none"` to point without drawing a box. Side notes have no number because the arrow links them. On narrow screens they drop under the image with a bar in their color, and the arrows hide.
+`side="left"`, `side="right"`, or `side="top"` moves a note out of the list and next to or above the image, with a hand-drawn arrow to its mark. Pair it with `mark="none"` to point without drawing a box. Side notes have no number because the arrow links them. On narrow screens they drop under the image, the arrows hide, and each note and its target get a matching letter.
 
 Notes on the same side need room. The plugin reports side notes whose marks sit close together vertically, since they would likely overlap. It can't measure the text, so check the rendered page too, and move one note to the other side or into the list.
 

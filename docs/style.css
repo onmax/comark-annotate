@@ -238,7 +238,16 @@ body {
   cursor: pointer;
 }
 
+.install {
+  max-width: 100%;
+  min-width: 0;
+}
+
 .install code {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   padding: 0;
   background: none;
   box-shadow: none;
@@ -589,5 +598,22 @@ footer a {
 
   .enter {
     animation: none;
+  }
+}
+
+/* Too narrow to share the tab row: the switch gets its own row and the tabs scroll. */
+@media (max-width: 40rem) {
+  .tabs .example-bar {
+    position: static;
+    margin-bottom: 0.5rem;
+  }
+
+  .tablist {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tablist button {
+    flex: none;
   }
 }
