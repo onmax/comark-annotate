@@ -1,5 +1,5 @@
 import type { ElementNode, Node } from "comark";
-import { textContent } from "comark/utils";
+import { resolveAttributes } from "comark/render";
 import { type Mark, marks } from "./marks.ts";
 
 export interface Annotation {
@@ -27,56 +27,80 @@ export interface Screenshot {
   caption: Node[];
 }
 
-const isElement = (node: Node): node is ElementNode =>
-  Array.isArray(node) && typeof node[0] === "string";
-const children = (node: ElementNode) => node.slice(2) as Node[];
+/** What `:bound` props resolve against: the renderer's `state.renderData`, or the parsed document. */
+export type Data = Parameters<typeof resolveAttributes>[1];
+
+/** Named colors, each with one meaning. Anything else must be a hex color. */
+export const PALETTE = ["red", "amber", "green", "blue", "gray"] as const;
+
+// Comark text nodes are strings, elements are arrays, and comments are arrays with a null tag.
+const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
+const children = ([, , ...rest]: ElementNode): Node[] => rest;
+// Prop values arrive as strings, numbers, or booleans; objects and arrays aren't valid for any prop here.
 const text = (value: unknown) =>
-  typeof value === "string" || typeof value === "number" ? String(value).trim() : "";
-const COLOR = /^(?:#[\da-f]{3,8}|[a-z]+)$/i;
+  value === undefined || value === null || value instanceof Object
+    ? ""
+    : // SAFETY: undefined, null, objects, and arrays returned above, so only a string, number, or boolean is left.
+      String(value as string | number | boolean).trim();
+// Inline, YAML-block, and `:bound` props all land here, parsed the way Comark's own renderers see them.
+const props = (node: ElementNode, data: Data) =>
+  resolveAttributes(node[1], data, { parseJson: true });
+const isHttp = (url: string) => /^https?:\/\/\S/i.test(url);
+const named = new Set<string>(PALETTE);
+const isColor = (color: string) =>
+  named.has(color) || /^#(?:[\da-f]{3}|[\da-f]{4}|[\da-f]{6}|[\da-f]{8})$/i.test(color);
+const isMark = (mark: string): mark is Mark => Object.hasOwn(marks, mark);
+// Comments render nothing, so they don't count as a note; an image does.
+const hasContent = (nodes: Node[]): boolean =>
+  nodes.some((node) =>
+    !Array.isArray(node)
+      ? node.trim() !== ""
+      : isElement(node) && (node[0] === "img" || hasContent(children(node))),
+  );
 // Allow half a percent of rounding error when an agent converts pixels to percentages.
 const EDGE = 100.5;
 const SIDES = ["left", "right"] as const;
 // Side notes closer than this (in % of the image height) would overlap.
 const SIDE_GAP = 12;
+// styles.ts links marks and notes for this many annotations per screenshot or compare.
+export const MAX_LINKED = 40;
 
 /** Reads a `::screenshot` node, counting on from `start`. Problems go to `issues`; rendering never throws. */
 export function readScreenshot(
   node: ElementNode,
   issues: string[],
+  data: Data,
   start = { n: 1, number: 1 },
 ): Screenshot {
-  const first = start.n;
   let number = start.number;
-  const attrs = node[1];
+  const attrs = props(node, data);
   const src = text(attrs.src);
   const where = `screenshot "${src || "?"}"`;
   if (!src) issues.push(`${where}: \`src\` is required.`);
   const alt = text(attrs.alt);
   if (!alt) issues.push(`${where}: \`alt\` is required. Describe what the screenshot shows.`);
   const url = text(attrs.url);
-  if (url && !/^https?:\/\//.test(url))
-    issues.push(`${where}: \`url\` must start with http:// or https://.`);
+  if (url && !isHttp(url)) issues.push(`${where}: \`url\` must start with http:// or https://.`);
 
   const annotations: Annotation[] = [];
   const caption: Node[] = [];
   for (const child of children(node)) {
     if (isElement(child) && child[0] === "annotation") {
-      const annotation = readAnnotation(
-        child,
-        `${where}, annotation ${first + annotations.length}`,
-        issues,
-      );
-      annotations.push({
-        ...annotation,
-        n: first + annotations.length,
-        number: annotation.side ? undefined : number++,
-      });
+      const n = start.n + annotations.length;
+      const annotation = readAnnotation(child, `${where}, annotation ${n}`, issues, data);
+      if (n === MAX_LINKED + 1)
+        issues.push(
+          `${where}: more than ${MAX_LINKED} annotations in one screenshot or compare. Hovering stops linking marks to notes after ${MAX_LINKED}; split it into several screenshots.`,
+        );
+      annotations.push({ ...annotation, n, number: annotation.side ? undefined : number++ });
     } else caption.push(child);
   }
+  nested(caption, where, issues);
   for (const side of SIDES) {
     const centers = annotations
-      .filter((annotation) => annotation.side === side)
-      .map((annotation) => ({ n: annotation.n, y: annotation.y + annotation.h / 2 }))
+      .flatMap((annotation) =>
+        annotation.side === side ? [{ n: annotation.n, y: annotation.y + annotation.h / 2 }] : [],
+      )
       .sort((a, b) => a.y - b.y);
     for (let i = 1; i < centers.length; i++)
       if (centers[i]!.y - centers[i - 1]!.y < SIDE_GAP)
@@ -88,14 +112,19 @@ export function readScreenshot(
     src,
     alt,
     label: text(attrs.label) || undefined,
-    url: url.startsWith("http") ? url : undefined,
+    url: isHttp(url) ? url : undefined,
     annotations,
     caption,
   };
 }
 
-function readAnnotation(node: ElementNode, where: string, issues: string[]): Omit<Annotation, "n"> {
-  const attrs = node[1];
+function readAnnotation(
+  node: ElementNode,
+  where: string,
+  issues: string[],
+  data: Data,
+): Omit<Annotation, "n"> {
+  const attrs = props(node, data);
   const box = { x: 0, y: 0, w: 0, h: 0 };
   for (const key of ["x", "y", "w", "h"] as const) {
     const value = Number(text(attrs[key]) || Number.NaN);
@@ -113,48 +142,59 @@ function readAnnotation(node: ElementNode, where: string, issues: string[]): Omi
     );
 
   const mark = text(attrs.mark) || "box";
-  if (!(mark in marks))
+  if (!isMark(mark))
     issues.push(
       `${where}: \`mark\` must be one of ${Object.keys(marks).join(", ")} (got "${mark}").`,
     );
   const color = text(attrs.color);
-  if (color && !COLOR.test(color))
-    issues.push(`${where}: \`color\` must be a hex color or a CSS color name.`);
+  if (color && !isColor(color))
+    issues.push(`${where}: \`color\` must be ${PALETTE.join(", ")}, or a hex color like #e5484d.`);
   const side = text(attrs.side);
-  if (side && !SIDES.includes(side as "left"))
-    issues.push(`${where}: \`side\` must be left or right (got "${side}").`);
-  if (!textContent(node).trim())
-    issues.push(`${where}: write a note explaining what the mark points at.`);
+  const knownSide = SIDES.find((item) => item === side);
+  if (side && !knownSide) issues.push(`${where}: \`side\` must be left or right (got "${side}").`);
+  const note = children(node);
+  if (!hasContent(note)) issues.push(`${where}: write a note explaining what the mark points at.`);
+  nested(note, where, issues);
 
   return {
     ...box,
-    mark: mark in marks ? (mark as Mark) : "box",
-    color: COLOR.test(color) ? color : undefined,
-    side: SIDES.find((item) => item === side),
-    note: children(node),
+    mark: isMark(mark) ? mark : "box",
+    color: isColor(color) ? color : undefined,
+    side: knownSide,
+    note,
   };
 }
 
+// Screenshots, compares, and annotations only work as direct children; deeper ones would be dropped or unchecked.
+function nested(nodes: Node[], where: string, issues: string[]) {
+  for (const node of nodes) {
+    if (!isElement(node)) continue;
+    if (node[0] === "screenshot" || node[0] === "compare" || node[0] === "annotation")
+      issues.push(
+        `${where}: \`${node[0]}\` can't go inside a note or caption.${node[0] === "annotation" ? " Annotations must be direct children of a screenshot." : ""}`,
+      );
+    else nested(children(node), where, issues);
+  }
+}
+
 /** Reads a `::compare` node: two screenshots numbered as one sequence, labelled Before and After unless they say otherwise. */
-export function readCompare(node: ElementNode, issues: string[]): Screenshot[] {
+export function readCompare(node: ElementNode, issues: string[], data: Data): Screenshot[] {
   const shots: Screenshot[] = [];
+  const viewports: string[] = [];
   for (const child of children(node)) {
     if (isElement(child) && child[0] === "screenshot") {
       const all = shots.flatMap((item) => item.annotations);
-      const shot = readScreenshot(child, issues, {
+      const shot = readScreenshot(child, issues, data, {
         n: 1 + all.length,
         number: 1 + all.filter((annotation) => annotation.number).length,
       });
       shots.push({ ...shot, label: shot.label ?? (shots.length ? "After" : "Before") });
+      viewports.push(text(props(child, data).viewport));
     } else if (isElement(child) || text(child))
       issues.push("compare: only `screenshot` blocks can go inside a compare.");
   }
   if (shots.length !== 2)
     issues.push(`compare: needs exactly two screenshots, before and after (got ${shots.length}).`);
-  const [before, after] = children(node)
-    .filter(isElement)
-    .filter((child) => child[0] === "screenshot");
-  const viewports = [before, after].map((shot) => text(shot?.[1].viewport));
   if (viewports[0] && viewports[1] && viewports[0] !== viewports[1])
     issues.push(
       `compare: the screenshots were captured at different viewports (${viewports[0]} and ${viewports[1]}), so they can't be compared.`,
@@ -163,13 +203,13 @@ export function readCompare(node: ElementNode, issues: string[]): Screenshot[] {
 }
 
 /** Every problem in a document's screenshots, compares, and annotations. */
-export function check(nodes: Node[], issues: string[] = []): string[] {
+export function check(nodes: Node[], data: Data, issues: string[] = []): string[] {
   for (const node of nodes) {
     if (!isElement(node)) continue;
-    if (node[0] === "compare") readCompare(node, issues);
-    else if (node[0] === "screenshot") readScreenshot(node, issues);
+    if (node[0] === "compare") readCompare(node, issues, data);
+    else if (node[0] === "screenshot") readScreenshot(node, issues, data);
     else if (node[0] === "annotation") issues.push("annotation: must be inside a screenshot.");
-    else check(children(node), issues);
+    else check(children(node), data, issues);
   }
   return issues;
 }

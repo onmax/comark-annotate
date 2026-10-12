@@ -3,10 +3,10 @@ import { check } from "./read.ts";
 
 export type { Mark } from "./marks.ts";
 
-export interface AnnotateMeta {
+export type AnnotateMeta = {
   /** One readable sentence per problem with a `::screenshot`, `::compare`, or `::annotation`. Empty when the document is valid. */
   annotateIssues: string[];
-}
+};
 
 /**
  * Checks `::screenshot`, `::compare`, and `::annotation` blocks while parsing and lists every problem in
@@ -15,6 +15,12 @@ export interface AnnotateMeta {
 export default defineComarkPlugin<void, AnnotateMeta>(() => ({
   name: "comark-annotate",
   post(state) {
-    state.tree.meta.annotateIssues = check(state.tree.nodes);
+    const { tree } = state;
+    tree.meta.annotateIssues = check(tree.nodes, {
+      frontmatter: tree.frontmatter,
+      meta: tree.meta,
+      data: {},
+      props: {},
+    });
   },
 }));

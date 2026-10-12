@@ -34,23 +34,24 @@ describe("comark-annotate", () => {
     expect(issues).toEqual([]);
     expect(html).toContain('<img src="before.png" alt="Old toolbar"');
     expect(html).toContain('style="left:10%;top:20%;width:30%;height:15%"');
-    expect(html).toMatch(/class="ca-mark ca-check" data-n="2" href="#ca1-2"/);
-    expect(html).toMatch(/<li id="ca1-1" data-n="1">.*Filters <strong>wrap<\/strong>\./);
+    expect(html).toMatch(/class="ca-mark ca-check" data-n="2" href="#(ca-[a-z0-9]+)-2"/);
+    expect(html).toMatch(/<li id="ca-[a-z0-9]+-1" data-n="1">.*Filters <strong>wrap<\/strong>\./);
     expect(html).toContain('<span class="ca-label">Before</span>');
     expect(html).toContain(
       '<span class="ca-label">After</span> <a href="https://pr2.example.com/plan">pr2.example.com/plan</a>',
     );
   });
 
-  it("inlines the styles once per render, including repeat renders of one document", async () => {
+  it("inlines the styles once per render and keeps ids stable and unique", async () => {
     const { document } = await run(
-      `${compare}\n::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10}\nNote\n:::\n::`,
+      `${compare}\n::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10}\nNote\n:::\n::\n\n::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10}\nAgain\n:::\n::`,
     );
-    for (let i = 0; i < 2; i++) {
-      const html = await renderHtmlFromDocument(document, { components });
-      expect(html.match(/<style>/g)).toHaveLength(1);
-      expect(html).toContain('id="ca2-');
-    }
+    const first = await renderHtmlFromDocument(document, { components });
+    const second = await renderHtmlFromDocument(document, { components });
+    expect(first).toBe(second);
+    expect(first.match(/<style>/g)).toHaveLength(1);
+    const ids = [...first.matchAll(/ id="([^"]+)"/g)].map((match) => match[1]);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 
   it("moves side notes beside the image with an arrow and keeps the rest in the list", async () => {
@@ -61,10 +62,11 @@ describe("comark-annotate", () => {
     expect(html).toContain('class="ca-screenshot ca-right"');
     expect(html).toMatch(/class="ca-arrow ca-arrow-right" data-n="1" style="top:15%;left:20%;/);
     expect(html).toMatch(
-      /class="ca-callout ca-callout-right" id="ca1-1" data-n="1"[^>]*><div>Beside/,
+      /class="ca-callout ca-callout-right" id="ca-[a-z0-9]+-1" data-n="1"[^>]*><div>Beside/,
     );
+    expect(html).toContain('aria-label="Side note: Beside"');
     expect(html).toContain('<span class="ca-stamp">1</span></a>');
-    expect(html).toMatch(/<ol class="ca-notes"><li id="ca1-2" data-n="2">.*Listed/);
+    expect(html).toMatch(/<ol class="ca-notes"><li id="ca-[a-z0-9]+-2" data-n="2">.*Listed/);
   });
 
   it("maps named colors to the palette and passes hex through", async () => {
@@ -73,6 +75,24 @@ describe("comark-annotate", () => {
     );
     expect(html).toContain("--ca-color:var(--ca-amber);--ca-ink:var(--ca-amber-ink);");
     expect(html).toContain("--ca-color:#123456;");
+  });
+
+  it("reads props from YAML blocks and bindings", async () => {
+    const { issues, html } = await run(
+      '::screenshot{src="a.png" alt="A"}\n:::annotation\n```yaml [props]\nx: 10\ny: 20\nw: 30\nh: 15\nside: right\n```\nFrom YAML\n:::\n:::annotation{:x="40" :y="40" :w="10" :h="10"}\nBound\n:::\n::',
+    );
+    expect(issues).toEqual([]);
+    expect(html).toContain("left:10%;top:20%;width:30%;height:15%");
+    expect(html).toContain("left:40%;top:40%;width:10%;height:10%");
+    expect(html).toContain("ca-callout-right");
+  });
+
+  it("reports inherited object keys as marks instead of crashing", async () => {
+    const { issues, html } = await run(
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=1 y=1 w=10 h=10 mark="toString"}\nNote\n:::\n::`,
+    );
+    expect(issues.join("\n")).toContain("`mark` must be one of");
+    expect(html).toContain("ca-mark ca-box");
   });
 
   it.each([
@@ -101,6 +121,18 @@ describe("comark-annotate", () => {
     [compare.replace('viewport="900x360"', 'viewport="1440x900"'), "different viewports"],
     [`::annotation{x=0 y=0 w=10 h=10}\nNote\n::`, "must be inside a screenshot"],
     [
+      `::screenshot{src="a.png" alt="A"}\n> :::annotation{x=0 y=0 w=10 h=10}\n> Note\n> :::\n::`,
+      "Annotations must be direct children of a screenshot",
+    ],
+    [
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10}\n<!-- todo -->\n:::\n::`,
+      "write a note",
+    ],
+    [
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10 color="gren"}\nNote\n:::\n::`,
+      "`color` must be",
+    ],
+    [
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10 side="up"}\nNote\n:::\n::`,
       "`side` must be left or right",
     ],
@@ -120,5 +152,14 @@ describe("comark-annotate", () => {
     expect(html).toContain('src="a.png&quot; onerror=&quot;x"');
     expect(html).toContain('alt="&lt;b&gt;"');
     expect(html).not.toContain("javascript:");
+    const { html: lookalike } = await run(
+      `::screenshot{src="a.png" alt="A" url="httpx:alert(1)"}\n::`,
+    );
+    expect(lookalike).not.toContain("<a href");
+    const { issues, html: upper } = await run(
+      `::screenshot{src="a.png" alt="A" url="HTTPS://x.com"}\n::`,
+    );
+    expect(issues).toEqual([]);
+    expect(upper).toContain('<a href="HTTPS://x.com">');
   });
 });
