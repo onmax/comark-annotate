@@ -54,6 +54,7 @@
   },
   "devDependencies": {
     "@comark/html": "catalog:",
+    "@fontsource-variable/caveat": "catalog:",
     "@types/node": "catalog:",
     "comark": "catalog:",
     "geist": "catalog:",

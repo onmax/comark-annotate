@@ -2,7 +2,7 @@
 
 Hand-drawn marks, numbered notes, and arrows on screenshots, written in Markdown. A [Comark](https://comark.dev) plugin that renders static HTML.
 
-[![A dashboard screenshot with a box, an underline, and a highlight, each joined by a hand-drawn arrow to a note beside the image, and one numbered note below it](https://comark-annotate.onmax.me/readme.png)](https://comark-annotate.onmax.me)
+[![A dashboard screenshot with handwritten notes above and beside it, each pointing at a value with a hand-drawn arrow](https://comark-annotate.onmax.me/readme.png)](https://comark-annotate.onmax.me)
 
 **[Docs and live demo](https://comark-annotate.onmax.me)**
 
@@ -33,7 +33,7 @@ Five filters don't fit, so the toolbar wraps onto a second row.
 ::
 ```
 
-Coordinates are percentages of the image. Props can be inline, in a YAML props block, or bound with `:x`. Marks: `box`, `circle`, `underline`, `highlight`, `cross`, `check`. Colors: `blue` (default), `red`, `amber`, `green`, `gray`, or any hex. Add `side="left"` or `side="right"` to put a note beside the image with a hand-drawn arrow. The plugin lists every problem in `meta.annotateIssues`, so a host can reject a document before publishing it.
+Coordinates are percentages of the image. Props can be inline, in a YAML props block, or bound with `:x`. Marks: `box`, `circle`, `underline`, `highlight`, `cross`, `check`. Colors: `blue` (default), `red`, `amber`, `green`, `gray`, or any hex. Add `side="left"`, `side="right"`, or `side="top"` to put a note beside or above the image with a hand-drawn arrow, and `mark="none"` to let the arrow do the pointing. Set `--ca-note-font` for handwritten notes; the docs use Caveat. The plugin lists every problem in `meta.annotateIssues`, so a host can reject a document before publishing it.
 
 The output is static HTML with one inlined `<style>` per document and `style` attributes for positions, so a strict CSP needs `style-src 'unsafe-inline'`. Notes are ordinary Markdown, so raw HTML in them renders like anywhere else in the document; for untrusted input, add Comark's `security` plugin, which also cleans notes. Override colors with a plain rule such as `.ca { --ca-color: #0070f3; --ca-ink: #fff }`.
 

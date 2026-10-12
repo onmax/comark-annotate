@@ -32,6 +32,24 @@ Extra filters collapse into **+2 filters**.
 ```
 :::
 
+:::example{label="Pointers"}
+```md
+::screenshot{src="/dashboard.png" alt="Forecast planning dashboard"}
+:::annotation{x=37.6 y=31.9 w=11.9 h=3.3 mark="none" side="top"}
+Units fell below plan.
+:::
+
+:::annotation{x=66.4 y=16.4 w=29.4 h=22.2 mark="none" side="top"}
+Accuracy now counts returns.
+:::
+
+:::annotation{x=53.1 y=74.7 w=21.2 h=8.4 mark="none" side="left"}
+Week 15 never loaded.
+:::
+::
+```
+:::
+
 :::example{label="Side notes"}
 ```md
 ::screenshot{src="/dashboard.png" alt="Forecast planning dashboard"}
@@ -99,7 +117,7 @@ const render = createHtmlRenderer({ plugins: [annotate()], components });
 const html = await render(markdown);
 ```
 
-The renderer inlines its styles once per document and scopes them under `.ca` with zero specificity, so a plain `.ca { --ca-color: #0070f3; --ca-ink: #fff }` changes the default mark and stamp colors. Positions use `style` attributes, so a strict CSP needs `style-src 'unsafe-inline'`. Notes are ordinary Markdown, so raw HTML in them renders like anywhere else in the document; for untrusted input, add Comark's `security` plugin, which also cleans notes.
+The renderer inlines its styles once per document and scopes them under `.ca` with zero specificity, so a plain `.ca { --ca-color: #0070f3; --ca-ink: #fff }` changes the default mark and stamp colors. Side notes and labels use `--ca-note-font`; this page sets it to Caveat for the handwritten look. Positions use `style` attributes, so a strict CSP needs `style-src 'unsafe-inline'`. Notes are ordinary Markdown, so raw HTML in them renders like anywhere else in the document; for untrusted input, add Comark's `security` plugin, which also cleans notes.
 
 ## Components
 
@@ -146,8 +164,8 @@ Accuracy now counts returns.
 | Prop | |
 | --- | --- |
 | `x` `y` `w` `h` | The marked area, as percentages of the image from 0 to 100. |
-| `mark` | `box` (default), `circle`, `underline`, `highlight`, `cross`, or `check`. |
-| `side` | `left` or `right` puts the note beside the image with an arrow. |
+| `mark` | `box` (default), `circle`, `underline`, `highlight`, `cross`, `check`, or `none` to let an arrow do the pointing. |
+| `side` | `left`, `right`, or `top` puts the note beside or above the image with an arrow. |
 | `color` | `blue` (default) points something out, `red` flags a problem, `amber` a warning, `green` a fix, `gray` anything neutral. Each has a dark-mode value. Any hex color like `#e5484d` works too. |
 
 ### compare
@@ -176,7 +194,7 @@ Fixed.
 
 ### Side notes
 
-`side="left"` or `side="right"` moves a note out of the list and next to the image, with a hand-drawn arrow to its mark. Side notes have no number because the arrow links them. On narrow screens they drop under the image with a bar in their color, and the arrows hide.
+`side="left"`, `side="right"`, or `side="top"` moves a note out of the list and next to or above the image, with a hand-drawn arrow to its mark. Pair it with `mark="none"` to point without drawing a box. Side notes have no number because the arrow links them. On narrow screens they drop under the image with a bar in their color, and the arrows hide.
 
 Notes on the same side need room. The plugin reports side notes whose marks sit close together vertically, since they would likely overlap. It can't measure the text, so check the rendered page too, and move one note to the other side or into the list.
 

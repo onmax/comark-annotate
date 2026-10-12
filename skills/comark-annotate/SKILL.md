@@ -13,7 +13,7 @@ Pick what explains the change best, and mix freely with ordinary Markdown such a
 
 - One `::screenshot` with marks, when a single state shows the point.
 - A `::compare` of two screenshots, when the change is the point. Capture both at the same viewport, zoom, scroll, and page state, and set the same `viewport` on both.
-- A side note (`side="left"` or `side="right"`) for the one or two marks that matter most. Other notes stay numbered in the list under the image.
+- A side note (`side="left"`, `"right"`, or `"top"`) for the two or three points that matter most. With `mark="none"` the arrow alone points at the spot, which reads cleanest. Other notes stay numbered in the list under the image.
 
 Keep it to about six marks per screenshot. Every note says what is wrong or what changed, not just "here".
 
@@ -36,7 +36,7 @@ Five filters don't fit, so the toolbar wraps and pushes the table down.
 ```
 
 - `::screenshot`: `src` and `alt` are required; `label`, `url` (the captured page), and `viewport` are optional. Other content becomes the caption.
-- `::annotation`: `x y w h` are percentages of the image, 0 to 100. `mark` is `box` (default), `circle`, `underline`, `highlight`, `cross`, or `check`. `color` is `blue` (default) to point something out, `red` for a problem, `amber` for a warning, `green` for a fix, `gray` for neutral, or a hex color. `side` is `left` or `right`.
+- `::annotation`: `x y w h` are percentages of the image, 0 to 100. `mark` is `box` (default), `circle`, `underline`, `highlight`, `cross`, `check`, or `none`. `color` is `blue` (default) to point something out, `red` for a problem, `amber` for a warning, `green` for a fix, `gray` for neutral, or a hex color. `side` is `left`, `right`, or `top`; keep top notes at least a quarter of the image apart and left or right notes an eighth apart.
 - Annotations must be direct children of a screenshot.
 
 ## Measure every mark

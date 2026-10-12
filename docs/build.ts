@@ -113,6 +113,10 @@ await mkdir(new URL("fonts/", dist), { recursive: true });
 await cp(new URL("public/", root), dist, { recursive: true });
 for (const font of ["geist-sans/Geist-Variable.woff2", "geist-mono/GeistMono-Variable.woff2"])
   await cp(new URL(font, fonts), new URL(`fonts/${font.split("/")[1]}`, dist));
+await cp(
+  new URL("../node_modules/@fontsource-variable/caveat/files/caveat-latin-wght-normal.woff2", root),
+  new URL("fonts/Caveat-Variable.woff2", dist),
+);
 
 // The package's agent skill, served for Agent Skills Discovery: v0.2 with a digest, and v0.1, which `npx skills add` reads.
 const skill = await readFile(new URL("../skills/comark-annotate/SKILL.md", root), "utf8");
