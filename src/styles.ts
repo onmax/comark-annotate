@@ -26,6 +26,7 @@ export const css = [
   // A tick beside the target, so it doesn't hide what it approves.
   ".ca-check svg{left:calc(100% + 4px);top:50%;width:20px;height:20px;transform:translateY(-50%)}",
   ".ca-stamp{display:inline-grid;place-items:center;flex:none;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:var(--ca-color);color:var(--ca-ink);font-family:inherit;font-size:11px;font-weight:600;line-height:1;letter-spacing:-.01em;font-variant-numeric:tabular-nums}",
+  ".ca-letter{display:none}",
   ".ca-mark .ca-stamp{position:absolute;left:-9px;top:-9px;box-shadow:0 0 0 2px var(--ca-ring,#fff),0 1px 3px rgb(0 0 0/.18);transform:scale(calc(1 + .1 * var(--ca-on,0)));transition:transform .15s ease}",
   ".ca-arrow{position:absolute;height:16px;color:var(--ca-color);transform:translateY(-50%);pointer-events:none}",
   ".ca-arrow svg{position:absolute;overflow:visible;fill:none;stroke:currentColor;stroke-width:calc(1.25px + .5px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round}",
@@ -41,9 +42,9 @@ export const css = [
   ".ca-callout-top{bottom:calc(100% - var(--ca-top-gutter) + var(--ca-gap));width:max-content;max-width:14rem;text-align:center;transform:translateX(-50%)}",
   ".ca-callout>div>:first-child{margin-top:0}",
   ".ca-callout>div>:last-child{margin-bottom:0}",
-  // Too narrow for side notes: stack them under the image, marked by their color, and drop the arrows. Notes on both sides need more room than notes on one.
-  "@container (max-width:28rem){.ca-stage{padding:0!important}.ca-arrow{display:none}.ca-callout{position:static;width:auto;margin-top:.5rem;padding-left:.75rem;border-left:2px solid var(--ca-color);border-radius:0;text-align:left;transform:none}}",
-  "@container (max-width:40rem){.ca-left.ca-right .ca-stage{padding:0!important}.ca-left.ca-right .ca-arrow{display:none}.ca-left.ca-right .ca-callout{position:static;width:auto;margin-top:.5rem;padding-left:.75rem;border-left:2px solid var(--ca-color);border-radius:0;text-align:left;transform:none}}",
+  // Too narrow for side notes: stack them under the image, drop the arrows, and letter each note and its target instead. Notes on both sides need more room than notes on one.
+  "@container (max-width:28rem){.ca-stage{padding:0!important}.ca-arrow{display:none}.ca-callout{position:static;display:flex;gap:.6rem;align-items:baseline;width:auto;max-width:none;margin-top:.5rem;padding-left:0;text-align:left;transform:none}.ca-letter{display:inline-grid}.ca-none{outline:1.5px dashed var(--ca-color);outline-offset:3px;border-radius:3px}}",
+  "@container (max-width:40rem){.ca-left.ca-right .ca-stage{padding:0!important}.ca-left.ca-right .ca-arrow{display:none}.ca-left.ca-right .ca-callout{position:static;display:flex;gap:.6rem;align-items:baseline;width:auto;max-width:none;margin-top:.5rem;padding-left:0;text-align:left;transform:none}.ca-left.ca-right .ca-letter{display:inline-grid}.ca-left.ca-right .ca-none{outline:1.5px dashed var(--ca-color);outline-offset:3px;border-radius:3px}}",
   ".ca figcaption{margin-top:.75rem}",
   ".ca-heading{display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline;margin-bottom:.5rem}",
   ".ca-label{font-family:var(--ca-note-font,inherit);font-size:var(--ca-label-size,.8125em);font-weight:500}",

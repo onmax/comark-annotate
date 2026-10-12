@@ -69,8 +69,20 @@ async function figure(shot: Screenshot, state: State, id: string) {
   const color = (annotation: Annotation) => paint(annotation.color);
   const style = (annotation: Annotation) =>
     annotation.color ? ` style="${color(annotation)}"` : "";
+  // Side notes get letters that only show when the notes stack under the image and the arrows are gone.
+  const letters = new Map(
+    shot.annotations
+      .filter((annotation) => annotation.side)
+      .map((annotation, index) => [annotation.n, String.fromCharCode(65 + (index % 26))]),
+  );
+  const letter = (annotation: Annotation) =>
+    `<span class="ca-stamp ca-letter">${letters.get(annotation.n) ?? ""}</span>`;
   const stamp = (annotation: Annotation) =>
-    annotation.number ? `<span class="ca-stamp">${annotation.number}</span>` : "";
+    annotation.number
+      ? `<span class="ca-stamp">${annotation.number}</span>`
+      : annotation.side
+        ? letter(annotation)
+        : "";
   const pins = shot.annotations.map(
     (annotation) =>
       `<a class="ca-mark ca-${annotation.mark}" data-n="${annotation.n}" href="#${id}-${annotation.n}" aria-label="${attr(label(annotation))}" title="${attr(noteText(annotation))}" ` +
@@ -110,7 +122,7 @@ async function figure(shot: Screenshot, state: State, id: string) {
         : `top:${y}%`;
     return (
       `<div class="ca-callout ca-callout-${annotation.side}" id="${id}-${annotation.n}" data-n="${annotation.n}" style="${color(annotation)}${place}">` +
-      `<div>${await children(annotation.note, state)}</div></div>`
+      `${letter(annotation)}<div>${await children(annotation.note, state)}</div></div>`
     );
   });
   const sides = [...new Set(sided.map((annotation) => ` ca-${annotation.side}`))].join("");

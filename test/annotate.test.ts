@@ -67,7 +67,7 @@ describe("comark-annotate", () => {
     expect(html).toContain('class="ca-screenshot ca-right"');
     expect(html).toMatch(/class="ca-arrow ca-arrow-right" data-n="1" style="top:15%;left:20%;/);
     expect(html).toMatch(
-      /class="ca-callout ca-callout-right" id="ca-[a-z0-9]+-1" data-n="1"[^>]*><div>Beside/,
+      /class="ca-callout ca-callout-right" id="ca-[a-z0-9]+-1" data-n="1"[^>]*><span class="ca-stamp ca-letter">A<\/span><div>Beside/,
     );
     expect(html).toContain('aria-label="Side note: Beside"');
     expect(html).toContain('<span class="ca-stamp">1</span></a>');
