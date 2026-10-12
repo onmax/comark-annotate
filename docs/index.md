@@ -2,7 +2,7 @@
 title: comark-annotate
 description: Annotated screenshots for Comark.
 tagline: Mark up screenshots in Markdown with hand-drawn marks, numbered notes, arrows, and before/after comparisons.
-install: pnpm add comark-annotate
+install: pnpm add comark @comark/html comark-annotate
 ---
 
 ::tabs
@@ -99,7 +99,7 @@ const render = createHtmlRenderer({ plugins: [annotate()], components });
 const html = await render(markdown);
 ```
 
-The renderer inlines its styles once per document and scopes them under `.ca`. Set `--ca-color` to change the default mark color.
+The renderer inlines its styles once per document and scopes them under `.ca` with zero specificity, so a plain `.ca { --ca-color: #0070f3; --ca-ink: #fff }` changes the default mark and stamp colors. Positions use `style` attributes, so a strict CSP needs `style-src 'unsafe-inline'`.
 
 ## Components
 
@@ -127,7 +127,7 @@ Extra filters collapse into **+2 filters**.
 
 ### annotation
 
-A mark on the screenshot and its note. The content is the note. Notes in the list under the image are numbered. Side notes sit beside the image and point with an arrow instead.
+A mark on the screenshot and its note. The content is the note. Props can be inline, in a YAML props block, or bound with `:x`. Notes in the list under the image are numbered. Side notes sit beside the image and point with an arrow instead.
 
 ::example
 ```md
@@ -148,7 +148,7 @@ Accuracy now counts returns.
 | `x` `y` `w` `h` | The marked area, as percentages of the image from 0 to 100. |
 | `mark` | `box` (default), `circle`, `underline`, `highlight`, `cross`, or `check`. |
 | `side` | `left` or `right` puts the note beside the image with an arrow. |
-| `color` | `red` (default) for a problem, `amber` for a warning, `green` for a fix, `blue` for information, `gray` for neutral. Each has a dark-mode value. Any hex color works too. |
+| `color` | `red` (default) for a problem, `amber` for a warning, `green` for a fix, `blue` for information, `gray` for neutral. Each has a dark-mode value. Any hex color like `#e5484d` works too. |
 
 ### compare
 

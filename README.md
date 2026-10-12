@@ -5,7 +5,7 @@ Annotated screenshots and before/after comparisons for [Comark](https://comark.d
 **[Docs and live demo](https://comark-annotate.onmax.me)**
 
 ```sh
-pnpm add comark-annotate
+pnpm add comark @comark/html comark-annotate
 ```
 
 ```ts
@@ -31,13 +31,15 @@ Five filters don't fit, so the toolbar wraps onto a second row.
 ::
 ```
 
-Coordinates are percentages of the image. Marks: `box`, `circle`, `underline`, `highlight`, `cross`, `check`. Add `side="left"` or `side="right"` to put a note beside the image with a hand-drawn arrow. The plugin lists every problem in `meta.annotateIssues`, so a host can reject a document before publishing it.
+Coordinates are percentages of the image. Props can be inline, in a YAML props block, or bound with `:x`. Marks: `box`, `circle`, `underline`, `highlight`, `cross`, `check`. Add `side="left"` or `side="right"` to put a note beside the image with a hand-drawn arrow. The plugin lists every problem in `meta.annotateIssues`, so a host can reject a document before publishing it.
+
+The output is static HTML with one inlined `<style>` per document and `style` attributes for positions, so a strict CSP needs `style-src 'unsafe-inline'`. Override colors with a plain rule such as `.ca { --ca-color: #0070f3; --ca-ink: #fff }`.
 
 ## Development
 
 ```sh
 pnpm install
-pnpm ready       # format, build, lint, test
+pnpm ready       # format, lint, typecheck, build, test, doctor
 pnpm docs:build  # render docs/index.md into docs/dist
 ```
 
@@ -45,4 +47,4 @@ Releases: see [RELEASING.md](./RELEASING.md).
 
 ## Credits
 
-The marks come from [AnnotationKit](https://annotationkit.vercel.app). MIT licensed.
+comark-annotate is MIT licensed. The hand-drawn marks come from [AnnotationKit](https://annotationkit.vercel.app), and [Comark](https://comark.dev) by the Comark team does the parsing and rendering.
