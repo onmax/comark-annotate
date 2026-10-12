@@ -13,8 +13,8 @@ export interface Annotation {
   h: number;
   mark: Mark;
   color?: string;
-  /** Pull the note out beside the image, joined to the mark by an arrow. */
-  side?: "left" | "right";
+  /** Pull the note out beside or above the image, joined to the mark by an arrow. */
+  side?: "left" | "right" | "top";
   note: Node[];
 }
 
@@ -62,9 +62,10 @@ const hasContent = (nodes: Node[]): boolean =>
   );
 // Allow half a percent of rounding error when an agent converts pixels to percentages.
 const EDGE = 100.5;
-const SIDES = ["left", "right"] as const;
-// Side notes closer than this (in % of the image height) would overlap.
-const SIDE_GAP = 12;
+const SIDES = ["left", "right", "top"] as const;
+// Notes on one side closer than this would likely overlap: % of the image height for left and right, of its
+// width for top. A heuristic, since the text itself can't be measured.
+const SIDE_GAP = { left: 12, right: 12, top: 25 };
 // styles.ts links marks and notes for this many annotations per screenshot or compare.
 export const MAX_LINKED = 40;
 
@@ -103,11 +104,21 @@ export function readScreenshot(
   for (const side of SIDES) {
     const centers = annotations
       .flatMap((annotation) =>
-        annotation.side === side ? [{ n: annotation.n, y: annotation.y + annotation.h / 2 }] : [],
+        annotation.side === side
+          ? [
+              {
+                n: annotation.n,
+                at:
+                  side === "top"
+                    ? annotation.x + annotation.w / 2
+                    : annotation.y + annotation.h / 2,
+              },
+            ]
+          : [],
       )
-      .sort((a, b) => a.y - b.y);
+      .sort((a, b) => a.at - b.at);
     for (let i = 1; i < centers.length; i++)
-      if (centers[i]!.y - centers[i - 1]!.y < SIDE_GAP)
+      if (centers[i]!.at - centers[i - 1]!.at < SIDE_GAP[side])
         issues.push(
           `${where}: the ${side} notes for annotations ${centers[i - 1]!.n} and ${centers[i]!.n} would overlap. Move one to the other side or leave it under the image.`,
         );
@@ -160,7 +171,8 @@ function readAnnotation(
     issues.push(`${where}: \`color\` must be ${PALETTE.join(", ")}, or a hex color like #e5484d.`);
   const side = text(attrs.side);
   const knownSide = SIDES.find((item) => item === side);
-  if (side && !knownSide) issues.push(`${where}: \`side\` must be left or right (got "${side}").`);
+  if (side && !knownSide)
+    issues.push(`${where}: \`side\` must be left, right, or top (got "${side}").`);
   const note = children(node);
   if (!hasContent(note)) issues.push(`${where}: write a note explaining what the mark points at.`);
   nested(note, where, issues);

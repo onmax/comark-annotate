@@ -1,5 +1,7 @@
 // Hand-drawn marks from AnnotationKit (https://annotationkit.vercel.app). Each one stretches over the annotated area.
 export const marks = {
+  // Draws nothing: the arrow from a side note does the pointing.
+  none: { viewBox: "0 0 1 1", paths: [] },
   box: {
     viewBox: "0 0 200 100",
     paths: [

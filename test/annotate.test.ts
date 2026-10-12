@@ -74,6 +74,20 @@ describe("comark-annotate", () => {
     expect(html).toMatch(/<ol class="ca-notes"><li id="ca-[a-z0-9]+-2" data-n="2">.*Listed/);
   });
 
+  it("points from a note above the image without drawing a mark", async () => {
+    const { issues, html } = await run(
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=40 y=50 w=20 h=10 mark="none" side="top"}\nStart with what failed.\n:::\n::`,
+    );
+    expect(issues).toEqual([]);
+    expect(html).toContain('class="ca-screenshot ca-top"');
+    expect(html).toMatch(
+      /class="ca-arrow ca-arrow-top" data-n="1" style="left:50%;top:calc\(-1 \* var\(--ca-gap\)\);bottom:50%"/,
+    );
+    expect(html).toContain('class="ca-mark ca-none"');
+    expect(html).not.toMatch(/ca-mark ca-none"[^>]*><svg[^>]*><path/);
+    expect(html).toContain('title="Start with what failed."');
+  });
+
   it("maps named colors to the palette and passes hex through", async () => {
     const { html } = await run(
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10 color="amber"}\nA\n:::\n:::annotation{x=50 y=50 w=10 h=10 color="#123456"}\nB\n:::\n::`,
@@ -150,11 +164,15 @@ describe("comark-annotate", () => {
     ],
     [
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10 side="up"}\nNote\n:::\n::`,
-      "`side` must be left or right",
+      "`side` must be left, right, or top",
     ],
     [
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=10 w=10 h=10 side="left"}\nA\n:::\n:::annotation{x=0 y=15 w=10 h=10 side="left"}\nB\n:::\n::`,
       "would overlap",
+    ],
+    [
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=10 y=50 w=10 h=10 side="top"}\nA\n:::\n:::annotation{x=20 y=50 w=10 h=10 side="top"}\nB\n:::\n::`,
+      "top notes for annotations 1 and 2 would overlap",
     ],
   ])("reports %#: %s", async (markdown, issue) => {
     const { issues } = await run(markdown);

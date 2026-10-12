@@ -41,6 +41,9 @@ const paint = (color?: string) =>
 // A loose hand-drawn stroke that stretches between the mark and its note, and a head that keeps its size.
 const ARROW = `<svg class="ca-arrow-line" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M2 10C30 3 62 17 98 9" vector-effect="non-scaling-stroke"/></svg>`;
 const HEAD = `<svg class="ca-arrow-head" viewBox="0 0 8 8"><path d="M6.5 1.5L1.5 4l5 2.5" vector-effect="non-scaling-stroke"/></svg>`;
+// The same stroke falling from a note above the image, with its head pointing down.
+const ARROW_DOWN = `<svg class="ca-arrow-line" viewBox="0 0 24 100" preserveAspectRatio="none"><path d="M17 2C2 26 3 66 12 98" vector-effect="non-scaling-stroke"/></svg>`;
+const HEAD_DOWN = `<svg class="ca-arrow-head" viewBox="0 0 8 8"><path d="M1.5 1.5L4 6.5l2.5-5" vector-effect="non-scaling-stroke"/></svg>`;
 
 const attr = (value: string) => escapeHtml(value, { '"': "&quot;" });
 const wrap = (nodes: Node[]): ElementNode => ["div", {}, ...nodes];
@@ -51,10 +54,10 @@ async function each<T>(items: T[], render: (item: T) => Promise<string>) {
   for (const item of items) html += await render(item);
   return html;
 }
+const noteText = (annotation: Annotation) =>
+  textContent(wrap(annotation.note)).trim().slice(0, 120);
 const label = (annotation: Annotation) =>
-  annotation.number
-    ? `Annotation ${annotation.number}`
-    : `Side note: ${textContent(wrap(annotation.note)).trim().slice(0, 80)}`;
+  annotation.number ? `Annotation ${annotation.number}` : `Side note: ${noteText(annotation)}`;
 
 function markSvg({ mark }: Annotation) {
   const { viewBox, paths } = marks[mark];
@@ -70,7 +73,7 @@ async function figure(shot: Screenshot, state: State, id: string) {
     annotation.number ? `<span class="ca-stamp">${annotation.number}</span>` : "";
   const pins = shot.annotations.map(
     (annotation) =>
-      `<a class="ca-mark ca-${annotation.mark}" data-n="${annotation.n}" href="#${id}-${annotation.n}" aria-label="${attr(label(annotation))}" ` +
+      `<a class="ca-mark ca-${annotation.mark}" data-n="${annotation.n}" href="#${id}-${annotation.n}" aria-label="${attr(label(annotation))}" title="${attr(noteText(annotation))}" ` +
       `style="${color(annotation)}left:${annotation.x}%;top:${annotation.y}%;width:${annotation.w}%;height:${annotation.h}%">` +
       `${markSvg(annotation)}${stamp(annotation)}</a>`,
   );
@@ -82,20 +85,34 @@ async function figure(shot: Screenshot, state: State, id: string) {
       `<div>${await children(annotation.note, state)}</div></li>`,
   );
   const sided = shot.annotations.filter((annotation) => annotation.side);
+  const center = (annotation: Annotation) => ({
+    x: annotation.x + annotation.w / 2,
+    y: annotation.y + annotation.h / 2,
+  });
   const arrows = sided.map((annotation) => {
-    const span =
-      annotation.side === "right"
-        ? `left:${annotation.x + annotation.w}%;right:calc(-1 * var(--ca-gap))`
-        : `left:calc(-1 * var(--ca-gap));right:${100 - annotation.x}%`;
-    return `<span class="ca-arrow ca-arrow-${annotation.side}" data-n="${annotation.n}" style="${color(annotation)}top:${annotation.y + annotation.h / 2}%;${span}" aria-hidden="true">${ARROW}${HEAD}</span>`;
+    const { x, y } = center(annotation);
+    const place =
+      annotation.side === "top"
+        ? `left:${x}%;top:calc(-1 * var(--ca-gap));bottom:${100 - annotation.y}%`
+        : annotation.side === "right"
+          ? `top:${y}%;left:${annotation.x + annotation.w}%;right:calc(-1 * var(--ca-gap))`
+          : `top:${y}%;left:calc(-1 * var(--ca-gap));right:${100 - annotation.x}%`;
+    const [line, head] = annotation.side === "top" ? [ARROW_DOWN, HEAD_DOWN] : [ARROW, HEAD];
+    return `<span class="ca-arrow ca-arrow-${annotation.side}" data-n="${annotation.n}" style="${color(annotation)}${place}" aria-hidden="true">${line}${head}</span>`;
   });
   // Side notes live outside the frame so the frame, and every percentage inside it, stays the size of the image.
-  const callouts = await each(
-    sided,
-    async (annotation) =>
-      `<div class="ca-callout ca-callout-${annotation.side}" id="${id}-${annotation.n}" data-n="${annotation.n}" style="${color(annotation)}top:${annotation.y + annotation.h / 2}%">` +
-      `<div>${await children(annotation.note, state)}</div></div>`,
-  );
+  // A top note's x is a share of the frame, which sits between any left and right gutters.
+  const callouts = await each(sided, async (annotation) => {
+    const { x, y } = center(annotation);
+    const place =
+      annotation.side === "top"
+        ? `left:calc(var(--ca-pl,0px) + (100% - var(--ca-pl,0px) - var(--ca-pr,0px)) * ${x / 100})`
+        : `top:${y}%`;
+    return (
+      `<div class="ca-callout ca-callout-${annotation.side}" id="${id}-${annotation.n}" data-n="${annotation.n}" style="${color(annotation)}${place}">` +
+      `<div>${await children(annotation.note, state)}</div></div>`
+    );
+  });
   const sides = [...new Set(sided.map((annotation) => ` ca-${annotation.side}`))].join("");
   const heading = [
     shot.label && `<span class="ca-label">${escapeHtml(shot.label)}</span>`,
