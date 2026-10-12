@@ -1,3 +1,8 @@
+import { execFile } from "node:child_process";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { promisify } from "node:util";
 import { renderHtmlFromDocument } from "@comark/html";
 import { parseMarkdown } from "comark";
 import { describe, expect, it } from "vite-plus/test";
@@ -172,5 +177,23 @@ describe("comark-annotate", () => {
     );
     expect(issues).toEqual([]);
     expect(upper).toContain('<a href="HTTPS://x.com">');
+  });
+
+  it("checks and renders files from the CLI", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "comark-annotate-"));
+    const cli = (...args: string[]) =>
+      promisify(execFile)(process.execPath, [
+        new URL("../src/cli.ts", import.meta.url).pathname,
+        ...args,
+      ]);
+    await writeFile(
+      join(dir, "ok.md"),
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=1 y=1 w=5 h=5}\nNote\n:::\n::`,
+    );
+    await writeFile(join(dir, "bad.md"), `::screenshot{src="a.png"}\n::`);
+    expect((await cli("check", join(dir, "ok.md"))).stdout).toContain("No problems.");
+    await expect(cli("check", join(dir, "bad.md"))).rejects.toMatchObject({ code: 1 });
+    await cli("render", join(dir, "ok.md"));
+    expect(await readFile(join(dir, "ok.html"), "utf8")).toContain('class="ca-mark ca-box"');
   });
 });

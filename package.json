@@ -18,8 +18,12 @@
     "type": "git",
     "url": "git+https://github.com/onmax/comark-annotate.git"
   },
+  "bin": {
+    "comark-annotate": "./dist/cli.mjs"
+  },
   "files": [
-    "dist"
+    "dist",
+    "skills"
   ],
   "type": "module",
   "sideEffects": false,
@@ -64,11 +68,6 @@
   "peerDependencies": {
     "@comark/html": "^0.7.0",
     "comark": "^0.7.0"
-  },
-  "peerDependenciesMeta": {
-    "@comark/html": {
-      "optional": true
-    }
   },
   "packageManager": "pnpm@11.18.0"
 }
