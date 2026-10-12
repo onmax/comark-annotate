@@ -36,8 +36,9 @@ export const css = [
   ".ca-callout-left{left:0;text-align:right}",
   ".ca-callout>div>:first-child{margin-top:0}",
   ".ca-callout>div>:last-child{margin-bottom:0}",
-  // Too narrow for side notes: stack them under the image, marked by their color, and drop the arrows.
-  "@container (max-width:36rem){.ca-stage{padding:0!important}.ca-arrow{display:none}.ca-callout{position:static;width:auto;margin-top:.5rem;padding-left:.75rem;border-left:2px solid var(--ca-color);border-radius:0;text-align:left;transform:none}}",
+  // Too narrow for side notes: stack them under the image, marked by their color, and drop the arrows. Notes on both sides need more room than notes on one.
+  "@container (max-width:28rem){.ca-stage{padding:0!important}.ca-arrow{display:none}.ca-callout{position:static;width:auto;margin-top:.5rem;padding-left:.75rem;border-left:2px solid var(--ca-color);border-radius:0;text-align:left;transform:none}}",
+  "@container (max-width:40rem){.ca-left.ca-right .ca-stage{padding:0!important}.ca-left.ca-right .ca-arrow{display:none}.ca-left.ca-right .ca-callout{position:static;width:auto;margin-top:.5rem;padding-left:.75rem;border-left:2px solid var(--ca-color);border-radius:0;text-align:left;transform:none}}",
   ".ca figcaption{margin-top:.75rem}",
   ".ca-heading{display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline;margin-bottom:.5rem}",
   ".ca-label{font-weight:600}",
