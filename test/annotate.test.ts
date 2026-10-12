@@ -92,8 +92,10 @@ describe("comark-annotate", () => {
     const { html } = await run(
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10 color="amber"}\nA\n:::\n:::annotation{x=50 y=50 w=10 h=10 color="#123456"}\nB\n:::\n::`,
     );
-    expect(html).toContain("--ca-color:var(--ca-amber);--ca-ink:var(--ca-amber-ink);");
-    expect(html).toContain("--ca-color:#123456;");
+    expect(html).toContain(
+      "--ca-color:var(--ca-amber);--ca-solid:var(--ca-amber-solid);--ca-ink:var(--ca-amber-ink);",
+    );
+    expect(html).toContain("--ca-color:#123456;--ca-solid:#123456;");
   });
 
   it("reads props from YAML blocks and bindings", async () => {

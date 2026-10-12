@@ -7,10 +7,11 @@ const linked = Array.from(
 
 export const css = [
   // One meaning per color: blue points something out (the default), red flags a problem, amber a warning, green a fix, gray anything neutral.
-  // Each color has an ink for the number on its stamp: white on the darker light-mode fills, near-black on amber and on every bright dark-mode fill.
+  // Strokes, arrows, and notes use the color, which lightens in dark mode. Stamps use a deeper solid shade in both themes,
+  // so their number stays white (4.7:1 or better); only amber keeps a dark number.
   // :where() keeps these at zero specificity, so a host's plain `.ca { --ca-color: … }` wins.
-  ":where(.ca){--ca-red:#e5484d;--ca-amber:#f5a524;--ca-green:#2f8a5b;--ca-blue:#0070f3;--ca-gray:#6f6f6f;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-ink:var(--ca-blue-ink);margin:1.5rem 0}",
-  "@media (prefers-color-scheme:dark){:where(.ca){--ca-red:#ff6369;--ca-amber:#ffb224;--ca-green:#3dd68c;--ca-blue:#52a8ff;--ca-gray:#a1a1a1;--ca-red-ink:#0a0a0a;--ca-amber-ink:#0a0a0a;--ca-green-ink:#0a0a0a;--ca-blue-ink:#0a0a0a;--ca-gray-ink:#0a0a0a}.ca-frame img{outline-color:rgb(255 255 255/.1)}}",
+  ":where(.ca){--ca-red:#f43f5e;--ca-amber:#f5a524;--ca-green:#2f9e6b;--ca-blue:#5b6cf0;--ca-gray:#71717a;--ca-red-solid:#e11d48;--ca-amber-solid:#f59e0b;--ca-green-solid:#15803d;--ca-blue-solid:#4f46e5;--ca-gray-solid:#52525b;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-solid:var(--ca-blue-solid);--ca-ink:var(--ca-blue-ink);margin:1.5rem 0}",
+  "@media (prefers-color-scheme:dark){:where(.ca){--ca-red:#fb7185;--ca-amber:#ffb224;--ca-green:#56d39a;--ca-blue:#a5b4fc;--ca-gray:#a1a1aa}.ca-frame img{outline-color:rgb(255 255 255/.1)}}",
   ".ca-compare{display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr));align-items:start}",
   ".ca-screenshot{--ca-gutter:10rem;--ca-top-gutter:5rem;--ca-gap:1.25rem;margin:0;container-type:inline-size}",
   ".ca-stage{position:relative}",
@@ -25,7 +26,7 @@ export const css = [
   ".ca-underline svg{top:calc(100% - 5px);height:12px}",
   // A tick beside the target, so it doesn't hide what it approves.
   ".ca-check svg{left:calc(100% + 4px);top:50%;width:20px;height:20px;transform:translateY(-50%)}",
-  ".ca-stamp{display:inline-grid;place-items:center;flex:none;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:var(--ca-color);color:var(--ca-ink);font-family:inherit;font-size:11px;font-weight:600;line-height:1;letter-spacing:-.01em;font-variant-numeric:tabular-nums}",
+  ".ca-stamp{display:inline-grid;place-items:center;flex:none;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:var(--ca-solid,var(--ca-color));color:var(--ca-ink);font-family:inherit;font-size:11px;font-weight:600;line-height:1;letter-spacing:-.01em;font-variant-numeric:tabular-nums}",
   ".ca-letter{display:none}",
   ".ca-mark .ca-stamp{position:absolute;left:-9px;top:-9px;box-shadow:0 0 0 2px var(--ca-ring,#fff),0 1px 3px rgb(0 0 0/.18);transform:scale(calc(1 + .1 * var(--ca-on,0)));transition:transform .15s ease}",
   ".ca-arrow{position:absolute;height:16px;color:var(--ca-color);transform:translateY(-50%);pointer-events:none}",

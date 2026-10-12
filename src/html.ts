@@ -35,8 +35,8 @@ const paint = (color?: string) =>
   !color
     ? ""
     : named.has(color)
-      ? `--ca-color:var(--ca-${color});--ca-ink:var(--ca-${color}-ink);`
-      : `--ca-color:${color};`;
+      ? `--ca-color:var(--ca-${color});--ca-solid:var(--ca-${color}-solid);--ca-ink:var(--ca-${color}-ink);`
+      : `--ca-color:${color};--ca-solid:${color};`;
 
 // A loose hand-drawn stroke that stretches between the mark and its note, and a head that keeps its size.
 const ARROW = `<svg class="ca-arrow-line" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M2 10C30 3 62 17 98 9" vector-effect="non-scaling-stroke"/></svg>`;
