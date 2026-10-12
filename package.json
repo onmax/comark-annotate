@@ -1,6 +1,6 @@
 {
   "name": "comark-annotate",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Annotated screenshots and before/after comparisons for Comark.",
   "keywords": [
     "annotation",
