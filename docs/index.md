@@ -166,7 +166,7 @@ Accuracy now counts returns.
 | `x` `y` `w` `h` | The marked area, as percentages of the image from 0 to 100. |
 | `mark` | `box` (default), `circle`, `underline`, `highlight`, `cross`, `check`, or `none` to let an arrow do the pointing. |
 | `side` | `left`, `right`, or `top` puts the note beside or above the image with an arrow. |
-| `color` | `blue` (default) points something out, `red` flags a problem, `amber` a warning, `green` a fix, `gray` anything neutral. Each has a dark-mode value. Any hex color like `#e5484d` works too. |
+| `color` | `blue` (default) points something out, `red` flags a problem, `amber` a warning, `green` a fix, `gray` anything neutral. Each has a dark-mode value. Any hex color like `#e11d48` works too. |
 
 ### compare
 

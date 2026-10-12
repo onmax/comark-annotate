@@ -261,7 +261,9 @@ body {
   height: 2rem;
   border-radius: 999px;
   color: var(--muted);
-  transition: color 150ms ease, background-color 150ms ease;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
 }
 
 .install:hover .install-hint {
