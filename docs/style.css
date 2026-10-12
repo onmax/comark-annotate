@@ -113,8 +113,8 @@ body {
 .top .icon {
   display: grid;
   place-items: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 6px;
   transition:
     color 150ms ease,
@@ -187,6 +187,75 @@ body {
   padding: 3.5rem 0 4rem;
 }
 
+.hero p {
+  max-width: 34rem;
+  margin: 0;
+  font-size: 1.0625rem;
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  height: 2.5rem;
+  padding: 0 1rem;
+  border-radius: 6px;
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: opacity 150ms ease;
+}
+
+.button:hover {
+  opacity: 0.85;
+}
+
+.install {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.5rem;
+  padding: 0 0.5rem 0 0.875rem;
+  border: 0;
+  border-radius: 6px;
+  background: var(--soft);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--faint);
+  font: 0.8125rem/1 var(--mono);
+  cursor: pointer;
+}
+
+.install code {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--fg);
+  font-size: inherit;
+}
+
+.install-hint {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--muted);
+  font: 500 0.75rem/1.2 var(--sans);
+}
+
+.install:hover .install-hint {
+  color: var(--fg);
+}
+
 .hero h1 {
   margin: 0 0 0.5rem;
   color: var(--fg);
@@ -194,6 +263,16 @@ body {
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: -0.025em;
+}
+
+@media (hover: none) {
+  .copy {
+    opacity: 1;
+  }
+
+  .seg button {
+    padding: 0.45rem 0.85rem;
+  }
 }
 
 @media (max-width: 52rem) {
@@ -207,7 +286,7 @@ body {
 }
 
 main {
-  margin-top: 1rem;
+  margin-top: 3rem;
 }
 
 main > :first-child {
@@ -277,6 +356,10 @@ pre {
   border-radius: 6px;
   background: var(--soft) !important;
   box-shadow: inset 0 0 0 1px var(--line);
+}
+
+pre[language="txt"] code {
+  white-space: pre-wrap;
 }
 
 pre .line {
@@ -384,7 +467,7 @@ blockquote {
 
 .example {
   margin: 1.25rem 0;
-  border-radius: 8px;
+  border-radius: 6px;
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
@@ -431,7 +514,7 @@ blockquote {
 
 .example-code pre {
   margin: 0;
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 6px 6px;
   box-shadow: none;
   background: none !important;
 }

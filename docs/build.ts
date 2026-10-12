@@ -53,7 +53,10 @@ const document = await parseMarkdown(await readFile(new URL("index.md", root), "
 });
 if (document.meta.annotateIssues.length)
   throw new Error(`docs/index.md:\n${document.meta.annotateIssues.join("\n")}`);
-const { title, description } = document.frontmatter as { title: string; description: string };
+const { title, description, tagline, install } = document.frontmatter as Record<
+  "title" | "description" | "tagline" | "install",
+  string
+>;
 
 const nav = document.nodes
   .filter(isElement)
@@ -85,6 +88,9 @@ for (const ex of document.querySelectorAll(".example")) ex.querySelector(".seg")
   ex.querySelector(".example-preview").hidden = b.dataset.view !== "preview";
   ex.querySelector(".example-code").hidden = b.dataset.view !== "code";
 });
+for (const b of document.querySelectorAll("[data-copy]")) b.addEventListener("click", async () => {
+  await navigator.clipboard.writeText(b.dataset.copy); const h = b.querySelector(".install-hint"); h.textContent = "Copied"; setTimeout(() => h.textContent = "Copy", 1500);
+});
 for (const pre of document.querySelectorAll("pre")) {
   const b = document.createElement("button"); b.className = "copy"; b.type = "button"; b.textContent = "Copy";
   b.onclick = async () => { await navigator.clipboard.writeText(pre.querySelector("code").innerText.trimEnd()); b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1500) };
@@ -111,7 +117,7 @@ await writeFile(
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${title} · ${description}</title>
-<meta name="description" content="${description}">
+<meta name="description" content="${escapeHtml(tagline)}">
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${description}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -126,7 +132,8 @@ await writeFile(
 <div class="layout">
 <aside class="sidebar"><nav aria-label="On this page"><a class="nav-h2" href="#">Introduction</a>${nav}</nav></aside>
 <div class="content">
-<div class="hero enter"><h1>${title}</h1></div>
+<div class="hero enter"><h1>${title}</h1><p>${escapeHtml(tagline)}</p>
+<div class="actions"><a class="button" href="#usage">Get started</a><button type="button" class="install" data-copy="${escapeHtml(install)}"><span aria-hidden="true">$</span> <code>${escapeHtml(install)}</code><span class="install-hint">Copy</span></button></div></div>
 <main class="enter" style="--i:1">${body}</main>
 <footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>. Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>
 </div>
