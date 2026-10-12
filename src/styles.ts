@@ -9,14 +9,14 @@ export const css = [
   // One meaning per color: red flags a problem, amber a warning, green a fix, blue information, gray anything neutral.
   // Each color has an ink for the number on its stamp: white on the darker light-mode fills, near-black on amber and on every bright dark-mode fill.
   ".ca{--ca-red:#e5484d;--ca-amber:#f5a524;--ca-green:#2f8a5b;--ca-blue:#0070f3;--ca-gray:#6f6f6f;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-red);--ca-ink:var(--ca-red-ink);margin:1.5rem 0}",
-  "@media (prefers-color-scheme:dark){.ca{--ca-red:#ff6369;--ca-amber:#ffb224;--ca-green:#3dd68c;--ca-blue:#52a8ff;--ca-gray:#a1a1a1;--ca-red-ink:#0a0a0a;--ca-amber-ink:#0a0a0a;--ca-green-ink:#0a0a0a;--ca-blue-ink:#0a0a0a;--ca-gray-ink:#0a0a0a}}",
+  "@media (prefers-color-scheme:dark){.ca{--ca-red:#ff6369;--ca-amber:#ffb224;--ca-green:#3dd68c;--ca-blue:#52a8ff;--ca-gray:#a1a1a1;--ca-red-ink:#0a0a0a;--ca-amber-ink:#0a0a0a;--ca-green-ink:#0a0a0a;--ca-blue-ink:#0a0a0a;--ca-gray-ink:#0a0a0a}.ca-frame img{outline-color:rgb(255 255 255/.1)}}",
   ".ca-compare{display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr));align-items:start}",
   ".ca-screenshot{--ca-gutter:10rem;--ca-gap:1.25rem;margin:0;container-type:inline-size}",
   ".ca-stage{position:relative}",
   ".ca-right .ca-stage{padding-right:var(--ca-gutter)}",
   ".ca-left .ca-stage{padding-left:var(--ca-gutter)}",
   ".ca-frame{position:relative;line-height:0}",
-  ".ca-frame img{display:block;width:100%;height:auto;margin:0;border-radius:6px;box-shadow:0 0 0 1px rgb(127 127 127/.2)}",
+  ".ca-frame img{display:block;width:100%;height:auto;margin:0;border-radius:6px;outline:1px solid rgb(0 0 0/.1);outline-offset:-1px}",
   ".ca-mark{position:absolute;color:var(--ca-color);text-decoration:none;outline:none}",
   ".ca-mark svg{position:absolute;left:-5px;top:-5px;width:calc(100% + 10px);height:calc(100% + 10px);overflow:visible;fill:none;stroke:currentColor;stroke-width:calc(2px + 1px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round;transition:stroke-width .15s}",
   ".ca-highlight svg{left:0;top:0;width:100%;height:100%;fill:currentColor;fill-opacity:calc(.16 + .08 * var(--ca-on,0));stroke:none}",
