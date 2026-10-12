@@ -10,11 +10,11 @@ install: pnpm add comark @comark/html comark-annotate
 ```md
 ::compare
 :::screenshot{src="/before.png" alt="Filter toolbar wrapping onto a second row" viewport="640x250"}
-::::annotation{x=5 y=29.6 w=90 h=45.3}
+::::annotation{x=5 y=29.6 w=90 h=45.3 color="red"}
 Five filters don't fit, so the toolbar wraps and pushes the table down.
 ::::
 
-::::annotation{x=50.9 y=55.4 w=10.5 h=14.2 mark="circle"}
+::::annotation{x=50.9 y=55.4 w=10.5 h=14.2 mark="circle" color="red"}
 **Apply** sits 6px lower than the chips.
 ::::
 :::
@@ -35,7 +35,7 @@ Extra filters collapse into **+2 filters**.
 :::example{label="Side notes"}
 ```md
 ::screenshot{src="/dashboard.png" alt="Forecast planning dashboard"}
-:::annotation{x=37.6 y=31.9 w=11.9 h=3.3 mark="underline" side="left"}
+:::annotation{x=37.6 y=31.9 w=11.9 h=3.3 mark="underline" side="left" color="red"}
 Units fall below plan for the first time this quarter.
 :::
 
@@ -73,7 +73,7 @@ Notes without a `side` stay in the list. **Apply** waits until every filter is s
 `highlight` washes over an area.
 :::
 
-:::annotation{x=6 y=44.6 w=45.2 h=7.3 mark="cross"}
+:::annotation{x=6 y=44.6 w=45.2 h=7.3 mark="cross" color="red"}
 `cross` strikes something out.
 :::
 
@@ -148,7 +148,7 @@ Accuracy now counts returns.
 | `x` `y` `w` `h` | The marked area, as percentages of the image from 0 to 100. |
 | `mark` | `box` (default), `circle`, `underline`, `highlight`, `cross`, or `check`. |
 | `side` | `left` or `right` puts the note beside the image with an arrow. |
-| `color` | `red` (default) for a problem, `amber` for a warning, `green` for a fix, `blue` for information, `gray` for neutral. Each has a dark-mode value. Any hex color like `#e5484d` works too. |
+| `color` | `blue` (default) points something out, `red` flags a problem, `amber` a warning, `green` a fix, `gray` anything neutral. Each has a dark-mode value. Any hex color like `#e5484d` works too. |
 
 ### compare
 
@@ -158,7 +158,7 @@ Two screenshots side by side, labelled **Before** and **After** unless they set 
 ```md
 ::compare
 :::screenshot{src="/before.png" alt="Toolbar wrapping" viewport="640x250"}
-::::annotation{x=50.9 y=55.4 w=10.5 h=14.2 mark="circle"}
+::::annotation{x=50.9 y=55.4 w=10.5 h=14.2 mark="circle" color="red"}
 **Apply** sits lower than the chips.
 ::::
 :::
@@ -215,6 +215,21 @@ screenshot "after.png", annotation 2: the box runs past the image edge (x + w an
 ```
 
 Rendering never throws.
+
+## Agents
+
+The package ships an agent skill with the syntax, how to measure marks from the page, and how to check the result. Install it from this site:
+
+```sh
+npx skills add https://comark-annotate.onmax.me
+```
+
+It also comes with a small CLI. `check` lists every problem and exits with 1 if there are any; `render` writes a standalone page you can open and screenshot to confirm each mark sits on its target.
+
+```sh
+npx comark-annotate check report.md
+npx comark-annotate render report.md -o report.html
+```
 
 ## Credits
 

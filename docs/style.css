@@ -534,7 +534,6 @@ blockquote {
 }
 
 .ca {
-  --ca-ring: var(--bg);
   font-size: 0.875rem;
 }
 

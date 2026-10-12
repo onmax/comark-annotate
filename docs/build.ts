@@ -1,4 +1,5 @@
 // Renders docs/index.md with comark-annotate itself into docs/dist, a static site served by Cloudflare.
+import { createHash } from "node:crypto";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { renderHtmlFromDocument } from "@comark/html";
 import shiki from "@comark/html/plugins/shiki";
@@ -112,6 +113,36 @@ await mkdir(new URL("fonts/", dist), { recursive: true });
 await cp(new URL("public/", root), dist, { recursive: true });
 for (const font of ["geist-sans/Geist-Variable.woff2", "geist-mono/GeistMono-Variable.woff2"])
   await cp(new URL(font, fonts), new URL(`fonts/${font.split("/")[1]}`, dist));
+
+// The package's agent skill, served for Agent Skills Discovery: v0.2 with a digest, and v0.1, which `npx skills add` reads.
+const skill = await readFile(new URL("../skills/comark-annotate/SKILL.md", root), "utf8");
+const skillMeta = (await parseMarkdown(skill)).frontmatter;
+const [skillName, skillDescription] = [str(skillMeta.name), str(skillMeta.description)];
+for (const base of ["agent-skills", "skills"]) {
+  await mkdir(new URL(`.well-known/${base}/${skillName}/`, dist), { recursive: true });
+  await writeFile(new URL(`.well-known/${base}/${skillName}/SKILL.md`, dist), skill);
+}
+await writeFile(
+  new URL(".well-known/agent-skills/index.json", dist),
+  JSON.stringify({
+    $schema: "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+    skills: [
+      {
+        name: skillName,
+        type: "skill-md",
+        description: skillDescription,
+        url: `/.well-known/agent-skills/${skillName}/SKILL.md`,
+        digest: `sha256:${createHash("sha256").update(skill).digest("hex")}`,
+      },
+    ],
+  }),
+);
+await writeFile(
+  new URL(".well-known/skills/index.json", dist),
+  JSON.stringify({
+    skills: [{ name: skillName, description: skillDescription, files: ["SKILL.md"] }],
+  }),
+);
 
 await writeFile(
   new URL("index.html", dist),
