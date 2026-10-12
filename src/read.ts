@@ -10,6 +10,8 @@ export interface Annotation {
   h: number;
   mark: Mark;
   color?: string;
+  /** Pull the note out beside the image, joined to the mark by an arrow. */
+  side?: "left" | "right";
   note: Node[];
 }
 
@@ -30,6 +32,9 @@ const text = (value: unknown) =>
 const COLOR = /^(?:#[\da-f]{3,8}|[a-z]+)$/i;
 // Allow half a percent of rounding error when an agent converts pixels to percentages.
 const EDGE = 100.5;
+const SIDES = ["left", "right"] as const;
+// Side notes closer than this (in % of the image height) would overlap.
+const SIDE_GAP = 12;
 
 /** Reads a `::screenshot` node, numbering its annotations from `first`. Problems go to `issues`; rendering never throws. */
 export function readScreenshot(node: ElementNode, issues: string[], first = 1): Screenshot {
@@ -54,6 +59,17 @@ export function readScreenshot(node: ElementNode, issues: string[], first = 1): 
       );
       annotations.push({ ...annotation, n: first + annotations.length });
     } else caption.push(child);
+  }
+  for (const side of SIDES) {
+    const centers = annotations
+      .filter((annotation) => annotation.side === side)
+      .map((annotation) => ({ n: annotation.n, y: annotation.y + annotation.h / 2 }))
+      .sort((a, b) => a.y - b.y);
+    for (let i = 1; i < centers.length; i++)
+      if (centers[i]!.y - centers[i - 1]!.y < SIDE_GAP)
+        issues.push(
+          `${where}: the ${side} notes for annotations ${centers[i - 1]!.n} and ${centers[i]!.n} would overlap. Move one to the other side or leave it under the image.`,
+        );
   }
   return {
     src,
@@ -91,6 +107,9 @@ function readAnnotation(node: ElementNode, where: string, issues: string[]): Omi
   const color = text(attrs.color);
   if (color && !COLOR.test(color))
     issues.push(`${where}: \`color\` must be a hex color or a CSS color name.`);
+  const side = text(attrs.side);
+  if (side && !SIDES.includes(side as "left"))
+    issues.push(`${where}: \`side\` must be left or right (got "${side}").`);
   if (!textContent(node).trim())
     issues.push(`${where}: write a note explaining what the mark points at.`);
 
@@ -98,6 +117,7 @@ function readAnnotation(node: ElementNode, where: string, issues: string[]): Omi
     ...box,
     mark: mark in marks ? (mark as Mark) : "box",
     color: COLOR.test(color) ? color : undefined,
+    side: SIDES.find((item) => item === side),
     note: children(node),
   };
 }

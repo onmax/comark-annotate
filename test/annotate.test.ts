@@ -53,6 +53,17 @@ describe("comark-annotate", () => {
     }
   });
 
+  it("moves side notes beside the image with an arrow and keeps the rest in the list", async () => {
+    const { issues, html } = await run(
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=10 y=10 w=10 h=10 side="right"}\nBeside\n:::\n:::annotation{x=50 y=50 w=10 h=10}\nListed\n:::\n::`,
+    );
+    expect(issues).toEqual([]);
+    expect(html).toContain('class="ca-screenshot ca-right"');
+    expect(html).toMatch(/class="ca-arrow ca-arrow-right" data-n="1" style="top:15%;left:20%;/);
+    expect(html).toMatch(/class="ca-callout ca-callout-right" id="ca1-1" data-n="1"[^>]*>.*Beside/);
+    expect(html).toMatch(/<ol class="ca-notes"><li id="ca1-2" data-n="2">.*Listed/);
+  });
+
   it.each([
     [`::screenshot{src="a.png"}\n::`, "`alt` is required"],
     [
@@ -78,6 +89,14 @@ describe("comark-annotate", () => {
     [`::compare\n:::screenshot{src="a.png" alt="A"}\n:::\n::`, "needs exactly two screenshots"],
     [compare.replace('viewport="900x360"', 'viewport="1440x900"'), "different viewports"],
     [`::annotation{x=0 y=0 w=10 h=10}\nNote\n::`, "must be inside a screenshot"],
+    [
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10 side="up"}\nNote\n:::\n::`,
+      "`side` must be left or right",
+    ],
+    [
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=10 w=10 h=10 side="left"}\nA\n:::\n:::annotation{x=0 y=15 w=10 h=10 side="left"}\nB\n:::\n::`,
+      "would overlap",
+    ],
   ])("reports %#: %s", async (markdown, issue) => {
     const { issues } = await run(markdown);
     expect(issues.join("\n")).toContain(issue);

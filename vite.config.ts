@@ -4,7 +4,8 @@ export default defineConfig({
   staged: {
     "*": "vp check --fix",
   },
-  fmt: { ignorePatterns: ["**/dist/**"] },
+  // oxfmt reads Comark blocks as plain Markdown and breaks them.
+  fmt: { ignorePatterns: ["**/dist/**", "**/*.md"] },
   lint: {
     ignorePatterns: ["**/dist/**"],
     options: { typeAware: true, typeCheck: true },

@@ -16,6 +16,10 @@ function begin(state: State) {
   return { id: `ca${++render.figures}`, styles: first ? `<style>${css}</style>` : "" };
 }
 
+// A loose hand-drawn stroke that stretches between the mark and its note, and a head that keeps its size.
+const ARROW = `<svg class="ca-arrow-line" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M2 10C30 3 62 17 98 9" vector-effect="non-scaling-stroke"/></svg>`;
+const HEAD = `<svg class="ca-arrow-head" viewBox="0 0 12 12"><path d="M10 2C7 4 4 5 2 6C4 7 7 8 10 10" vector-effect="non-scaling-stroke"/></svg>`;
+
 const attr = (value: string) => escapeHtml(value, { '"': "&quot;" });
 const children = (nodes: Node[], state: State) =>
   state.flow(["div", {}, ...nodes] as ElementNode, state);
@@ -37,13 +41,30 @@ async function figure(shot: Screenshot, state: State, id: string) {
       `style="${color(annotation)}left:${annotation.x}%;top:${annotation.y}%;width:${annotation.w}%;height:${annotation.h}%">` +
       `${markSvg(annotation)}<span class="ca-stamp">${annotation.n}</span></a>`,
   );
+  const listed = shot.annotations.filter((annotation) => !annotation.side);
   const notes = await Promise.all(
-    shot.annotations.map(
+    listed.map(
       async (annotation) =>
         `<li id="${id}-${annotation.n}" data-n="${annotation.n}"${style(annotation)}><span class="ca-stamp">${annotation.n}</span>` +
         `<div>${await children(annotation.note, state)}</div></li>`,
     ),
   );
+  const sided = shot.annotations.filter((annotation) => annotation.side);
+  const callouts = await Promise.all(
+    sided.map(async (annotation) => {
+      const top = `top:${annotation.y + annotation.h / 2}%`;
+      const span =
+        annotation.side === "right"
+          ? `left:${annotation.x + annotation.w}%;right:calc(-1 * var(--ca-gap))`
+          : `left:calc(-1 * var(--ca-gap));right:${100 - annotation.x}%`;
+      return (
+        `<span class="ca-arrow ca-arrow-${annotation.side}" data-n="${annotation.n}" style="${color(annotation)}${top};${span}" aria-hidden="true">${ARROW}${HEAD}</span>` +
+        `<div class="ca-callout ca-callout-${annotation.side}" id="${id}-${annotation.n}" data-n="${annotation.n}" style="${color(annotation)}${top}">` +
+        `<span class="ca-stamp">${annotation.n}</span><div>${await children(annotation.note, state)}</div></div>`
+      );
+    }),
+  );
+  const sides = [...new Set(sided.map((annotation) => ` ca-${annotation.side}`))].join("");
   const heading = [
     shot.label && `<span class="ca-label">${escapeHtml(shot.label)}</span>`,
     shot.url &&
@@ -55,7 +76,7 @@ async function figure(shot: Screenshot, state: State, id: string) {
     ? await children(shot.caption, state)
     : "";
   return (
-    `<figure class="ca-screenshot"><div class="ca-frame"><img src="${attr(shot.src)}" alt="${attr(shot.alt)}" loading="lazy" decoding="async">${pins.join("")}</div>` +
+    `<figure class="ca-screenshot${sides}"><div class="ca-frame"><img src="${attr(shot.src)}" alt="${attr(shot.alt)}" loading="lazy" decoding="async">${pins.join("")}${callouts.join("")}</div>` +
     (heading || caption || notes.length
       ? `<figcaption>${heading && `<div class="ca-heading">${heading}</div>`}${caption}${notes.length ? `<ol class="ca-notes">${notes.join("")}</ol>` : ""}</figcaption>`
       : "") +
