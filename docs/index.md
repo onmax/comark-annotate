@@ -99,7 +99,7 @@ const render = createHtmlRenderer({ plugins: [annotate()], components });
 const html = await render(markdown);
 ```
 
-The renderer inlines its styles once per document and scopes them under `.ca` with zero specificity, so a plain `.ca { --ca-color: #0070f3; --ca-ink: #fff }` changes the default mark and stamp colors. Positions use `style` attributes, so a strict CSP needs `style-src 'unsafe-inline'`.
+The renderer inlines its styles once per document and scopes them under `.ca` with zero specificity, so a plain `.ca { --ca-color: #0070f3; --ca-ink: #fff }` changes the default mark and stamp colors. Positions use `style` attributes, so a strict CSP needs `style-src 'unsafe-inline'`. Notes are ordinary Markdown, so raw HTML in them renders like anywhere else in the document; for untrusted input, add Comark's `security` plugin, which also cleans notes.
 
 ## Components
 
@@ -178,7 +178,7 @@ Fixed.
 
 `side="left"` or `side="right"` moves a note out of the list and next to the image, with a hand-drawn arrow to its mark. Side notes have no number because the arrow links them. On narrow screens they drop under the image with a bar in their color, and the arrows hide.
 
-Notes on the same side need room. When two would overlap, the plugin reports it. Move one to the other side or leave it in the list.
+Notes on the same side need room. The plugin reports side notes whose marks sit close together vertically, since they would likely overlap. It can't measure the text, so check the rendered page too, and move one note to the other side or into the list.
 
 ### Placing marks
 

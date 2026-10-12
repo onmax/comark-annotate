@@ -33,7 +33,7 @@ Five filters don't fit, so the toolbar wraps onto a second row.
 
 Coordinates are percentages of the image. Props can be inline, in a YAML props block, or bound with `:x`. Marks: `box`, `circle`, `underline`, `highlight`, `cross`, `check`. Add `side="left"` or `side="right"` to put a note beside the image with a hand-drawn arrow. The plugin lists every problem in `meta.annotateIssues`, so a host can reject a document before publishing it.
 
-The output is static HTML with one inlined `<style>` per document and `style` attributes for positions, so a strict CSP needs `style-src 'unsafe-inline'`. Override colors with a plain rule such as `.ca { --ca-color: #0070f3; --ca-ink: #fff }`.
+The output is static HTML with one inlined `<style>` per document and `style` attributes for positions, so a strict CSP needs `style-src 'unsafe-inline'`. Notes are ordinary Markdown, so raw HTML in them renders like anywhere else in the document; for untrusted input, add Comark's `security` plugin, which also cleans notes. Override colors with a plain rule such as `.ca { --ca-color: #0070f3; --ca-ink: #fff }`.
 
 ## Development
 

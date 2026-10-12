@@ -17,11 +17,11 @@ The release workflow uses `GITHUB_TOKEN` and npm OIDC trusted publishing. It nee
 
 1. Merge into `main` with conventional commit titles such as `fix: ...` or `feat: ...`. On every push, uppt creates or updates a draft `release/vX.Y.Z` PR from the changes since the last release.
 2. Review the proposed version and release notes, mark the PR ready, and merge it.
-3. The Release workflow verifies the merged commit with formatting, build, lint, tests, and the docs build. Release PRs created with `GITHUB_TOKEN` may not trigger normal PR CI, so this check runs before tagging.
+3. The Release workflow verifies the merged commit with formatting, lint, typecheck, build, tests, Vite Doctor, and the docs build. Release PRs created with `GITHUB_TOKEN` may not trigger normal PR CI, so this check runs before tagging.
 4. The workflow tags the version, creates the GitHub release, and dispatches itself on the tag. That run verifies the tag again, packs the package, and stages the tarball on npm with provenance.
 5. Approve the staged version on npm with 2FA, then check the version and dist-tag. A GitHub release alone does not mean the package is installable.
 
-Every branch and PR also gets a preview package through `pkg-pr-new`.
+Every branch pushed to this repository, and every PR opened from it, gets a preview package through `pkg-pr-new`. PRs from forks don't, so their package scripts never run with a write token.
 
 ## Recover a failed release
 
