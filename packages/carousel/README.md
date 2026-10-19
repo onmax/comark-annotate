@@ -50,4 +50,6 @@ Step two.
 | `@comark/react` | `comark-carousel/react` |
 | `@comark/svelte` | `comark-carousel/svelte` |
 
-Each entry exports the parse plugin as `default` and the renderer's `components`. Override `--cc-gap` to change the space between slides.
+Each entry exports the parse plugin as `default` and the renderer's `components`. 
+
+The styles follow shadcn/ui: they read its CSS variables, such as `--background` and `--border`, when the page has them, and use its neutral theme otherwise. Set `--comark-background`, `--comark-foreground`, `--comark-muted`, `--comark-border`, `--comark-accent`, `--comark-ring`, `--comark-radius`, or `--comark-font` to theme zoom, carousel, and annotate at once; the rules sit in a `comark` CSS layer, so any plain rule of your own wins. See [Theming](https://comark.onmax.me/carousel/#guides-theming) for the Nuxt UI mapping. Override `--cc-gap` to change the space between slides.

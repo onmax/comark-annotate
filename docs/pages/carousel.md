@@ -127,6 +127,44 @@ Import `comark-carousel/style.css` and `comark-zoom/style.css` with your styles 
 
 ### Theming
 
+The styles follow [shadcn/ui](https://ui.shadcn.com). On a site that already uses its CSS variables, the arrows and dots match it with no setup, and a `.dark` class anywhere above them switches the theme. Elsewhere they use shadcn's neutral theme and follow the system's light or dark mode.
+
+Set the `--comark-*` tokens to theme zoom, carousel, and annotate at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
+
+| Token | Falls back to | Used for |
+| --- | --- | --- |
+| `--comark-background` | `--background` | Button faces, the zoom backdrop, the ring around stamps |
+| `--comark-foreground` | `--foreground` | Text, icons, the current dot and thumbnail |
+| `--comark-muted` | `--muted-foreground` | The zoom counter |
+| `--comark-border` | `--border` | Button, thumbnail, and screenshot borders |
+| `--comark-accent` | `--accent` | Hovered buttons |
+| `--comark-ring` | `--ring` | Focus rings |
+| `--comark-radius` | `--radius` | Corners, a little smaller on buttons and images |
+| `--comark-font` | `--font-sans` | The zoomed view's header |
+
+```css
+:root {
+  --comark-accent: oklch(0.95 0.03 250);
+  --comark-radius: 0.25rem;
+}
+```
+
+The rules sit in a `comark` CSS layer, so any plain rule of your own wins without `!important`, such as `.cc-step { border-radius: 0 }`. shadcn/ui before Tailwind 4 stores colors as bare HSL numbers, so map those: `--comark-border: hsl(var(--border))`.
+
+[Nuxt UI](https://ui.nuxt.com) names its variables differently. Map them once:
+
+```css
+:root {
+  --comark-background: var(--ui-bg);
+  --comark-foreground: var(--ui-text-highlighted);
+  --comark-muted: var(--ui-text-muted);
+  --comark-border: var(--ui-border);
+  --comark-accent: var(--ui-bg-elevated);
+  --comark-ring: var(--ui-primary);
+  --comark-radius: calc(var(--ui-radius) * 2);
+}
+```
+
 Override `--cc-gap` to change the space between slides.
 
 ## Credits

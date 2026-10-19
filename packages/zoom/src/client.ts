@@ -463,3 +463,4 @@ export function start(css: string): () => void {
 }
 
 export { css } from "./styles.ts";
+export { theme } from "./theme.ts";
