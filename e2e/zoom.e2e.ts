@@ -45,3 +45,14 @@ test("opening and closing the zoom doesn't shift the page sideways", async ({ pa
   expect(await heading.evaluate((node) => node.getBoundingClientRect().left)).toBe(left);
   expect(await page.evaluate(() => (window as Window & { shifts?: number[] }).shifts)).toEqual([]);
 });
+
+test("a zoomed table keeps its header row", async ({ page }) => {
+  await page.goto("/zoom/");
+  const block = page
+    .locator("main .example-preview .cz")
+    .filter({ has: page.locator("table") })
+    .last();
+  await block.scrollIntoViewIfNeeded();
+  await block.click();
+  await expect(page.locator(".cz-dialog th").first()).toHaveText("Attempt");
+});
