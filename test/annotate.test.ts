@@ -43,8 +43,12 @@ describe("comark-annotate", () => {
     expect(html).toMatch(/<li id="ca-[a-z0-9]+-1" data-n="1">.*Filters <strong>wrap<\/strong>\./);
     expect(html).toContain('<span class="ca-label">Before</span>');
     expect(html).toContain(
-      '<span class="ca-label">After</span> <a href="https://pr2.example.com/plan">pr2.example.com/plan</a>',
+      '<span class="ca-label">After</span> <a href="https://pr2.example.com/plan" title="https://pr2.example.com/plan">pr2.example.com/plan</a>',
     );
+    expect(html).toMatch(
+      /<figure class="ca-screenshot"><div class="ca-heading"><span class="ca-label">Before<\/span><\/div><div class="ca-stage">/,
+    );
+    expect(html).not.toMatch(/<figcaption><div class="ca-heading">/);
   });
 
   it("inlines the styles once per render and keeps ids stable and unique", async () => {
@@ -196,7 +200,7 @@ describe("comark-annotate", () => {
       `::screenshot{src="a.png" alt="A" url="HTTPS://x.com"}\n::`,
     );
     expect(issues).toEqual([]);
-    expect(upper).toContain('<a href="HTTPS://x.com">');
+    expect(upper).toContain('<a href="HTTPS://x.com" title="HTTPS://x.com">');
   });
 
   it("checks and renders files from the CLI", async () => {

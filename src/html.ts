@@ -129,7 +129,7 @@ async function figure(shot: Screenshot, state: State, id: string) {
   const heading = [
     shot.label && `<span class="ca-label">${escapeHtml(shot.label)}</span>`,
     shot.url &&
-      `<a href="${attr(shot.url)}">${escapeHtml(shot.url.replace(/^https?:\/\//, ""))}</a>`,
+      `<a href="${attr(shot.url)}" title="${attr(shot.url)}">${escapeHtml(shot.url.replace(/^https?:\/\//, ""))}</a>`,
   ]
     .filter(Boolean)
     .join(" ");
@@ -137,9 +137,9 @@ async function figure(shot: Screenshot, state: State, id: string) {
     ? await children(shot.caption, state)
     : "";
   return (
-    `<figure class="ca-screenshot${sides}"><div class="ca-stage"><div class="ca-frame"><img src="${attr(shot.src)}" alt="${attr(shot.alt)}" loading="lazy" decoding="async">${pins.join("")}${arrows.join("")}</div>${callouts}</div>` +
-    (heading || caption || notes
-      ? `<figcaption>${heading && `<div class="ca-heading">${heading}</div>`}${caption}${notes ? `<ol class="ca-notes">${notes}</ol>` : ""}</figcaption>`
+    `<figure class="ca-screenshot${sides}">${heading && `<div class="ca-heading">${heading}</div>`}<div class="ca-stage"><div class="ca-frame"><img src="${attr(shot.src)}" alt="${attr(shot.alt)}" loading="lazy" decoding="async">${pins.join("")}${arrows.join("")}</div>${callouts}</div>` +
+    (caption || notes
+      ? `<figcaption>${caption}${notes ? `<ol class="ca-notes">${notes}</ol>` : ""}</figcaption>`
       : "") +
     "</figure>"
   );
