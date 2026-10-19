@@ -49,7 +49,7 @@ Pass the plugin and its `components` to the renderer.
 :::
 ::
 
-Every block inside `::carousel` is a slide; use `:::slide` when one slide holds several blocks. Slides scroll and snap without a script. The script adds arrows, dots, and arrow keys, and a click zooms a slide with the others in a strip at the bottom. Paging in the zoomed view moves the carousel, so closing it lands on the slide you were looking at.
+Slides scroll and snap without a script. The script adds arrows, dots, and arrow keys, and a click zooms a slide.
 
 ## Usage
 
@@ -62,9 +62,59 @@ import carousel, { components } from "comark-carousel/html";
 const render = createHtmlRenderer({ plugins: [carousel()], components });
 ```
 
-`columns=2` or `columns=3` shows several slides at once on a wide page and one at a time on a narrow one. `zoom=false` turns zoom off. Override `--cc-gap` to change the space between slides.
+## Components
 
-## Renderers
+### carousel
+
+Every block inside `::carousel` is a slide, unless it holds `:::slide` blocks.
+
+::example
+```md
+::carousel{title="Filters"}
+![Filter toolbar wrapping](/before.png)
+
+![Filter toolbar on one row](/after.png)
+::
+```
+::
+
+| Prop | |
+| --- | --- |
+| `title` | Name read out by screen readers. Default `Carousel`. |
+| `columns` | `2` or `3` shows several slides at once on a wide page and one at a time on a narrow one. |
+| `zoom` | `false` turns zoom off. |
+
+### slide
+
+One slide that holds several blocks. Once a carousel has a `:::slide`, only its slides count.
+
+::example
+````md
+::carousel{title="Setup"}
+:::slide{title="Install"}
+```sh
+pnpm add comark @comark/html comark-carousel
+```
+:::
+
+:::slide{title="Register"}
+Pass the plugin and its `components` to the renderer.
+:::
+::
+````
+::
+
+| Prop | |
+| --- | --- |
+| `title` | Heading of the slide when it's zoomed. |
+
+## Guides
+
+### Zoom
+
+A click zooms a slide, with the others in a strip at the bottom. Paging in the zoomed view moves the carousel, so closing it lands on the slide you were looking at. Zoom comes from [comark-zoom](/zoom), which comes with the package.
+
+### Renderers
 
 | Renderer | Import |
 | --- | --- |
@@ -73,4 +123,12 @@ const render = createHtmlRenderer({ plugins: [carousel()], components });
 | `@comark/react` | `comark-carousel/react` |
 | `@comark/svelte` | `comark-carousel/svelte` |
 
-Slides zoom with [comark-zoom](/zoom), which comes with the package. Import `comark-carousel/style.css` and `comark-zoom/style.css` with your styles when you render on a server.
+Import `comark-carousel/style.css` and `comark-zoom/style.css` with your styles when you render on a server.
+
+### Theming
+
+Override `--cc-gap` to change the space between slides.
+
+## Credits
+
+[Comark](https://comark.dev), by the [Comark team](https://github.com/comarkdown), parses the Markdown and renders it.

@@ -37,7 +37,7 @@ install: pnpm add comark @comark/html comark-zoom
 :::
 ::
 
-Content images zoom on their own, except images inside links. Items in one `group` page through a single zoomed view with a strip of them at the bottom; arrow keys and the strip move between them. Enter or Space opens a focused item, and focus returns to it when the view closes.
+Click an item to zoom it; Escape, Back, or a click around it closes it. Enter or Space opens a focused item, and focus returns to it when the view closes.
 
 ## Usage
 
@@ -50,9 +50,54 @@ import zoom, { components } from "comark-zoom/html";
 const render = createHtmlRenderer({ plugins: [zoom()], components });
 ```
 
-`zoom({ images: false })` leaves images alone, so only `::zoom` blocks zoom. Give an image a `data-zoom-src` to load a larger file when it opens.
+`zoom({ images: false })` leaves images alone, so only `::zoom` blocks zoom.
 
-## Renderers
+## Components
+
+### Images
+
+Content images zoom on their own, except images inside links, which keep their link. The zoomed view shows the image's `alt` text as its title. Give an image a `data-zoom-src` to load a larger file when it opens.
+
+### zoom
+
+Zooms any block: a table, a code block, a diagram, or several of them together.
+
+::example
+```md
+::zoom{title="Retry policy"}
+| Attempt | Wait |
+| --- | --- |
+| 1 | 1 s |
+| 2 | 4 s |
+| 3 | 16 s |
+::
+```
+::
+
+| Prop | |
+| --- | --- |
+| `title` | Heading of the zoomed view. |
+| `group` | Items with the same group page through one zoomed view. |
+
+## Guides
+
+### Groups
+
+Items in one `group` page through a single zoomed view with a strip of them at the bottom. Arrow keys and the strip move between them.
+
+::example
+```md
+::zoom{group="tour" title="Before"}
+![Filter toolbar wrapping](/before.png)
+::
+
+::zoom{group="tour" title="After"}
+![Filter toolbar on one row](/after.png)
+::
+```
+::
+
+### Renderers
 
 The same markup comes out of every renderer. Import the components from the entry for yours:
 
@@ -65,7 +110,7 @@ The same markup comes out of every renderer. Import the components from the entr
 
 The Vue, React, and Svelte components start the script when they mount and stop it when the last one unmounts. Import `comark-zoom/style.css` with your styles so a server-rendered page doesn't shift when the script starts.
 
-## Customize
+### Events
 
 The zoomed view fires `comark-zoom:open`, `comark-zoom:change`, and `comark-zoom:close` on the item. `open` and `change` carry the dialog's `header` and `footer`, and a `layer` over the zoomed content, sized to it, where a host can draw its own pins or controls.
 
@@ -78,4 +123,10 @@ document.addEventListener("comark-zoom:open", (event) => {
 });
 ```
 
-Theme it with `--cz-backdrop`, `--cz-ink`, `--cz-muted`, `--cz-line`, and `--cz-active`. An item that needs styles from an ancestor names it with `data-zoom-context`, and the zoomed copy goes inside an empty copy of that ancestor.
+### Theming
+
+Theme the zoomed view with `--cz-backdrop`, `--cz-ink`, `--cz-muted`, `--cz-line`, and `--cz-active`. An item that needs styles from an ancestor names it with `data-zoom-context`, and the zoomed copy goes inside an empty copy of that ancestor.
+
+## Credits
+
+[Comark](https://comark.dev), by the [Comark team](https://github.com/comarkdown), parses the Markdown and renders it. The zoom behaves like [medium-zoom](https://github.com/francoischalifour/medium-zoom).
