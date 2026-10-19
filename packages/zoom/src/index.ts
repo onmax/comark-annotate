@@ -10,21 +10,23 @@ export interface ZoomOptions {
 export const RUNTIME_TAG = "zoom-runtime";
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
+// Blocks that zoom as a whole, so the images inside them don't zoom on their own.
+const WHOLE = new Set(["zoom", "carousel", "slide", "screenshot", "compare"]);
 
 // Marks images with the same attributes a `::zoom` block gets, so every renderer outputs zoomable images unchanged.
-function mark(nodes: Node[], images: boolean, inLink = false): boolean {
+function mark(nodes: Node[], images: boolean, skip = false): boolean {
   let found = false;
   for (const node of nodes) {
     if (!isElement(node)) continue;
     const [tag, attrs] = node;
     if (tag === "zoom") found = true;
-    if (tag === "img" && images && !inLink && attrs["data-zoom"] === undefined) {
+    if (tag === "img" && images && !skip && attrs["data-zoom"] === undefined) {
       attrs["data-zoom"] = "";
       attrs.tabindex = "0";
       found = true;
     }
     // SAFETY: an element node is [tag, attributes, ...children], so everything after index 1 is a child node.
-    if (mark(node.slice(2) as Node[], images, inLink || tag === "a")) found = true;
+    if (mark(node.slice(2) as Node[], images, skip || tag === "a" || WHOLE.has(tag))) found = true;
   }
   return found;
 }

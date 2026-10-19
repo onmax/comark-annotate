@@ -1,0 +1,87 @@
+{
+  "name": "comark-carousel",
+  "version": "0.0.4",
+  "description": "A carousel of any Markdown content that scrolls and snaps, with arrows, dots, keys, and zoom. A Comark plugin.",
+  "keywords": [
+    "carousel",
+    "comark",
+    "gallery",
+    "markdown",
+    "mdc",
+    "plugin",
+    "slider"
+  ],
+  "homepage": "https://comark.onmax.me/carousel",
+  "bugs": "https://github.com/onmax/comark-plugins/issues",
+  "license": "MIT",
+  "author": "onmax",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onmax/comark-plugins.git",
+    "directory": "packages/carousel"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./client": "./dist/client.mjs",
+    "./html": "./dist/html.mjs",
+    "./react": "./dist/react.mjs",
+    "./svelte": {
+      "svelte": "./dist/svelte/index.js",
+      "default": "./dist/svelte/index.js"
+    },
+    "./vue": "./dist/vue.mjs",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
+    "prepack": "pnpm build"
+  },
+  "dependencies": {
+    "comark-zoom": "workspace:*"
+  },
+  "devDependencies": {
+    "@comark/html": "catalog:",
+    "@comark/react": "catalog:",
+    "@comark/vue": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "comark": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "svelte": "catalog:",
+    "vue": "catalog:"
+  },
+  "peerDependencies": {
+    "@comark/html": "^0.7.0",
+    "comark": "^0.7.0",
+    "react": ">=18",
+    "svelte": ">=5",
+    "vue": ">=3.5"
+  },
+  "peerDependenciesMeta": {
+    "@comark/html": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
+  }
+}

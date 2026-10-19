@@ -77,20 +77,38 @@ export function start(css: string): () => void {
     return node;
   };
 
+  // A zoomable item inside another one zooms with it.
+  function outermost(node: HTMLElement) {
+    let item = node;
+    for (
+      let up = item.parentElement?.closest<HTMLElement>(SELECTOR);
+      up;
+      up = up.parentElement?.closest<HTMLElement>(SELECTOR)
+    )
+      item = up;
+    return item;
+  }
+
+  // A named group spans the page. A gallery (a carousel, a comparison) groups the zoomable items inside it.
   function groupOf(item: HTMLElement): HTMLElement[] {
     const group = item.getAttribute("data-zoom-group");
-    if (!group) return [item];
-    return [
-      ...document.querySelectorAll<HTMLElement>(`[data-zoom-group="${CSS.escape(group)}"]`),
-    ].filter((node) => node.matches(SELECTOR) && !node.closest(".cz-dialog"));
+    const gallery = item.closest("[data-zoom-gallery]");
+    const nodes = group
+      ? document.querySelectorAll<HTMLElement>(`[data-zoom-group="${CSS.escape(group)}"]`)
+      : gallery?.querySelectorAll<HTMLElement>(SELECTOR);
+    if (!nodes) return [item];
+    return [...nodes].filter((node) => outermost(node) === node && !node.closest(".cz-dialog"));
   }
 
   function titleOf(item: HTMLElement) {
     return (
       item.getAttribute("data-zoom-title") ||
-      item.getAttribute("aria-label") ||
       item.getAttribute("alt") ||
       item.querySelector("img")?.getAttribute("alt") ||
+      // A slide's label is its position, which the counter already shows.
+      (item.getAttribute("aria-roledescription") === "slide"
+        ? ""
+        : item.getAttribute("aria-label")) ||
       ""
     );
   }
@@ -179,7 +197,9 @@ export function start(css: string): () => void {
 
   function go(index: number) {
     if (!view || view.closing) return;
+    view.items[view.index]!.style.visibility = "";
     view.index = (index + view.items.length) % view.items.length;
+    view.items[view.index]!.style.visibility = "hidden";
     render(view);
     view.items[view.index]!.dispatchEvent(
       new CustomEvent("comark-zoom:change", { bubbles: true, detail: detail(view) }),
@@ -316,7 +336,8 @@ export function start(css: string): () => void {
     "click",
     (event) => {
       const target = event.target instanceof Element ? event.target : null;
-      const item = target?.closest<HTMLElement>(SELECTOR);
+      const found = target?.closest<HTMLElement>(SELECTOR);
+      const item = found && outermost(found);
       if (!item || item.closest(".cz-dialog") || event.defaultPrevented) return;
       // Links and controls inside a zoomable block keep working.
       const control = target?.closest(INTERACTIVE);
@@ -377,7 +398,7 @@ export function start(css: string): () => void {
 
   const state = {
     users: 1,
-    stop() {
+    stop: () => {
       if (--state.users > 0) return;
       listeners.abort();
       style.remove();
