@@ -15,7 +15,8 @@ const started = new WeakSet<object>();
 export function runtime(state: State): string {
   if (started.has(state.context)) return "";
   started.add(state.context);
-  return `<script>(${start.toString()})(${JSON.stringify(css).replaceAll("<", "\\u003c")})</script>`;
+  // The styles come inline before the script, so the script has nothing to add.
+  return `<style data-comark-zoom>${css}</style><script>(${start.toString()})("")</script>`;
 }
 
 const attr = (value: unknown) => escapeHtml(String(value), { '"': "&quot;" });

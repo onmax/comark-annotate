@@ -8,10 +8,13 @@ export const css = [
   ".cc-slide{min-width:0;scroll-snap-align:start}",
   ".cc-slide>:first-child{margin-top:0}",
   ".cc-slide>:last-child{margin-bottom:0}",
+  ".cc-slide img{max-width:100%;height:auto}",
   // Several columns need room; a narrow page shows one slide at a time.
   "@container (max-width:36rem){.cc-track{grid-auto-columns:100%}}",
   ".cc-controls{display:none;gap:.25rem;align-items:center;justify-content:center;margin-top:.75rem}",
   "[data-carousel-ready] .cc-controls{display:flex}",
+  // Slides that all fit side by side need no controls, until a narrow page shows them one at a time.
+  "@container (min-width:36.01rem){.cc[data-fits] .cc-controls{display:none!important}}",
   ".cc-controls button{display:inline-grid;place-items:center;border:0;border-radius:6px;background:none;color:inherit;font:inherit;cursor:pointer}",
   ".cc-controls button:focus-visible{outline:2px solid currentColor;outline-offset:1px}",
   ".cc-step{width:2rem;height:2rem;font-size:20px;line-height:1}",

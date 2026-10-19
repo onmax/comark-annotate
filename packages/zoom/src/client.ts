@@ -38,10 +38,15 @@ export function start(css: string): () => void {
   const listeners = new AbortController();
   const signal = listeners.signal;
 
-  const style = document.createElement("style");
-  style.setAttribute("data-comark-zoom", "");
-  style.textContent = css;
-  document.head.append(style);
+  // The page may already carry the styles: the HTML renderer inlines them, and apps can import style.css.
+  const style = document.querySelector("style[data-comark-zoom],link[data-comark-zoom]")
+    ? null
+    : document.createElement("style");
+  if (style) {
+    style.setAttribute("data-comark-zoom", "");
+    style.textContent = css;
+    document.head.append(style);
+  }
 
   const SELECTOR = "[data-zoom]";
   const INTERACTIVE = "a,button,input,textarea,select,summary,label,video,audio";
@@ -114,21 +119,40 @@ export function start(css: string): () => void {
   }
 
   // A copy that can't open another zoom, steal focus, or repeat an id from the page.
-  function copy(item: HTMLElement) {
-    // SAFETY: a deep clone of an HTMLElement is an HTMLElement of the same kind.
-    const clone = item.cloneNode(true) as HTMLElement;
-    for (const node of [clone, ...clone.querySelectorAll<HTMLElement>("*")]) {
-      for (const name of ["id", "data-zoom", "data-zoom-group", "tabindex", "aria-haspopup"])
-        node.removeAttribute(name);
-      if (node instanceof HTMLImageElement) {
-        node.loading = "eager";
-        const large = node.getAttribute("data-zoom-src");
-        if (large) node.src = large;
+  function strip(node: HTMLElement) {
+    for (const part of [node, ...node.querySelectorAll<HTMLElement>("*")]) {
+      for (const name of [
+        "id",
+        "data-zoom",
+        "data-zoom-group",
+        "data-zoom-context",
+        "tabindex",
+        "aria-haspopup",
+      ])
+        part.removeAttribute(name);
+      if (part instanceof HTMLImageElement) {
+        part.loading = "eager";
+        const large = part.getAttribute("data-zoom-src");
+        if (large) part.src = large;
       }
     }
-    clone.style.visibility = "";
-    clone.style.margin = "0";
-    return clone;
+    node.style.visibility = "";
+    node.style.margin = "0";
+    return node;
+  }
+
+  // `data-zoom-context` names an ancestor whose classes and styles the item needs, such as the figure that carries a
+  // screenshot's colors. The copy goes inside an empty copy of it.
+  function copy(item: HTMLElement) {
+    // SAFETY: a deep clone of an HTMLElement is an HTMLElement of the same kind.
+    const clone = strip(item.cloneNode(true) as HTMLElement);
+    const selector = item.getAttribute("data-zoom-context");
+    const context = selector ? item.parentElement?.closest<HTMLElement>(selector) : null;
+    if (!context) return clone;
+    // SAFETY: a shallow clone of an HTMLElement is an HTMLElement of the same kind.
+    const shell = strip(context.cloneNode(false) as HTMLElement);
+    shell.append(clone);
+    return shell;
   }
 
   function measure(item: HTMLElement) {
@@ -401,7 +425,7 @@ export function start(css: string): () => void {
     stop: () => {
       if (--state.users > 0) return;
       listeners.abort();
-      style.remove();
+      style?.remove();
       void shut();
       window.__comarkZoom = undefined;
     },

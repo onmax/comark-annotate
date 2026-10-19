@@ -18,13 +18,14 @@
 <div
   class="cc"
   data-columns={perView > 1 ? String(perView) : undefined}
+  data-fits={total <= perView ? "" : undefined}
   data-zoom-gallery={off(zoom) ? undefined : ""}
   role="region"
   aria-roledescription="carousel"
   aria-label={title ?? "Carousel"}
 >
   <div class="cc-track">{@render children?.()}</div>
-  {#if total > perView}
+  {#if total > 1}
     <div class="cc-controls">
       <button type="button" class="cc-step" data-carousel-step="-1" aria-label="Previous slide" disabled>&lsaquo;</button>
       <div class="cc-dots">

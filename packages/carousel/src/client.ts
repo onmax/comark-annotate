@@ -17,10 +17,15 @@ export function start(css: string): () => void {
   }
   const listeners = new AbortController();
   const signal = listeners.signal;
-  const style = document.createElement("style");
-  style.setAttribute("data-comark-carousel", "");
-  style.textContent = css;
-  document.head.append(style);
+  // The page may already carry the styles: the HTML renderer inlines them, and apps can import style.css.
+  const style = document.querySelector("style[data-comark-carousel],link[data-comark-carousel]")
+    ? null
+    : document.createElement("style");
+  if (style) {
+    style.setAttribute("data-comark-carousel", "");
+    style.textContent = css;
+    document.head.append(style);
+  }
   document.documentElement.setAttribute("data-carousel-ready", "");
 
   const parts = (root: Element) => {
@@ -121,7 +126,7 @@ export function start(css: string): () => void {
     stop: () => {
       if (--state.users > 0) return;
       listeners.abort();
-      style.remove();
+      style?.remove();
       document.documentElement.removeAttribute("data-carousel-ready");
       window.__comarkCarousel = undefined;
     },

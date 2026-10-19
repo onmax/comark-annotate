@@ -31,6 +31,7 @@
     "./client": "./dist/client.mjs",
     "./html": "./dist/html.mjs",
     "./react": "./dist/react.mjs",
+    "./style.css": "./dist/style.css",
     "./svelte": {
       "svelte": "./dist/svelte/index.js",
       "default": "./dist/svelte/index.js"

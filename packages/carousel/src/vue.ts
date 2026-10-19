@@ -23,7 +23,7 @@ export const Carousel = defineComponent({
       const count = Number(props.count) || 0;
       const columns = Math.min(3, Math.max(1, Number(props.columns) || 1));
       const controls =
-        count > columns
+        count > 1
           ? h("div", { class: "cc-controls" }, [
               h(
                 "button",
@@ -66,6 +66,7 @@ export const Carousel = defineComponent({
         {
           class: "cc",
           "data-columns": columns > 1 ? String(columns) : undefined,
+          "data-fits": count <= columns ? "" : undefined,
           "data-zoom-gallery": off(props.zoom) ? undefined : "",
           role: "region",
           "aria-roledescription": "carousel",

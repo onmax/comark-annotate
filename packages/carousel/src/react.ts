@@ -23,7 +23,7 @@ export function Carousel({ count, columns, title, zoom, children }: CarouselProp
   const total = Number(count) || 0;
   const perView = Math.min(3, Math.max(1, Number(columns) || 1));
   const controls =
-    total > perView
+    total > 1
       ? createElement(
           "div",
           { className: "cc-controls" },
@@ -69,6 +69,7 @@ export function Carousel({ count, columns, title, zoom, children }: CarouselProp
     {
       className: "cc",
       "data-columns": perView > 1 ? String(perView) : undefined,
+      "data-fits": total <= perView ? "" : undefined,
       "data-zoom-gallery": off(zoom) ? undefined : "",
       role: "region",
       "aria-roledescription": "carousel",

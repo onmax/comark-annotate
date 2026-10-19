@@ -15,7 +15,9 @@ export const css = [
   ".cz-close:hover,.cz-nav:hover{background:var(--cz-line)}",
   ".cz-stage{position:relative;display:grid;place-items:center;overflow:hidden}",
   ".cz-item{position:relative;transform-origin:center;cursor:auto}",
-  ".cz-item img{display:block;max-width:none}",
+  // The copy keeps the item's width on the page, so its images can't grow past it to their natural size.
+  ".cz-item img,.cz-thumb img{max-width:100%;height:auto}",
+  ".cz-item>img,.cz-thumb>div>img{display:block;width:100%}",
   ".cz-layer{position:absolute;inset:0;pointer-events:none}",
   ".cz-layer>*{pointer-events:auto}",
   ".cz-nav{position:absolute;top:50%;width:2.5rem;height:2.5rem;font-size:22px;transform:translateY(-50%)}",
@@ -27,5 +29,4 @@ export const css = [
   ".cz-thumb:hover{opacity:.85}",
   ".cz-thumb[aria-current=true]{opacity:1;border-color:var(--cz-active)!important}",
   ".cz-thumb>div{position:absolute;top:0;left:0;transform-origin:0 0;pointer-events:none}",
-  ".cz-thumb img{display:block}",
 ].join("");

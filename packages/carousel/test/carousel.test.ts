@@ -38,10 +38,11 @@ describe("comark-carousel", () => {
     expect(html).toContain("<p>Still one</p>");
   });
 
-  it("shows several columns, and drops controls with nothing to scroll", async () => {
+  it("shows several columns, and marks slides that all fit so wide pages hide the controls", async () => {
     const html = await render("::carousel{columns=2}\nOne\n\nTwo\n::");
-    expect(html).toContain('<div class="cc" data-columns="2" data-zoom-gallery');
-    expect(html).not.toContain('<div class="cc-controls">');
+    expect(html).toContain('<div class="cc" data-columns="2" data-fits data-zoom-gallery');
+    expect(html).toContain('<div class="cc-controls">');
+    expect(await render("::carousel\nOnly one\n::")).not.toContain('<div class="cc-controls">');
   });
 
   it("can turn zoom off", async () => {
