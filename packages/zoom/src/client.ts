@@ -230,6 +230,34 @@ export function start(css: string): () => void {
     );
   }
 
+  // Locking scroll hides the page's scrollbar, which would widen the page and shift it sideways. Keep its space
+  // reserved while the zoom is open, and touch nothing when the page has no classic scrollbar.
+  const root = document.documentElement;
+  let unlocked: { overflow: string; gutter: string; padding: string } | null = null;
+
+  function lock() {
+    const scrollbar = innerWidth - root.clientWidth;
+    unlocked = {
+      overflow: root.style.overflow,
+      gutter: root.style.scrollbarGutter,
+      padding: root.style.paddingRight,
+    };
+    if (scrollbar > 0) {
+      if (CSS.supports("scrollbar-gutter", "stable")) root.style.scrollbarGutter = "stable";
+      else
+        root.style.paddingRight = `${parseFloat(getComputedStyle(root).paddingRight) + scrollbar}px`;
+    }
+    root.style.overflow = "hidden";
+  }
+
+  function unlock() {
+    if (!unlocked) return;
+    root.style.overflow = unlocked.overflow;
+    root.style.scrollbarGutter = unlocked.gutter;
+    root.style.paddingRight = unlocked.padding;
+    unlocked = null;
+  }
+
   function open(item: HTMLElement) {
     if (view) return;
     const items = groupOf(item);
@@ -276,7 +304,7 @@ export function start(css: string): () => void {
     view = current;
     thumbs(current);
     document.body.append(dialog);
-    document.documentElement.style.overflow = "hidden";
+    lock();
     render(current);
     close.addEventListener("click", () => void shut());
     // A click around the content closes it. A drag that starts on the content and ends outside does not.
@@ -349,7 +377,7 @@ export function start(css: string): () => void {
     }
     for (const node of current.items) node.style.visibility = "";
     current.dialog.remove();
-    document.documentElement.style.overflow = "";
+    unlock();
     view = null;
     if (current.returnFocus instanceof HTMLElement)
       current.returnFocus.focus({ preventScroll: true });

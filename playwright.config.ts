@@ -6,7 +6,12 @@ export default defineConfig({
   testMatch: "*.e2e.ts",
   fullyParallel: true,
   reporter: process.env.CI ? "github" : "list",
-  use: { baseURL: "http://127.0.0.1:4173", ...devices["Desktop Chrome"] },
+  use: {
+    baseURL: "http://127.0.0.1:4173",
+    ...devices["Desktop Chrome"],
+    // Headless Chromium hides scrollbars; show them, so a test sees the shift a desktop reader would.
+    launchOptions: { ignoreDefaultArgs: ["--hide-scrollbars"] },
+  },
   webServer: {
     command: "node e2e/serve.ts",
     url: "http://127.0.0.1:4173",
