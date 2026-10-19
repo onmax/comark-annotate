@@ -44,6 +44,10 @@
     "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
     "prepack": "pnpm build"
   },
+  "dependencies": {
+    "comark-carousel": "workspace:*",
+    "comark-zoom": "workspace:*"
+  },
   "devDependencies": {
     "@comark/html": "catalog:",
     "comark": "catalog:"

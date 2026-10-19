@@ -39,16 +39,23 @@ describe("comark-annotate", () => {
     expect(issues).toEqual([]);
     expect(html).toContain('<img src="before.png" alt="Old toolbar"');
     expect(html).toContain('style="left:10%;top:20%;width:30%;height:15%"');
-    expect(html).toMatch(/class="ca-mark ca-check" data-n="2" href="#(ca-[a-z0-9]+)-2"/);
+    expect(html).toMatch(
+      /<span class="ca-mark ca-check" data-n="2" role="img" aria-label="Annotation 2: /,
+    );
     expect(html).toMatch(/<li id="ca-[a-z0-9]+-1" data-n="1">.*Filters <strong>wrap<\/strong>\./);
     expect(html).toContain('<span class="ca-label">Before</span>');
     expect(html).toContain(
       '<span class="ca-label">After</span> <a href="https://pr2.example.com/plan" title="https://pr2.example.com/plan">pr2.example.com/plan</a>',
     );
     expect(html).toMatch(
-      /<figure class="ca-screenshot"><div class="ca-heading"><span class="ca-label">Before<\/span><\/div><div class="ca-stage">/,
+      /<figure class="ca-screenshot"><div class="ca-heading"><span class="ca-label">Before<\/span><\/div><div class="ca-stage" data-zoom tabindex="0" data-zoom-context=".ca-screenshot" data-zoom-title="Before">/,
     );
     expect(html).not.toMatch(/<figcaption><div class="ca-heading">/);
+    // Side by side on a wide page, one at a time on a narrow one, and both zoom as one gallery.
+    expect(html).toContain(
+      '<div class="ca ca-compare"><div class="cc" data-columns="2" data-fits data-zoom-gallery',
+    );
+    expect(html.match(/class="cc-slide"/g)).toHaveLength(2);
   });
 
   it("inlines the styles once per render and keeps ids stable and unique", async () => {
@@ -74,8 +81,15 @@ describe("comark-annotate", () => {
       /class="ca-callout ca-callout-right" id="ca-[a-z0-9]+-1" data-n="1"[^>]*><span class="ca-stamp ca-letter">A<\/span><div>Beside/,
     );
     expect(html).toContain('aria-label="Side note: Beside"');
-    expect(html).toContain('<span class="ca-stamp">1</span></a>');
+    expect(html).toContain('<span class="ca-stamp">1</span></span>');
     expect(html).toMatch(/<ol class="ca-notes"><li id="ca-[a-z0-9]+-2" data-n="2">.*Listed/);
+  });
+
+  it("keeps both images of a comparison level when only one has a note above it", async () => {
+    const { html } = await run(
+      `::compare\n:::screenshot{src="a.png" alt="A"}\n::::annotation{x=40 y=50 w=20 h=10 mark="none" side="top"}\nAbove.\n::::\n:::\n\n:::screenshot{src="b.png" alt="B"}\n:::\n::`,
+    );
+    expect(html.match(/class="ca-screenshot ca-top"/g)).toHaveLength(2);
   });
 
   it("points from a note above the image without drawing a mark", async () => {

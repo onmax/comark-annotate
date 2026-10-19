@@ -10,9 +10,11 @@ export const css = [
   // Strokes, arrows, and notes use the color, which lightens in dark mode. Stamps use a deeper solid shade in both themes,
   // so their number stays white (4.7:1 or better); only amber keeps a dark number.
   // :where() keeps these at zero specificity, so a host's plain `.ca { --ca-color: … }` wins.
-  ":where(.ca){--ca-red:#f43f5e;--ca-amber:#f5a524;--ca-green:#2f9e6b;--ca-blue:#5b6cf0;--ca-gray:#71717a;--ca-red-solid:#e11d48;--ca-amber-solid:#f59e0b;--ca-green-solid:#15803d;--ca-blue-solid:#4f46e5;--ca-gray-solid:#52525b;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-solid:var(--ca-blue-solid);--ca-ink:var(--ca-blue-ink);margin:1.5rem 0}",
-  "@media (prefers-color-scheme:dark){:where(.ca){--ca-red:#fb7185;--ca-amber:#ffb224;--ca-green:#56d39a;--ca-blue:#a5b4fc;--ca-gray:#a1a1aa}.ca-frame img{outline-color:rgb(255 255 255/.1)}}",
-  ".ca-compare{display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr));align-items:start}",
+  ":where(.ca,.ca-screenshot){--ca-red:#f43f5e;--ca-amber:#f5a524;--ca-green:#2f9e6b;--ca-blue:#5b6cf0;--ca-gray:#71717a;--ca-red-solid:#e11d48;--ca-amber-solid:#f59e0b;--ca-green-solid:#15803d;--ca-blue-solid:#4f46e5;--ca-gray-solid:#52525b;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-solid:var(--ca-blue-solid);--ca-ink:var(--ca-blue-ink)}",
+  // The figure carries the colors too, so a zoomed screenshot keeps them outside `.ca`.
+  ":where(.ca){margin:1.5rem 0}",
+  "@media (prefers-color-scheme:dark){:where(.ca,.ca-screenshot){--ca-red:#fb7185;--ca-amber:#ffb224;--ca-green:#56d39a;--ca-blue:#a5b4fc;--ca-gray:#a1a1aa}.ca-frame img{outline-color:rgb(255 255 255/.1)}}",
+  ".ca-compare .cc{margin:0;--cc-gap:1.5rem}",
   ".ca-screenshot{--ca-gutter:10rem;--ca-top-gutter:5rem;--ca-gap:1.25rem;margin:0;container-type:inline-size}",
   ".ca-stage{position:relative}",
   ".ca-right .ca-stage{--ca-pr:var(--ca-gutter);padding-right:var(--ca-gutter)}",
@@ -49,7 +51,7 @@ export const css = [
   // Host pages often center a figcaption, which suits a one-line caption but not a list of notes.
   ".ca figcaption{margin-top:.75rem;text-align:start}",
   // One line, so the two images of a compare stay level even when only one side has a long URL.
-  ".ca-heading{display:flex;gap:.5rem;align-items:baseline;min-width:0;margin-bottom:.5rem;text-align:start}",
+  ".ca-heading{display:flex;gap:.5rem;align-items:center;min-width:0;height:1.5em;margin-bottom:.5rem;text-align:start}",
   ".ca-label{flex:none;font-family:var(--ca-note-font,inherit);font-size:var(--ca-label-size,.8125em);font-weight:500}",
   ".ca-heading a{min-width:0;overflow:hidden;font:.75em/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;text-overflow:ellipsis;opacity:.6}",
   ".ca-notes{list-style:none;margin:.5rem 0 0;padding:0;display:grid;gap:.125rem}",

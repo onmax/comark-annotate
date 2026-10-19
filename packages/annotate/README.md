@@ -2,9 +2,9 @@
 
 Hand-drawn marks, numbered notes, and arrows on screenshots, written in Markdown. A [Comark](https://comark.dev) plugin that renders static HTML.
 
-[![A dashboard screenshot with handwritten notes above and beside it, each pointing at a value with a hand-drawn arrow](https://comark-annotate.onmax.me/readme.png)](https://comark-annotate.onmax.me)
+[![A dashboard screenshot with handwritten notes above and beside it, each pointing at a value with a hand-drawn arrow](https://comark.onmax.me/readme.png)](https://comark.onmax.me/annotate/)
 
-**[Docs and live demo](https://comark-annotate.onmax.me)**
+**[Docs and live demo](https://comark.onmax.me/annotate/)**
 
 ```sh
 pnpm add comark @comark/html comark-annotate
@@ -39,7 +39,7 @@ The output is static HTML with one inlined `<style>` per document and `style` at
 
 ## Agents
 
-An agent skill ships in the package (`skills/comark-annotate/SKILL.md`) and is served at the docs site, so `npx skills add https://comark-annotate.onmax.me` installs it. The CLI checks and previews documents:
+An agent skill ships in the package (`skills/comark-annotate/SKILL.md`) and is served at the docs site, so `npx skills add https://comark.onmax.me` installs it. The CLI checks and previews documents:
 
 ```sh
 npx comark-annotate check report.md                 # one line per problem, exit 1 if any
