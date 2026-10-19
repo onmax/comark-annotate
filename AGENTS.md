@@ -25,6 +25,7 @@ A pnpm workspace. Every package in `packages/` is published to npm under its own
 - Test through the public interface: parse plus render. Don't test internals.
 - Rendering never throws. Problems go in `meta.annotateIssues`.
 - Comments are rare and explain why, never what.
+- Every build runs publint, so a package whose `exports`, `files`, or types don't resolve fails to build. Svelte entries ship as source with a hand-written `index.d.ts`; keep it in step with the components' props.
 - `pnpm ready` formats, lints, typechecks, builds, tests, and runs Vite Doctor with the strict TypeScript preset (each package's `doctor.config.json`). Run it before opening a PR; CI runs the same steps.
 - Use conventional commit titles. uppt builds the release from them (see Releasing below).
 - Never comment on issues or pull requests without explicit consent.
