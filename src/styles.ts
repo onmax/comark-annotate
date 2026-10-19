@@ -21,7 +21,7 @@ export const css = [
   ".ca-frame{position:relative;line-height:0}",
   ".ca-frame img{display:block;width:100%;height:auto;margin:0;border-radius:6px;outline:1px solid rgb(0 0 0/.1);outline-offset:-1px}",
   ".ca-mark{position:absolute;color:var(--ca-color);text-decoration:none;outline:none}",
-  ".ca-mark svg{position:absolute;left:-5px;top:-5px;width:calc(100% + 10px);height:calc(100% + 10px);overflow:visible;fill:none;stroke:currentColor;stroke-width:calc(1.75px + .75px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round;transition:stroke-width .15s ease}",
+  ".ca-mark svg{position:absolute;left:-5px;top:-5px;width:calc(100% + 10px);height:calc(100% + 10px);overflow:visible;fill:none;stroke:currentColor;stroke-width:calc(2.75px + .75px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round;transition:stroke-width .15s ease}",
   ".ca-highlight svg{left:0;top:0;width:100%;height:100%;fill:currentColor;fill-opacity:calc(.14 + .08 * var(--ca-on,0));stroke:none}",
   ".ca-underline svg{top:calc(100% - 5px);height:12px}",
   // A tick beside the target, so it doesn't hide what it approves.
@@ -30,7 +30,7 @@ export const css = [
   ".ca-letter{display:none}",
   ".ca-mark .ca-stamp{position:absolute;left:-9px;top:-9px;box-shadow:0 0 0 2px var(--ca-ring,#fff),0 1px 3px rgb(0 0 0/.18);transform:scale(calc(1 + .1 * var(--ca-on,0)));transition:transform .15s ease}",
   ".ca-arrow{position:absolute;height:16px;color:var(--ca-color);transform:translateY(-50%);pointer-events:none}",
-  ".ca-arrow svg{position:absolute;overflow:visible;fill:none;stroke:currentColor;stroke-width:calc(1.25px + .5px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round}",
+  ".ca-arrow svg{position:absolute;overflow:visible;fill:none;stroke:currentColor;stroke-width:calc(2px + .5px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round}",
   ".ca-arrow-line{inset:0;width:100%;height:100%}",
   ".ca-arrow-head{top:4.5px;width:7px;height:7px}",
   ".ca-arrow-right .ca-arrow-head{left:1px}",
