@@ -17,8 +17,8 @@
     "test": "vp test",
     "doctor": "pnpm -r --filter \"./packages/*\" run doctor",
     "check": "vp check",
-    "ready": "vp fmt && pnpm lint && pnpm typecheck && pnpm build && pnpm test && pnpm run doctor",
-    "release:check": "vp fmt --check && pnpm lint && pnpm typecheck && pnpm build && pnpm test && pnpm run doctor",
+    "ready": "vp fmt && pnpm build && pnpm lint && pnpm typecheck && pnpm test && pnpm run doctor",
+    "release:check": "vp fmt --check && pnpm build && pnpm lint && pnpm typecheck && pnpm test && pnpm run doctor",
     "prepare": "vp config",
     "deploy": "pnpm docs:build && pnpm dlx wrangler deploy",
     "test:e2e": "playwright test"

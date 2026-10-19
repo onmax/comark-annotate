@@ -28,12 +28,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Format
         run: pnpm exec vp fmt --check
+      # The packages import each other's built output, so build before anything type-aware.
+      - name: Build
+        run: pnpm build
       - name: Lint
         run: pnpm lint
       - name: Typecheck
         run: pnpm typecheck
-      - name: Build
-        run: pnpm build
       - name: Test
         run: pnpm test
       - name: Doctor
