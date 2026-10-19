@@ -4,6 +4,15 @@ packages:
 catalogMode: prefer
 
 catalog:
+  "@types/react": ^19.3.0
+  "@types/react-dom": ^19.3.0
+  "@comark/react": ^0.7.0
+  "@comark/svelte": ^0.7.0
+  "@comark/vue": ^0.7.0
+  react: ^19.3.1
+  react-dom: ^19.3.1
+  svelte: ^5.57.2
+  vue: ^3.5.44
   "@comark/html": ^0.7.0
   comark: ^0.7.0
   geist: ^1.7.2

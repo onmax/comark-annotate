@@ -1,0 +1,392 @@
+/** What `comark-zoom:open` and `comark-zoom:change` carry, so a host can add its own UI to the zoomed view. */
+export interface ZoomDetail {
+  dialog: HTMLElement;
+  header: HTMLElement;
+  /** A layer over the zoomed content, sized to it. Draw pins or outlines here. */
+  layer: HTMLElement;
+  footer: HTMLElement;
+  /** The zoomed copy of the item. */
+  content: HTMLElement;
+  /** The item on the page that is shown. */
+  item: HTMLElement;
+  index: number;
+  items: HTMLElement[];
+}
+
+declare global {
+  interface Window {
+    __comarkZoom?: { users: number; stop: () => void };
+  }
+  interface HTMLElementEventMap {
+    "comark-zoom:open": CustomEvent<ZoomDetail>;
+    "comark-zoom:change": CustomEvent<ZoomDetail>;
+    "comark-zoom:close": CustomEvent<{ item: HTMLElement }>;
+  }
+}
+
+/**
+ * Starts zoom for every `[data-zoom]` element on the page and returns a function that stops it. Every caller shares one
+ * set of listeners, which stop with the last caller. The function is self-contained: the HTML renderer inlines its
+ * source as a script, so it must not use anything from outside its body.
+ */
+export function start(css: string): () => void {
+  const running = window.__comarkZoom;
+  if (running) {
+    running.users++;
+    return running.stop;
+  }
+  const listeners = new AbortController();
+  const signal = listeners.signal;
+
+  const style = document.createElement("style");
+  style.setAttribute("data-comark-zoom", "");
+  style.textContent = css;
+  document.head.append(style);
+
+  const SELECTOR = "[data-zoom]";
+  const INTERACTIVE = "a,button,input,textarea,select,summary,label,video,audio";
+  const motion = matchMedia("(prefers-reduced-motion: reduce)");
+  const easing = "cubic-bezier(.22,1,.36,1)";
+
+  type View = {
+    dialog: HTMLElement;
+    header: HTMLElement;
+    title: HTMLElement;
+    count: HTMLElement;
+    stage: HTMLElement;
+    footer: HTMLElement;
+    frame: HTMLElement;
+    items: HTMLElement[];
+    index: number;
+    scale: number;
+    returnFocus: Element | null;
+    pushed: boolean;
+    closing: boolean;
+    pressed: EventTarget | null;
+  };
+  let view: View | null = null;
+
+  const el = <K extends keyof HTMLElementTagNameMap>(
+    tag: K,
+    className: string,
+    attrs: Record<string, string> = {},
+  ) => {
+    const node = document.createElement(tag);
+    node.className = className;
+    for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+    return node;
+  };
+
+  function groupOf(item: HTMLElement): HTMLElement[] {
+    const group = item.getAttribute("data-zoom-group");
+    if (!group) return [item];
+    return [
+      ...document.querySelectorAll<HTMLElement>(`[data-zoom-group="${CSS.escape(group)}"]`),
+    ].filter((node) => node.matches(SELECTOR) && !node.closest(".cz-dialog"));
+  }
+
+  function titleOf(item: HTMLElement) {
+    return (
+      item.getAttribute("data-zoom-title") ||
+      item.getAttribute("aria-label") ||
+      item.getAttribute("alt") ||
+      item.querySelector("img")?.getAttribute("alt") ||
+      ""
+    );
+  }
+
+  // A copy that can't open another zoom, steal focus, or repeat an id from the page.
+  function copy(item: HTMLElement) {
+    // SAFETY: a deep clone of an HTMLElement is an HTMLElement of the same kind.
+    const clone = item.cloneNode(true) as HTMLElement;
+    for (const node of [clone, ...clone.querySelectorAll<HTMLElement>("*")]) {
+      for (const name of ["id", "data-zoom", "data-zoom-group", "tabindex", "aria-haspopup"])
+        node.removeAttribute(name);
+      if (node instanceof HTMLImageElement) {
+        node.loading = "eager";
+        const large = node.getAttribute("data-zoom-src");
+        if (large) node.src = large;
+      }
+    }
+    clone.style.visibility = "";
+    clone.style.margin = "0";
+    return clone;
+  }
+
+  function measure(item: HTMLElement) {
+    const rect = item.getBoundingClientRect();
+    return { width: rect.width || 1, height: rect.height || 1, rect };
+  }
+
+  function detail(current: View): ZoomDetail {
+    return {
+      dialog: current.dialog,
+      header: current.header,
+      footer: current.footer,
+      layer: current.frame.querySelector<HTMLElement>(".cz-layer")!,
+      // SAFETY: render() always puts the zoomed copy first in the frame.
+      content: current.frame.firstElementChild as HTMLElement,
+      item: current.items[current.index]!,
+      index: current.index,
+      items: current.items,
+    };
+  }
+
+  // The zoomed copy keeps the item's width on the page and scales to fill the stage, so text and images stay sharp.
+  function place(current: View) {
+    const item = current.items[current.index]!;
+    const { width, height } = measure(item);
+    const box = current.stage.getBoundingClientRect();
+    current.scale = Math.max(
+      0.1,
+      Math.min((box.width * 0.92) / width, (box.height * 0.92) / height, 4),
+    );
+    current.frame.style.width = `${width}px`;
+    current.frame.style.transform = `scale(${current.scale})`;
+  }
+
+  function render(current: View) {
+    const item = current.items[current.index]!;
+    current.frame.replaceChildren(copy(item), el("div", "cz-layer"));
+    current.title.textContent = titleOf(item);
+    current.count.textContent =
+      current.items.length > 1 ? `${current.index + 1} / ${current.items.length}` : "";
+    current.dialog.setAttribute("aria-label", titleOf(item) || "Zoomed view");
+    for (const [index, thumb] of [...current.footer.querySelectorAll(".cz-thumb")].entries())
+      thumb.setAttribute("aria-current", String(index === current.index));
+    place(current);
+  }
+
+  function thumbs(current: View) {
+    if (current.items.length < 2) return;
+    const strip = el("div", "cz-strip", { role: "tablist", "aria-label": "Items" });
+    for (const [index, item] of current.items.entries()) {
+      const thumb = el("button", "cz-thumb", {
+        type: "button",
+        "aria-label": titleOf(item) || `Item ${index + 1}`,
+      });
+      const { width, height } = measure(item);
+      const inner = el("div", "");
+      inner.style.width = `${width}px`;
+      inner.style.transform = `scale(${Math.min(96 / width, 64 / height)})`;
+      inner.append(copy(item));
+      thumb.append(inner);
+      thumb.addEventListener("click", () => go(index));
+      strip.append(thumb);
+    }
+    current.footer.append(strip);
+  }
+
+  function go(index: number) {
+    if (!view || view.closing) return;
+    view.index = (index + view.items.length) % view.items.length;
+    render(view);
+    view.items[view.index]!.dispatchEvent(
+      new CustomEvent("comark-zoom:change", { bubbles: true, detail: detail(view) }),
+    );
+  }
+
+  function open(item: HTMLElement) {
+    if (view) return;
+    const items = groupOf(item);
+    const dialog = el("div", "cz-dialog", { role: "dialog", "aria-modal": "true", tabindex: "-1" });
+    const header = el("div", "cz-header");
+    const title = el("span", "cz-title");
+    const count = el("span", "cz-count");
+    const close = el("button", "cz-close", { type: "button", "aria-label": "Close" });
+    close.textContent = "✕";
+    header.append(title, count, close);
+    const stage = el("div", "cz-stage");
+    const frame = el("div", "cz-item");
+    stage.append(frame);
+    const footer = el("div", "cz-footer");
+    const backdrop = el("div", "cz-backdrop");
+    dialog.append(backdrop, header, stage, footer);
+    const current: View = {
+      dialog,
+      header,
+      title,
+      count,
+      stage,
+      footer,
+      frame,
+      items,
+      index: Math.max(0, items.indexOf(item)),
+      scale: 1,
+      returnFocus: document.activeElement,
+      pushed: false,
+      closing: false,
+      pressed: null,
+    };
+    if (items.length > 1) {
+      for (const [name, step, label] of [
+        ["cz-prev", -1, "Previous"],
+        ["cz-next", 1, "Next"],
+      ] as const) {
+        const button = el("button", `cz-nav ${name}`, { type: "button", "aria-label": label });
+        button.textContent = step < 0 ? "‹" : "›";
+        button.addEventListener("click", () => go(current.index + step));
+        stage.append(button);
+      }
+    }
+    view = current;
+    thumbs(current);
+    document.body.append(dialog);
+    document.documentElement.style.overflow = "hidden";
+    render(current);
+    close.addEventListener("click", () => void shut());
+    // A click around the content closes it. A drag that starts on the content and ends outside does not.
+    dialog.addEventListener("pointerdown", (event) => (current.pressed = event.target));
+    dialog.addEventListener("click", (event) => {
+      const around = event.target === stage || event.target === backdrop;
+      if (around && current.pressed === event.target) void shut();
+    });
+    dialog.focus({ preventScroll: true });
+
+    // Back closes the zoom, like a photo viewer. A frame with an opaque origin can't push history; Escape still works.
+    try {
+      history.pushState({ ...history.state, comarkZoom: true }, "");
+      current.pushed = true;
+    } catch {}
+
+    const shown = items[current.index]!;
+    if (!motion.matches) {
+      const from = shown.getBoundingClientRect();
+      const to = frame.getBoundingClientRect();
+      frame.animate(
+        [
+          {
+            transform: `translate(${from.left + from.width / 2 - (to.left + to.width / 2)}px, ${from.top + from.height / 2 - (to.top + to.height / 2)}px) scale(1)`,
+          },
+          { transform: `scale(${current.scale})` },
+        ],
+        { duration: 260, easing },
+      );
+      for (const part of [backdrop, header, footer])
+        part.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200 });
+    }
+    shown.style.visibility = "hidden";
+    shown.dispatchEvent(
+      new CustomEvent("comark-zoom:open", { bubbles: true, detail: detail(current) }),
+    );
+  }
+
+  async function shut(fromHistory = false) {
+    const current = view;
+    if (!current || current.closing) return;
+    current.closing = true;
+    if (current.pushed && !fromHistory && history.state?.comarkZoom) history.back();
+    const item = current.items[current.index]!;
+    if (!motion.matches) {
+      const from = current.frame.getBoundingClientRect();
+      const to = item.getBoundingClientRect();
+      const visible = to.bottom > 0 && to.top < innerHeight;
+      const animations = [
+        ...current.dialog.querySelectorAll<HTMLElement>(
+          ".cz-backdrop,.cz-header,.cz-footer,.cz-nav",
+        ),
+      ].map((part) =>
+        part.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, fill: "forwards" }),
+      );
+      animations.push(
+        current.frame.animate(
+          visible
+            ? [
+                { transform: `scale(${current.scale})` },
+                {
+                  transform: `translate(${to.left + to.width / 2 - (from.left + from.width / 2)}px, ${to.top + to.height / 2 - (from.top + from.height / 2)}px) scale(1)`,
+                },
+              ]
+            : [{ opacity: 1 }, { opacity: 0 }],
+          { duration: 200, easing, fill: "forwards" },
+        ),
+      );
+      await Promise.all(animations.map((animation) => animation.finished.catch(() => {})));
+    }
+    for (const node of current.items) node.style.visibility = "";
+    current.dialog.remove();
+    document.documentElement.style.overflow = "";
+    view = null;
+    if (current.returnFocus instanceof HTMLElement)
+      current.returnFocus.focus({ preventScroll: true });
+    item.dispatchEvent(new CustomEvent("comark-zoom:close", { bubbles: true, detail: { item } }));
+  }
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const item = target?.closest<HTMLElement>(SELECTOR);
+      if (!item || item.closest(".cz-dialog") || event.defaultPrevented) return;
+      // Links and controls inside a zoomable block keep working.
+      const control = target?.closest(INTERACTIVE);
+      if (control && control !== item && item.contains(control)) return;
+      if (!getSelection()?.isCollapsed) return;
+      event.preventDefault();
+      open(item);
+    },
+    { signal },
+  );
+
+  document.addEventListener(
+    "keydown",
+    (event) => {
+      if (!view) {
+        const item =
+          event.target instanceof HTMLElement && event.target.matches(SELECTOR)
+            ? event.target
+            : null;
+        if (item && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          open(item);
+        }
+        return;
+      }
+      if (event.key === "Escape") {
+        event.preventDefault();
+        void shut();
+      } else if (event.key === "ArrowLeft" && view.items.length > 1) go(view.index - 1);
+      else if (event.key === "ArrowRight" && view.items.length > 1) go(view.index + 1);
+      else if (event.key === "Tab") {
+        // Keep focus in the dialog.
+        const focusable = [
+          ...view.dialog.querySelectorAll<HTMLElement>(
+            "button,[href],[tabindex]:not([tabindex='-1'])",
+          ),
+        ];
+        if (!focusable.length) return;
+        const first = focusable[0]!;
+        const last = focusable[focusable.length - 1]!;
+        if (
+          event.shiftKey &&
+          (document.activeElement === first || document.activeElement === view.dialog)
+        ) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    },
+    { signal },
+  );
+
+  addEventListener("popstate", () => void shut(true), { signal });
+  addEventListener("resize", () => view && place(view), { signal });
+
+  const state = {
+    users: 1,
+    stop() {
+      if (--state.users > 0) return;
+      listeners.abort();
+      style.remove();
+      void shut();
+      window.__comarkZoom = undefined;
+    },
+  };
+  window.__comarkZoom = state;
+  return state.stop;
+}
+
+export { css } from "./styles.ts";

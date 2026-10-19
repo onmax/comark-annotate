@@ -5,6 +5,7 @@
 | Package | What it does |
 | --- | --- |
 | [`comark-annotate`](./packages/annotate) | Hand-drawn marks, numbered notes, and arrows on screenshots, and before/after comparisons. |
+| [`comark-zoom`](./packages/zoom) | Zoom images and any block like medium-zoom, with Escape, Back, and click-outside to close. |
 
 Docs and live demos: [comark-annotate.onmax.me](https://comark-annotate.onmax.me).
 

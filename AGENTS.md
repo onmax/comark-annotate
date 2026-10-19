@@ -11,6 +11,10 @@ A pnpm workspace. Every package in `packages/` is published to npm under its own
   - `src/index.ts` is the parse plugin. It writes `meta.annotateIssues`.
   - `src/html.ts` is the `@comark/html` renderer. The output is static HTML with no script, and the styles are inlined once per document.
   - `src/marks.ts` holds the hand-drawn marks, taken from AnnotationKit.
+- `packages/zoom` is `comark-zoom`.
+  - `src/index.ts` is the parse plugin. It marks content images and adds one `zoom-runtime` node to a document with anything to zoom.
+  - `src/client.ts` is the browser script. `start()` is self-contained because the HTML renderer inlines its source; Vue, React, and Svelte components call it on mount and stop it on unmount.
+  - `src/html.ts`, `src/vue.ts`, `src/react.ts`, and `src/svelte/` are the renderers. They all output the same markup.
 - `docs/` builds the docs site with the plugins themselves. Cloudflare serves it from `docs/dist`.
 
 ## Rules

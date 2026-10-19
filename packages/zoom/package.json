@@ -1,0 +1,84 @@
+{
+  "name": "comark-zoom",
+  "version": "0.0.4",
+  "description": "Zoom images and any block like medium-zoom, with Escape, Back, and click-outside to close. A Comark plugin.",
+  "keywords": [
+    "comark",
+    "lightbox",
+    "markdown",
+    "mdc",
+    "medium-zoom",
+    "plugin",
+    "zoom"
+  ],
+  "homepage": "https://comark.onmax.me/zoom",
+  "bugs": "https://github.com/onmax/comark-plugins/issues",
+  "license": "MIT",
+  "author": "onmax",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onmax/comark-plugins.git",
+    "directory": "packages/zoom"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./client": "./dist/client.mjs",
+    "./html": "./dist/html.mjs",
+    "./react": "./dist/react.mjs",
+    "./svelte": {
+      "svelte": "./dist/svelte/index.js",
+      "default": "./dist/svelte/index.js"
+    },
+    "./vue": "./dist/vue.mjs",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
+    "prepack": "pnpm build"
+  },
+  "devDependencies": {
+    "@comark/html": "catalog:",
+    "@comark/react": "catalog:",
+    "@comark/vue": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "comark": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "svelte": "catalog:",
+    "vue": "catalog:"
+  },
+  "peerDependencies": {
+    "@comark/html": "^0.7.0",
+    "comark": "^0.7.0",
+    "react": ">=18",
+    "svelte": ">=5",
+    "vue": ">=3.5"
+  },
+  "peerDependenciesMeta": {
+    "@comark/html": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
+  }
+}
