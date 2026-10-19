@@ -8,7 +8,7 @@ import { parseMarkdown } from "comark";
 import { escapeHtml, textContent } from "comark/utils";
 import dark from "shiki/themes/vitesse-dark.mjs";
 import light from "shiki/themes/vitesse-light.mjs";
-import annotate, { components } from "../src/html.ts";
+import annotate, { components } from "../packages/annotate/src/html.ts";
 
 const root = new URL("./", import.meta.url);
 const dist = new URL("dist/", root);
@@ -139,7 +139,10 @@ await cp(
 );
 
 // The package's agent skill, served for Agent Skills Discovery: v0.2 with a digest, and v0.1, which `npx skills add` reads.
-const skill = await readFile(new URL("../skills/comark-annotate/SKILL.md", root), "utf8");
+const skill = await readFile(
+  new URL("../packages/annotate/skills/comark-annotate/SKILL.md", root),
+  "utf8",
+);
 const skillMeta = (await parseMarkdown(skill)).frontmatter;
 const [skillName, skillDescription] = [str(skillMeta.name), str(skillMeta.description)];
 for (const base of ["agent-skills", "skills"]) {

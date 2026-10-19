@@ -44,6 +44,7 @@ jobs:
     steps:
       - uses: danielroe/uppt/pr@6ec27140623aa835e362f866d8ab0018ab057f4d # v0.6.11
         with:
+          packages: packages/*
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ inputs.prerelease }}
 
@@ -86,6 +87,7 @@ jobs:
     steps:
       - uses: danielroe/uppt/release@6ec27140623aa835e362f866d8ab0018ab057f4d # v0.6.11
         with:
+          packages: packages/*
           token: ${{ secrets.GITHUB_TOKEN }}
 
   pack:
@@ -101,6 +103,8 @@ jobs:
     steps:
       - id: pack
         uses: danielroe/uppt/pack@6ec27140623aa835e362f866d8ab0018ab057f4d # v0.6.11
+        with:
+          packages: packages/*
 
   # stage the prebuilt tarball on npm via OIDC; a maintainer approves it with 2FA
   publish:
