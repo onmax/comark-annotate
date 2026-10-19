@@ -1,4 +1,4 @@
-// Renders docs/index.md with comark-annotate itself into docs/dist, a static site served by Cloudflare.
+// Renders docs/pages with the plugins themselves into docs/dist, a static site served by Cloudflare at comark.onmax.me.
 import { createHash } from "node:crypto";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { renderHtmlFromDocument } from "@comark/html";
@@ -8,12 +8,25 @@ import { parseMarkdown } from "comark";
 import { escapeHtml, textContent } from "comark/utils";
 import dark from "shiki/themes/vitesse-dark.mjs";
 import light from "shiki/themes/vitesse-light.mjs";
-import annotate, { components } from "../packages/annotate/src/html.ts";
+import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
+import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
+import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
 
 const root = new URL("./", import.meta.url);
 const dist = new URL("dist/", root);
 const fonts = new URL("../node_modules/geist/dist/fonts/", root);
-const plugins = [annotate(), shiki({ themes: { light, dark } })];
+const site = "https://comark.onmax.me";
+const contentPlugins = () => [annotate(), carousel(), zoom()];
+const plugins = [...contentPlugins(), shiki({ themes: { light, dark } })];
+const components = { ...annotateComponents, ...carouselComponents, ...zoomComponents };
+
+// The index first, then one page per package, each at its own path.
+const pages = [
+  { slug: "", file: "index.md" },
+  { slug: "annotate", file: "annotate.md", npm: "comark-annotate" },
+  { slug: "zoom", file: "zoom.md", npm: "comark-zoom" },
+  { slug: "carousel", file: "carousel.md", npm: "comark-carousel" },
+];
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
 const str = (value: unknown) =>
@@ -28,7 +41,7 @@ const example: NodeHandler = async ([, attrs, ...children], state) => {
   const pre = children.find(isPre);
   if (!pre) throw new Error(`Example "${str(attrs.label)}" needs a fenced code block.`);
   const source = textContent(pre);
-  const preview = await parseMarkdown(source, { plugins: [annotate()] });
+  const preview = await parseMarkdown(source, { plugins: contentPlugins() });
   if (preview.meta.annotateIssues.length)
     throw new Error(`Example "${str(attrs.label)}":\n${preview.meta.annotateIssues.join("\n")}`);
   return (
@@ -54,46 +67,72 @@ const tabs: NodeHandler = async ([, , ...children], state) => {
   return `<div class="tabs"><div class="tablist" role="tablist">${labels.join("")}</div>${bodies.join("")}</div>`;
 };
 
-const document = await parseMarkdown(await readFile(new URL("index.md", root), "utf8"), {
-  plugins,
-});
-if (document.meta.annotateIssues.length)
-  throw new Error(`docs/index.md:\n${document.meta.annotateIssues.join("\n")}`);
-const [title, description, tagline, install] = ["title", "description", "tagline", "install"].map(
-  (key) => str(document.frontmatter[key]),
+const nav = (document: { nodes: Node[] }) =>
+  document.nodes
+    .filter(isElement)
+    .filter(([tag]) => tag === "h2" || tag === "h3")
+    .map(
+      ([tag, attrs, ...children]) =>
+        `<a class="nav-${tag}" href="#${str(attrs.id)}">${escapeHtml(textContent([tag, attrs, ...children]))}</a>`,
+    )
+    .join("");
+
+const parsed = await Promise.all(
+  pages.map(async (page) => {
+    const document = await parseMarkdown(
+      await readFile(new URL(`pages/${page.file}`, root), "utf8"),
+      { plugins },
+    );
+    if (document.meta.annotateIssues.length)
+      throw new Error(`docs/pages/${page.file}:\n${document.meta.annotateIssues.join("\n")}`);
+    const [title, description, tagline, install] = [
+      "title",
+      "description",
+      "tagline",
+      "install",
+    ].map((key) => str(document.frontmatter[key]));
+    return { ...page, document, title, description, tagline, install };
+  }),
 );
 
-const nav = document.nodes
-  .filter(isElement)
-  .filter(([tag]) => tag === "h2" || tag === "h3")
-  .map(
-    ([tag, attrs, ...children]) =>
-      `<a class="nav-${tag}" href="#${str(attrs.id)}">${escapeHtml(textContent([tag, attrs, ...children]))}</a>`,
-  )
-  .join("");
-
-const body = await renderHtmlFromDocument(document, {
-  components: { ...components, example, tabs },
-});
+// The index lists every package from its own page's front matter.
+const pluginCards: NodeHandler = () =>
+  `<div class="cards">${parsed
+    .filter((page) => page.npm)
+    .map(
+      (page) =>
+        `<a class="card" href="/${page.slug}/"><strong>${escapeHtml(page.title)}</strong><span>${escapeHtml(page.description)}</span><code>${escapeHtml(page.install.replace(/^pnpm add (comark @comark\/html )?/, "pnpm add "))}</code></a>`,
+    )
+    .join("")}</div>`;
 
 const github = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>`;
-// Humans install the package with their package manager; agents install the skill from this site.
-const packages = install.replace(/^pnpm add /, "");
-const commands = {
-  pnpm: `pnpm add ${packages}`,
-  npm: `npm install ${packages}`,
-  yarn: `yarn add ${packages}`,
-  bun: `bun add ${packages}`,
-  agents: "npx skills add https://comark-annotate.onmax.me",
-} satisfies Record<string, string>;
 const userIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg>`;
 const botIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 8V4H8M4 8h16v12H4zM2 14h2M20 14h2M15 13v2M9 13v2"/></svg>`;
 const copyIcon = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 8h12v12H8zM16 8V4H4v12h4"/></svg>`;
-const installer = `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
+// Humans install the package with their package manager; agents install the skill from this site.
+function installerFor(install: string) {
+  const packages = install.replace(/^pnpm add /, "");
+  const commands = {
+    pnpm: `pnpm add ${packages}`,
+    npm: `npm install ${packages}`,
+    yarn: `yarn add ${packages}`,
+    bun: `bun add ${packages}`,
+    agents: `npx skills add ${site}`,
+  } satisfies Record<string, string>;
+  return `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
 <div class="installer-bar"><div class="seg" role="group" aria-label="Audience"><button type="button" data-audience="humans" aria-pressed="true">${userIcon}For humans</button><button type="button" data-audience="agents" aria-pressed="false">${botIcon}For agents</button></div>
 <div class="seg installer-pm" role="group" aria-label="Package manager">${["pnpm", "npm", "yarn", "bun"].map((pm, i) => `<button type="button" data-pm="${pm}" aria-pressed="${i === 0}">${pm}</button>`).join("")}</div></div>
 <button type="button" class="install" data-copy="${escapeHtml(commands.pnpm)}" aria-label="Copy the install command"><span aria-hidden="true">$</span><code>${escapeHtml(commands.pnpm)}</code><span class="install-hint">${copyIcon}</span></button>
 </div>`;
+}
+const links = (current: string) =>
+  pages
+    .filter((page) => page.npm)
+    .map(
+      (page) =>
+        `<a class="link"${page.slug === current ? ' aria-current="page"' : ""} href="/${page.slug}/">${page.slug}</a>`,
+    )
+    .join("");
 const npmx = `<svg viewBox="0 0 153 153" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M17.6 107.2h24.1v23.7h-24zM119.8.8 116.2 11 69.9 142l-3.6 10.2h15.5l3.6-10.2 11.7-33.2L135.4.8z"/></svg>`;
 const logo = `<span class="logo" aria-hidden="true">1</span>`;
 
@@ -171,32 +210,35 @@ await writeFile(
   }),
 );
 
-await writeFile(
-  new URL("index.html", dist),
-  `<!doctype html>
+for (const page of parsed) {
+  const out = new URL(page.slug ? `${page.slug}/` : "", dist);
+  await mkdir(out, { recursive: true });
+  await writeFile(
+    new URL("index.html", out),
+    `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${title} · ${description}</title>
-<meta name="description" content="${escapeHtml(tagline)}">
-<meta property="og:title" content="${title}">
-<meta property="og:description" content="${description}">
+<title>${page.title} · ${page.description}</title>
+<meta name="description" content="${escapeHtml(page.tagline)}">\n<link rel="canonical" href="${site}/${page.slug ? `${page.slug}/` : ""}">
+<meta property="og:title" content="${page.title}">
+<meta property="og:description" content="${page.description}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <style>${await readFile(new URL("style.css", root), "utf8")}</style>
 </head>
 <body>
 <header class="top">
-<a class="name" href="/">${logo}${title}</a>
-<nav><a class="icon" href="https://npmx.dev/package/comark-annotate" aria-label="comark-annotate on npmx" title="npmx">${npmx}</a><a class="icon" href="https://github.com/onmax/comark-annotate" aria-label="comark-annotate on GitHub" title="GitHub">${github}</a></nav>
+<a class="name" href="/">${logo}comark plugins</a>
+<nav>${links(page.slug)}${page.npm ? `<a class="icon" href="https://npmx.dev/package/${page.npm}" aria-label="${page.npm} on npmx" title="npmx">${npmx}</a>` : ""}<a class="icon" href="https://github.com/onmax/comark-plugins" aria-label="comark-plugins on GitHub" title="GitHub">${github}</a></nav>
 </header>
 <div class="layout">
-<aside class="sidebar"><nav aria-label="On this page"><a class="nav-h2" href="#">Introduction</a>${nav}</nav></aside>
+<aside class="sidebar"><nav aria-label="On this page"><a class="nav-h2" href="#">Introduction</a>${nav(page.document)}</nav></aside>
 <div class="content">
-<div class="hero enter"><h1>${title}</h1><p>${escapeHtml(tagline)}</p>
-${installer}</div>
-<main class="enter" style="--i:1">${body}</main>
+<div class="hero enter"><h1>${page.title}</h1><p>${escapeHtml(page.tagline)}</p>
+${page.install ? installerFor(page.install) : ""}</div>
+<main class="enter" style="--i:1">${await renderHtmlFromDocument(page.document, { components: { ...components, example, tabs, plugins: pluginCards } })}</main>
 <footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>. Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>
 </div>
 </div>
@@ -204,5 +246,6 @@ ${installer}</div>
 </body>
 </html>
 `,
-);
-console.log("docs/dist/index.html written");
+  );
+  console.log(`docs/dist/${page.slug ? `${page.slug}/` : ""}index.html written`);
+}

@@ -103,7 +103,7 @@ Notes without a `side` stay in the list. **Apply** waits until every filter is s
 :::
 ::
 
-Hover a mark or a note to highlight the other. The output is plain HTML and CSS with no script, so a saved copy looks the same years later.
+Hover a mark or a note to highlight the other, and click a screenshot to zoom it. A comparison shows its screenshots side by side, or one at a time on a narrow page, and they zoom as one gallery. The page reads the same without a script; [zoom](/zoom) and [carousel](/carousel) come with the package.
 
 ## Usage
 
@@ -239,7 +239,7 @@ Rendering never throws.
 The package ships an agent skill with the syntax, how to measure marks from the page, and how to check the result. Install it from this site:
 
 ```sh
-npx skills add https://comark-annotate.onmax.me
+npx skills add https://comark.onmax.me
 ```
 
 It also comes with a small CLI. `check` lists every problem and exits with 1 if there are any; `render` writes a standalone page you can open and screenshot to confirm each mark sits on its target.

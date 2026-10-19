@@ -8,7 +8,7 @@
 | [`comark-carousel`](./packages/carousel) | A carousel of any Markdown content, with arrows, dots, keys, and zoom. |
 | [`comark-zoom`](./packages/zoom) | Zoom images and any block like medium-zoom, with Escape, Back, and click-outside to close. |
 
-Docs and live demos: [comark-annotate.onmax.me](https://comark-annotate.onmax.me).
+Docs and live demos: [comark.onmax.me](https://comark.onmax.me).
 
 ## Develop
 

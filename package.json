@@ -11,7 +11,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm -r --filter \"./packages/*\" run build",
-    "docs:build": "node docs/build.ts",
+    "docs:build": "pnpm build && node docs/build.ts",
     "lint": "vp lint",
     "typecheck": "tsc --noEmit",
     "test": "vp test",
@@ -20,11 +20,13 @@
     "ready": "vp fmt && pnpm lint && pnpm typecheck && pnpm build && pnpm test && pnpm run doctor",
     "release:check": "vp fmt --check && pnpm lint && pnpm typecheck && pnpm build && pnpm test && pnpm run doctor",
     "prepare": "vp config",
-    "deploy": "pnpm docs:build && pnpm dlx wrangler deploy"
+    "deploy": "pnpm docs:build && pnpm dlx wrangler deploy",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@comark/html": "catalog:",
     "@fontsource-variable/caveat": "catalog:",
+    "@playwright/test": "catalog:",
     "@types/node": "catalog:",
     "comark": "catalog:",
     "geist": "catalog:",

@@ -1,7 +1,12 @@
-// The docs site: docs/dist served as static assets. Cloudflare Workers Builds runs `pnpm docs:build` and deploys on push to main.
 {
+  // The Worker keeps its first name so its Workers Builds connection stays.
   "name": "comark-annotate",
+  "main": "docs/worker.ts",
   "compatibility_date": "2026-10-01",
-  "assets": { "directory": "./docs/dist" },
-  "routes": [{ "pattern": "comark-annotate.onmax.me", "custom_domain": true }],
+  // The Worker runs first so the old host can redirect before an asset answers.
+  "assets": { "directory": "./docs/dist", "binding": "ASSETS", "run_worker_first": true },
+  "routes": [
+    { "pattern": "comark.onmax.me", "custom_domain": true },
+    { "pattern": "comark-annotate.onmax.me", "custom_domain": true },
+  ],
 }

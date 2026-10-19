@@ -4,6 +4,7 @@ packages:
 catalogMode: prefer
 
 catalog:
+  "@playwright/test": ^1.64.1
   "@types/react": ^19.3.0
   "@types/react-dom": ^19.3.0
   "@comark/react": ^0.7.0
