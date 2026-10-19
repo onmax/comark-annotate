@@ -89,6 +89,8 @@ jobs:
         with:
           packages: packages/*
           token: ${{ secrets.GITHUB_TOKEN }}
+          # uppt dispatches release.yml unless told otherwise.
+          publish-workflow: release.yaml
 
   pack:
     needs: verify-release
