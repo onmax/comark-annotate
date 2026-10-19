@@ -5,3 +5,5 @@ dist
 .DS_Store
 design-explorations
 landing-page-audit.md
+test-results
+playwright-report
