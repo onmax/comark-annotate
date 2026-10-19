@@ -9,4 +9,6 @@
     { "pattern": "comark.onmax.me", "custom_domain": true },
     { "pattern": "comark-annotate.onmax.me", "custom_domain": true },
   ],
+  // Workers Builds runs `wrangler preview` for branches other than main, which needs this block.
+  "previews": {},
 }
