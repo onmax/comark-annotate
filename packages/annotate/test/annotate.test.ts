@@ -5,8 +5,10 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { renderHtmlFromDocument } from "@comark/html";
 import { parseMarkdown } from "comark";
+import security from "comark/plugins/security";
 import { describe, expect, it } from "vite-plus/test";
 import annotate, { components } from "../src/html.ts";
+import { css } from "../src/styles.ts";
 
 async function run(markdown: string) {
   const document = await parseMarkdown(markdown, { plugins: [annotate()] });
@@ -45,7 +47,7 @@ describe("comark-annotate", () => {
     expect(html).toMatch(/<li id="ca-[a-z0-9]+-1" data-n="1">.*Filters <strong>wrap<\/strong>\./);
     expect(html).toContain('<span class="ca-label">Before</span>');
     expect(html).toContain(
-      '<span class="ca-label">After</span> <a href="https://pr2.example.com/plan" title="https://pr2.example.com/plan">pr2.example.com/plan</a>',
+      '<span class="ca-label">After</span> <a href="https://pr2.example.com/plan" title="https://pr2.example.com/plan">Preview</a>',
     );
     expect(html).toMatch(
       /<figure class="ca-screenshot"><div class="ca-heading"><span class="ca-label">Before<\/span><\/div><div class="ca-stage" data-zoom tabindex="0" data-zoom-context=".ca-screenshot" data-zoom-title="Before">/,
@@ -68,6 +70,22 @@ describe("comark-annotate", () => {
     expect(first.match(/<style>/g)).toHaveLength(1);
     const ids = [...first.matchAll(/ id="([^"]+)"/g)].map((match) => match[1]);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("styles only the notes themselves, so a list inside a note keeps its bullets", () => {
+    expect(css).toContain(".ca-notes>li{display:flex");
+    expect(css).not.toMatch(/\.ca-notes li\b/);
+  });
+
+  it("lets Comark's security plugin clean notes", async () => {
+    const source = `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10}\nNote <img src="x" onerror="alert(1)"> <script>alert(2)</script>\n:::\n::`;
+    const document = await parseMarkdown(source, {
+      plugins: [annotate(), security({ blockedTags: ["script"] })],
+    });
+    const html = await renderHtmlFromDocument(document, { components });
+    expect(html).toContain('<img src="x">');
+    expect(html).not.toContain("onerror");
+    expect(html).not.toContain("alert(2)");
   });
 
   it("moves side notes beside the image with an arrow and keeps the rest in the list", async () => {
@@ -214,7 +232,7 @@ describe("comark-annotate", () => {
       `::screenshot{src="a.png" alt="A" url="HTTPS://x.com"}\n::`,
     );
     expect(issues).toEqual([]);
-    expect(upper).toContain('<a href="HTTPS://x.com" title="HTTPS://x.com">');
+    expect(upper).toContain('<a href="HTTPS://x.com" title="HTTPS://x.com">Preview</a>');
   });
 
   it("checks and renders files from the CLI", async () => {

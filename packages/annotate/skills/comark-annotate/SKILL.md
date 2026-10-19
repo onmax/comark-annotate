@@ -35,7 +35,7 @@ Five filters don't fit, so the toolbar wraps and pushes the table down.
 ::
 ```
 
-- `::screenshot`: `src` and `alt` are required; `label`, `url` (the captured page), and `viewport` are optional. Other content becomes the caption.
+- `::screenshot`: `src` and `alt` are required; `label`, `url` (the captured page, linked as Preview), and `viewport` are optional. Other content becomes the caption.
 - `::annotation`: `x y w h` are percentages of the image, 0 to 100. `mark` is `box` (default), `circle`, `underline`, `highlight`, `cross`, `check`, or `none`. `color` is `blue` (default) to point something out, `red` for a problem, `amber` for a warning, `green` for a fix, `gray` for neutral, or a hex color. `side` is `left`, `right`, or `top`; keep top notes at least a quarter of the image apart and left or right notes an eighth apart.
 - Annotations must be direct children of a screenshot.
 
@@ -68,4 +68,4 @@ import annotate, { components } from "comark-annotate/html";
 const render = createHtmlRenderer({ plugins: [annotate()], components });
 ```
 
-Hosts can reject a document while `meta.annotateIssues` is non-empty. For untrusted input, add Comark's `security` plugin; it also cleans notes.
+Hosts can reject a document while `meta.annotateIssues` is non-empty. For untrusted input, add Comark's `security` plugin with `blockedTags` such as `script`, `style`, and `iframe`; it cleans notes too.

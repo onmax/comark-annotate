@@ -117,7 +117,7 @@ const render = createHtmlRenderer({ plugins: [annotate()], components });
 const html = await render(markdown);
 ```
 
-The renderer inlines its styles once per document and scopes them under `.ca` with zero specificity, so a plain `.ca { --ca-color: #0070f3; --ca-ink: #fff }` changes the default mark and stamp colors. Side notes and labels use `--ca-note-font`; this page sets it to Caveat for the handwritten look. Positions use `style` attributes, so a strict CSP needs `style-src 'unsafe-inline'`. Notes are ordinary Markdown, so raw HTML in them renders like anywhere else in the document; for untrusted input, add Comark's `security` plugin, which also cleans notes.
+The renderer inlines its styles once per document and scopes them under `.ca` with zero specificity, so a plain `.ca { --ca-color: #0070f3; --ca-ink: #fff }` changes the default mark and stamp colors. Side notes and labels use `--ca-note-font`; this page sets it to Caveat for the handwritten look. Positions use `style` attributes, so a strict CSP needs `style-src 'unsafe-inline'`. Notes are ordinary Markdown, so raw HTML in them renders like anywhere else in the document; for untrusted input, add Comark's `security` plugin and list the tags to drop, such as `security({ blockedTags: ["script", "style", "iframe"] })`; it cleans notes too.
 
 ## Components
 
@@ -140,7 +140,7 @@ Extra filters collapse into **+2 filters**.
 | `src` | Image URL. Required. |
 | `alt` | What the screenshot shows. Required. |
 | `label` | Heading above the notes. |
-| `url` | The page you captured, shown as a link. |
+| `url` | The page you captured, linked as **Preview** next to the label. |
 | `viewport` | Capture size, like `1440x900`. A compare checks that both sides match. |
 
 ### annotation

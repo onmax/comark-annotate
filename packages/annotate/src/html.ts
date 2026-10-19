@@ -137,8 +137,7 @@ async function figure(shot: Screenshot, state: State, id: string, top = false) {
   ].join("");
   const heading = [
     shot.label && `<span class="ca-label">${escapeHtml(shot.label)}</span>`,
-    shot.url &&
-      `<a href="${attr(shot.url)}" title="${attr(shot.url)}">${escapeHtml(shot.url.replace(/^https?:\/\//, ""))}</a>`,
+    shot.url && `<a href="${attr(shot.url)}" title="${attr(shot.url)}">Preview</a>`,
   ]
     .filter(Boolean)
     .join(" ");

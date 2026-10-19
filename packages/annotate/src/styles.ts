@@ -50,13 +50,14 @@ export const css = [
   "@container (max-width:40rem){.ca-left.ca-right .ca-stage{padding:0!important}.ca-left.ca-right .ca-arrow{display:none}.ca-left.ca-right .ca-callout{position:static;display:flex;gap:.6rem;align-items:baseline;width:auto;max-width:none;margin-top:.5rem;padding-left:0;text-align:left;transform:none}.ca-left.ca-right .ca-letter{display:inline-grid}.ca-left.ca-right .ca-none{outline:1.5px dashed var(--ca-color);outline-offset:3px;border-radius:3px}}",
   // Host pages often center a figcaption, which suits a one-line caption but not a list of notes.
   ".ca figcaption{margin-top:.75rem;text-align:start}",
-  // One line, so the two images of a compare stay level even when only one side has a long URL.
+  // One line, so the two images of a compare stay level.
   ".ca-heading{display:flex;gap:.5rem;align-items:center;min-width:0;height:1.5em;margin-bottom:.5rem;text-align:start}",
   ".ca-label{flex:none;font-family:var(--ca-note-font,inherit);font-size:var(--ca-label-size,.8125em);font-weight:500}",
-  ".ca-heading a{min-width:0;overflow:hidden;font:.75em/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;text-overflow:ellipsis;opacity:.6}",
+  ".ca-heading a{font-size:.75em;opacity:.6}",
   ".ca-notes{list-style:none;margin:.5rem 0 0;padding:0;display:grid;gap:.125rem}",
-  ".ca-notes li{display:flex;gap:.625rem;align-items:baseline;margin:0;padding:.3rem .5rem;border-radius:6px;scroll-margin:1rem;background:color-mix(in srgb,var(--ca-color) calc(8% * var(--ca-on,0)),transparent);transition:background .15s ease}",
-  ".ca-notes li>div>:first-child{margin-top:0}",
-  ".ca-notes li>div>:last-child{margin-bottom:0}",
+  // `>` so a list written inside a note keeps its own bullets and spacing.
+  ".ca-notes>li{display:flex;gap:.625rem;align-items:baseline;margin:0;padding:.3rem .5rem;border-radius:6px;scroll-margin:1rem;background:color-mix(in srgb,var(--ca-color) calc(8% * var(--ca-on,0)),transparent);transition:background .15s ease}",
+  ".ca-notes>li>div>:first-child{margin-top:0}",
+  ".ca-notes>li>div>:last-child{margin-bottom:0}",
   ...linked,
 ].join("");
