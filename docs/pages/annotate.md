@@ -117,7 +117,7 @@ const render = createHtmlRenderer({ plugins: [annotate()], components });
 const html = await render(markdown);
 ```
 
-The renderer inlines its styles once per document and scopes them under `.ca` with zero specificity, so a plain `.ca { --ca-color: #0070f3; --ca-ink: #fff }` changes the default mark and stamp colors. Side notes and labels use `--ca-note-font`; this page sets it to Caveat for the handwritten look. Positions use `style` attributes, so a strict CSP needs `style-src 'unsafe-inline'`. Notes are ordinary Markdown, so raw HTML in them renders like anywhere else in the document; for untrusted input, add Comark's `security` plugin and list the tags to drop, such as `security({ blockedTags: ["script", "style", "iframe"] })`; it cleans notes too.
+The renderer inlines its styles once per document; [Theming](#guides-theming) covers how to change them. Positions use `style` attributes, so a strict CSP needs `style-src 'unsafe-inline'`. Notes are ordinary Markdown, so raw HTML in them renders like anywhere else in the document; for untrusted input, add Comark's `security` plugin and list the tags to drop, such as `security({ blockedTags: ["script", "style", "iframe"] })`; it cleans notes too.
 
 ## Components
 
@@ -233,6 +233,48 @@ screenshot "after.png", annotation 2: the box runs past the image edge (x + w an
 ```
 
 Rendering never throws.
+
+### Theming
+
+The styles follow [shadcn/ui](https://ui.shadcn.com). On a site that already uses its CSS variables, screenshots and comparisons match it with no setup, and a `.dark` class anywhere above them switches the theme. Elsewhere they use shadcn's neutral theme and follow the system's light or dark mode.
+
+Set the `--comark-*` tokens to theme zoom, carousel, and annotate at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
+
+| Token | Falls back to | Used for |
+| --- | --- | --- |
+| `--comark-background` | `--background` | Button faces, the zoom backdrop, the ring around stamps |
+| `--comark-foreground` | `--foreground` | Text, icons, the current dot and thumbnail |
+| `--comark-muted` | `--muted-foreground` | The zoom counter |
+| `--comark-border` | `--border` | Button, thumbnail, and screenshot borders |
+| `--comark-accent` | `--accent` | Hovered buttons |
+| `--comark-ring` | `--ring` | Focus rings |
+| `--comark-radius` | `--radius` | Corners, a little smaller on buttons and images |
+| `--comark-font` | `--font-sans` | The zoomed view's header |
+
+```css
+:root {
+  --comark-accent: oklch(0.95 0.03 250);
+  --comark-radius: 0.25rem;
+}
+```
+
+The rules sit in a `comark` CSS layer, so any plain rule of your own wins without `!important`, such as `.cc-step { border-radius: 0 }`. shadcn/ui before Tailwind 4 stores colors as bare HSL numbers, so map those: `--comark-border: hsl(var(--border))`.
+
+[Nuxt UI](https://ui.nuxt.com) names its variables differently. Map them once:
+
+```css
+:root {
+  --comark-background: var(--ui-bg);
+  --comark-foreground: var(--ui-text-highlighted);
+  --comark-muted: var(--ui-text-muted);
+  --comark-border: var(--ui-border);
+  --comark-accent: var(--ui-bg-elevated);
+  --comark-ring: var(--ui-primary);
+  --comark-radius: calc(var(--ui-radius) * 2);
+}
+```
+
+The mark colors are separate from the theme, because each one means something: a plain `.ca { --ca-color: #0070f3; --ca-ink: #fff }` changes the default mark and stamp colors, and `--ca-red`, `--ca-amber`, `--ca-green`, `--ca-blue`, and `--ca-gray` change the named ones. Side notes and labels use `--ca-note-font`; this page sets it to Caveat for the handwritten look.
 
 ## Agents
 
