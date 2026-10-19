@@ -44,7 +44,7 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
-    "prepack": "pnpm build"
+    "prepack": "pnpm --filter comark-annotate... build"
   },
   "dependencies": {
     "comark-carousel": "workspace:*",
