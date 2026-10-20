@@ -22,6 +22,7 @@ export interface ZoomDetail {
 declare global {
   interface Window {
     __comarkZoom?: { users: number; stop: () => void };
+    __comarkZoomEpoch?: number;
   }
   interface ComarkZoomEventMap {
     "comark-zoom:open": CustomEvent<ZoomDetail>;
@@ -35,8 +36,7 @@ declare global {
 
 /**
  * Starts zoom for every `[data-zoom]` element on the page and returns a function that stops it. Every caller shares one
- * set of listeners, which stop with the last caller. The function is self-contained: the HTML renderer inlines its
- * source as a script, so it must not use anything from outside its body.
+ * set of listeners, which stop with the last caller. It adds the bundled styles unless you pass others.
  */
 export function start(css: string): () => void {
   const running = window.__comarkZoom;
@@ -365,9 +365,9 @@ export function start(css: string): () => void {
     current.restoration = null;
     // The browser restores scroll after popstate, so put the setting back once it has skipped that.
     if (saved) {
-      const epoch = restorationEpoch;
+      const epoch = window.__comarkZoomEpoch ?? 0;
       setTimeout(() => {
-        if (restorationEpoch === epoch) history.scrollRestoration = saved;
+        if (window.__comarkZoomEpoch === epoch) history.scrollRestoration = saved;
       });
     }
   }
@@ -375,6 +375,7 @@ export function start(css: string): () => void {
   function open(item: HTMLElement) {
     if (view) return;
     restorationEpoch++;
+    window.__comarkZoomEpoch = (window.__comarkZoomEpoch ?? 0) + 1;
     const items = groupOf(item);
     const dialog = el("div", "cz-dialog", { role: "dialog", "aria-modal": "true", tabindex: "-1" });
     const header = el("div", "cz-header");
@@ -596,5 +597,5 @@ export function start(css: string): () => void {
   return state.stop;
 }
 
-export { css } from "./styles.ts";
+export { css };
 export { theme } from "./theme.ts";

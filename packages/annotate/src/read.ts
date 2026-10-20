@@ -308,7 +308,8 @@ function readAnnotation(node: ElementNode, problems: string[], data: Data): Omit
     );
   const side = text(attrs.side);
   const knownSide = SIDES.find((item) => item === side);
-  if (side && !knownSide) problems.push(`\`side\` must be left, right, or top (got ${quote(side)}).`);
+  if (side && !knownSide)
+    problems.push(`\`side\` must be left, right, or top (got ${quote(side)}).`);
   if (mark === "none" && !side && !unresolved(node, attrs, "side"))
     problems.push(
       '`mark="none"` draws nothing, so without a `side` note nothing points at the spot. Add `side="left"`, `"right"`, or `"top"`, or pick a visible mark such as `box`.',
@@ -373,7 +374,7 @@ export function readCompare(
   const [before, after] = viewports;
   if (before?.size && after?.size && before.size !== after.size)
     issues.push(
-        `${where}: ${before.name} was captured at ${before.size} and ${after.name} at ${after.size}, so they can't be compared. Recapture both at the same viewport.`,
+      `${where}: ${before.name} was captured at ${before.size} and ${after.name} at ${after.size}, so they can't be compared. Recapture both at the same viewport.`,
     );
   return { title: text(attrs.title) || undefined, shots };
 }

@@ -23,7 +23,7 @@ Any Markdown: code, callouts, tables.
 ::
 ```
 
-The zoomed view grows out of the item's place on the page. Escape, Back, and a click around it close it; arrow keys and the strip page through a group; Enter or Space opens a focused item. `zoom({ images: false })` leaves images alone. Add `data-zoom-src` to an image to load a larger file when it zooms.
+The zoomed view grows out of the item's place on the page. Escape, Back, and a click around it close it; arrow keys and the strip page through a group; Enter or Space opens a focused item. `zoom({ images: false })` leaves images alone, except those you mark with `{data-zoom}`, and `{zoom=false}` keeps one image from zooming. Add `data-zoom-src` to an image to load a larger file when it zooms; the page's image shows until it loads.
 
 ## Renderers
 
@@ -34,7 +34,7 @@ The zoomed view grows out of the item's place on the page. Escape, Back, and a c
 | `@comark/react` | `comark-zoom/react` |
 | `@comark/svelte` | `comark-zoom/svelte` |
 
-Each entry exports the parse plugin as `default` and the renderer's `components`. Without a renderer, call `start(css)` from `comark-zoom/client` once on a page with `data-zoom` elements; it returns a function that stops it.
+Each entry exports the parse plugin as `default` and the renderer's `components`. Without a renderer, call `start()` from `comark-zoom/client` once on a page with `data-zoom` elements; it returns a function that stops it.
 
 ## Customize
 
@@ -42,4 +42,4 @@ The zoomed view fires `comark-zoom:open`, `comark-zoom:change`, and `comark-zoom
 
 An item that needs styles from its ancestors names them with `data-zoom-context`, a selector: the copy goes inside empty copies of every ancestor that matches. `data-zoom-aside`, another selector, puts a copy of that element beside the zoomed item at its own size, such as a caption; it's the first match that neither holds the item nor sits in it, in its innermost context or else its parent.
 
-The styles follow shadcn/ui: they read its CSS variables, such as `--background` and `--border`, when the page has them, and use its neutral theme otherwise. Set `--comark-background`, `--comark-foreground`, `--comark-muted`, `--comark-border`, `--comark-accent`, `--comark-ring`, `--comark-radius`, or `--comark-font` to theme zoom, carousel, and annotate at once; the rules sit in a `comark` CSS layer, so any plain rule of your own wins. See [Theming](https://comark.onmax.me/zoom/#guides-theming) for the Nuxt UI mapping. `--cz-backdrop`, `--cz-ink`, `--cz-muted`, `--cz-line`, `--cz-hover`, and `--cz-active` theme only the zoomed view.
+The styles follow shadcn/ui: they read its CSS variables, such as `--background` and `--border`, when the page has them, and use its neutral theme otherwise. Set `--comark-background`, `--comark-foreground`, `--comark-muted`, `--comark-border`, `--comark-accent`, `--comark-ring`, `--comark-radius`, or `--comark-font` to theme zoom, carousel, and annotate at once; the rules sit in a `comark` CSS layer, so any plain rule of your own wins. See [Theming](https://comark.onmax.me/zoom/#guides-theming) for the Nuxt UI mapping. To theme only the zoomed view, set the tokens on `.cz-dialog`.
