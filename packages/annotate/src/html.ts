@@ -114,10 +114,14 @@ async function parts(shot: Screenshot, state: State, id: string) {
       : annotation.side
         ? letter(annotation)
         : "";
+  // The number sits outside the mark's top-left corner so it never covers what the mark points at. Against the image's
+  // left or top edge there's no room there, so it slides along that edge.
+  const edges = ({ x, y }: Annotation) =>
+    `${x < 4.5 ? " ca-at-left" : ""}${y < 7 ? " ca-at-top" : ""}`;
   // Marks aren't links: a click anywhere on the screenshot zooms it, notes included. Hovering a mark still lights up its note.
   const pins = shot.annotations.map(
     (annotation) =>
-      `<span class="ca-mark ca-${annotation.mark}" data-n="${annotation.n}" role="img" aria-label="${attr(annotation.number ? `${label(annotation)}: ${noteText(annotation)}` : label(annotation))}" title="${attr(noteText(annotation))}" ` +
+      `<span class="ca-mark ca-${annotation.mark}${edges(annotation)}" data-n="${annotation.n}" role="img" aria-label="${attr(annotation.number ? `${label(annotation)}: ${noteText(annotation)}` : label(annotation))}" title="${attr(noteText(annotation))}" ` +
       `style="${color(annotation)}left:${annotation.x}%;top:${annotation.y}%;width:${annotation.w}%;height:${annotation.h}%">` +
       `${markSvg(annotation)}${stamp(annotation)}</span>`,
   );
