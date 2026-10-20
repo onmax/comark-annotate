@@ -15,7 +15,7 @@ export interface ZoomDetail {
 
 declare global {
   interface Window {
-    __comarkZoom?: { users: number; stop: () => void; watch: () => void };
+    __comarkZoom?: { users: number; stop: () => void };
   }
   // The events bubble, so `document` and `window` hear them too.
   interface GlobalEventHandlersEventMap {
@@ -33,7 +33,6 @@ export function script(css: string): () => void {
   const running = window.__comarkZoom;
   if (running) {
     running.users++;
-    running.watch();
     return running.stop;
   }
   const listeners = new AbortController();
@@ -97,9 +96,9 @@ export function script(css: string): () => void {
   }
 
   // An item inside another one zooms with it, so only the outer one is a tab stop. Renderers can't know: a slide and
-  // the screenshot inside it come from different plugins.
+  // the screenshot inside it come from different plugins. Any other tabindex is the author's and stays.
   function settle() {
-    for (const node of document.querySelectorAll<HTMLElement>(SELECTOR))
+    for (const node of document.querySelectorAll<HTMLElement>(`${SELECTOR}[tabindex="0"]`))
       if (node.parentElement?.closest(SELECTOR)) node.removeAttribute("tabindex");
   }
 
@@ -167,8 +166,9 @@ export function script(css: string): () => void {
   function lineHeight(parent: HTMLElement, page: CSSStyleDeclaration) {
     const size = parseFloat(page.fontSize);
     if (page.lineHeight === "normal" || !size) return page.lineHeight;
+    // Important inline styles win over any rule of the host's, so the probe can't be restyled or take up room.
     const probe = el("span", "");
-    probe.style.cssText = `position:absolute;visibility:hidden;font-size:${size * 2}px`;
+    probe.style.cssText = `all:initial!important;position:absolute!important;visibility:hidden!important;font-size:${size * 2}px!important;line-height:inherit!important`;
     parent.append(probe);
     const scaled = getComputedStyle(probe).lineHeight !== page.lineHeight;
     probe.remove();
@@ -235,12 +235,17 @@ export function script(css: string): () => void {
     current.frame.style.transform = `scale(${current.scale})`;
   }
 
+  // Whether an image of a copy is still shown, so a load that finishes after a close or a move changes nothing.
+  const showing = (current: View, image: HTMLImageElement) =>
+    view === current && !current.closing && current.frame.contains(image);
+
   // The page's image stays in the copy until the larger file has loaded, so the zoom never grows an empty box.
-  function enlarge(image: HTMLImageElement) {
+  function enlarge(current: View, image: HTMLImageElement) {
     const large = image.getAttribute("data-zoom-src");
     if (!large) return;
     const preload = new Image();
     preload.addEventListener("load", () => {
+      if (!showing(current, image)) return;
       // A srcset, or a picture's sources, would win over src.
       for (const source of image.closest("picture")?.querySelectorAll("source") ?? [])
         source.remove();
@@ -271,8 +276,8 @@ export function script(css: string): () => void {
     current.frame.append(el("div", "cz-layer"));
     for (const image of current.frame.querySelectorAll("img")) {
       image.loading = "eager";
-      image.addEventListener("load", () => view === current && !current.closing && place(current));
-      enlarge(image);
+      image.addEventListener("load", () => showing(current, image) && place(current));
+      enlarge(current, image);
     }
     current.title.textContent = titleOf(item);
     current.count.textContent =
@@ -343,6 +348,13 @@ export function script(css: string): () => void {
     root.style.scrollbarGutter = unlocked.gutter;
     root.style.paddingRight = unlocked.padding;
     unlocked = null;
+  }
+
+  function restore() {
+    const saved = restoration;
+    restoration = null;
+    // The browser restores scroll after popstate, so put the setting back once it has skipped that.
+    if (saved) setTimeout(() => (history.scrollRestoration = saved));
   }
 
   function open(item: HTMLElement) {
@@ -440,7 +452,11 @@ export function script(css: string): () => void {
     const current = view;
     if (!current || current.closing) return;
     current.closing = true;
-    if (current.pushed && !fromHistory && history.state?.comarkZoom) history.back();
+    if (current.pushed && !fromHistory && history.state?.comarkZoom) {
+      // stop() may have removed the listener that puts scroll restoration back.
+      addEventListener("popstate", restore, { once: true });
+      history.back();
+    } else if (!fromHistory) restore();
     const item = current.items[current.index]!;
     if (!motion.matches) {
       // A close can come while the opening animation still runs. Measure the frame where it settles, so the path back
@@ -539,27 +555,24 @@ export function script(css: string): () => void {
   addEventListener(
     "popstate",
     () => {
-      // The browser restores scroll after this event, so put the setting back once it has skipped that.
-      const saved = restoration;
-      restoration = null;
-      if (saved) setTimeout(() => (history.scrollRestoration = saved));
+      restore();
       void shut(true);
     },
     { signal },
   );
   addEventListener("resize", () => view && place(view), { signal });
 
-  // The HTML renderer's script runs where the first item is, before the rest of the page has loaded.
+  // Items keep coming after the script starts: the rest of the page after the HTML renderer's inline script, and
+  // whatever an app renders later.
   settle();
-  if (document.readyState === "loading")
-    document.addEventListener("DOMContentLoaded", settle, { once: true, signal });
+  const added = new MutationObserver(settle);
+  added.observe(document.documentElement, { childList: true, subtree: true });
 
   const state = {
     users: 1,
-    // A component that mounts later starts zoom again, with new items on the page.
-    watch: settle,
     stop: () => {
       if (--state.users > 0) return;
+      added.disconnect();
       listeners.abort();
       style?.remove();
       void shut();

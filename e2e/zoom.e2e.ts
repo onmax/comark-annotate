@@ -115,7 +115,9 @@ test("a zoomed block closes onto the original without a jump", async ({ page }) 
     .locator("main .example-preview .cz")
     .filter({ has: page.locator("table") })
     .last();
-  // A length line height stays the same for larger text, unlike a ratio.
+  // A length line height stays the same for larger text, unlike a ratio. The host's rule for spans mustn't fool the
+  // zoom into reading it as one.
+  await page.addStyleTag({ content: "main span{line-height:1.2;position:static!important}" });
   await page.evaluate(() =>
     document
       .querySelector("main")!
@@ -164,6 +166,34 @@ test("Enter on an item inside a slide opens that slide, the only tab stop", asyn
   await inner.focus();
   await page.keyboard.press("Enter");
   await expect(page.locator(".cz-count")).toHaveText("2 / 3");
+});
+
+test("an item nested in one added later stops being a tab stop, unless its author set the tabindex", async ({
+  page,
+}) => {
+  await fixture(page, await render("![One](/before.png)"));
+  await page.evaluate(() =>
+    document
+      .querySelector("main")!
+      .insertAdjacentHTML(
+        "beforeend",
+        '<div data-zoom tabindex="0"><img id="added" src="/after.png" alt="" data-zoom tabindex="0"><img id="kept" src="/after.png" alt="" data-zoom tabindex="-1"></div>',
+      ),
+  );
+  await expect(page.locator("#added")).not.toHaveAttribute("tabindex");
+  await expect(page.locator("#kept")).toHaveAttribute("tabindex", "-1");
+});
+
+test("stopping the zoom while it's open gives the page its scroll restoration back", async ({
+  page,
+}) => {
+  await page.goto("/zoom/");
+  await page.locator("main img[data-zoom]").first().click();
+  await expect(page.locator(".cz-dialog")).toBeVisible();
+  expect(await page.evaluate(() => history.scrollRestoration)).toBe("manual");
+  await page.evaluate(() => window.__comarkZoom!.stop());
+  await expect(page.locator(".cz-dialog")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => history.scrollRestoration)).toBe("auto");
 });
 
 test("a group leaves out the items in a closed tab, and its strip is a group", async ({ page }) => {
