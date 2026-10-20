@@ -50,9 +50,9 @@ if (opened) history.back()
 ::
 ````
 
-The file comes from the first block's name or a `file` prop. `line` is the file's line number for the first line and turns on line numbers; `label` is optional. Leave a block empty for a file that's added or deleted. With Comark's `shiki` plugin, the code keeps its highlighting.
+The file comes from the first block's name or a `file` prop. `line` is the file's line number for the first line and turns on line numbers; `label` is optional. Leave a block empty for a file that's added or deleted. With Comark's `shiki` plugin, the code keeps its highlighting, and a line a block highlights, like `` ```ts {2} ``, stays highlighted.
 
- The plugin adds every problem to `meta.issues`, one sentence each naming the block and the fix, so a host can reject a document before publishing it.
+The plugin adds every problem to `meta.issues`, one sentence each naming the block and the fix, so a host can reject a document before publishing it.
 
 The output is static HTML with one inlined `<style>` per document and `style` attributes for positions, so a strict CSP needs `style-src 'unsafe-inline'`. Notes are ordinary Markdown, so raw HTML in them renders like anywhere else in the document; for untrusted input, add Comark's `security` plugin and list the tags to drop, such as `security({ blockedTags: ["script", "style", "iframe"] })`; it cleans notes too. 
 

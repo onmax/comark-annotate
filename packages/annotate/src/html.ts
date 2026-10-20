@@ -258,7 +258,7 @@ const diff: NodeHandler = async (node, state) => {
   const body = await each(
     rows,
     async (row) =>
-      `<tr class="ca-${row.kind}">${line === undefined ? "" : number(row.old) + number(row.new)}<td class="ca-line">${await state.flow(["p", {}, ...row.nodes], state)}</td></tr>`,
+      `<tr class="ca-${row.kind}"${row.highlight ? " data-highlight" : ""}>${line === undefined ? "" : number(row.old) + number(row.new)}<td class="ca-line">${await state.flow(["p", {}, ...row.nodes], state)}</td></tr>`,
   );
   const header = [
     label && `<strong>${escapeHtml(label)}</strong>`,
