@@ -1,7 +1,7 @@
 <!-- `::embed` for `@comark/svelte`. -->
 <script>
   import { onMount } from "svelte";
-  import { addStyles, allow, referrerPolicy } from "comark-embed/client";
+  import { addStyles, allow, icons, referrerPolicy } from "comark-embed/client";
 
   let {
     provider = undefined,
@@ -20,8 +20,8 @@
     <div class="ce-frame">
       <iframe {src} title={label} loading="lazy" {allow} allowfullscreen referrerpolicy={referrerPolicy}></iframe>
     </div>
-    <figcaption><a {href}>{title}</a></figcaption>
+    <figcaption><a {href}>{title}<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={icons.external} /></svg></a></figcaption>
   </figure>
 {:else if href}
-  <a class="ce-card" {href}><strong>{title}</strong><span>{host}</span></a>
+  <a class="ce-card" {href}><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={icons.globe} /></svg><strong>{title}</strong> <span>{host}</span></a>
 {/if}

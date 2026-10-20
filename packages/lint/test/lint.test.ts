@@ -70,14 +70,14 @@ describe("comark/unknown-component", () => {
         line: 3,
         column: 1,
         message:
-          "`::screnshot` on line 3 is not a known component. Did you mean `screenshot`? Known: `annotation`, `compare`, `screenshot`.",
+          "`::screnshot` on line 3 is not a known component. Did you mean `screenshot`? Known: `annotation`, `compare`, `diff`, `screenshot`.",
       },
       {
         rule: "comark/unknown-component",
         line: 6,
         column: 5,
         message:
-          "`:badge` on line 6 is not a known component. Known: `annotation`, `compare`, `screenshot`. If it is yours, add it to the components you give comark-lint.",
+          "`:badge` on line 6 is not a known component. Known: `annotation`, `compare`, `diff`, `screenshot`. If it is yours, add it to the components you give comark-lint.",
       },
     ]);
   });

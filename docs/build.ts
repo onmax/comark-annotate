@@ -1,6 +1,7 @@
 // Renders docs/pages with the plugins themselves into docs/dist, a static site served by Cloudflare at comark.onmax.me.
 import { createHash } from "node:crypto";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { renderHtmlFromDocument } from "@comark/html";
 import shiki from "@comark/html/plugins/shiki";
 import type { ElementNode, Node, NodeHandler } from "comark";
@@ -14,13 +15,22 @@ import embed, { components as embedComponents } from "../packages/embed/src/html
 import githubCallouts, {
   components as githubCalloutsComponents,
 } from "../packages/github-callouts/src/html.ts";
+import include from "../packages/include/src/index.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
 
 const root = new URL("./", import.meta.url);
 const dist = new URL("dist/", root);
 const fonts = new URL("../node_modules/geist/dist/fonts/", root);
 const site = "https://comark.onmax.me";
-const contentPlugins = () => [annotate(), carousel(), embed(), githubCallouts(), zoom()];
+// Every page sits in pages/, so includes resolve from there.
+const contentPlugins = () => [
+  include({ root: fileURLToPath(new URL("pages/", root)) }),
+  annotate(),
+  carousel(),
+  embed(),
+  githubCallouts(),
+  zoom(),
+];
 const plugins = [...contentPlugins(), shiki({ themes: { light, dark } })];
 const components = {
   ...annotateComponents,
@@ -38,6 +48,7 @@ const pages = [
   { slug: "carousel", file: "carousel.md", npm: "comark-carousel" },
   { slug: "github-callouts", file: "github-callouts.md", npm: "comark-github-callouts" },
   { slug: "lint", file: "lint.md", npm: "comark-lint" },
+  { slug: "include", file: "include.md", npm: "comark-include" },
   { slug: "embed", file: "embed.md", npm: "comark-embed" },
 ];
 

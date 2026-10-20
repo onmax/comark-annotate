@@ -269,6 +269,15 @@ importers:
         specifier: 'catalog:'
         version: 0.1.0(@voidzero-dev/vite-plus-core@1.1.0(@types/node@24.19.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1))
 
+  packages/include:
+    devDependencies:
+      '@comark/html':
+        specifier: 'catalog:'
+        version: 0.7.0(shiki@4.5.0)
+      comark:
+        specifier: 'catalog:'
+        version: 0.7.0(shiki@4.5.0)
+
   packages/zoom:
     devDependencies:
       '@comark/html':

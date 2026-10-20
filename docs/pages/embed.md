@@ -28,7 +28,7 @@ install: pnpm add comark @comark/html comark-embed
 :::
 ::
 
-The plugin reads the player's address from the link alone, so a document renders the same offline, in tests, and at build time. The link stays under every player, so the page still makes sense in print, in a feed reader, or where iframes are blocked.
+The plugin reads the player's address from the link alone, so a document renders the same offline, in tests, and at build time. The link stays under every player, so the page still makes sense in a feed reader or where iframes are blocked, and in print each player gives way to its address.
 
 ## Usage
 
@@ -74,7 +74,7 @@ The plugin adds every problem to `meta.issues`, so a host can reject a document 
 
 ### Theming
 
-Players sit on a panel with rounded corners, and cards follow shadcn/ui's Card. Both read its variables, such as `--background`, `--border`, and `--muted-foreground`, when the page has them, and use its neutral theme otherwise; the shared `--comark-*` tokens theme them together with the other plugins. Override `--ce-app-height` to change the height of CodePen, StackBlitz, and Figma:
+Players sit in a bordered frame with their link under it, and cards follow shadcn/ui's Item: a globe, the title, and the host. Both read shadcn/ui's variables, such as `--background`, `--border`, and `--muted-foreground`, when the page has them, and use its neutral theme otherwise; the shared `--comark-*` tokens theme them together with the other plugins. Override `--ce-app-height` to change the height of CodePen, StackBlitz, and Figma:
 
 ```css
 .ce {
