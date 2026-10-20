@@ -61,8 +61,8 @@ Each include sits alone on its own line, with one colon:
 | Argument | |
 | --- | --- |
 | `src` | The file. A relative path starts at the page's folder, or at the including partial's; `/` starts at `root`. Required. |
-| `lines` | `"10:24"`: lines 10 to 24, 1-based and inclusive. `"10:"` and `":24"` leave one end open. |
-| `region` | The lines between `#region setup` and `#endregion setup`, in any comment style. Marker lines are dropped. |
+| `lines` | `"10:24"`: lines 10 to 24, 1-based and inclusive. `"10:"` and `":24"` leave one end open. Lines count from the top of the file, frontmatter included. |
+| `region` | The lines between `#region setup` and `#endregion setup`. A marker starts its line, after a comment opener if any: `//`, `#`, `/*`, `<!--`, `--`, `;`, `%`, or `'`. Marker lines are dropped. |
 | `code` | Shows a Markdown file as code instead of pasting it. |
 | `lang` | The code block's language, instead of the extension. |
 
@@ -86,7 +86,7 @@ Pasted lines are indented like the include, so a partial can sit in a list item:
 | `read(path)` | Reads a file by its POSIX path relative to `root`, and returns its text or `undefined`. It may be async. Default: reads from disk. |
 | `depth` | How many levels of includes may nest. Default `8`. |
 
-Comark doesn't tell plugins where a page lives, so set `base` to its folder. Paths are joined as strings, so `../` can't leave `root` in any runtime, and `read` only gets paths under it. In a browser or an edge runtime, pass your own `read`:
+Comark doesn't tell plugins where a page lives, so set `base` to its folder. Paths are joined as strings, so `../` can't leave `root` in any runtime, and `read` only gets paths under it. The default reader also refuses a symlink that leads out of `root`; your own `read` has to do that itself if its files can hold symlinks. In a browser or an edge runtime, pass your own `read`:
 
 ```ts
 const files = import.meta.glob("./content/**/*.md", { query: "?raw", import: "default" });

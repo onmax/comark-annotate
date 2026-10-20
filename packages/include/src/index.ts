@@ -9,7 +9,10 @@ export interface IncludeOptions {
   root?: string;
   /** The host document's folder relative to `root`, where relative paths start. Default `""`, the root itself. */
   base?: string;
-  /** Reads a file under `root`. Default reads from disk, so browsers and edge runtimes pass their own. */
+  /**
+   * Reads a file under `root`. Default reads from disk and refuses symlinks that lead out of `root`, so browsers and
+   * edge runtimes pass their own. A custom reader only gets paths under `root` and must handle symlinks itself.
+   */
   read?: IncludeReader;
   /** How many levels of includes may nest. Default 8. */
   depth?: number;
@@ -32,10 +35,15 @@ interface Run {
 const LINE = /^([ \t]*):include\{(.*)\}\s*$/;
 const ATTRIBUTE = /([^\s=]+)(?:=(?:"([^"]*)"|'([^']*)'|(\S+)))?/g;
 const FENCE = /^[ \t]*(`{3,}|~{3,})(.*)$/;
-const BLOCK_OPEN = /^[ \t]*(:{2,})([A-Za-z][\w-]*)/;
+const QUOTE = /^(?:[ \t]{0,3}>[ \t]?)+/;
+const ITEM = /^[ \t]*(?:[-*+]|\d{1,9}[.)])(?:[ \t]+|$)/;
+// Comark's block-name grammar, from comark/dist/internal/parse/syntax/block-params.js.
+const BLOCK_OPEN = /^[ \t]*(:{2,})([a-z$][$\w.-]*)/i;
 const BLOCK_CLOSE = /^[ \t]*(:{2,})\s*$/;
-const REGION = /#(end)?region\b[ \t]*([\w$]+(?:[.-][\w$]+)*)?/;
-const FRONTMATTER = /^---[ \t]*\n[\s\S]*?\n---[ \t]*(?:\n|$)/;
+// A marker starts its line, after a comment opener if it has one, so a string such as "#region a" isn't one.
+const REGION =
+  /^[ \t]*(?:(?:\/\/|#|\/\*|<!--|--|;|%|')[ \t]*)?#(end)?region\b[ \t]*([\w$]+(?:[.-][\w$]+)*)?/;
+const FRONTMATTER = /^---[ \t]*$/;
 const OPTIONS = new Set(["src", "lines", "region", "code", "lang"]);
 const MARKDOWN = new Set(["md", "mdc", "markdown"]);
 
@@ -68,17 +76,42 @@ const isTrue = (value: string | undefined) => value !== undefined && value !== "
 const indentOf = (line: string) => line.length - line.trimStart().length;
 const errorText = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
-/** Marks each line that sits outside fenced code, where an include or a block marker means something. */
+/**
+ * Marks each line that sits outside fenced code, where an include or a block marker means something. Fences may sit in
+ * blockquotes and list items, indented up to 3 spaces past the item's content, as in CommonMark.
+ */
 function outsideCode(lines: string[]) {
-  let open = "";
-  return lines.map((line) => {
-    const [, marker = "", info = ""] = FENCE.exec(line) ?? [];
+  let open: { marker: string; base: number } | undefined;
+  // The content columns of the list items around the current line, outermost first.
+  let items: number[] = [];
+  return lines.map((quoted) => {
+    const line = quoted.replace(QUOTE, "");
+    const indent = indentOf(line);
     if (open) {
-      if (marker[0] === open[0] && marker.length >= open.length && !info.trim()) open = "";
+      const [, marker = "", info = ""] = FENCE.exec(line) ?? [];
+      const { marker: opener, base } = open;
+      if (
+        indent - base <= 3 &&
+        marker[0] === opener[0] &&
+        marker.length >= opener.length &&
+        !info.trim()
+      )
+        open = undefined;
       return false;
     }
+    if (!line.trim()) return true;
+    items = items.filter((column) => column <= indent);
+    let at = 0;
+    for (let item = ITEM.exec(line); item; item = ITEM.exec(line.slice(at))) {
+      at += item[0].length;
+      items.push(at);
+    }
+    const base = at || (items.at(-1) ?? 0);
+    const content = line.slice(at);
+    const [, marker = "", info = ""] = FENCE.exec(content) ?? [];
     // A backtick fence's info string can't hold a backtick, so ```a``` is inline code.
-    if (marker && !(marker[0] === "`" && info.includes("`"))) open = marker;
+    if (marker && at + indentOf(content) - base <= 3 && !(marker[0] === "`" && info.includes("`")))
+      open = { marker, base };
     return !open;
   });
 }
@@ -140,10 +173,8 @@ async function include(source: string, folder: string, chain: string[], run: Run
       fail(`${name}: \`${key}\` isn't an include option; use src, lines, region, code, or lang.`);
   if (/^[a-z][a-z\d+.-]*:/i.test(src)) return fail(`${name}: only local files can be included.`);
   const path = resolve(src.startsWith("/") ? "" : folder, src);
-  if (path === undefined)
-    return fail(
-      `${name}: the path leaves the root. Move the file under the root or widen \`root\`.`,
-    );
+  const leaves = `${name}: the path leaves the root. Move the file under the root or widen \`root\`.`;
+  if (path === undefined) return fail(leaves);
   const lines = args.get("lines");
   const regionName = args.get("region");
   if (lines !== undefined && regionName !== undefined)
@@ -162,6 +193,7 @@ async function include(source: string, folder: string, chain: string[], run: Run
   try {
     text = await run.read(path);
   } catch (error) {
+    if (error instanceof OutsideRoot) return fail(leaves);
     return fail(
       `${name}: reading "${path}" failed: ${errorText(error)}. Check the file or the \`read\` option.`,
     );
@@ -171,7 +203,14 @@ async function include(source: string, folder: string, chain: string[], run: Run
       `${name}: file not found. It resolved to "${path}" under the root; check the path or base.`,
     );
 
+  const lang = args.get("lang");
+  const code = isTrue(args.get("code")) || lang !== undefined || !MARKDOWN.has(extensionOf(path));
   let body = text.replace(/\r\n?/g, "\n").replace(/\n$/, "").split("\n");
+  // `lines` counts from the top of the file, as editors and automd do, but a partial's frontmatter is never pasted.
+  const frontmatter =
+    !code && FRONTMATTER.test(body[0] ?? "")
+      ? body.findIndex((line, index) => index > 0 && FRONTMATTER.test(line)) + 1
+      : 0;
   if (lines !== undefined) {
     const [, from = "", to = ""] = /^(\d*):(\d*)$/.exec(lines) ?? [];
     const [start, end] = [Number(from || 1), Number(to || body.length)];
@@ -183,8 +222,8 @@ async function include(source: string, folder: string, chain: string[], run: Run
       return fail(
         `${name}: lines="${lines}" runs past the end of ${path}, which has ${body.length} lines. End the range at ${body.length} or earlier.`,
       );
-    body = dedent(body.slice(start - 1, end));
-  }
+    body = dedent(body.slice(Math.max(start - 1, frontmatter), end));
+  } else body = body.slice(frontmatter);
   if (regionName !== undefined) {
     const found = region(body, regionName);
     if (found === "missing")
@@ -198,18 +237,18 @@ async function include(source: string, folder: string, chain: string[], run: Run
     body = found;
   }
 
-  const lang = args.get("lang");
-  if (isTrue(args.get("code")) || lang !== undefined || !MARKDOWN.has(extensionOf(path))) {
-    const code = body.join("\n");
-    const longest = (code.match(/`+/g) ?? []).reduce((most, run) => Math.max(most, run.length), 0);
+  if (code) {
+    const snippet = body.join("\n");
+    const longest = (snippet.match(/`+/g) ?? []).reduce(
+      (most, run) => Math.max(most, run.length),
+      0,
+    );
     const ticks = "`".repeat(Math.max(3, longest + 1));
     const info = (lang ?? extensionOf(path)).replace(/[\s`]/g, "");
-    return `${ticks}${info}\n${code}\n${ticks}`;
+    return `${ticks}${info}\n${snippet}\n${ticks}`;
   }
 
-  let markdown = body.join("\n");
-  if (lines === undefined && regionName === undefined) markdown = markdown.replace(FRONTMATTER, "");
-  const pasted = (await expand(markdown, folderOf(path), [...chain, path], run)).split("\n");
+  const pasted = (await expand(body.join("\n"), folderOf(path), [...chain, path], run)).split("\n");
   // Comark closes open blocks before plugins run, so a block a partial leaves open would take in the rest of the host.
   const open = openBlocks(pasted);
   if (open.length) {
@@ -243,13 +282,21 @@ const isMissing = (error: unknown) =>
   "code" in error &&
   (error.code === "ENOENT" || error.code === "ENOTDIR");
 
+class OutsideRoot extends Error {}
+
 function diskReader(root: string): IncludeReader {
   const folder = (root || ".").replace(/[/\\]+$/, "");
   return async (path) => {
     // Imported on first read, so the plugin loads in runtimes without node:fs when they pass their own `read`.
-    const { readFile } = await import("node:fs/promises");
+    const { readFile, realpath } = await import("node:fs/promises");
+    const paths = await import("node:path");
     try {
-      return await readFile(`${folder}/${path}`, "utf8");
+      // The string check can't see symlinks, so the real target must sit under the real root too.
+      const [base, target] = await Promise.all([realpath(folder), realpath(`${folder}/${path}`)]);
+      const inside = paths.relative(base, target);
+      if (inside === ".." || inside.startsWith(`..${paths.sep}`) || paths.isAbsolute(inside))
+        throw new OutsideRoot();
+      return await readFile(target, "utf8");
     } catch (error) {
       if (isMissing(error)) return undefined;
       throw error;
@@ -309,7 +356,7 @@ export default defineComarkPlugin<IncludeOptions, IncludeMeta>((options = {}) =>
         run.issues.push(
           `include: \`base\` "${options.base ?? ""}" leaves the root. Set it to the document's folder under \`root\`.`,
         );
-      state.markdown = await expand(state.markdown, base ?? "", [], run);
+      state.markdown = await expand(state.markdown.replace(/\r\n?/g, "\n"), base ?? "", [], run);
     },
     post(state) {
       const run = runs.get(state) ?? fresh();

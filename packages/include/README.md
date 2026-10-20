@@ -30,12 +30,12 @@ A `.md`, `.mdc`, or `.markdown` file is pasted as Markdown, without its frontmat
 | Argument | |
 | --- | --- |
 | `src` | The file. A relative path starts at the document's folder, or at the including partial's; `/` starts at `root`. Required. |
-| `lines` | `"10:24"`: lines 10 to 24, 1-based and inclusive. `"10:"` and `":24"` leave one end open. |
-| `region` | The lines between `#region setup` and `#endregion setup`, in any comment style. Marker lines are dropped. |
+| `lines` | `"10:24"`: lines 10 to 24, 1-based and inclusive. `"10:"` and `":24"` leave one end open. Lines count from the top of the file, frontmatter included, as in an editor, but frontmatter is never pasted. |
+| `region` | The lines between `#region setup` and `#endregion setup`. A marker starts its line, after a comment opener if any: `//`, `#`, `/*`, `<!--`, `--`, `;`, `%`, or `'`. Marker lines are dropped. |
 | `code` | Fences a Markdown file instead of pasting it. |
 | `lang` | The fence's language, instead of the extension. Fences the file too. |
 
-`lines` and `region` are dedented. An include inside fenced code stays as it is, so docs can show the syntax, and pasted lines are indented like the include line, so a partial can sit in a list item.
+`lines` and `region` are dedented. An include inside fenced code stays as it is, even in a list item or a blockquote, so docs can show the syntax, and pasted lines are indented like the include line, so a partial can sit in a list item.
 
 ## Options
 
@@ -46,7 +46,7 @@ A `.md`, `.mdc`, or `.markdown` file is pasted as Markdown, without its frontmat
 | `read(path)` | Reads a file by its POSIX path relative to `root` and returns its text, or `undefined` when it doesn't exist. It may be async. The default reads from disk, so pass your own in a browser or an edge runtime. |
 | `depth` | How many levels of includes may nest. Default 8. |
 
-Paths are normalized as strings, so `../` can't leave `root` in any runtime, and `read` only ever gets paths under it.
+Paths are normalized as strings, so `../` can't leave `root` in any runtime, and `read` only ever gets paths under it. The default reader also resolves symlinks and refuses a file whose real path is outside the real `root`. A custom `read` gets no such check: if its files can hold symlinks, it has to refuse the ones that lead out.
 
 `meta.includes` lists every file the document included or tried to include, so a watcher can rebuild when one changes or appears.
 

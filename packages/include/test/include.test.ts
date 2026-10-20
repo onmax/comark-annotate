@@ -1,3 +1,6 @@
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHtmlRenderer } from "@comark/html";
 import { parseMarkdown } from "comark";
@@ -104,6 +107,20 @@ describe("comark-include", () => {
     expect((await parse('```md\n:include{src="a.md"}\n```', { read })).meta.includes).toEqual([]);
   });
 
+  it("finds fences in list items, blockquotes, and CRLF files, but not in indented code", async () => {
+    const read = files({ "a.md": "Pasted" });
+    for (const markdown of [
+      '- ```md\n  :include{src="a.md"}\n  ```\n',
+      '1. Step\n\n   - ```md\n     :include{src="a.md"}\n     ```',
+      '> ```md\n> :include{src="a.md"}\n> ```',
+      '```md\r\n:include{src="a.md"}\r\n```\r\n',
+    ])
+      expect(await render(markdown, { read }), markdown).toContain(':include{src="a.md"}</code>');
+    expect(await render('    ~~~\n    text\n\n:include{src="a.md"}', { read })).toBe(
+      "<pre><code>~~~\ntext</code></pre>\n<p>Pasted</p>",
+    );
+  });
+
   it("indents pasted lines like the include, so a partial stays in its list item", async () => {
     const read = files({ "step.md": "Run it:\n\n```sh\npnpm i\n```" });
     expect(await render('- One\n\n  :include{src="step.md"}\n- Two', { read })).toBe(
@@ -122,6 +139,34 @@ describe("comark-include", () => {
     expect(document.meta.issues).toEqual([
       'include "open.md": open.md leaves ::note open, so it was closed at the end of the include. Close it in the partial.',
     ]);
+  });
+
+  it("closes a `::$name` block too, since Comark allows `$` in block names", async () => {
+    const document = await parse(':include{src="slot.md"}\n\nAfter', {
+      read: files({ "slot.md": "::$slot\nInside" }),
+    });
+    expect(document.nodes).toEqual([
+      ["$slot", {}, "Inside"],
+      ["p", {}, "After"],
+    ]);
+    expect(document.meta.issues).toEqual([
+      'include "slot.md": slot.md leaves ::$slot open, so it was closed at the end of the include. Close it in the partial.',
+    ]);
+  });
+
+  it("counts `lines` from the top of a partial but never pastes its frontmatter", async () => {
+    const read = files({ "a.md": "---\ntitle: A\n---\n# After\n\nText" });
+    expect(await render(':include{src="a.md" lines="1:4"}', { read })).toBe(
+      '<h1 id="after">After</h1>',
+    );
+    expect(await render(':include{src="a.md" lines="5:6"}', { read })).toBe("<p>Text</p>");
+  });
+
+  it("takes region markers only at the start of a line, after a comment opener", async () => {
+    const source = ["# #region setup", 'end = "#endregion setup"', "# #endregion setup"].join("\n");
+    expect(
+      await render(':include{src="a.py" region="setup"}', { read: files({ "a.py": source }) }),
+    ).toBe('<pre language="py"><code class="language-py">end = "#endregion setup"</code></pre>');
   });
 
   it("drops a failing include and names it with the fix", async () => {
@@ -209,5 +254,29 @@ describe("comark-include", () => {
     expect(await render(':include{src="/setup.md"}\n\n:include{src="missing.md"}', { root })).toBe(
       '<h2 id="install">Install</h2>\n<p>Run the installer.</p>\n<p>A note from <strong>disk</strong>.</p>',
     );
+  });
+
+  it("refuses a symlink under `root` that leads out of it", async (context) => {
+    const folder = mkdtempSync(join(tmpdir(), "comark-include-"));
+    try {
+      mkdirSync(join(folder, "root/docs"), { recursive: true });
+      mkdirSync(join(folder, "out"));
+      writeFileSync(join(folder, "out/secret.txt"), "SECRET");
+      writeFileSync(join(folder, "root/docs/inside.md"), "Inside");
+      try {
+        symlinkSync(join(folder, "out"), join(folder, "root/link"), "dir");
+        symlinkSync(join(folder, "root/docs"), join(folder, "root/docs-link"), "dir");
+      } catch {
+        context.skip("this platform can't create symlinks");
+      }
+      const root = join(folder, "root");
+      const markdown = ':include{src="/link/secret.txt"}\n\n:include{src="/docs-link/inside.md"}';
+      expect(await render(markdown, { root })).toBe("<p>Inside</p>");
+      expect(await issues(markdown, { root })).toEqual([
+        'include "/link/secret.txt": the path leaves the root. Move the file under the root or widen `root`.',
+      ]);
+    } finally {
+      rmSync(folder, { recursive: true, force: true });
+    }
   });
 });
