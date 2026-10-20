@@ -55,7 +55,7 @@ describe("comark-annotate", () => {
     expect(html).not.toMatch(/<figcaption><div class="ca-heading">/);
     // Side by side on a wide page, one at a time on a narrow one, and both zoom as one gallery.
     expect(html).toContain(
-      '<div class="ca ca-compare"><div class="cc" data-columns="2" data-fits data-zoom-gallery',
+      '<div class="ca ca-compare"><div class="cc" data-carousel-columns="2" data-carousel-fits data-zoom-gallery',
     );
     expect(html).toMatch(/<div class="cc"[^>]* aria-label="Comparison"/);
     expect(html.match(/class="cc-slide"/g)).toHaveLength(2);

@@ -29,42 +29,67 @@ export function start(css: string): () => void {
   }
   document.documentElement.setAttribute("data-carousel-ready", "");
 
+  // Only the carousel's own parts: a slide can hold another carousel, such as a `::compare`, with parts of its own.
   const parts = (root: Element) => {
     const track = root.querySelector<HTMLElement>(":scope>.cc-track");
     const slides = track ? [...track.querySelectorAll<HTMLElement>(":scope>.cc-slide")] : [];
-    return { track, slides };
+    const step = (by: number) =>
+      root.querySelector<HTMLElement>(`:scope>.cc-controls [data-carousel-step='${by}']`);
+    const count = root.querySelector(":scope>.cc-controls .cc-count");
+    return { track, slides, count, prev: step(-1), next: step(1) };
   };
 
+  // Distances from the track's start edge, so a right-to-left page, where scrollLeft runs negative, reads the same.
+  const rtl = (track: Element) => getComputedStyle(track).direction === "rtl";
+  const offset = (track: HTMLElement, slide: HTMLElement) => {
+    const outer = track.getBoundingClientRect();
+    const inner = slide.getBoundingClientRect();
+    return rtl(track) ? outer.right - inner.right : inner.left - outer.left;
+  };
+
+  // The slide at the start edge. At the end of a track with several columns, the last slides never get there.
   function current(root: Element) {
     const { track, slides } = parts(root);
     if (!track || !slides.length) return 0;
-    const offsets = slides.map((slide) => Math.abs(slide.offsetLeft - track.scrollLeft));
+    const offsets = slides.map((slide) => Math.abs(offset(track, slide)));
     return offsets.indexOf(Math.min(...offsets));
   }
 
-  function show(root: Element, index: number, behavior: ScrollBehavior = "smooth") {
+  // Where each carousel is heading while it scrolls smoothly, so quick clicks add up instead of reading a position
+  // mid-animation. scrollend clears it; a browser without that event reads the position on every click.
+  const targets = new WeakMap<Element, number>();
+  const settles = "onscrollend" in window;
+
+  function show(root: Element, index: number, behavior?: ScrollBehavior) {
     const { track, slides } = parts(root);
-    const slide = slides[Math.max(0, Math.min(index, slides.length - 1))];
-    if (track && slide) track.scrollTo({ left: slide.offsetLeft, behavior });
+    const target = Math.max(0, Math.min(index, slides.length - 1));
+    const slide = slides[target];
+    if (!track || !slide) return;
+    const how =
+      behavior ?? (matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth");
+    if (how === "smooth" && settles) targets.set(root, target);
+    else targets.delete(root);
+    const by = offset(track, slide);
+    track.scrollTo({ left: track.scrollLeft + (rtl(track) ? -by : by), behavior: how });
   }
 
+  const page = (root: Element, by: number) => show(root, (targets.get(root) ?? current(root)) + by);
+
   function sync(root: Element) {
-    const { track, slides } = parts(root);
-    if (!track) return;
-    const index = current(root);
-    const count = root.querySelector(".cc-count");
+    const { track, slides, count, prev, next } = parts(root);
+    // A carousel in a hidden tab or a closed details measures 0 wide, which would read as the end.
+    if (!track?.clientWidth) return;
+    const scrolled = Math.abs(track.scrollLeft);
+    const end = scrolled + track.clientWidth >= track.scrollWidth - 2;
+    const index = end ? slides.length - 1 : current(root);
     const text = `${index + 1} / ${slides.length}`;
     // Only on a change: the counter is a live region, so each write is read out.
     if (count && count.textContent !== text) count.textContent = text;
-    const end = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
-    const prev = root.querySelector<HTMLButtonElement>(".cc-step[data-carousel-step='-1']");
-    const next = root.querySelector<HTMLButtonElement>(".cc-step[data-carousel-step='1']");
-    if (prev) prev.disabled = track.scrollLeft < 2;
-    if (next) next.disabled = end || index >= slides.length - 1;
+    prev?.setAttribute("aria-disabled", String(scrolled < 2));
+    next?.setAttribute("aria-disabled", String(end));
   }
 
-  // A carousel in a hidden tab or a closed details measures 0 wide, which reads as the last slide. Each track syncs
-  // when it's first observed and whenever its size changes, including when it's shown.
+  // Each track syncs when it's first observed and whenever its size changes, including when it's shown.
   const resized = new ResizeObserver((entries) => {
     for (const entry of entries) {
       const root = entry.target.closest(".cc");
@@ -84,36 +109,70 @@ export function start(css: string): () => void {
           ? event.target.closest<HTMLElement>("[data-carousel-step]")
           : null;
       const root = button?.closest(".cc");
-      if (!button || !root) return;
-      show(root, current(root) + Number(button.getAttribute("data-carousel-step")));
+      if (!button || !root || button.getAttribute("aria-disabled") === "true") return;
+      page(root, Number(button.getAttribute("data-carousel-step")));
     },
     { signal },
   );
+
+  const trackRoot = (event: Event) =>
+    event.target instanceof Element && event.target.matches(".cc-track")
+      ? event.target.closest(".cc")
+      : null;
 
   // Scroll events don't bubble, but a capturing listener on the document still sees every track.
   document.addEventListener(
     "scroll",
     (event) => {
-      const root =
-        event.target instanceof Element && event.target.matches(".cc-track")
-          ? event.target.closest(".cc")
-          : null;
+      const root = trackRoot(event);
       if (root) sync(root);
     },
     { capture: true, passive: true, signal },
   );
+  document.addEventListener(
+    "scrollend",
+    (event) => {
+      const root = trackRoot(event);
+      if (root) targets.delete(root);
+    },
+    { capture: true, passive: true, signal },
+  );
+
+  // Keys that belong to something in a slide.
+  const keyed =
+    "input,textarea,select,video,audio,[contenteditable],[role=tablist],[role=slider],[role=radiogroup],[role=listbox]";
+  const scrolls = (element: Element) =>
+    element.scrollWidth > element.clientWidth &&
+    /auto|scroll/.test(getComputedStyle(element).overflowX);
 
   document.addEventListener(
     "keydown",
     (event) => {
       if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      // Alt+Left is the browser's Back, and the other modifiers select text or switch tabs.
+      if (
+        event.defaultPrevented ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey
+      )
+        return;
       // The zoomed view pages with the same keys.
       if (document.querySelector(".cz-dialog")) return;
       const target = event.target instanceof Element ? event.target : null;
       const root = target?.closest(".cc");
-      if (!root || target?.closest("input,textarea,select,[contenteditable]")) return;
+      const track = root ? parts(root).track : null;
+      if (!target || !root || !track || target.closest(keyed)) return;
+      // A wide code block or table scrolls with the arrows.
+      for (
+        let at: Element | null = target;
+        at && at !== track && at !== root;
+        at = at.parentElement
+      )
+        if (scrolls(at)) return;
       event.preventDefault();
-      show(root, current(root) + (event.key === "ArrowLeft" ? -1 : 1));
+      page(root, event.key === (rtl(track) ? "ArrowLeft" : "ArrowRight") ? 1 : -1);
     },
     { signal },
   );
