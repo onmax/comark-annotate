@@ -301,13 +301,16 @@ export function start(): () => void {
               const ascent =
                 Number.isFinite(metrics.fontBoundingBoxAscent) && metrics.fontBoundingBoxAscent > 0
                   ? metrics.fontBoundingBoxAscent
-                  : Number.isFinite(metrics.actualBoundingBoxAscent) && metrics.actualBoundingBoxAscent > 0
+                  : Number.isFinite(metrics.actualBoundingBoxAscent) &&
+                      metrics.actualBoundingBoxAscent > 0
                     ? metrics.actualBoundingBoxAscent
                     : parseFloat(style.fontSize) || height * 0.8;
               const descent =
-                Number.isFinite(metrics.fontBoundingBoxDescent) && metrics.fontBoundingBoxDescent >= 0
+                Number.isFinite(metrics.fontBoundingBoxDescent) &&
+                metrics.fontBoundingBoxDescent >= 0
                   ? metrics.fontBoundingBoxDescent
-                  : Number.isFinite(metrics.actualBoundingBoxDescent) && metrics.actualBoundingBoxDescent >= 0
+                  : Number.isFinite(metrics.actualBoundingBoxDescent) &&
+                      metrics.actualBoundingBoxDescent >= 0
                     ? metrics.actualBoundingBoxDescent
                     : Math.max(0, (parseFloat(style.fontSize) || height) - ascent);
               context.fillText(match[0], x, y + (height - ascent - descent) / 2 + ascent);
@@ -357,7 +360,7 @@ export function start(): () => void {
           for (const path of node.querySelectorAll("path")) {
             const style = getComputedStyle(path);
             const shape = new Path2D(path.getAttribute("d") ?? "");
-            const { fill, stroke, strokeLinecap, strokeLinejoin } = style;
+            const { fill, stroke, strokeLinecap, strokeLinejoin, vectorEffect } = style;
             const fillOpacity = Number(style.fillOpacity);
             const strokeOpacity = Number(style.strokeOpacity);
             const lineWidth = parseFloat(style.strokeWidth) || 0;
@@ -375,7 +378,12 @@ export function start(): () => void {
               }
               context.globalAlpha = alpha * strokeOpacity;
               context.strokeStyle = stroke;
-              context.lineWidth = lineWidth;
+              // Canvas scales stroke widths with the transform. SVG marks use non-scaling-stroke,
+              // so compensate for the largest axis to keep their rendered width in CSS pixels.
+              context.lineWidth =
+                vectorEffect === "non-scaling-stroke"
+                  ? lineWidth / Math.max(Math.abs(sx), Math.abs(sy), 1e-6)
+                  : lineWidth;
               // SAFETY: a computed stroke-linecap is butt, round, or square, which canvas takes as is.
               context.lineCap = strokeLinecap as CanvasLineCap;
               // SAFETY: as above, a computed stroke-linejoin is miter, round, or bevel.
