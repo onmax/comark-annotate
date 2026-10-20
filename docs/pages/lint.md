@@ -48,7 +48,7 @@ const diagnostics = await lint(markdown, { plugins: [annotate()], components });
 // [{ rule: "comark/unclosed-block", line: 8, column: 1, message: "…", fix: "…" }]
 ```
 
-`lint()` never throws. Pass the same plugins and components you render with. Without `components`, `comark/unknown-component` is off, since any name could be valid; HTML elements are always known. `resolveConfig()` returns the installed packages' plugins and components, as the command line uses them.
+`lint()` never throws; if a rule crashes on a document, that rule reports one diagnostic saying so and the others still run. Pass the same plugins and components you render with. Without `components`, `comark/unknown-component` is off, since any name could be valid; HTML elements are always known. `resolveConfig()` returns the installed packages' plugins and components, as the command line uses them.
 
 ### Vite Doctor
 
@@ -75,7 +75,7 @@ It lints `**/*.{md,mdc}` except `node_modules` and `dist`; set `include` and `ex
 
 ### `comark/unclosed-block` {#comark0001}
 
-A `::` block needs a closing line with the same number of colons. Comark closes it at the end of the document, or at the next closer of an outer block, so everything after it moves inside. Fenced code is skipped.
+A `::` block needs a closing line with the same number of colons. Comark closes it at the end of the document, or at the next closer of an outer block, so everything after it moves inside. Code and HTML blocks are skipped, since Comark reads them as text.
 
 ### `comark/unknown-component` {#comark0002}
 
@@ -103,4 +103,4 @@ A `javascript:`, `vbscript:`, or `data:` URL in an `href` or `src`. `data:` imag
 
 ## Positions
 
-Comark gives parsed nodes no source positions. comark-lint takes block components' lines from the parser's tokens and finds everything else by searching the source, so a component inside a paragraph gets its line and the first matching column, and a repeated value is matched in order.
+Comark gives parsed nodes no source positions. comark-lint takes block components' lines from the parser's tokens and finds everything else by searching the source, so a component inside a paragraph gets its line and the first matching column, a URL is matched where it starts an attribute or link rather than in prose, and a repeated value is matched in order.

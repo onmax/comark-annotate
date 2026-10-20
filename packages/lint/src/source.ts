@@ -5,7 +5,7 @@ export type Source = {
   prose: string[];
   /** The 0-based index of the first line after the frontmatter. */
   body: number;
-  /** The frontmatter between the `---` lines, when there is one. */
+  /** The frontmatter, when there is one: the 0-based line its YAML starts on and the closing `---` line. */
   frontmatter?: { start: number; end: number };
 };
 
@@ -14,11 +14,12 @@ export function read(markdown: string): Source {
   const prose = [...lines];
   let body = 0;
   let frontmatter: Source["frontmatter"];
-  // Comark's own rule: `---` on the first line, closed by the next line that starts with `---`.
+  // Comark's own rule: `---` at the start, closed by the next line that starts with `---`. The YAML
+  // starts at the fifth character, even on the first line, and an empty one leaves the document alone.
   if (lines[0]?.startsWith("---")) {
     const end = lines.findIndex((line, index) => index > 0 && line.startsWith("---"));
-    if (end > 1) {
-      frontmatter = { start: 1, end };
+    if (end > 0 && lines.slice(0, end).join("\n").slice(4)) {
+      frontmatter = { start: lines[0].length > 3 ? 0 : 1, end };
       body = end + 1;
       for (let index = 0; index <= end; index++) prose[index] = "";
     }
@@ -43,7 +44,10 @@ export function read(markdown: string): Source {
   return { lines, prose, body, frontmatter };
 }
 
-/** Where `needle` appears in prose, 1-based, from the `nth` match on. A match must not run on into a longer name. */
+/**
+ * Where `needle` appears in prose, 1-based, from the `nth` match on. A match must not run on into a
+ * longer name. With `attribute`, it must also start a value: after `"`, `'`, `=`, `(`, or `<`.
+ */
 export function find(
   source: Source,
   needle: string,
@@ -51,13 +55,15 @@ export function find(
     nth = 0,
     from = 0,
     to = source.prose.length,
-  }: { nth?: number; from?: number; to?: number } = {},
+    attribute = false,
+  }: { nth?: number; from?: number; to?: number; attribute?: boolean } = {},
 ): { line: number; column: number } | undefined {
   let seen = 0;
   for (let index = from; index < Math.min(to, source.prose.length); index++) {
     const line = source.prose[index]!;
     for (let at = line.indexOf(needle); at !== -1; at = line.indexOf(needle, at + 1)) {
       if (/[\w-]/.test(line[at + needle.length] ?? "") && /[\w-]$/.test(needle)) continue;
+      if (attribute && !/["'=(<]/.test(line[at - 1] ?? "")) continue;
       if (seen++ === nth) return { line: index + 1, column: at + 1 };
     }
   }
