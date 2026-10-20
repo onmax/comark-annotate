@@ -11,7 +11,8 @@ export const css = `@layer comark{${[
   ".cc{position:relative;margin:1.5rem 0;container-type:inline-size}",
   ".cc[data-columns='2']{--cc-columns:2}",
   ".cc[data-columns='3']{--cc-columns:3}",
-  ".cc-track{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - (var(--cc-columns) - 1) * var(--cc-gap)) / var(--cc-columns));gap:var(--cc-gap);overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:none}",
+  // The row is as tall as the tallest slide, so a shorter one sits in the middle rather than above a gap.
+  ".cc-track{position:relative;display:grid;grid-auto-flow:column;align-items:center;grid-auto-columns:calc((100% - (var(--cc-columns) - 1) * var(--cc-gap)) / var(--cc-columns));gap:var(--cc-gap);overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:none}",
   ".cc-track::-webkit-scrollbar{display:none}",
   ".cc-slide{min-width:0;scroll-snap-align:start}",
   ".cc-slide>:first-child{margin-top:0}",

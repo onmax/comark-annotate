@@ -18,7 +18,9 @@ export const css = `@layer comark{${[
   // The figure carries the colors too, so a zoomed screenshot keeps them outside `.ca`.
   ":where(.ca){margin:1.5rem 0}",
   "@media (prefers-color-scheme:dark){:where(.ca,.ca-screenshot){--ca-red:#fb7185;--ca-amber:#ffb224;--ca-green:#56d39a;--ca-blue:#a5b4fc;--ca-gray:#a1a1aa}}",
+  // Before and after line up at the top, even when one screenshot is taller.
   ".ca-compare .cc{margin:0;--cc-gap:1.5rem}",
+  ".ca-compare .cc-track{align-items:start}",
   ".ca-screenshot{--ca-gutter:10rem;--ca-top-gutter:5rem;--ca-gap:1.25rem;margin:0;container-type:inline-size}",
   ".ca-stage{position:relative}",
   ".ca-right .ca-stage{--ca-pr:var(--ca-gutter);padding-right:var(--ca-gutter)}",

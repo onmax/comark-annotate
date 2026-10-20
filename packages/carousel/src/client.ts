@@ -1,6 +1,6 @@
 declare global {
   interface Window {
-    __comarkCarousel?: { users: number; stop: () => void };
+    __comarkCarousel?: { users: number; stop: () => void; watch: () => void };
   }
 }
 
@@ -13,6 +13,7 @@ export function start(css: string): () => void {
   const running = window.__comarkCarousel;
   if (running) {
     running.users++;
+    running.watch();
     return running.stop;
   }
   const listeners = new AbortController();
@@ -60,7 +61,18 @@ export function start(css: string): () => void {
     if (next) next.disabled = end || index >= slides.length - 1;
   }
 
-  for (const root of document.querySelectorAll(".cc")) sync(root);
+  // A carousel in a hidden tab or a closed details measures 0 wide, which reads as the last slide. Each track syncs
+  // when it's first observed and whenever its size changes, including when it's shown.
+  const resized = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      const root = entry.target.closest(".cc");
+      if (root) sync(root);
+    }
+  });
+  const watch = () => {
+    for (const track of document.querySelectorAll(".cc>.cc-track")) resized.observe(track);
+  };
+  watch();
 
   document.addEventListener(
     "click",
@@ -123,9 +135,11 @@ export function start(css: string): () => void {
 
   const state = {
     users: 1,
+    watch,
     stop: () => {
       if (--state.users > 0) return;
       listeners.abort();
+      resized.disconnect();
       style?.remove();
       document.documentElement.removeAttribute("data-carousel-ready");
       window.__comarkCarousel = undefined;
