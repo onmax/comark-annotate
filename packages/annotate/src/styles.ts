@@ -62,7 +62,7 @@ export const css = `@layer comark{${[
   ".ca-mark,.ca-arrow{--ca-stroke:color-mix(in srgb,var(--ca-color) calc(65% + 35% * var(--ca-on,0)),var(--_comark-background))}",
   // A dark page would muddy them, but screenshots stay light, so dark mode mixes the deeper shade with white instead.
   "@media (prefers-color-scheme:dark){.ca-mark,.ca-arrow{--ca-stroke:color-mix(in srgb,var(--ca-solid,var(--ca-color)) calc(65% + 35% * var(--ca-on,0)),#fff)}}",
-  ".ca-mark svg{position:absolute;left:-5px;top:-5px;width:calc(100% + 10px);height:calc(100% + 10px);overflow:visible;fill:none;stroke:var(--ca-stroke);stroke-width:calc(1.5px + .5px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round;transition:stroke-width .15s ease}",
+  ".ca-mark svg{position:absolute;left:-5px;top:-5px;width:calc(100% + 10px);height:calc(100% + 10px);overflow:visible;fill:none;stroke:currentColor;stroke:var(--ca-stroke,currentColor);stroke-width:calc(1.5px + .5px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round;transition:stroke-width .15s ease}",
   ".ca-highlight svg{left:0;top:0;width:100%;height:100%;fill:currentColor;fill-opacity:calc(.14 + .08 * var(--ca-on,0));stroke:none}",
   ".ca-underline svg{top:calc(100% - 5px);height:12px}",
   // A tick beside the target, so it doesn't hide what it approves.
@@ -76,7 +76,7 @@ export const css = `@layer comark{${[
   // A numbered mark that draws nothing is only its number, so the number stays on the corner.
   ".ca-mark.ca-none .ca-stamp{right:auto;bottom:auto;left:-7.5px;top:-7.5px}",
   ".ca-arrow{position:absolute;height:16px;color:var(--ca-color);transform:translateY(-50%);pointer-events:none}",
-  ".ca-arrow svg{position:absolute;overflow:visible;fill:none;stroke:var(--ca-stroke);stroke-width:calc(1.5px + .5px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round}",
+  ".ca-arrow svg{position:absolute;overflow:visible;fill:none;stroke:currentColor;stroke:var(--ca-stroke,currentColor);stroke-width:calc(1.5px + .5px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round}",
   ".ca-arrow-line{inset:0;width:100%;height:100%}",
   ".ca-arrow-head{top:4.5px;width:7px;height:7px}",
   ".ca-arrow-right .ca-arrow-head{left:1px}",
