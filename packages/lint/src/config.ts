@@ -10,6 +10,7 @@ const packages = [
   ["comark-annotate/html", () => import("comark-annotate/html")],
   ["comark-carousel/html", () => import("comark-carousel/html")],
   ["comark-github-callouts/html", () => import("comark-github-callouts/html")],
+  ["comark-tabs/html", () => import("comark-tabs/html")],
   ["comark-zoom/html", () => import("comark-zoom/html")],
 ] as const;
 
