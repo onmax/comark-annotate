@@ -49,16 +49,41 @@ function readMarker([first, ...after]: Node[]): { type: CalloutType; rest: Node[
 function splitLine(nodes: Node[]): { line: Node[]; rest: Node[] } {
   const line: Node[] = [];
   for (const [index, node] of nodes.entries()) {
-    const at = Array.isArray(node) ? -1 : node.indexOf("\n");
-    if (Array.isArray(node) || at === -1) {
+    const split = splitInlineNode(node);
+    if (!split) {
       line.push(node);
       continue;
     }
-    if (at > 0) line.push(node.slice(0, at));
-    const tail = node.slice(at + 1);
-    return { line, rest: [...(tail ? [tail] : []), ...nodes.slice(index + 1)] };
+    if (split.line) line.push(split.line);
+    return { line, rest: [...(split.rest ? [split.rest] : []), ...nodes.slice(index + 1)] };
   }
   return { line, rest: [] };
+}
+
+/** Splits one inline node while retaining its element wrappers on both sides of the break. */
+function splitInlineNode(node: Node): { line?: Node; rest?: Node } | undefined {
+  if (!Array.isArray(node)) {
+    const at = node.indexOf("\n");
+    if (at === -1) return;
+    return {
+      line: at > 0 ? node.slice(0, at) : undefined,
+      rest: at < node.length - 1 ? node.slice(at + 1) : undefined,
+    };
+  }
+  if (!isElement(node)) return;
+  const children = childrenOf(node);
+  for (const [index, child] of children.entries()) {
+    const split = splitInlineNode(child);
+    if (!split) continue;
+    const before = children.slice(0, index);
+    const after = children.slice(index + 1);
+    const lineChildren = [...before, ...(split.line ? [split.line] : [])];
+    const restChildren = [...(split.rest ? [split.rest] : []), ...after];
+    return {
+      line: lineChildren.length ? [node[0], node[1], ...lineChildren] : undefined,
+      rest: restChildren.length ? [node[0], node[1], ...restChildren] : undefined,
+    };
+  }
 }
 
 function toCallout(

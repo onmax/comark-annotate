@@ -44,6 +44,13 @@ describe("comark-github-callouts", () => {
     expect(match?.[3]).not.toContain("Breaking");
   });
 
+  it("splits inline formatting that crosses the marker line", async () => {
+    const match = callout(await render("> [!NOTE] **title\n> continued**\n> Body"));
+    expect(match?.[2]).toBe("title");
+    expect(match?.[3]).toContain("<strong>continued</strong>");
+    expect(match?.[3]).toContain("Body");
+  });
+
   it("keeps every block of the body, and allows a callout with no body", async () => {
     const html = await render(
       "> [!NOTE]\n> First.\n>\n> - one\n> - two\n>\n> ```ts\n> const a = 1\n> ```\n\n> [!TIP]",
