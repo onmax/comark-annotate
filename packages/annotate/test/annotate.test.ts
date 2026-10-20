@@ -193,7 +193,7 @@ describe("comark-annotate", () => {
     const { issues, html } = await run(
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=1 y=1 w=10 h=10 mark="toString"}\nNote\n:::\n::`,
     );
-    expect(issues.join("\n")).toContain("`mark` must be one of");
+    expect((issues as string[]).join("\n")).toContain("`mark` must be one of");
     expect(html).toContain("ca-mark ca-box");
   });
 
@@ -252,7 +252,7 @@ describe("comark-annotate", () => {
     ],
   ])("reports %#: %s", async (markdown, issue) => {
     const { issues } = await run(markdown);
-    expect(issues.join("\n")).toContain(issue);
+    expect((issues as string[]).join("\n")).toContain(issue);
   });
 
   it("escapes attributes and drops unsafe links", async () => {
