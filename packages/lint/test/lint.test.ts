@@ -53,6 +53,10 @@ describe("comark/unclosed-block", () => {
   it("ignores `::` inside fenced code", async () => {
     expect(await check("```md\n::compare\n```\n\n~~~\n::screnshot{src=\n~~~\n")).toEqual([]);
   });
+
+  it("ignores `::` inside HTML blocks, which Comark reads as text", async () => {
+    expect(await lint("<pre>\n::code\n</pre>\n\n<div>\n::note{a=1 a=2}\n</div>")).toEqual([]);
+  });
 });
 
 describe("comark/unknown-component", () => {
@@ -84,6 +88,17 @@ describe("comark/unknown-component", () => {
 
   it("is off without components, since any name could be valid", async () => {
     expect(await lint("::anything\n::")).toEqual([]);
+  });
+
+  it("reports `:name[…]` shorthand blocks and components inside them", async () => {
+    const found = await lint(":badge[x]\n\n::outer\n:pill[see :chip[y]]\n::", {
+      components: ["outer"],
+    });
+    expect(found.map(({ line, column, message }) => [line, column, message])).toEqual([
+      [1, 1, "`:badge` on line 1 is not a known component."],
+      [4, 1, "`:pill` on line 4 is not a known component."],
+      [4, 11, "`:chip` on line 4 is not a known component."],
+    ]);
   });
 
   it("takes a list of names as well as a map", async () => {
@@ -122,6 +137,21 @@ describe("comark/malformed-attributes", () => {
       },
     ]);
   });
+
+  it("reads past nested braces and escaped quotes in values", async () => {
+    expect(await check(`[x]{foo={"x":"}"} foo=2}\n\n[y]{a="q\\"}" b={"c": [1, 2]} a=3}`)).toEqual([
+      expect.objectContaining({
+        line: 1,
+        column: 19,
+        message: expect.stringContaining("`foo` twice"),
+      }),
+      expect.objectContaining({
+        line: 3,
+        column: 30,
+        message: expect.stringContaining("`a` twice"),
+      }),
+    ]);
+  });
 });
 
 describe("comark/broken-anchor", () => {
@@ -147,6 +177,13 @@ describe("comark/broken-anchor", () => {
 describe("comark/invalid-frontmatter", () => {
   it("passes valid YAML", async () => {
     expect(await check(`---\ntitle: Hello\n---\n\n# Hello`)).toEqual([]);
+  });
+
+  it("follows Comark when the YAML starts on the first line", async () => {
+    expect(await lint("---title: x\n---\n::bad", { components: [] })).toEqual([
+      expect.objectContaining({ rule: "comark/unclosed-block", line: 3, column: 1 }),
+      expect.objectContaining({ rule: "comark/unknown-component", line: 3, column: 1 }),
+    ]);
   });
 
   it("reports the YAML error's line and still checks the rest", async () => {
@@ -211,10 +248,46 @@ describe("comark/unsafe-url", () => {
     const found = await check(
       `Text\n\n<a href="jav&#x61;script:alert(1)">x</a>\n\n<iframe src="data:text/html,<p>x"></iframe>\n\n:zoom[x]{href="VBScript:x"}`,
     );
-    expect(found.map(({ line, message }) => [line, message.split(".")[0]])).toEqual([
+    const urls = found.filter(({ rule }) => rule === "comark/unsafe-url");
+    expect(urls.map(({ line, message }) => [line, message.split(".")[0]])).toEqual([
       [3, "The `href` of `a` on line 3 is a `javascript:` URL"],
       [5, "The `src` of `iframe` on line 5 is a `data:` URL"],
       [7, "The `href` of `zoom` on line 7 is a `vbscript:` URL"],
+    ]);
+  });
+
+  it("places the URL on its attribute, not on the same text in prose", async () => {
+    expect(await check(`Text javascript:x\n\n<a href="javascript:x">x</a>`)).toEqual([
+      expect.objectContaining({ rule: "comark/unsafe-url", line: 3, column: 10 }),
+    ]);
+  });
+
+  it("reads a character reference past U+10FFFF as U+FFFD", async () => {
+    expect(await check(`<a href="&#${"9".repeat(400)};">x</a> <a href="&#x110000;">y</a>`)).toEqual(
+      [],
+    );
+  });
+});
+
+describe("lint()", () => {
+  it("turns a rule that crashes into one diagnostic and still runs the others", async () => {
+    const broken = {
+      name: "broken",
+      post(state: { tree: { nodes: unknown[] } }) {
+        state.tree.nodes.push(["a", null]);
+      },
+    };
+    const found = await lint("::compare\n", { plugins: [broken] });
+    expect(found.map(({ rule, message }) => [rule, message])).toEqual([
+      [
+        "comark/broken-anchor",
+        "comark-lint crashed while checking `comark/broken-anchor`: Cannot read properties of null (reading 'id').",
+      ],
+      [
+        "comark/unsafe-url",
+        "comark-lint crashed while checking `comark/unsafe-url`: Cannot read properties of null (reading 'href').",
+      ],
+      ["comark/unclosed-block", "`::compare` opened on line 1 is never closed."],
     ]);
   });
 });

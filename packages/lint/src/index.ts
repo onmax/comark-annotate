@@ -62,18 +62,28 @@ type Block = { name: string; line: number; column: number };
 export async function lint(markdown: string, options: LintOptions = {}): Promise<Diagnostic[]> {
   const source = read(markdown);
   const found: Diagnostic[] = [];
+  const check = (rule: Rule, run: () => Diagnostic[]) => {
+    try {
+      found.push(...run());
+    } catch (error) {
+      found.push(crashed(rule, error));
+    }
+  };
   const parsed = await parse(source, options.plugins ?? [], found);
-  found.push(...unclosedBlocks(source), ...malformedAttributes(source));
+  const raw = parsed ? rawLines(parsed.tokens, parsed.offset) : new Set<number>();
+  check("comark/unclosed-block", () => unclosedBlocks(source, raw));
+  check("comark/malformed-attributes", () => malformedAttributes(source, raw));
   if (parsed) {
     const { document, tokens, offset } = parsed;
-    const blocks = blockComponents(tokens, offset, source);
-    if (options.components)
-      found.push(...unknownComponents(tokens, offset, source, blocks, options.components));
-    found.push(
-      ...brokenAnchors(document.nodes, source),
-      ...unsafeUrls(document.nodes, source),
-      ...pluginIssues(document.meta, source, blocks),
-    );
+    const blocks = () => blockComponents(tokens, offset, source);
+    const { components } = options;
+    if (components)
+      check("comark/unknown-component", () =>
+        unknownComponents(tokens, offset, source, blocks(), components),
+      );
+    check("comark/broken-anchor", () => brokenAnchors(document.nodes, source));
+    check("comark/unsafe-url", () => unsafeUrls(document.nodes, source));
+    check("comark/plugin-issue", () => pluginIssues(document.meta, source, blocks()));
   }
   return found.sort((a, b) => a.line - b.line || (a.column ?? 0) - (b.column ?? 0));
 }
@@ -83,22 +93,23 @@ async function parse(
   plugins: NonNullable<LintOptions["plugins"]>,
   found: Diagnostic[],
 ): Promise<{ document: MarkdownDocument; tokens: Token[]; offset: number } | undefined> {
-  const seen: { tokens: Token[]; offset: number } = { tokens: [], offset: 0 };
+  let tokens: Token[] = [];
   const probe: ComarkPlugin = {
     name: "comark-lint",
     post(state) {
       // SAFETY: Comark parses with markdown-exit, whose tokens have this shape; it types them as unknown.
-      seen.tokens = state.tokens as Token[];
-      // Token lines start after the frontmatter, which Comark strips first.
-      seen.offset = Number(state.parsedLines ?? 0);
+      tokens = state.tokens as Token[];
     },
   };
-  const run = async (markdown: string) => ({
+  const run = async (markdown: string, offset: number) => ({
     document: await parseMarkdown(markdown, { plugins: [...plugins, probe] }),
-    ...seen,
+    tokens,
+    offset,
   });
   try {
-    return await run(source.lines.join("\n"));
+    // Comark strips the frontmatter up to the closing `---`, so token line 0 is that line.
+    // Its own `parsedLines` miscounts when the YAML starts on the first line.
+    return await run(source.lines.join("\n"), source.frontmatter?.end ?? 0);
   } catch (error) {
     if (!source.frontmatter || !(error instanceof Error) || error.name !== "YAMLException") {
       found.push(couldNotParse(error));
@@ -120,6 +131,7 @@ async function parse(
       // Blank lines in place of the frontmatter keep every line number, so the rest is still checked.
       return await run(
         source.lines.map((line, index) => (index < source.body ? "" : line)).join("\n"),
+        0,
       );
     } catch (again) {
       found.push(couldNotParse(again));
@@ -135,10 +147,28 @@ const couldNotParse = (error: unknown): Diagnostic => ({
   fix: "Fix what the error names; a plugin that throws stops the whole document from rendering.",
 });
 
-function unclosedBlocks(source: Source): Diagnostic[] {
+const crashed = (rule: Rule, error: unknown): Diagnostic => ({
+  rule,
+  line: 1,
+  message: `comark-lint crashed while checking \`${rule}\`: ${error instanceof Error ? error.message : String(error)}.`,
+  fix: "The other rules still ran. Report this with the document at https://github.com/onmax/comark-plugins/issues.",
+});
+
+// Comark reads HTML blocks and code as text, so a `::` or `{` there opens nothing.
+function rawLines(tokens: Token[], offset: number): Set<number> {
+  const lines = new Set<number>();
+  for (const { type, map } of tokens) {
+    if (!map || !["html_block", "code_block", "fence"].includes(type)) continue;
+    for (let line = map[0]; line < map[1]; line++) lines.add(line + offset);
+  }
+  return lines;
+}
+
+function unclosedBlocks(source: Source, raw: Set<number>): Diagnostic[] {
   const open: (Block & { colons: string })[] = [];
   const unclosed: typeof open = [];
   for (const [index, line] of source.prose.entries()) {
+    if (raw.has(index)) continue;
     const opener = /^ {0,3}(:{2,})([A-Za-z][\w-]*)/.exec(line);
     if (opener) {
       open.push({
@@ -164,17 +194,18 @@ function unclosedBlocks(source: Source): Diagnostic[] {
   }));
 }
 
-function malformedAttributes(source: Source): Diagnostic[] {
+function malformedAttributes(source: Source, raw: Set<number>): Diagnostic[] {
   const found: Diagnostic[] = [];
   // Attributes follow a component name, a `[span]`, or a link or image's `(url)`.
   const opener =
     /(?:^ {0,3}(:{2,}[A-Za-z][\w-]*)|(?<![\w:])(:[A-Za-z][\w-]*)(?:\[[^\]]*\])?|[\])])\{/g;
   for (const [index, line] of source.prose.entries()) {
+    if (raw.has(index)) continue;
     for (const match of line.matchAll(opener)) {
       const name = match[1]?.trim() ?? match[2];
       const owner = name ? `\`${name}\`` : "The `{…}` attributes";
       const start = match.index + match[0].length - 1;
-      const end = closingBrace(line, start);
+      const end = scan(line, start + 1, (char, depth) => char === "}" && !depth);
       if (end === -1) {
         found.push({
           rule: "comark/malformed-attributes",
@@ -187,10 +218,16 @@ function malformedAttributes(source: Source): Diagnostic[] {
       }
       const seen = new Set<string>();
       const attributes = line.slice(start + 1, end);
-      for (const attribute of attributes.matchAll(/[^\s"'=]+(?:=(?:"[^"]*"|'[^']*'|\S*))?/g)) {
-        const raw = attribute[0];
-        if (raw.startsWith(".")) continue;
-        const key = raw.startsWith("#") ? "id" : raw.split("=")[0]!.replace(/^(?::|v-bind:)/, "");
+      for (let at = 0; at < attributes.length; at++) {
+        if (/\s/.test(attributes[at]!)) continue;
+        const from = at;
+        at = scan(attributes, at, (char, depth) => !depth && /\s/.test(char));
+        if (at === -1) at = attributes.length;
+        const attribute = attributes.slice(from, at);
+        if (/^["'=.]/.test(attribute)) continue;
+        const key = attribute.startsWith("#")
+          ? "id"
+          : attribute.split("=")[0]!.replace(/^(?::|v-bind:)/, "");
         if (!seen.has(key)) {
           seen.add(key);
           continue;
@@ -198,7 +235,7 @@ function malformedAttributes(source: Source): Diagnostic[] {
         found.push({
           rule: "comark/malformed-attributes",
           line: index + 1,
-          column: start + 2 + attribute.index,
+          column: start + 2 + from,
           message: `${owner} on line ${index + 1} ${name ? "sets" : "set"} \`${key}\` twice.`,
           fix: `Keep one \`${key}\`. Comark uses the last one and drops the others.`,
         });
@@ -208,21 +245,30 @@ function malformedAttributes(source: Source): Diagnostic[] {
   return found;
 }
 
-function closingBrace(line: string, start: number): number {
+// Values can hold quotes with `\` escapes and nested `{…}` or `[…]`, as in `{data={"a":"}"}}`, so
+// a `}` or a space only counts outside them.
+function scan(text: string, from: number, stop: (char: string, depth: number) => boolean): number {
   let quote = "";
-  for (let at = start + 1; at < line.length; at++) {
-    const char = line[at];
+  let depth = 0;
+  for (let at = from; at < text.length; at++) {
+    const char = text[at]!;
     if (quote) {
-      if (char === quote) quote = "";
+      if (char === "\\") at++;
+      else if (char === quote) quote = "";
     } else if (char === '"' || char === "'") quote = char;
-    else if (char === "}") return at;
+    else if (stop(char, depth)) return at;
+    else if (char === "{" || char === "[") depth++;
+    else if (char === "}" || char === "]") depth--;
   }
   return -1;
 }
 
 function blockComponents(tokens: Token[], offset: number, source: Source): Block[] {
   return tokens.flatMap((token) => {
-    if (token.type !== "mdc_block_open" || !token.map) return [];
+    const opens =
+      (token.type === "mdc_block_open" || token.type === "mdc_block_shorthand") &&
+      token.nesting !== -1;
+    if (!opens || !token.map) return [];
     const line = token.map[0] + offset + 1;
     return [{ name: token.tag, line, column: (source.lines[line - 1]?.indexOf(":") ?? 0) + 1 }];
   });
@@ -244,11 +290,14 @@ function unknownComponents(
   const used: { name: string; written: string; line: number; column?: number }[] = blocks.map(
     (block) => ({
       ...block,
-      written: `${source.lines[block.line - 1]!.trim().match(/^:+/)![0]}${block.name}`,
+      written: `${source.lines[block.line - 1]?.trim().match(/^:+/)?.[0] ?? "::"}${block.name}`,
     }),
   );
+  let range: [number, number] | null = null;
   for (const token of tokens) {
-    if (token.type !== "inline" || !token.map) continue;
+    // The inline content of a `:name[…]` line has no map of its own, so it takes its block's.
+    range = token.map ?? range;
+    if (token.type !== "inline" || !range) continue;
     const counts = new Map<string, number>();
     for (const child of token.children ?? []) {
       if (child.type !== "mdc_inline_component" || child.nesting === -1) continue;
@@ -256,13 +305,13 @@ function unknownComponents(
       counts.set(child.tag, nth + 1);
       const at = find(source, `:${child.tag}`, {
         nth,
-        from: token.map[0] + offset,
-        to: token.map[1] + offset,
+        from: range[0] + offset,
+        to: range[1] + offset,
       });
       used.push({
         name: child.tag,
         written: `:${child.tag}`,
-        line: at?.line ?? token.map[0] + offset + 1,
+        line: at?.line ?? range[0] + offset + 1,
         column: at?.column,
       });
     }
@@ -330,12 +379,12 @@ function* elements(nodes: Node[]): Generator<ElementNode> {
 }
 
 // Repeated values are matched in order, so the second bad link is placed on the second one in the source.
-function locator(source: Source) {
+function locator(source: Source, attribute = false) {
   const counts = new Map<string, number>();
   return (...needles: string[]) => {
     for (const needle of needles) {
       const nth = counts.get(needle) ?? 0;
-      const at = find(source, needle, { nth, from: source.body });
+      const at = find(source, needle, { nth, from: source.body, attribute });
       if (!at) continue;
       counts.set(needle, nth + 1);
       return at;
@@ -355,7 +404,7 @@ function brokenAnchors(nodes: Node[], source: Source): Diagnostic[] {
     const href = text(attributes.href);
     if (href.startsWith("#") && href.length > 1) links.push(href);
   }
-  const locate = locator(source);
+  const locate = locator(source, true);
   const list = [...ids].map((id) => `\`#${id}\``);
   const available = list.length
     ? `Ids here: ${list.slice(0, LISTED).join(", ")}${list.length > LISTED ? `, and ${list.length - LISTED} more` : ""}.`
@@ -388,6 +437,9 @@ function decode(value: string): string {
   }
 }
 
+// A browser reads a reference past U+10FFFF as U+FFFD.
+const character = (code: number) => (code <= 0x10ffff ? String.fromCodePoint(code) : "\uFFFD");
+
 const ENTITIES = new Map([
   ["colon", ":"],
   ["tab", "\t"],
@@ -399,12 +451,8 @@ function unsafeScheme(value: string): string | undefined {
   let url = decode(value);
   for (let pass = 0; pass < 5; pass++) {
     const next = url
-      .replace(/&#x([0-9a-f]+);?/gi, (_, hex: string) =>
-        String.fromCodePoint(Number.parseInt(hex, 16) % 0x110000),
-      )
-      .replace(/&#(\d+);?/g, (_, dec: string) =>
-        String.fromCodePoint(Number.parseInt(dec, 10) % 0x110000),
-      )
+      .replace(/&#x([0-9a-f]+);?/gi, (_, hex: string) => character(Number.parseInt(hex, 16)))
+      .replace(/&#(\d+);?/g, (_, dec: string) => character(Number.parseInt(dec, 10)))
       .replace(
         /&([a-z]+);/gi,
         (entity, name: string) => ENTITIES.get(name.toLowerCase()) ?? entity,
@@ -419,7 +467,7 @@ function unsafeScheme(value: string): string | undefined {
 }
 
 function unsafeUrls(nodes: Node[], source: Source): Diagnostic[] {
-  const locate = locator(source);
+  const locate = locator(source, true);
   const found: Diagnostic[] = [];
   for (const [tag, attributes] of elements(nodes)) {
     for (const key of ["href", "src"]) {
