@@ -6,6 +6,7 @@ export type { Mark } from "./marks.ts";
 export type AnnotateMeta = {
   /** One readable sentence per problem, naming its block and the fix. Empty when the document is valid. Other plugins add theirs too. */
   issues: string[];
+  annotateIssues: string[];
 };
 
 /**
@@ -23,6 +24,8 @@ export default defineComarkPlugin<void, AnnotateMeta>(() => ({
       props: {},
     });
     // Several plugins report into the same list, so each one appends.
-    tree.meta.issues = [...(tree.meta.issues ?? []), ...found];
+    const issues = [...(tree.meta.issues ?? []), ...found];
+    tree.meta.issues = issues;
+    tree.meta.annotateIssues = issues;
   },
 }));
