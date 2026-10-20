@@ -52,9 +52,6 @@
     "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
     "prepack": "pnpm --filter comark-github-callouts... build"
   },
-  "dependencies": {
-    "comark-zoom": "workspace:*"
-  },
   "devDependencies": {
     "@comark/html": "catalog:",
     "@comark/react": "catalog:",
@@ -62,6 +59,7 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "comark": "catalog:",
+    "comark-zoom": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:",
     "svelte": "catalog:",
