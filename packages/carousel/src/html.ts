@@ -1,10 +1,12 @@
 import type { NodeHandler, State } from "comark";
+import { resolveAttributes } from "comark/render";
 import { escapeHtml } from "comark/utils";
 import { runtime as zoomRuntime } from "comark-zoom/html";
 import { start } from "./client.ts";
 import { css } from "./styles.ts";
 
 export { default } from "./index.ts";
+export type { CarouselMeta } from "./index.ts";
 
 // Each render gets a fresh `state.context`, so a document carries the script once.
 const started = new WeakSet<object>();
@@ -17,31 +19,37 @@ export function runtime(state: State): string {
   return `<style data-comark-carousel>${css}</style><script>(${start.toString()})("")</script>`;
 }
 
-const attr = (value: unknown) => escapeHtml(String(value), { '"': "&quot;" });
+const attr = (value: string) => escapeHtml(value, { '"': "&quot;" });
 const off = (value: unknown) => value === false || value === "false";
+const text = (value: unknown) =>
+  value === undefined || value === null || value instanceof Object
+    ? undefined
+    : // SAFETY: undefined, null, objects, and arrays returned above, so only a string, number, or boolean is left.
+      String(value as string | number | boolean);
 const chevron = (path: string) =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${path}"/></svg>`;
 
 export interface CarouselOptions {
-  /** How many slides show at once on a wide page: 1 to 3. */
-  columns?: unknown;
-  title?: unknown;
+  /** How many slides show at once on a wide page: 1 to 3. Default `1`. */
+  columns?: number | string;
+  /** Name read out by screen readers. Default `Carousel`. */
+  title?: string;
   /** Group the zoomable items inside the carousel, so the zoomed view pages through them. Default `true`. */
-  gallery?: boolean;
+  zoom?: boolean;
 }
 
 function shell(count: number, options: CarouselOptions, track: string, state: State) {
   const columns = Math.min(3, Math.max(1, Number(options.columns) || 1));
-  const gallery = options.gallery ?? true;
+  const zoom = options.zoom ?? true;
   const controls =
     count > 1
       ? `<div class="cc-controls"><span class="cc-count" aria-live="polite">1 / ${count}</span><div class="cc-steps">` +
-        `<button type="button" class="cc-step" data-carousel-step="-1" aria-label="Previous slide" disabled>${chevron("m15 18-6-6 6-6")}</button>` +
+        `<button type="button" class="cc-step" data-carousel-step="-1" aria-label="Previous slide" aria-disabled="true">${chevron("m15 18-6-6 6-6")}</button>` +
         `<button type="button" class="cc-step" data-carousel-step="1" aria-label="Next slide">${chevron("m9 18 6-6-6-6")}</button></div></div>`
       : "";
   return (
-    `<div class="cc"${columns > 1 ? ` data-columns="${columns}"` : ""}${count <= columns ? " data-fits" : ""}${gallery ? " data-zoom-gallery" : ""} role="region" aria-roledescription="carousel" aria-label="${attr(options.title ?? "Carousel")}">` +
-    `<div class="cc-track">${track}</div>${controls}</div>${gallery ? zoomRuntime(state) : ""}${runtime(state)}`
+    `<div class="cc"${columns > 1 ? ` data-carousel-columns="${columns}"` : ""}${count <= columns ? " data-carousel-fits" : ""}${zoom ? " data-zoom-gallery" : ""} role="region" aria-roledescription="carousel" aria-label="${attr(options.title ?? "Carousel")}">` +
+    `<div class="cc-track">${track}</div>${controls}</div>${zoom ? zoomRuntime(state) : ""}${runtime(state)}`
   );
 }
 
@@ -59,18 +67,25 @@ export function carouselHtml(slides: string[], options: CarouselOptions, state: 
   return shell(slides.length, options, track, state);
 }
 
-const carousel: NodeHandler = async ([, attrs, ...children], state) =>
-  shell(
-    Number(attrs.count) || 0,
-    { columns: attrs.columns, title: attrs.title, gallery: !off(attrs.zoom) },
+// `:bound` props resolve the way Comark's Vue, React, and Svelte renderers resolve them, so all four agree.
+const props = (attrs: Record<string, unknown>, state: State) =>
+  resolveAttributes(attrs, state.renderData, { parseJson: true });
+
+const carousel: NodeHandler = async ([, attrs, ...children], state) => {
+  const { count, columns, title, zoom } = props(attrs, state);
+  return shell(
+    Number(count) || 0,
+    { columns: text(columns), title: text(title), zoom: !off(zoom) },
     await state.flow(["div", {}, ...children], state),
     state,
   );
+};
 
 const slide: NodeHandler = async ([, attrs, ...children], state) => {
-  const zoom = !off(attrs.zoom);
-  const title = attrs.title === undefined ? "" : ` data-zoom-title="${attr(attrs.title)}"`;
-  return `<div class="cc-slide" role="group" aria-roledescription="slide" aria-label="${attr(attrs.index)} of ${attr(attrs.count)}"${zoom ? ` data-zoom tabindex="0"${title}` : ""}>${await state.flow(["div", {}, ...children], state)}</div>`;
+  const { index, count, title, zoom } = props(attrs, state);
+  const name = text(title);
+  const zoomable = !off(zoom);
+  return `<div class="cc-slide" role="group" aria-roledescription="slide" aria-label="${attr(`${text(index) ?? ""} of ${text(count) ?? ""}`)}"${zoomable ? ` data-zoom tabindex="0"${name === undefined ? "" : ` data-zoom-title="${attr(name)}"`}` : ""}>${await state.flow(["div", {}, ...children], state)}</div>`;
 };
 
 /** HTML renderers for `::carousel` and `:::slide`. Pass them as `components`. */

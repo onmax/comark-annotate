@@ -39,3 +39,15 @@ test("a host's plain rule beats the plugin's own, and the zoomed view shares the
   await page.locator(".cc").first().locator(".cc-slide").first().click();
   await expect(page.locator(".cz-count")).toHaveCSS("color", "rgb(10, 20, 30)");
 });
+
+test("tokens set on .cz-dialog theme only the zoomed view", async ({ page }) => {
+  await page.goto("/carousel/");
+  await page.addStyleTag({ content: ".cz-dialog{--comark-muted:rgb(10 20 30)}" });
+  const count = page.locator(".cc").first().locator(".cc-count");
+  const color = await count.evaluate((node) => getComputedStyle(node).color);
+
+  await page.locator(".cc").first().locator(".cc-slide").first().click();
+  await expect(page.locator(".cz-count")).toHaveCSS("color", "rgb(10, 20, 30)");
+  await expect(count).toHaveCSS("color", color);
+  expect(color).not.toBe("rgb(10, 20, 30)");
+});

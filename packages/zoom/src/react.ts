@@ -1,5 +1,5 @@
 import { createElement, type ReactNode, useEffect } from "react";
-import { css, start } from "./client.ts";
+import { start } from "./client.ts";
 
 export { default, RUNTIME_TAG } from "./index.ts";
 export type { ZoomOptions } from "./index.ts";
@@ -7,19 +7,24 @@ export type { ZoomDetail } from "./client.ts";
 
 /** `::zoom` for `@comark/react`. */
 export function Zoom({
+  id,
+  className,
   group,
   title,
   children,
 }: {
+  id?: string;
+  className?: string;
   group?: string;
   title?: string;
   children?: ReactNode;
 }) {
-  useEffect(() => start(css), []);
+  useEffect(() => start(), []);
   return createElement(
     "div",
     {
-      className: "cz",
+      className: className ? `cz ${className}` : "cz",
+      id,
       "data-zoom": "",
       tabIndex: 0,
       "data-zoom-group": group,
@@ -31,7 +36,7 @@ export function Zoom({
 
 /** Starts the zoom script for zoomable images. The plugin adds it to documents that need it. */
 export function ZoomRuntime() {
-  useEffect(() => start(css), []);
+  useEffect(() => start(), []);
   return null;
 }
 

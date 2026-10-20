@@ -3,8 +3,8 @@
   "suppressions": [
     {
       "ruleId": "vue/lifecycle/require-cleanup",
-      "file": "src/client.ts",
-      "reason": "client.ts is not a Vue component. start() returns a stop function that aborts every listener, and the Vue components call it in onBeforeUnmount."
+      "file": "src/script.ts",
+      "reason": "script.ts is not a Vue component. start() returns a stop function that aborts every listener, and the Vue components call it in onBeforeUnmount."
     }
   ]
 }

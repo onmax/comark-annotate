@@ -23,6 +23,8 @@ const chevron = (d: string) =>
 /** `::carousel` for `@comark/vue`. */
 export const Carousel = defineComponent({
   name: "Carousel",
+  // The other renderers drop `{#id .class}`, so Vue drops it too instead of falling it through to the root.
+  inheritAttrs: false,
   props: {
     count: [String, Number],
     columns: [String, Number],
@@ -48,7 +50,7 @@ export const Carousel = defineComponent({
                     class: "cc-step",
                     "data-carousel-step": "-1",
                     "aria-label": "Previous slide",
-                    disabled: true,
+                    "aria-disabled": "true",
                   },
                   [chevron("m15 18-6-6 6-6")],
                 ),
@@ -69,8 +71,8 @@ export const Carousel = defineComponent({
         "div",
         {
           class: "cc",
-          "data-columns": columns > 1 ? String(columns) : undefined,
-          "data-fits": count <= columns ? "" : undefined,
+          "data-carousel-columns": columns > 1 ? String(columns) : undefined,
+          "data-carousel-fits": count <= columns ? "" : undefined,
           "data-zoom-gallery": off(props.zoom) ? undefined : "",
           role: "region",
           "aria-roledescription": "carousel",
@@ -85,6 +87,7 @@ export const Carousel = defineComponent({
 /** `:::slide` for `@comark/vue`. */
 export const Slide = defineComponent({
   name: "Slide",
+  inheritAttrs: false,
   props: {
     index: [String, Number],
     count: [String, Number],
