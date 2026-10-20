@@ -78,11 +78,13 @@ describe("comark-carousel", () => {
     );
   });
 
-  it("lifts an image out of its own paragraph, and leaves inline images in their text", async () => {
+  it("lifts an image, or a link around one, out of its own paragraph, and leaves inline images in their text", async () => {
     const html = await render(
-      "::carousel\n:::slide\nIntro\n\n![Shot](a.png)\n:::\n\n:::slide\nBuild ![passing](b.svg) on main\n:::\n::",
+      "::carousel\n:::slide\nIntro\n\n![Shot](a.png)\n\n[![Linked](c.png)](https://example.com)\n:::\n\n:::slide\nBuild ![passing](b.svg) on main\n:::\n::",
     );
-    expect(html).toContain('<p>Intro</p><img src="a.png" alt="Shot">');
+    expect(html).toContain(
+      '<p>Intro</p><img src="a.png" alt="Shot"><a href="https://example.com">',
+    );
     expect(html).toContain('<p>Build <img src="b.svg" alt="passing"> on main</p>');
   });
 
@@ -107,6 +109,16 @@ describe("comark-carousel", () => {
     expect(await issues("::carousel{columns=5}\nOne\n\nTwo\n::")).toEqual([
       "carousel 1 has columns=5; use 1, 2, or 3.",
     ]);
+    expect(await issues('::carousel{:columns="true"}\nOne\n\nTwo\n::')).toEqual([
+      "carousel 1 has columns=true; use 1, 2, or 3.",
+    ]);
+    expect(await issues('::carousel{:columns="2"}\nOne\n\nTwo\n::')).toEqual([]);
+    expect(await issues('::carousel{:zoom="data.off"}\nOne\n\nTwo\n::')).toEqual([
+      "carousel 1: `:zoom` reads render-time data, which the slides can't follow; set it in the document or frontmatter.",
+    ]);
+    expect(
+      await issues('---\noff: false\n---\n::carousel{:zoom="frontmatter.off"}\nOne\n\nTwo\n::'),
+    ).toEqual([]);
     expect(await issues(':::slide{title="Lost"}\nOne\n:::')).toEqual([
       ':::slide 1 ("Lost") sits outside a ::carousel, so it renders as plain content; wrap it in a ::carousel or remove the :::slide fence.',
     ]);

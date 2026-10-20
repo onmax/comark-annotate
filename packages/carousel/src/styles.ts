@@ -21,8 +21,9 @@ export const css = `@layer comark{${[
   ".cc-slide>:first-child{margin-top:0}",
   ".cc-slide>:last-child{margin-bottom:0}",
   ".cc-slide img{max-width:100%;height:auto}",
-  // The parse plugin lifts an image out of a paragraph of its own, so only an image that stands alone is centered.
-  ".cc-slide>img{display:block;margin-inline:auto}",
+  // The parse plugin lifts an image, or a link around one, out of a paragraph of its own, so only an image that stands
+  // alone is centered.
+  ".cc-slide>img,.cc-slide>a>img{display:block;margin-inline:auto}",
   // The track clips anything drawn outside a slide, so the focus ring of a zoomable item sits inside its edge.
   ".cc-track [data-zoom]:focus-visible{outline-offset:-2px}",
   // Several columns need room; a narrow page shows one slide at a time, with less padding to spare its width.

@@ -47,22 +47,30 @@ function describe(node: Node) {
   return `the ${kind}${words ? ` "${words}"` : ""}`;
 }
 
-const isImage = (node: Node | undefined): node is ElementNode =>
-  isElement(node) && node[0] === "img";
+const only = (node: ElementNode) => {
+  const content = childrenOf(node).filter(isContent);
+  return content.length === 1 ? content[0] : undefined;
+};
+// An image, or a link around nothing but an image.
+const isPicture = (node: Node | undefined): node is ElementNode =>
+  isElement(node) &&
+  (node[0] === "img" || (node[0] === "a" && isElement(only(node)) && only(node)?.[0] === "img"));
 
-// The styles center an image that is a direct child of a slide, so only an image that stands alone may be one: an
-// image alone in its paragraph leaves it, and an image in a sentence gets back the paragraph Comark drops around a
-// slide that is a single paragraph.
+// The styles center a picture that is a direct child of a slide, so only one that stands alone may be one: a picture
+// alone in its paragraph leaves it, and a picture in a sentence gets back the paragraph Comark drops around a slide
+// that is a single paragraph.
 function standalone(nodes: Node[]): Node[] {
   const lifted = nodes.map((node) => {
     if (!isElement(node) || node[0] !== "p") return node;
-    const content = childrenOf(node).filter(isContent);
-    return content.length === 1 && isImage(content[0]) ? content[0] : node;
+    const content = only(node);
+    return isPicture(content) ? content : node;
   });
   const inline =
-    lifted.some(isImage) && lifted.some((node) => !Array.isArray(node) && isContent(node));
+    lifted.some(isPicture) && lifted.some((node) => !Array.isArray(node) && isContent(node));
   return inline ? [["p", {}, ...lifted]] : lifted;
 }
+
+const COLUMNS = new Set<unknown>([1, 2, 3, "1", "2", "3"]);
 
 interface Walk {
   data: Data;
@@ -89,8 +97,14 @@ function carousel(node: ElementNode, walk: Walk) {
     walk.issues.push(
       `${name} has no slides; put blocks or :::slide blocks inside it, or remove it.`,
     );
-  if (attrs.columns !== undefined && ![1, 2, 3].includes(Number(attrs.columns)))
+  if (attrs.columns !== undefined && !COLUMNS.has(attrs.columns))
     walk.issues.push(`${name} has columns=${text(attrs.columns)}; use 1, 2, or 3.`);
+  // The renderers resolve these on the carousel, but the parse plugin passes them on to each slide.
+  for (const key of ["zoom", "title"])
+    if (attrs[key] === undefined && Object.hasOwn(node[1], `:${key}`))
+      walk.issues.push(
+        `${name}: \`:${key}\` reads render-time data, which the slides can't follow; set it in the document or frontmatter.`,
+      );
   const zoom = attrs.zoom !== false && attrs.zoom !== "false";
   for (const [index, slide] of slides.entries()) {
     slide.splice(2, slide.length - 2, ...standalone(childrenOf(slide)));

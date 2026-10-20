@@ -84,7 +84,7 @@ Every block inside `::carousel` is a slide, unless it holds `:::slide` blocks.
 | `columns` | `2` or `3` shows several slides at once on a wide page and one at a time on a narrow one. Default `1`. |
 | `zoom` | `false` turns zoom off. |
 
-Props can be inline or bound, such as `:columns="2"`.
+Props can be inline or bound, such as `:columns="2"`. Bind `zoom` and `title` to the document or its front matter, not to render-time data: each slide takes them while parsing.
 
 ### slide
 
@@ -110,13 +110,13 @@ Pass the plugin and its `components` to the renderer.
 | --- | --- |
 | `title` | Heading of the slide when it's zoomed. |
 
-An image alone in a slide, or alone in its paragraph, is centered. An image inside a sentence stays in the text.
+An image alone in a slide, or alone in its paragraph, is centered, and so is a link around one. An image inside a sentence stays in the text.
 
 ## Guides
 
 ### Keys
 
-With focus in a carousel, the left and right arrow keys page through it, following the reading direction on a right-to-left page. They leave alone keys pressed with Alt, Ctrl, Meta, or Shift, and keys meant for a form field, video, tab list, slider, or a wide code block in a slide. A disabled arrow keeps its focus, so the keys keep working. Paging jumps instead of scrolling smoothly when the reader prefers reduced motion.
+With focus in a carousel, the left and right arrow keys page through it, following the reading direction on a right-to-left page. They leave alone keys pressed with Alt, Ctrl, Meta, or Shift, and keys meant for a form field, video, `<summary>`, menu, tab list, slider, combo box, tree, or a wide code block in a slide. From a link or a button, they page. A disabled arrow keeps its focus, so the keys keep working. Paging jumps instead of scrolling smoothly when the reader prefers reduced motion.
 
 ### Validation
 
@@ -136,7 +136,7 @@ Each issue names its block and says how to fix it:
 carousel 2 ("Setup") drops the paragraph "Pass the plugin" because it sits outside every :::slide; move it into a :::slide.
 ```
 
-It reports content outside every `:::slide`, a carousel with no slides, `columns` outside 1 to 3, and a `:::slide` outside a carousel. Rendering never throws.
+It reports content outside every `:::slide`, a carousel with no slides, `columns` that isn't 1, 2, or 3, a `:::slide` outside a carousel, and a `:zoom` or `:title` that reads render-time data. Rendering never throws.
 
 ### Zoom
 

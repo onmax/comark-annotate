@@ -79,6 +79,36 @@ test("quick clicks add up", async ({ page }) => {
   await expect(count).toHaveText("3 / 3");
 });
 
+test("quick clicks add up in a browser without scrollend", async ({ page }) => {
+  await page.evaluate(() => {
+    Reflect.deleteProperty(window, "onscrollend");
+    Reflect.deleteProperty(Window.prototype, "onscrollend");
+  });
+  expect(await page.evaluate(() => "onscrollend" in window)).toBe(false);
+  await open(page, three);
+  const { count, next, prev } = parts(page);
+  await next.click();
+  await next.click();
+  await expect(count).toHaveText("3 / 3");
+  // Once the track settles, the next click reads the position again.
+  await expect(next).toHaveAttribute("aria-disabled", "true");
+  await prev.click();
+  await expect(count).toHaveText("2 / 3");
+});
+
+test("a carousel after the script, shown later, still syncs", async ({ page }) => {
+  await open(
+    page,
+    `${three}\n\n::div{hidden}\n:::carousel{title="Later"}\nOne\n\nTwo\n\nThree\n:::\n::`,
+  );
+  const later = parts(page, "Later");
+  await expect(later.root).toBeHidden();
+  await page.locator("div[hidden]").evaluate((element) => element.removeAttribute("hidden"));
+  await expect(later.next).toHaveAttribute("aria-disabled", "false");
+  await later.next.click();
+  await expect(later.count).toHaveText("2 / 3");
+});
+
 test("paging jumps when the reader prefers reduced motion", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await open(page, three);
@@ -150,11 +180,20 @@ test("the arrow keys leave modifiers and a wide code block alone", async ({ page
   await code.evaluate((element) => (element.tabIndex = 0));
   await code.focus();
   await page.keyboard.press("ArrowRight");
-  expect(await claimed()).toEqual([false, false, false, false]);
+  const combobox = slide.locator("[role=combobox]");
+  await slide.evaluate((element) => {
+    const box = document.createElement("div");
+    box.setAttribute("role", "combobox");
+    box.tabIndex = 0;
+    element.append(box);
+  });
+  await combobox.focus();
+  await page.keyboard.press("ArrowRight");
+  expect(await claimed()).toEqual([false, false, false, false, false]);
   await slide.focus();
   await page.keyboard.press("ArrowRight");
   await expect(count).toHaveText("2 / 2");
-  expect(await claimed()).toEqual([false, false, false, false, true]);
+  expect(await claimed()).toEqual([false, false, false, false, false, true]);
 });
 
 test("a zoomable slide shows its whole focus ring", async ({ page }) => {

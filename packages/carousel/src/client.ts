@@ -56,9 +56,18 @@ export function start(css: string): () => void {
   }
 
   // Where each carousel is heading while it scrolls smoothly, so quick clicks add up instead of reading a position
-  // mid-animation. scrollend clears it; a browser without that event reads the position on every click.
+  // mid-animation. scrollend clears it; without that event, a short pause in scrolling does.
   const targets = new WeakMap<Element, number>();
   const settles = "onscrollend" in window;
+  const timers = new WeakMap<Element, number>();
+  const settle = (root: Element) => {
+    if (settles) return;
+    clearTimeout(timers.get(root));
+    timers.set(
+      root,
+      window.setTimeout(() => targets.delete(root), 150),
+    );
+  };
 
   function show(root: Element, index: number, behavior?: ScrollBehavior) {
     const { track, slides } = parts(root);
@@ -67,8 +76,10 @@ export function start(css: string): () => void {
     if (!track || !slide) return;
     const how =
       behavior ?? (matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth");
-    if (how === "smooth" && settles) targets.set(root, target);
+    if (how === "smooth") targets.set(root, target);
     else targets.delete(root);
+    // A track already in place doesn't scroll, so the pause starts now.
+    settle(root);
     const by = offset(track, slide);
     track.scrollTo({ left: track.scrollLeft + (rtl(track) ? -by : by), behavior: how });
   }
@@ -96,10 +107,18 @@ export function start(css: string): () => void {
       if (root) sync(root);
     }
   });
-  const watch = () => {
-    for (const track of document.querySelectorAll(".cc>.cc-track")) resized.observe(track);
+  const observe = (node: Node) => {
+    if (!(node instanceof Element)) return;
+    if (node.matches(".cc>.cc-track")) resized.observe(node);
+    for (const track of node.querySelectorAll(".cc>.cc-track")) resized.observe(track);
   };
+  const watch = () => observe(document.documentElement);
   watch();
+  // The HTML renderer inlines the script after the first carousel, so the page's later carousels arrive after it.
+  const added = new MutationObserver((records) => {
+    for (const record of records) record.addedNodes.forEach(observe);
+  });
+  added.observe(document.documentElement, { childList: true, subtree: true });
 
   document.addEventListener(
     "click",
@@ -125,22 +144,27 @@ export function start(css: string): () => void {
     "scroll",
     (event) => {
       const root = trackRoot(event);
-      if (root) sync(root);
+      if (!root) return;
+      sync(root);
+      settle(root);
     },
     { capture: true, passive: true, signal },
   );
-  document.addEventListener(
-    "scrollend",
-    (event) => {
-      const root = trackRoot(event);
-      if (root) targets.delete(root);
-    },
-    { capture: true, passive: true, signal },
-  );
+  if (settles)
+    document.addEventListener(
+      "scrollend",
+      (event) => {
+        const root = trackRoot(event);
+        if (root) targets.delete(root);
+      },
+      { capture: true, passive: true, signal },
+    );
 
-  // Keys that belong to something in a slide.
+  // Keys that belong to something in a slide. Links and buttons don't use the arrows, so paging from them is fine.
   const keyed =
-    "input,textarea,select,video,audio,[contenteditable],[role=tablist],[role=slider],[role=radiogroup],[role=listbox]";
+    "input,textarea,select,video,audio,summary,[contenteditable]," +
+    "[role=tablist],[role=slider],[role=radiogroup],[role=listbox],[role=combobox],[role=spinbutton]," +
+    "[role=menu],[role=menubar],[role=tree]";
   const scrolls = (element: Element) =>
     element.scrollWidth > element.clientWidth &&
     /auto|scroll/.test(getComputedStyle(element).overflowX);
@@ -195,6 +219,7 @@ export function start(css: string): () => void {
       if (--state.users > 0) return;
       listeners.abort();
       resized.disconnect();
+      added.disconnect();
       style?.remove();
       document.documentElement.removeAttribute("data-carousel-ready");
       window.__comarkCarousel = undefined;
