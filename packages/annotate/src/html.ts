@@ -181,7 +181,7 @@ async function figure(shot: Screenshot, state: State, id: string, top = false) {
   const { sides, heading, frame, callouts, notes } = await parts(shot, state, id);
   const classes = [...new Set([...sides, ...(top ? [" ca-top"] : [])])].join("");
   return (
-    `<figure class="ca-screenshot${classes}" data-zoom tabindex="0" data-zoom-context=".ca" data-zoom-aside="figcaption" data-zoom-title="${attr(shot.title || shot.alt)}">${heading}<div class="ca-stage">${frame}${callouts}</div>` +
+    `<figure class="ca-screenshot${classes}">${heading}<div class="ca-stage" data-zoom tabindex="0" data-zoom-context=".ca,.ca-screenshot" data-zoom-aside="figcaption" data-zoom-title="${attr(shot.title || shot.alt)}">${frame}${callouts}</div>` +
     (notes ? `<figcaption>${notes}</figcaption>` : "") +
     "</figure>"
   );
