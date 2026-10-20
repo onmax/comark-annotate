@@ -7,15 +7,30 @@ export const defineConfig = (config: Config): Config => config;
 
 // Each one is an optional peer dependency, so a project lints with exactly the plugins it renders with.
 const packages = [
-  () => import("comark-annotate/html"),
-  () => import("comark-carousel/html"),
-  () => import("comark-github-callouts/html"),
-  () => import("comark-zoom/html"),
-];
+  ["comark-annotate/html", () => import("comark-annotate/html")],
+  ["comark-carousel/html", () => import("comark-carousel/html")],
+  ["comark-github-callouts/html", () => import("comark-github-callouts/html")],
+  ["comark-zoom/html", () => import("comark-zoom/html")],
+] as const;
+
+const missing = (error: unknown, name: string) =>
+  error instanceof Error &&
+  "code" in error &&
+  error.code === "ERR_MODULE_NOT_FOUND" &&
+  error.message.includes(`'${name}'`);
 
 /** The parse plugins and components of every comark-plugins package installed, plus `config`'s. */
 export async function resolveConfig(config: Config = {}): Promise<Required<LintOptions>> {
-  const loaded = await Promise.all(packages.map((load) => load().catch(() => undefined)));
+  const loaded = await Promise.all(
+    packages.map(async ([name, load]) => {
+      try {
+        return await load();
+      } catch (error) {
+        if (missing(error, name)) return undefined;
+        throw error;
+      }
+    }),
+  );
   const found = loaded.filter((module) => module !== undefined);
   const extra = config.components ?? [];
   return {

@@ -139,7 +139,7 @@ function unclosedBlocks(source: Source): Diagnostic[] {
   const open: (Block & { colons: string })[] = [];
   const unclosed: typeof open = [];
   for (const [index, line] of source.prose.entries()) {
-    const opener = /^\s*(:{2,})([A-Za-z][\w-]*)/.exec(line);
+    const opener = /^ {0,3}(:{2,})([A-Za-z][\w-]*)/.exec(line);
     if (opener) {
       open.push({
         colons: opener[1]!,
@@ -149,7 +149,7 @@ function unclosedBlocks(source: Source): Diagnostic[] {
       });
       continue;
     }
-    const colons = /^\s*(:{2,})\s*$/.exec(line)?.[1];
+    const colons = /^ {0,3}(:{2,})\s*$/.exec(line)?.[1];
     if (!colons) continue;
     const match = open.findLastIndex((block) => block.colons === colons);
     // A closer also closes every block opened after its own, which then never got a closer.
@@ -168,7 +168,7 @@ function malformedAttributes(source: Source): Diagnostic[] {
   const found: Diagnostic[] = [];
   // Attributes follow a component name, a `[span]`, or a link or image's `(url)`.
   const opener =
-    /(?:^\s*(:{2,}[A-Za-z][\w-]*)|(?<![\w:])(:[A-Za-z][\w-]*)(?:\[[^\]]*\])?|[\])])\{/g;
+    /(?:^ {0,3}(:{2,}[A-Za-z][\w-]*)|(?<![\w:])(:[A-Za-z][\w-]*)(?:\[[^\]]*\])?|[\])])\{/g;
   for (const [index, line] of source.prose.entries()) {
     for (const match of line.matchAll(opener)) {
       const name = match[1]?.trim() ?? match[2];

@@ -26,7 +26,7 @@ export function read(markdown: string): Source {
   let fence: { char: string; size: number } | undefined;
   for (let index = body; index < lines.length; index++) {
     const line = lines[index]!;
-    const marker = /^\s*(`{3,}|~{3,})/.exec(line)?.[1];
+    const marker = /^ {0,3}(`{3,}|~{3,})/.exec(line)?.[1];
     if (fence) {
       if (
         marker?.[0] === fence.char &&
