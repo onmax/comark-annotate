@@ -12,7 +12,8 @@ import zoom from "../src/index.ts";
 import { components as reactComponents } from "../src/react.ts";
 import { components as vueComponents } from "../src/vue.ts";
 
-const markdown = '![One](a.png)\n\n::zoom{group="tour" title="Step"}\n> Any **content**\n::';
+const markdown =
+  '![One](a.png)\n\n::zoom{group="tour" title="Step"}\n> Any **content**\n::\n\n::zoom{#step .wide foo="bar"}\nx\n::';
 const parse = () => parseMarkdown(markdown, { plugins: [zoom()] });
 
 describe("comark-zoom renderers", () => {
@@ -26,6 +27,7 @@ describe("comark-zoom renderers", () => {
       /<div class="cz" data-zoom(="")? tabindex="0" data-zoom-group="tour" data-zoom-title="Step">/,
     );
     expect(html).toContain("<strong>content</strong>");
+    expect(html).toMatch(/<div class="cz wide" id="step" data-zoom(="")? tabindex="0">/);
   });
 
   it("renders the same zoomable markup in React", async () => {
@@ -36,6 +38,7 @@ describe("comark-zoom renderers", () => {
       /<div class="cz" data-zoom(="")? tabindex="0" data-zoom-group="tour" data-zoom-title="Step">/,
     );
     expect(html).toContain("<strong>content</strong>");
+    expect(html).toMatch(/<div class="cz wide" id="step" data-zoom(="")? tabindex="0">/);
   });
 
   it("ships Svelte components that compile", async () => {
