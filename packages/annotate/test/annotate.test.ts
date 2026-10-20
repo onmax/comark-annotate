@@ -327,7 +327,7 @@ describe("comark-annotate", () => {
     const dir = await mkdtemp(join(tmpdir(), "comark-annotate-"));
     const cli = (...args: string[]) =>
       promisify(execFile)(process.execPath, [
-        new URL("../src/cli.ts", import.meta.url).pathname,
+        new URL("../dist/cli.mjs", import.meta.url).pathname,
         ...args,
       ]);
     await writeFile(
