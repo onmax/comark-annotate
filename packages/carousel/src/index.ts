@@ -100,11 +100,15 @@ function carousel(node: ElementNode, walk: Walk) {
   if (attrs.columns !== undefined && !COLUMNS.has(attrs.columns))
     walk.issues.push(`${name} has columns=${text(attrs.columns)}; use 1, 2, or 3.`);
   // The renderers resolve these on the carousel, but the parse plugin passes them on to each slide.
-  for (const key of ["zoom", "title"])
-    if (attrs[key] === undefined && Object.hasOwn(node[1], `:${key}`))
-      walk.issues.push(
-        `${name}: \`:${key}\` reads render-time data, which the slides can't follow; set it in the document or frontmatter.`,
-      );
+  for (const key of ["zoom", "title"]) {
+    const path = text(node[1][`:${key}`]).trim();
+    if (attrs[key] !== undefined || !path) continue;
+    walk.issues.push(
+      /^(?:data|props)\b/.test(path)
+        ? `${name}: \`:${key}\` reads render-time data, which the slides can't follow; set it in the document or frontmatter.`
+        : `${name}: \`:${key}\` points at ${path}, which is undefined. Fix the path or set \`${key}\` directly.`,
+    );
+  }
   const zoom = attrs.zoom !== false && attrs.zoom !== "false";
   for (const [index, slide] of slides.entries()) {
     slide.splice(2, slide.length - 2, ...standalone(childrenOf(slide)));

@@ -119,6 +119,9 @@ describe("comark-carousel", () => {
     expect(
       await issues('---\noff: false\n---\n::carousel{:zoom="frontmatter.off"}\nOne\n\nTwo\n::'),
     ).toEqual([]);
+    expect(await issues('::carousel{:title="frontmatter.typo"}\nOne\n\nTwo\n::')).toEqual([
+      "carousel 1: `:title` points at frontmatter.typo, which is undefined. Fix the path or set `title` directly.",
+    ]);
     expect(await issues(':::slide{title="Lost"}\nOne\n:::')).toEqual([
       ':::slide 1 ("Lost") sits outside a ::carousel, so it renders as plain content; wrap it in a ::carousel or remove the :::slide fence.',
     ]);

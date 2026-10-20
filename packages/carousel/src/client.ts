@@ -59,13 +59,16 @@ export function start(css: string): () => void {
   // mid-animation. scrollend clears it; without that event, a short pause in scrolling does.
   const targets = new WeakMap<Element, number>();
   const settles = "onscrollend" in window;
-  const timers = new WeakMap<Element, number>();
+  const timers = new Map<Element, number>();
   const settle = (root: Element) => {
     if (settles) return;
     clearTimeout(timers.get(root));
     timers.set(
       root,
-      window.setTimeout(() => targets.delete(root), 150),
+      window.setTimeout(() => {
+        targets.delete(root);
+        timers.delete(root);
+      }, 150),
     );
   };
 
@@ -220,6 +223,8 @@ export function start(css: string): () => void {
       listeners.abort();
       resized.disconnect();
       added.disconnect();
+      for (const timer of timers.values()) clearTimeout(timer);
+      timers.clear();
       style?.remove();
       document.documentElement.removeAttribute("data-carousel-ready");
       window.__comarkCarousel = undefined;
