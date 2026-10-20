@@ -131,3 +131,22 @@ test("stopping the zoom while it's open gives the page its scroll restoration ba
   await expect(page.locator(".cz-dialog")).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => history.scrollRestoration)).toBe("auto");
 });
+
+test("a zoom opened as another closes keeps scroll restoration off until it closes too", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/zoom/");
+  const image = page.locator("main img[data-zoom]").first();
+  await image.click();
+  await image.evaluate((node) =>
+    node.addEventListener("comark-zoom:close", () => (node as HTMLElement).click(), { once: true }),
+  );
+  await page.goBack();
+  await expect(page.locator(".cz-dialog")).toBeVisible();
+  await page.waitForTimeout(50);
+  expect(await page.evaluate(() => history.scrollRestoration)).toBe("manual");
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".cz-dialog")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => history.scrollRestoration)).toBe("auto");
+});
