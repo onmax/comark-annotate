@@ -38,6 +38,24 @@ export interface Compare {
   shots: Screenshot[];
 }
 
+export interface DiffRow {
+  kind: "same" | "del" | "add";
+  /** Line numbers in the file before and after, when the diff sets `line`. */
+  old?: number;
+  new?: number;
+  /** The line's content: Shiki's token spans when the code is highlighted, with changed words in `del` or `ins`. */
+  nodes: Node[];
+}
+
+export interface Diff {
+  file: string;
+  label?: string;
+  line?: number;
+  rows: DiffRow[];
+  /** The first code block's `class` and `style`, which carry Shiki's theme. */
+  code: { class?: string; style?: string };
+}
+
 /** What `:bound` props resolve against: the renderer's `state.renderData`, or the parsed document. */
 export type Data = Parameters<typeof resolveAttributes>[1];
 
@@ -101,6 +119,7 @@ const PROPS = {
   screenshot: ["src", "alt", "title", "href", "viewport"],
   compare: ["title", "mode"],
   annotation: ["x", "y", "w", "h", "mark", "color", "side"],
+  diff: ["file", "line", "label"],
 } as const;
 type Block = keyof typeof PROPS;
 // Comark's own attributes, which a host may style or test by, so they aren't reported.
@@ -128,6 +147,13 @@ const HINTS: Record<Block, Record<string, string>> = {
     title: "Write the note as the block's content.",
     note: "Write the note as the block's content.",
     text: "Write the note as the block's content.",
+  },
+  diff: {
+    title: "Did you mean `label`?",
+    filename: "Did you mean `file`?",
+    start: "Did you mean `line`?",
+    lang: "Set the language on both code blocks, like ```ts.",
+    language: "Set the language on both code blocks, like ```ts.",
   },
 };
 
@@ -344,11 +370,12 @@ function readAnnotation(node: ElementNode, problems: string[], data: Data): Omit
   };
 }
 
-// Screenshots, compares, and annotations only work as direct children; deeper ones would be dropped or unchecked.
+// Screenshots, compares, diffs, and annotations only work as direct children; deeper ones would be dropped or unchecked.
+const BLOCKS = new Set(["screenshot", "compare", "diff", "annotation"]);
 function nested(nodes: Node[], problems: string[]) {
   for (const node of nodes) {
     if (!isElement(node)) continue;
-    if (node[0] === "screenshot" || node[0] === "compare" || node[0] === "annotation")
+    if (BLOCKS.has(node[0]))
       problems.push(
         `\`${node[0]}\` can't go inside a note or caption.${node[0] === "annotation" ? " Annotations must be direct children of a screenshot." : " Move it out after the block."}`,
       );
@@ -411,16 +438,250 @@ export function readCompare(
   return { title: text(attrs.title) || undefined, mode: known ?? "columns", shots };
 }
 
+// A suggested change is a few lines around the edit; past this it stops being reviewable.
+export const MAX_DIFF_LINES = 200;
+// Above this many cells the line diff would hold too much memory, so every line counts as changed.
+const MAX_CELLS = 4_000_000;
+
+type Step = ["same", number, number] | ["del", number] | ["add", number];
+
+// The longest common subsequence of two lists, as the steps that turn `a` into `b`; a run of changes lists its
+// removals before its additions.
+function lcs(a: readonly string[], b: readonly string[]): Step[] {
+  if (a.length * b.length > MAX_CELLS)
+    return [...a.map((_, i): Step => ["del", i]), ...b.map((_, j): Step => ["add", j])];
+  const width = b.length + 1;
+  const table = new Uint32Array((a.length + 1) * width);
+  for (let i = a.length - 1; i >= 0; i--)
+    for (let j = b.length - 1; j >= 0; j--)
+      table[i * width + j] =
+        a[i] === b[j]
+          ? table[(i + 1) * width + j + 1]! + 1
+          : Math.max(table[(i + 1) * width + j]!, table[i * width + j + 1]!);
+  const steps: Step[] = [];
+  let i = 0;
+  let j = 0;
+  while (i < a.length || j < b.length) {
+    if (i < a.length && j < b.length && a[i] === b[j]) steps.push(["same", i++, j++]);
+    else if (
+      j >= b.length ||
+      (i < a.length && table[(i + 1) * width + j]! >= table[i * width + j + 1]!)
+    )
+      steps.push(["del", i++]);
+    else steps.push(["add", j++]);
+  }
+  return steps;
+}
+
+const lineText = (nodes: Node[]) => textContent(["span", {}, ...nodes]);
+
+// Shiki wraps each line in a `span.line` and puts a newline between them; plain code is one string. Both come out as
+// one list of nodes per line.
+function lines(pre: ElementNode): Node[][] {
+  const code = children(pre).find(isElement);
+  const result: Node[][] = [[]];
+  const add = (nodes: Node[]) => {
+    for (const node of nodes) {
+      if (!Array.isArray(node)) {
+        const [first, ...rest] = node.split("\n");
+        if (first) result.at(-1)!.push(first);
+        for (const part of rest) result.push(part ? [part] : []);
+      } else if (
+        isElement(node) &&
+        node[0] === "span" &&
+        /(?:^|\s)line(?:\s|$)/.test(text(node[1].class))
+      )
+        add(children(node));
+      else if (isElement(node)) result.at(-1)!.push(node);
+    }
+  };
+  add(code && code[0] === "code" ? children(code) : children(pre));
+  // An empty fence still parses as one empty line.
+  return result.length === 1 && !lineText(result[0]!) ? [] : result;
+}
+
+// Words, runs of spaces, and single symbols, so a changed name is marked whole and a changed bracket alone.
+const words = (line: string) => line.match(/\w+|\s+|[^\w\s]/g) ?? [];
+
+// The character ranges of a line that the other line doesn't share, joined across the spaces between them.
+function changed(steps: Step[], tokens: string[], side: "del" | "add") {
+  const ranges: [number, number][] = [];
+  let at = 0;
+  // Whether only spaces lie between `at` and the end of the last range.
+  let joined = false;
+  for (const step of steps) {
+    if (step[0] !== "same" && step[0] !== side) continue;
+    const token = tokens[step[0] === "same" && side === "add" ? step[2] : step[1]]!;
+    if (step[0] === side) {
+      const last = ranges.at(-1);
+      if (last && joined) last[1] = at + token.length;
+      else ranges.push([at, at + token.length]);
+      joined = true;
+    } else joined &&= !token.trim();
+    at += token.length;
+  }
+  return ranges;
+}
+
+// Cuts the line's nodes at the ranges and wraps what falls inside in `tag`, inside Shiki's token spans so the colors stay.
+function cut(nodes: Node[], ranges: [number, number][], tag: "del" | "ins", start = 0): Node[] {
+  const result: Node[] = [];
+  let at = start;
+  for (const node of nodes) {
+    const length = !Array.isArray(node)
+      ? node.length
+      : isElement(node)
+        ? lineText([node]).length
+        : 0;
+    const inside = ranges.filter(([from, to]) => from < at + length && to > at);
+    if (!inside.length) result.push(node);
+    else if (!Array.isArray(node)) {
+      let cursor = 0;
+      for (const [from, to] of inside) {
+        const a = Math.max(from - at, 0);
+        const b = Math.min(to - at, length);
+        if (a > cursor) result.push(node.slice(cursor, a));
+        result.push([tag, {}, node.slice(a, b)]);
+        cursor = b;
+      }
+      if (cursor < length) result.push(node.slice(cursor));
+    } else if (isElement(node))
+      result.push([node[0], node[1], ...cut(children(node), ranges, tag, at)]);
+    else result.push(node);
+    at += length;
+  }
+  return result;
+}
+
+// Marks the words that changed between a removed line and the added line paired with it, unless they share too
+// little for the marks to help: then the whole line is the change.
+function pair(before: DiffRow, after: DiffRow) {
+  const a = words(lineText(before.nodes));
+  const b = words(lineText(after.nodes));
+  const steps = lcs(a, b);
+  let shared = 0;
+  for (const step of steps) if (step[0] === "same") shared += a[step[1]]!.length;
+  const total = a.join("").length + b.join("").length;
+  if (!total || (2 * shared) / total < 0.5) return;
+  const removed = changed(steps, a, "del");
+  const added = changed(steps, b, "add");
+  if (removed.length) before.nodes = cut(before.nodes, removed, "del");
+  if (added.length) after.nodes = cut(after.nodes, added, "ins");
+}
+
+const codeBlocks = (node: ElementNode) =>
+  children(node).filter((child): child is ElementNode => isElement(child) && child[0] === "pre");
+// The `file` prop wins over the blocks' own names, and the first block's over the second's.
+const fileOf = (node: ElementNode, attrs: Record<string, unknown>) =>
+  text(attrs.file) ||
+  codeBlocks(node)
+    .map((block) => text(block[1].filename))
+    .find(Boolean) ||
+  "";
+
+/** Reads a `::diff` node: two fenced code blocks, before and after, as the rows of a suggested change. */
+export function readDiff(
+  node: ElementNode,
+  issues: string[],
+  data: Data,
+  names: Names = new Map(),
+): Diff {
+  const attrs = props(node, data);
+  const blocks = codeBlocks(node);
+  const [first, second] = blocks;
+  const filenames = [text(first?.[1].filename), text(second?.[1].filename)];
+  const file = fileOf(node, attrs);
+  const where = names.get(node) ?? (file ? `diff ${quote(file)}` : "diff");
+  const problems: string[] = [];
+  checkProps("diff", node, attrs, problems, data);
+  for (const child of children(node))
+    if (!(isElement(child) && child[0] === "pre") && (isElement(child) || text(child)))
+      problems.push(
+        `only two code blocks can go inside a diff (found ${isElement(child) && child[0] !== "p" ? `\`${child[0]}\`` : "text"}). Put explanations above or below it.`,
+      );
+  if (blocks.length !== 2)
+    problems.push(
+      `needs exactly two code blocks, before and after (got ${blocks.length}). ${blocks.length < 2 ? "Add the missing one; leave it empty for a file that's added or deleted" : "Put the rest in another diff"}.`,
+    );
+  const language = (block?: ElementNode) => text(block?.[1].language);
+  if (first && !file && !unresolved(node, attrs, "file"))
+    problems.push(
+      `name the file in the first block (\`\`\`${language(first) || "ts"} [src/a.ts]) or with file="src/a.ts".`,
+    );
+  if (filenames[0] && filenames[1] && filenames[0] !== filenames[1])
+    problems.push(
+      `the before block names ${quote(filenames[0])} and the after block ${quote(filenames[1])}. A diff shows one file; split the other into its own diff.`,
+    );
+  if (first && second && language(first) !== language(second)) {
+    const is = (block: ElementNode) =>
+      language(block) ? `is ${quote(language(block))}` : "has no language";
+    problems.push(
+      `the before block ${is(first)} and the after block ${is(second)}. Give both the same language, like \`\`\`${language(first) || language(second)}.`,
+    );
+  }
+  const raw = text(attrs.line);
+  const line = /^\d+$/.test(raw) && Number(raw) >= 1 ? Number(raw) : undefined;
+  if (raw && !line)
+    problems.push(
+      `\`line\` must be the file's line number for the first line, a whole number from 1 (got ${quote(raw)}).`,
+    );
+
+  const old = first ? lines(first) : [];
+  const next = second ? lines(second) : [];
+  for (const [index, list] of [old, next].entries())
+    if (list.length > MAX_DIFF_LINES)
+      problems.push(
+        `the ${index ? "after" : "before"} block has ${list.length} lines. Keep only the lines around the change, at most ${MAX_DIFF_LINES}.`,
+      );
+  const steps = lcs(old.map(lineText), next.map(lineText));
+  if (blocks.length === 2 && steps.every((step) => step[0] === "same"))
+    problems.push(
+      "before and after are the same, so there's no change to show. Edit the after block, or remove the diff.",
+    );
+  issues.push(...problems.map((problem) => `${where}: ${problem}`));
+
+  const rows: DiffRow[] = [];
+  const at = (n: number) => (line === undefined ? undefined : line + n);
+  let removed: DiffRow[] = [];
+  let added: DiffRow[] = [];
+  const flush = () => {
+    for (let k = 0; k < Math.min(removed.length, added.length); k++) pair(removed[k]!, added[k]!);
+    rows.push(...removed, ...added);
+    removed = [];
+    added = [];
+  };
+  for (const step of steps) {
+    if (step[0] === "del") removed.push({ kind: "del", old: at(step[1]), nodes: old[step[1]]! });
+    else if (step[0] === "add")
+      added.push({ kind: "add", new: at(step[1]), nodes: next[step[1]]! });
+    else {
+      flush();
+      rows.push({ kind: "same", old: at(step[1]), new: at(step[2]), nodes: old[step[1]]! });
+    }
+  }
+  flush();
+  const code = first?.[1] ?? {};
+  return {
+    file,
+    label: text(attrs.label) || undefined,
+    line,
+    rows,
+    code: { class: text(code.class) || undefined, style: text(code.style) || undefined },
+  };
+}
+
 // Every screenshot is named by its src when no other screenshot shares it, and otherwise by its position and alt.
 function name(nodes: Node[], data: Data): Names {
   const shots: ElementNode[] = [];
   const compares: ElementNode[] = [];
+  const diffs: ElementNode[] = [];
   const walk = (list: Node[]) => {
     for (const node of list) {
       if (!isElement(node)) continue;
       if (node[0] === "screenshot") shots.push(node);
       else {
         if (node[0] === "compare") compares.push(node);
+        if (node[0] === "diff") diffs.push(node);
         if (node[0] !== "annotation") walk(children(node));
       }
     }
@@ -442,10 +703,23 @@ function name(nodes: Node[], data: Data): Names {
     const title = text(props(node, data).title);
     names.set(node, `compare ${index + 1}${title ? ` (${quote(title)})` : ""}`);
   }
+  // A diff is named by its file, the way a review names a suggestion, and by its position when that's not enough.
+  const files = diffs.map((node) => fileOf(node, props(node, data)));
+  for (const [index, node] of diffs.entries()) {
+    const file = files[index]!;
+    names.set(
+      node,
+      file && files.indexOf(file) === files.lastIndexOf(file)
+        ? `diff ${quote(file)}`
+        : diffs.length === 1
+          ? "diff"
+          : `diff ${index + 1}${file ? ` (${quote(file)})` : ""}`,
+    );
+  }
   return names;
 }
 
-/** Every problem in a document's screenshots, compares, and annotations. */
+/** Every problem in a document's screenshots, compares, diffs, and annotations. */
 export function check(nodes: Node[], data: Data): string[] {
   const issues: string[] = [];
   const names = name(nodes, data);
@@ -455,6 +729,7 @@ export function check(nodes: Node[], data: Data): string[] {
       if (!isElement(node)) continue;
       if (node[0] === "compare") readCompare(node, issues, data, names);
       else if (node[0] === "screenshot") readScreenshot(node, issues, data, names);
+      else if (node[0] === "diff") readDiff(node, issues, data, names);
       else if (node[0] === "annotation") {
         const note = textContent(["div", {}, ...children(node)])
           .trim()

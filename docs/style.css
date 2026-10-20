@@ -461,7 +461,7 @@ pre:hover .copy,
   color: var(--fg);
 }
 
-table {
+table:not(.ca-code) {
   width: 100%;
   margin: 1rem 0;
   border-collapse: collapse;
@@ -474,23 +474,28 @@ th {
   text-align: left;
 }
 
+/* The table rules are for prop tables; a diff's table is code, in the page's mono font. */
+.ca-diff {
+  --ca-code-font: var(--mono);
+}
+
 /* The docs' prop tables have no header worth showing. Tables in examples keep theirs, and so do their zoomed copies,
    which open in a dialog outside main. */
 main th:not(.example-preview th) {
   display: none;
 }
 
-td {
+td:not(.ca-code td) {
   padding: 0.6rem 1rem 0.6rem 0;
   border-top: 1px solid var(--line);
   vertical-align: baseline;
 }
 
-tr:last-child td {
+tr:last-child td:not(.ca-code td) {
   border-bottom: 1px solid var(--line);
 }
 
-td:first-child {
+td:first-child:not(.ca-code td) {
   width: 9rem;
   white-space: nowrap;
 }
