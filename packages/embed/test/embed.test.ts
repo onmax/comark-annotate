@@ -52,10 +52,10 @@ describe("comark-embed", () => {
       "https://player.vimeo.com/video/76979871?dnt=1",
     );
     expect(await iframe("https://vimeo.com/76979871/a1b2c3d4e5", " start=30")).toBe(
-      "https://player.vimeo.com/video/76979871?dnt=1&amp;h=a1b2c3d4e5#t=30s",
+      "https://player.vimeo.com/video/76979871?h=a1b2c3d4e5&amp;dnt=1#t=30s",
     );
     expect(await iframe("https://player.vimeo.com/video/76979871?h=a1b2c3d4e5")).toBe(
-      "https://player.vimeo.com/video/76979871?dnt=1&amp;h=a1b2c3d4e5",
+      "https://player.vimeo.com/video/76979871?h=a1b2c3d4e5&amp;dnt=1",
     );
     expect(await iframe("https://vimeo.com/channels/staffpicks/76979871")).toBe(
       "https://player.vimeo.com/video/76979871?dnt=1",

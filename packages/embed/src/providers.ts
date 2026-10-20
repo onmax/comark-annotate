@@ -68,7 +68,7 @@ const PROVIDERS = {
         return { hint: "The `h` hash of an unlisted video is letters a to f and digits only." };
       return {
         provider: "vimeo",
-        src: `https://player.vimeo.com/video/${id}?dnt=1${hash ? `&h=${hash}` : ""}${start ? `#t=${start}s` : ""}`,
+        src: `https://player.vimeo.com/video/${id}?${hash ? `h=${hash}&dnt=1` : "dnt=1"}${start ? `#t=${start}s` : ""}`,
         label: "Vimeo video",
         size: "video",
       };
