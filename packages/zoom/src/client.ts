@@ -159,8 +159,9 @@ export function start(css: string): () => void {
   function lineHeight(parent: HTMLElement, page: CSSStyleDeclaration) {
     const size = parseFloat(page.fontSize);
     if (page.lineHeight === "normal" || !size) return page.lineHeight;
+    // Important inline styles win over any rule of the host's, so the probe can't be restyled or take up room.
     const probe = el("span", "");
-    probe.style.cssText = `position:absolute;visibility:hidden;font-size:${size * 2}px`;
+    probe.style.cssText = `all:initial!important;position:absolute!important;visibility:hidden!important;font-size:${size * 2}px!important;line-height:inherit!important`;
     parent.append(probe);
     const scaled = getComputedStyle(probe).lineHeight !== page.lineHeight;
     probe.remove();
@@ -309,6 +310,13 @@ export function start(css: string): () => void {
     unlocked = null;
   }
 
+  function restore() {
+    const saved = restoration;
+    restoration = null;
+    // The browser restores scroll after popstate, so put the setting back once it has skipped that.
+    if (saved) setTimeout(() => (history.scrollRestoration = saved));
+  }
+
   function open(item: HTMLElement) {
     if (view) return;
     const items = groupOf(item);
@@ -404,7 +412,11 @@ export function start(css: string): () => void {
     const current = view;
     if (!current || current.closing) return;
     current.closing = true;
-    if (current.pushed && !fromHistory && history.state?.comarkZoom) history.back();
+    if (current.pushed && !fromHistory && history.state?.comarkZoom) {
+      // stop() may have removed the listener that puts scroll restoration back.
+      addEventListener("popstate", restore, { once: true });
+      history.back();
+    } else if (!fromHistory) restore();
     const item = current.items[current.index]!;
     if (!motion.matches) {
       // A close can come while the opening animation still runs. Measure the frame where it settles, so the path back
@@ -503,10 +515,7 @@ export function start(css: string): () => void {
   addEventListener(
     "popstate",
     () => {
-      // The browser restores scroll after this event, so put the setting back once it has skipped that.
-      const saved = restoration;
-      restoration = null;
-      if (saved) setTimeout(() => (history.scrollRestoration = saved));
+      restore();
       void shut(true);
     },
     { signal },

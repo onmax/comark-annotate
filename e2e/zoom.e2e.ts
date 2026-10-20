@@ -92,7 +92,9 @@ test("a zoomed block closes onto the original without a jump", async ({ page }) 
     .locator("main .example-preview .cz")
     .filter({ has: page.locator("table") })
     .last();
-  // A length line height stays the same for larger text, unlike a ratio.
+  // A length line height stays the same for larger text, unlike a ratio. The host's rule for spans mustn't fool the
+  // zoom into reading it as one.
+  await page.addStyleTag({ content: "main span{line-height:1.2;position:static!important}" });
   await page.evaluate(() =>
     document
       .querySelector("main")!
@@ -116,4 +118,16 @@ test("a zoomed screenshot keeps the dialog's text color inside its context", asy
   const color = (selector: string) =>
     page.locator(selector).evaluate((node) => getComputedStyle(node).color);
   expect(await color(".cz-item > .ca")).toBe(await color(".cz-dialog"));
+});
+
+test("stopping the zoom while it's open gives the page its scroll restoration back", async ({
+  page,
+}) => {
+  await page.goto("/zoom/");
+  await page.locator("main img[data-zoom]").first().click();
+  await expect(page.locator(".cz-dialog")).toBeVisible();
+  expect(await page.evaluate(() => history.scrollRestoration)).toBe("manual");
+  await page.evaluate(() => window.__comarkZoom!.stop());
+  await expect(page.locator(".cz-dialog")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => history.scrollRestoration)).toBe("auto");
 });
