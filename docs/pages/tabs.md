@@ -86,7 +86,7 @@ One tab. It holds any Markdown, even other tabs.
 
 ### code-group
 
-Code blocks as tabs, each named by the label in brackets after its language. The label becomes the tab, so the code block doesn't repeat it.
+Code blocks as tabs, each named by the label in brackets after its language. The label becomes the tab, so the code block doesn't repeat it, and the tabs sit in a header joined to the block. Without a script, each block keeps its label as a header of its own.
 
 ::example
 ````md
@@ -153,7 +153,9 @@ Import `comark-tabs/style.css` with your styles when you render on a server.
 
 ### Theming
 
-The tabs follow shadcn/ui's Tabs and use the same `--comark-*` tokens as the other plugins: `--comark-accent` behind the strip, `--comark-background` under the open tab, `--comark-muted` for the others, and `--comark-ring` for focus. See [Theming](/carousel/#guides-theming) for the full list and the Nuxt UI mapping. The rules sit in a `comark` CSS layer, so any plain rule of your own wins, such as `.ct-tab { border-radius: 0 }`.
+The tab strip is a segmented control in the style of shadcn/ui, on the same `--comark-*` tokens as the other plugins: `--comark-border` frames it, `--comark-accent` tints it, the open tab sits on `--comark-background`, the others use `--comark-muted`, and `--comark-ring` marks focus. `--comark-radius` rounds the strip, and the tabs inside it a little less. See [Theming](/carousel/#guides-theming) for the full list and the Nuxt UI mapping.
+
+The rules sit in a `comark` CSS layer, so any plain rule of your own wins, such as `.ct-tab { border-radius: 0 }`. One rule sits outside it: pages style code blocks with plain rules, so the rule that drops a code group's block margin and top corners, to join it to its header, has to beat them.
 
 ## Credits
 

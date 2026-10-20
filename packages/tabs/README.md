@@ -52,4 +52,4 @@ The plugin adds every problem to `meta.issues`, so a host can reject a document 
 
 Each entry exports the parse plugin as `default` and the renderer's `components`.
 
-The styles follow shadcn/ui's Tabs: they read its CSS variables, such as `--background` and `--accent`, when the page has them, and use its neutral theme otherwise. Set the `--comark-*` tokens to theme every comark plugin at once; the rules sit in a `comark` CSS layer, so any plain rule of your own wins. See [Theming](https://comark.onmax.me/carousel/#guides-theming).
+The tab strip is a segmented control in the style of shadcn/ui, and in a code group it's the header of one card with the code block. The styles read shadcn's CSS variables, such as `--background` and `--border`, when the page has them, and use its neutral theme otherwise. Set the `--comark-*` tokens to theme every comark plugin at once. The rules sit in a `comark` CSS layer, so any plain rule of your own wins, except the one that joins a code group's block to its header. See [Theming](https://comark.onmax.me/carousel/#guides-theming).
