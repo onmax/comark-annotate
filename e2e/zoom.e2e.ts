@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 test("an image zooms, and Escape, Back, and a click around it close it", async ({ page }) => {
   await page.goto("/zoom/");
@@ -57,17 +57,63 @@ test("a zoomed table keeps its header row", async ({ page }) => {
   await expect(page.locator(".cz-dialog th").first()).toHaveText("Attempt");
 });
 
-test("a zoomed block keeps its text styles, so it closes onto the original without a jump", async ({
-  page,
-}) => {
+// The copy's box and the original's on the last frame of the closing animation, just before the original takes the
+// copy's place.
+async function lastFrame(page: Page, item: Locator) {
+  await item.click();
+  await expect(page.locator(".cz-dialog")).toBeVisible();
+  await item.evaluate((original) => {
+    const frames: { copy: DOMRect; original: DOMRect }[] = [];
+    Object.assign(window, { closing: frames });
+    const record = () => {
+      const copy = document.querySelector(".cz-item")?.firstElementChild;
+      if (!copy) return;
+      frames.push({
+        copy: copy.getBoundingClientRect(),
+        original: original.getBoundingClientRect(),
+      });
+      requestAnimationFrame(record);
+    };
+    record();
+  });
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".cz-dialog")).toHaveCount(0);
+  return page.evaluate(() => {
+    const last = (
+      window as Window & { closing?: { copy: DOMRect; original: DOMRect }[] }
+    ).closing!.at(-1)!;
+    return { copy: last.copy.toJSON(), original: last.original.toJSON() };
+  });
+}
+
+test("a zoomed block closes onto the original without a jump", async ({ page }) => {
   await page.goto("/zoom/");
-  const block = page
+  const table = page
     .locator("main .example-preview .cz")
     .filter({ has: page.locator("table") })
     .last();
-  await block.scrollIntoViewIfNeeded();
-  const height = await block.evaluate((node) => (node as HTMLElement).offsetHeight);
-  await block.click();
-  const copy = page.locator(".cz-item > .cz");
-  expect(await copy.evaluate((node) => (node as HTMLElement).offsetHeight)).toBe(height);
+  // A length line height stays the same for larger text, unlike a ratio.
+  await page.evaluate(() =>
+    document
+      .querySelector("main")!
+      .insertAdjacentHTML(
+        "beforeend",
+        '<div style="font:16px/24px sans-serif"><div id="fixed" data-zoom tabindex="0"><p>One</p><p style="font-size:2em">Two</p></div></div>',
+      ),
+  );
+  for (const item of [table, page.locator("#fixed")]) {
+    await item.scrollIntoViewIfNeeded();
+    const { copy, original } = await lastFrame(page, item);
+    for (const side of ["x", "y", "width", "height"] as const)
+      expect(Math.abs(copy[side] - original[side])).toBeLessThan(1);
+  }
+});
+
+test("a zoomed screenshot keeps the dialog's text color inside its context", async ({ page }) => {
+  await page.goto("/annotate/");
+  await page.addStyleTag({ content: ".ca{color:rgb(255,0,0)}" });
+  await page.locator("main figure.ca-screenshot").first().click();
+  const color = (selector: string) =>
+    page.locator(selector).evaluate((node) => getComputedStyle(node).color);
+  expect(await color(".cz-item > .ca")).toBe(await color(".cz-dialog"));
 });
