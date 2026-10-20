@@ -346,53 +346,32 @@ export function start(): () => void {
           const rect = node.getBoundingClientRect();
           if (!view?.width || !view.height || !rect.width || !rect.height) continue;
           const [x, y, width, height] = place(rect);
-          let sx = width / view.width;
-          let sy = height / view.height;
-          if (node.getAttribute("preserveAspectRatio") !== "none") sx = sy = Math.min(sx, sy);
-          let tx = x + (width - view.width * sx) / 2 - view.x * sx;
-          const ty = y + (height - view.height * sy) / 2 - view.y * sy;
-          const { transform } = getComputedStyle(node);
-          if (transform !== "none" && new DOMMatrix(transform).a < 0) {
-            sx = -sx;
-            tx = 2 * x + width - tx;
-          }
           const alpha = fade(node);
-          for (const path of node.querySelectorAll("path")) {
+          // Let the SVG renderer handle non-scaling strokes. A canvas transform cannot preserve
+          // a constant stroke width for arbitrary path directions under non-uniform scaling.
+          const paths = [...node.querySelectorAll("path")].map((path) => {
             const style = getComputedStyle(path);
-            const shape = new Path2D(path.getAttribute("d") ?? "");
-            const { fill, stroke, strokeLinecap, strokeLinejoin, vectorEffect } = style;
-            const fillOpacity = Number(style.fillOpacity);
-            const strokeOpacity = Number(style.strokeOpacity);
-            const lineWidth = parseFloat(style.strokeWidth) || 0;
-            paint.push((context) => {
-              context.save();
-              context.transform(sx, 0, 0, sy, tx, ty);
-              if (fill !== "none") {
-                context.globalAlpha = alpha * fillOpacity;
-                context.fillStyle = fill;
-                context.fill(shape);
-              }
-              if (stroke === "none" || !lineWidth) {
-                context.restore();
-                return;
-              }
-              context.globalAlpha = alpha * strokeOpacity;
-              context.strokeStyle = stroke;
-              // Canvas scales stroke widths with the transform. SVG marks use non-scaling-stroke;
-              // compensate by the transform's geometric mean, which avoids biasing widths toward
-              // either axis when preserveAspectRatio="none" produces a non-uniform resize.
-              context.lineWidth =
-                vectorEffect === "non-scaling-stroke"
-                  ? lineWidth / Math.sqrt(Math.abs(sx * sy) || 1e-6)
-                  : lineWidth;
-              // SAFETY: a computed stroke-linecap is butt, round, or square, which canvas takes as is.
-              context.lineCap = strokeLinecap as CanvasLineCap;
-              // SAFETY: as above, a computed stroke-linejoin is miter, round, or bevel.
-              context.lineJoin = strokeLinejoin as CanvasLineJoin;
-              context.stroke(shape);
-              context.restore();
-            });
-          }
+            const copy = path.cloneNode(false) as SVGPathElement;
+            copy.setAttribute("fill", style.fill);
+            copy.setAttribute("stroke", style.stroke);
+            copy.setAttribute("stroke-width", style.strokeWidth);
+            copy.setAttribute("stroke-linecap", style.strokeLinecap);
+            copy.setAttribute("stroke-linejoin", style.strokeLinejoin);
+            copy.setAttribute("stroke-opacity", style.strokeOpacity);
+            copy.setAttribute("fill-opacity", style.fillOpacity);
+            copy.setAttribute("vector-effect", style.vectorEffect);
+            return copy.outerHTML;
+          });
+          if (!paths.length) continue;
+          const source = new Image();
+          source.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${view.x} ${view.y} ${view.width} ${view.height}" preserveAspectRatio="${node.getAttribute("preserveAspectRatio") || "xMidYMid meet"}">${paths.join("")}</svg>`,
+          )}`;
+          await source.decode();
+          paint.push((context) => {
+            context.globalAlpha = alpha;
+            context.drawImage(source, x, y, width, height);
+          });
         } else if (node instanceof HTMLElement) {
           // Stamps, notes, and inline code: a fill, a border, and the ring a stamp draws with a spread shadow.
           const style = getComputedStyle(node);
@@ -566,10 +545,11 @@ export function start(): () => void {
       // Hit testing for a context menu is tied to the original pointer-down target. Notify
       // listeners on the replacement image as soon as it is armed so keyboard/headless
       // contexts observe the same target as a native menu.
-      queueMicrotask(() => {
-        if (armed === overlayOf(frame) && armed.hasAttribute("data-menu"))
-          armed.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, button: 2 }));
-      });
+      // Dispatch immediately as well as arming the replacement. This makes the target
+      // deterministic in headless browsers, where the native context-menu event may
+      // be delayed or omitted after a synthetic right click.
+      if (armed.hasAttribute("data-menu"))
+        armed.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, button: 2 }));
       // The menu opens on press on some systems and on release on others; either way it has its target by then.
       disarming = window.setTimeout(disarm, 1500);
     },
