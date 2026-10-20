@@ -1,28 +1,12 @@
-/** What `comark-zoom:open` and `comark-zoom:change` carry, so a host can add its own UI to the zoomed view. */
-export interface ZoomDetail {
+interface ZoomDetail {
   dialog: HTMLElement;
   header: HTMLElement;
-  /** A layer over the zoomed content, sized to it. Draw pins or outlines here. */
-  layer: HTMLElement;
   footer: HTMLElement;
-  /** The zoomed copy of the item. */
+  layer: HTMLElement;
   content: HTMLElement;
-  /** The item on the page that is shown. */
   item: HTMLElement;
   index: number;
   items: HTMLElement[];
-}
-
-declare global {
-  interface Window {
-    __comarkZoom?: { users: number; stop: () => void };
-  }
-  // The events bubble, so `document` and `window` hear them too.
-  interface GlobalEventHandlersEventMap {
-    "comark-zoom:open": CustomEvent<ZoomDetail>;
-    "comark-zoom:change": CustomEvent<ZoomDetail>;
-    "comark-zoom:close": CustomEvent<{ item: HTMLElement }>;
-  }
 }
 
 /**
