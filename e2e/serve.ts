@@ -24,4 +24,4 @@ createServer(async (request, response) => {
   } catch {
     response.writeHead(404).end("Not found");
   }
-}).listen(4173, "127.0.0.1");
+}).listen(Number(process.env.E2E_PORT ?? 4173), "127.0.0.1");
