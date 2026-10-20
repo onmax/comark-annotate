@@ -203,6 +203,41 @@ test("an image zooms no larger than its natural size", async ({ page }) => {
   await expect.poll(async () => Math.round((await rect(page, ".cz-item")).width)).toBe(150);
 });
 
+test("data-zoom-aside shows a copy beside the item, and the events map copies to the page and back", async ({
+  page,
+}) => {
+  await fixture(
+    page,
+    (await render("![Plain](/before.png)")) +
+      '<figure class="shot"><img src="/before.png" alt="Chart" data-zoom tabindex="0" data-zoom-context=".shot" data-zoom-aside="figcaption"><figcaption><b>Sales</b> by week</figcaption></figure>',
+  );
+  await page.evaluate(() =>
+    document.addEventListener("comark-zoom:open", ({ detail }) => {
+      const caption = document.querySelector("figure.shot b")!;
+      const copy = detail.copyOf(caption);
+      Object.assign(window, {
+        mapped: {
+          content:
+            detail.content.tagName === "IMG" && detail.originalOf(detail.content) === detail.item,
+          aside: Boolean(copy && detail.aside?.contains(copy)),
+          back: Boolean(copy && detail.originalOf(copy) === caption),
+          outside: detail.copyOf(document.body),
+        },
+      });
+    }),
+  );
+  await page.locator("figure.shot img").click();
+  await expect(page.locator(".cz-aside b")).toHaveText("Sales");
+  const [item, aside] = [await rect(page, ".cz-item"), await rect(page, ".cz-aside")];
+  expect(aside.left).toBeGreaterThanOrEqual(item.right - 1);
+  expect(await page.evaluate(() => (window as unknown as { mapped: unknown }).mapped)).toEqual({
+    content: true,
+    aside: true,
+    back: true,
+    outside: null,
+  });
+});
+
 test("start() from the client entry adds its own styles", async ({ page }) => {
   const dist = new URL("../packages/zoom/dist/", import.meta.url);
   await page.route("**/client/*.mjs", (route) => {

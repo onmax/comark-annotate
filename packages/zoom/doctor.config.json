@@ -5,11 +5,6 @@
       "ruleId": "vue/lifecycle/require-cleanup",
       "file": "src/script.ts",
       "reason": "script.ts is not a Vue component. start() returns a stop function that aborts every listener, and the Vue components call it in onBeforeUnmount."
-    },
-    {
-      "ruleId": "vue/lifecycle/require-cleanup",
-      "file": "src/client.ts",
-      "reason": "client.ts is not a Vue component either: since #14 it holds its own copy of the zoom script, whose start() returns a stop function that the Vue components call in onBeforeUnmount."
     }
   ]
 }
