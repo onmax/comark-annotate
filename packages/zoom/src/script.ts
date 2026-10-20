@@ -23,12 +23,13 @@ declare global {
   interface Window {
     __comarkZoom?: { users: number; stop: () => void };
   }
-  // The events bubble, so `document` and `window` hear them too.
-  interface GlobalEventHandlersEventMap {
+  interface ComarkZoomEventMap {
     "comark-zoom:open": CustomEvent<ZoomDetail>;
     "comark-zoom:change": CustomEvent<ZoomDetail>;
     "comark-zoom:close": CustomEvent<{ item: HTMLElement }>;
   }
+  // The events bubble, so `document` and `window` hear them too.
+  interface GlobalEventHandlersEventMap extends ComarkZoomEventMap {}
 }
 
 /**
