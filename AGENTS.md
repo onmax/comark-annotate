@@ -17,6 +17,7 @@ A pnpm workspace. Every package in `packages/` is published to npm under its own
 - `packages/zoom` is `comark-zoom`.
   - `src/index.ts` is the parse plugin. It marks content images and adds one `zoom-runtime` node to a document with anything to zoom.
   - `src/script.ts` is the browser script. `script()` is self-contained because the HTML renderer inlines its source. `src/client.ts` exports `start()`, which runs it with the bundled styles; Vue, React, and Svelte components call it on mount and stop it on unmount.
+  - `src/theme.ts` resolves the shared `--comark-*` tokens, and `comark-zoom/theme` exports it alone. `comark-github-callouts` has it as a dev dependency and bundles only this entry, so callouts don't install zoom or carry its styles.
   - `src/html.ts`, `src/vue.ts`, `src/react.ts`, and `src/svelte/` are the renderers. They all output the same markup.
 - `docs/` builds the docs site with the plugins themselves. Cloudflare serves it from `docs/dist`.
 
