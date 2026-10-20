@@ -351,6 +351,7 @@ export function start(): () => void {
           // a constant stroke width for arbitrary path directions under non-uniform scaling.
           const paths = [...node.querySelectorAll("path")].map((path) => {
             const style = getComputedStyle(path);
+            // SAFETY: a shallow clone of an SVGPathElement is an SVGPathElement.
             const copy = path.cloneNode(false) as SVGPathElement;
             copy.setAttribute("fill", style.fill);
             copy.setAttribute("stroke", style.stroke);
@@ -636,7 +637,8 @@ export function start(): () => void {
   const follow = (event: Event) => {
     // SAFETY: comark-zoom's open and change events carry the item shown.
     const { item } = (event as CustomEvent<{ item?: unknown }>).detail ?? {};
-    zoomed = item instanceof HTMLElement ? item : null;
+    // A screenshot zooms its stage, inside the figure that copy paints.
+    zoomed = item instanceof HTMLElement ? item.closest<HTMLElement>(".ca-screenshot") : null;
     // Zoom copies the figure as it was, a moment's "Copied" included; a thumbnail is a button and gets no button inside.
     for (const part of document.querySelectorAll(".cz-thumb :is(.ca-copy,.ca-copy-status)"))
       part.remove();
