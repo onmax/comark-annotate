@@ -11,6 +11,7 @@ import dark from "shiki/themes/vitesse-dark.mjs";
 import light from "shiki/themes/vitesse-light.mjs";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
+import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
 import githubCallouts, {
   components as githubCalloutsComponents,
 } from "../packages/github-callouts/src/html.ts";
@@ -26,6 +27,7 @@ const contentPlugins = () => [
   include({ root: fileURLToPath(new URL("pages/", root)) }),
   annotate(),
   carousel(),
+  embed(),
   githubCallouts(),
   zoom(),
 ];
@@ -33,6 +35,7 @@ const plugins = [...contentPlugins(), shiki({ themes: { light, dark } })];
 const components = {
   ...annotateComponents,
   ...carouselComponents,
+  ...embedComponents,
   ...githubCalloutsComponents,
   ...zoomComponents,
 };
@@ -45,6 +48,7 @@ const pages = [
   { slug: "carousel", file: "carousel.md", npm: "comark-carousel" },
   { slug: "github-callouts", file: "github-callouts.md", npm: "comark-github-callouts" },
   { slug: "include", file: "include.md", npm: "comark-include" },
+  { slug: "embed", file: "embed.md", npm: "comark-embed" },
 ];
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;

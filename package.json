@@ -1,7 +1,7 @@
 {
   "name": "comark-plugins",
   "private": true,
-  "description": "Comark plugins by onmax: annotated screenshots, zoom, carousels, GitHub callouts, and includes. One version for every package.",
+  "description": "Comark plugins by onmax: annotated screenshots, zoom, carousels, GitHub callouts, includes, and embeds. One version for every package.",
   "homepage": "https://comark.onmax.me",
   "license": "MIT",
   "repository": {
