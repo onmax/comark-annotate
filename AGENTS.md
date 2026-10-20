@@ -13,11 +13,12 @@ A pnpm workspace. Every package in `packages/` is published to npm under its own
   - Only the HTML renderer exists: notes are Markdown, and Vue, React, and Svelte versions would each copy the whole figure template.
   - `src/marks.ts` holds the hand-drawn marks, taken from AnnotationKit.
 - `packages/carousel` is `comark-carousel`. Its parse plugin turns `::carousel` content into explicit `slide` nodes with their position, so no renderer splits children. Its script is built like zoom's, and a carousel is a zoom gallery.
+- `packages/embed` is `comark-embed`. Its parse plugin reads the player's `src` from the `::embed` link alone, with no fetch, and replaces the node's attributes with `provider`, `src`, `label`, `size`, `href`, `title`, and `host`, so no renderer parses URLs. `src/providers.ts` holds one entry per provider. A link with no player becomes a card, and one that isn't https renders nothing. No script: the components add the styles on mount.
 - `packages/github-callouts` is `comark-github-callouts`. Its parse plugin is named `alert`, so Comark's dedupe swaps it in for the built-in alert plugin and it always sees the raw `[!TYPE]` marker. It turns those blockquotes into `github-callout` nodes with `type` and `title`; the renderers only draw them. No script: the components add the styles on mount.
 - `packages/zoom` is `comark-zoom`.
   - `src/index.ts` is the parse plugin. It marks content images and adds one `zoom-runtime` node to a document with anything to zoom.
   - `src/script.ts` is the browser script. `script()` is self-contained because the HTML renderer inlines its source. `src/client.ts` exports `start()`, which runs it with the bundled styles; Vue, React, and Svelte components call it on mount and stop it on unmount.
-  - `src/theme.ts` resolves the shared `--comark-*` tokens, and `comark-zoom/theme` exports it alone. `comark-github-callouts` has it as a dev dependency and bundles only this entry, so callouts don't install zoom or carry its styles.
+  - `src/theme.ts` resolves the shared `--comark-*` tokens, and `comark-zoom/theme` exports it alone. `comark-github-callouts` and `comark-embed` have it as a dev dependency and bundle only this entry, so they don't install zoom or carry its styles.
   - `src/html.ts`, `src/vue.ts`, `src/react.ts`, and `src/svelte/` are the renderers. They all output the same markup.
 - `docs/` builds the docs site with the plugins themselves. Cloudflare serves it from `docs/dist`.
 
