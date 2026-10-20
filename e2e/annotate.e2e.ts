@@ -88,3 +88,65 @@ test("a slider moves its divider by drag and by key, and a click without a drag 
   await page.keyboard.press("Home");
   await expect(zoomed).toHaveAttribute("aria-valuenow", "0");
 });
+
+test("Copy puts a screenshot on the clipboard with its marks, and a right-click on the image finds the same copy", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/annotate/");
+  const figure = page
+    .locator(".ca-screenshot:visible")
+    .filter({ has: page.locator(".ca-mark .ca-stamp") })
+    .first();
+  await figure.hover();
+  await expect(figure.locator(".ca-overlay")).toHaveAttribute("src", /^blob:/);
+  await figure.locator(".ca-copy").click();
+  await expect(figure.locator(".ca-copy-status")).toHaveText("Copied");
+
+  // The copy holds the figure with a margin, so the first stamp's color is where the stamp sits on the page.
+  const [copied, expected] = await figure.evaluate(async (node) => {
+    const [item] = await navigator.clipboard.read();
+    const bitmap = await createImageBitmap(await item!.getType("image/png"));
+    const box = node.getBoundingClientRect();
+    const stamp = node.querySelector(".ca-mark .ca-stamp")!;
+    const at = stamp.getBoundingClientRect();
+    const scale = bitmap.width / (box.width + 32);
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+    const context = canvas.getContext("2d")!;
+    context.drawImage(bitmap, 0, 0);
+    const x = Math.round((at.left + at.width / 2 - box.left + 16) * scale);
+    const y = Math.round((at.top + 2 - box.top + 16) * scale);
+    const pixel = [...context.getImageData(x, y, 1, 1).data].slice(0, 3);
+    context.fillStyle = getComputedStyle(stamp).backgroundColor;
+    context.fillRect(0, 0, 1, 1);
+    return [pixel, [...context.getImageData(0, 0, 1, 1).data].slice(0, 3)];
+  });
+  for (const [index, channel] of copied.entries())
+    expect(Math.abs(channel - expected[index]!)).toBeLessThan(24);
+
+  // A right-click lands on the copy; the next click still zooms the screenshot.
+  const image = (await figure.locator(".ca-frame > img").first().boundingBox())!;
+  const target = page.evaluate(
+    () =>
+      new Promise<string>((resolve) =>
+        document.addEventListener(
+          "contextmenu",
+          (event) => {
+            event.preventDefault();
+            resolve((event.target as Element).className);
+          },
+          { once: true },
+        ),
+      ),
+  );
+  await page.mouse.click(image.x + image.width / 2, image.y + image.height / 2, {
+    button: "right",
+  });
+  expect(await target).toBe("ca-overlay");
+  await expect(figure.locator(".ca-overlay[data-menu]")).toHaveCount(0);
+  await page.mouse.click(image.x + image.width / 2, image.y + image.height / 2);
+  await expect(page.locator(".cz-dialog")).toBeVisible();
+  await page.keyboard.press("ControlOrMeta+c");
+  await expect(page.locator(".cz-item .ca-copy-status")).toHaveText("Copied");
+});

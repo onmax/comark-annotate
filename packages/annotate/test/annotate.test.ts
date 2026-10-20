@@ -167,6 +167,27 @@ describe("comark-annotate", () => {
     expect(html.match(/class="ca-screenshot ca-top"/g)).toHaveLength(2);
   });
 
+  it("gives every screenshot a Copy button that waits for the script", async () => {
+    const { html } = await run(
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=10 y=10 w=10 h=10}\nNote\n:::\n::\n\n${compare}`,
+    );
+    expect(
+      html.match(
+        /<button type="button" class="ca-copy" aria-label="Copy the screenshot with its marks"/g,
+      ),
+    ).toHaveLength(3);
+    // In the frame, after the marks, so it sits on the image's corner.
+    expect(html).toMatch(
+      /<div class="ca-frame"><img src="a.png"[^>]*><span class="ca-mark[^]*?<\/span><button type="button" class="ca-copy"[^]*?<\/button><span class="ca-copy-status" role="status"><\/span><\/div>/,
+    );
+    expect(html.match(/<script>\(function start\(\) \{/g)).toHaveLength(1);
+    expect(css).toContain(".ca-copy{display:none}");
+    expect(css).toContain("[data-annotate-copy] .ca-copy{");
+
+    const slider = await run(compare.replace("::compare", '::compare{mode="slider"}'));
+    expect(slider.html).not.toContain('class="ca-copy"');
+  });
+
   it("points from a note above the image without drawing a mark", async () => {
     const { issues, html } = await run(
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=40 y=50 w=20 h=10 mark="none" side="top"}\nStart with what failed.\n:::\n::`,
