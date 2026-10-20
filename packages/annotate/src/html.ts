@@ -86,7 +86,7 @@ async function figure(shot: Screenshot, state: State, id: string, top = false) {
       : annotation.side
         ? letter(annotation)
         : "";
-  // Marks aren't links: a click anywhere on the screenshot zooms it. Hovering a mark still lights up its note.
+  // Marks aren't links: a click anywhere on the screenshot zooms it, notes included. Hovering a mark still lights up its note.
   const pins = shot.annotations.map(
     (annotation) =>
       `<span class="ca-mark ca-${annotation.mark}" data-n="${annotation.n}" role="img" aria-label="${attr(annotation.number ? `${label(annotation)}: ${noteText(annotation)}` : label(annotation))}" title="${attr(noteText(annotation))}" ` +
@@ -145,7 +145,7 @@ async function figure(shot: Screenshot, state: State, id: string, top = false) {
     ? await children(shot.caption, state)
     : "";
   return (
-    `<figure class="ca-screenshot${sides}">${heading && `<div class="ca-heading">${heading}</div>`}<div class="ca-stage" data-zoom tabindex="0" data-zoom-context=".ca-screenshot" data-zoom-title="${attr(shot.label || shot.alt)}"><div class="ca-frame"><img src="${attr(shot.src)}" alt="${attr(shot.alt)}" loading="lazy" decoding="async">${pins.join("")}${arrows.join("")}</div>${callouts}</div>` +
+    `<figure class="ca-screenshot${sides}" data-zoom tabindex="0" data-zoom-title="${attr(shot.label || shot.alt)}">${heading && `<div class="ca-heading">${heading}</div>`}<div class="ca-stage"><div class="ca-frame"><img src="${attr(shot.src)}" alt="${attr(shot.alt)}" loading="lazy" decoding="async">${pins.join("")}${arrows.join("")}</div>${callouts}</div>` +
     (caption || notes
       ? `<figcaption>${caption}${notes ? `<ol class="ca-notes">${notes}</ol>` : ""}</figcaption>`
       : "") +

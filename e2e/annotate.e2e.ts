@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("a comparison lines up its screenshots and zooms them with their marks and colors", async ({
+test("a comparison lines up its screenshots and zooms them with their marks, colors, and notes", async ({
   page,
 }) => {
   await page.goto("/annotate/");
@@ -17,4 +17,5 @@ test("a comparison lines up its screenshots and zooms them with their marks and 
   await expect(zoomed).toBeVisible();
   expect(await zoomed.evaluate((node) => getComputedStyle(node).color)).toBe(color);
   await expect(page.locator(".cz-count")).toHaveText("1 / 2");
+  await expect(page.locator(".cz-item .ca-notes").first()).toBeVisible();
 });

@@ -50,7 +50,7 @@ describe("comark-annotate", () => {
       '<span class="ca-label">After</span> <a href="https://pr2.example.com/plan" title="https://pr2.example.com/plan">Preview</a>',
     );
     expect(html).toMatch(
-      /<figure class="ca-screenshot"><div class="ca-heading"><span class="ca-label">Before<\/span><\/div><div class="ca-stage" data-zoom tabindex="0" data-zoom-context=".ca-screenshot" data-zoom-title="Before">/,
+      /<figure class="ca-screenshot" data-zoom tabindex="0" data-zoom-title="Before"><div class="ca-heading"><span class="ca-label">Before<\/span><\/div><div class="ca-stage">/,
     );
     expect(html).not.toMatch(/<figcaption><div class="ca-heading">/);
     // Side by side on a wide page, one at a time on a narrow one, and both zoom as one gallery.
