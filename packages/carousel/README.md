@@ -1,6 +1,6 @@
 # comark-carousel
 
-A carousel of any Markdown content, written in Markdown. Slides scroll and snap without a script; the script adds arrows, dots, and arrow keys, and zooms a slide with the others in a strip at the bottom. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
+A carousel of any Markdown content, written in Markdown. Slides scroll and snap without a script; the script adds arrows, a slide counter, and arrow keys, and zooms a slide with the others in a strip at the bottom. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 
 ```sh
 pnpm add comark comark-carousel

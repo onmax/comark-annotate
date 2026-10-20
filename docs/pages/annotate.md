@@ -243,8 +243,8 @@ Set the `--comark-*` tokens to theme zoom, carousel, and annotate at once. Each 
 | Token | Falls back to | Used for |
 | --- | --- | --- |
 | `--comark-background` | `--background` | Button faces, the zoom backdrop, the ring around stamps |
-| `--comark-foreground` | `--foreground` | Text, icons, the current dot and thumbnail |
-| `--comark-muted` | `--muted-foreground` | The zoom counter |
+| `--comark-foreground` | `--foreground` | Text, icons, the current thumbnail, slide panels |
+| `--comark-muted` | `--muted-foreground` | The zoom and carousel counters |
 | `--comark-border` | `--border` | Button, thumbnail, and screenshot borders |
 | `--comark-accent` | `--accent` | Hovered buttons |
 | `--comark-ring` | `--ring` | Focus rings |

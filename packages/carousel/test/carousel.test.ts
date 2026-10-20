@@ -10,7 +10,7 @@ const render = (markdown: string) =>
   })(markdown);
 
 describe("comark-carousel", () => {
-  it("makes every block a zoomable slide, with arrows and dots", async () => {
+  it("makes every block a zoomable slide, with arrows and a counter", async () => {
     const html = await render(
       '::carousel{title="Tour"}\n![One](a.png)\n\n```ts\nconst two = 2\n```\n\n> Three\n::',
     );
@@ -21,7 +21,7 @@ describe("comark-carousel", () => {
     expect(html).toContain(
       '<div class="cc-slide" role="group" aria-roledescription="slide" aria-label="2 of 3" data-zoom tabindex="0">',
     );
-    expect(html.match(/class="cc-dot"/g)).toHaveLength(3);
+    expect(html).toContain('<span class="cc-count" aria-live="polite">1 / 3</span>');
     expect(html).toContain('data-carousel-step="-1" aria-label="Previous slide" disabled');
     // One zoom script and one carousel script, even with an image that zooms on its own.
     expect(html.match(/<script>/g)).toHaveLength(2);

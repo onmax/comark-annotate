@@ -5,7 +5,7 @@ declare global {
 }
 
 /**
- * Starts the arrows, dots, and keys of every `.cc` carousel on the page and returns a function that stops them. Every
+ * Starts the arrows, counter, and keys of every `.cc` carousel on the page and returns a function that stops them. Every
  * caller shares one set of listeners, which stop with the last caller. The function is self-contained: the HTML
  * renderer inlines its source as a script, so it must not use anything from outside its body.
  */
@@ -52,8 +52,10 @@ export function start(css: string): () => void {
     const { track, slides } = parts(root);
     if (!track) return;
     const index = current(root);
-    for (const [at, dot] of [...root.querySelectorAll(".cc-dot")].entries())
-      dot.setAttribute("aria-current", String(at === index));
+    const count = root.querySelector(".cc-count");
+    const text = `${index + 1} / ${slides.length}`;
+    // Only on a change: the counter is a live region, so each write is read out.
+    if (count && count.textContent !== text) count.textContent = text;
     const end = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
     const prev = root.querySelector<HTMLButtonElement>(".cc-step[data-carousel-step='-1']");
     const next = root.querySelector<HTMLButtonElement>(".cc-step[data-carousel-step='1']");
@@ -79,17 +81,11 @@ export function start(css: string): () => void {
     (event) => {
       const button =
         event.target instanceof Element
-          ? event.target.closest<HTMLElement>("[data-carousel-step],[data-carousel-to]")
+          ? event.target.closest<HTMLElement>("[data-carousel-step]")
           : null;
       const root = button?.closest(".cc");
       if (!button || !root) return;
-      const to = button.getAttribute("data-carousel-to");
-      show(
-        root,
-        to === null
-          ? current(root) + Number(button.getAttribute("data-carousel-step"))
-          : Number(to),
-      );
+      show(root, current(root) + Number(button.getAttribute("data-carousel-step")));
     },
     { signal },
   );

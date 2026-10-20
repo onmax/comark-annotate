@@ -27,13 +27,15 @@
   <div class="cc-track">{@render children?.()}</div>
   {#if total > 1}
     <div class="cc-controls">
-      <button type="button" class="cc-step" data-carousel-step="-1" aria-label="Previous slide" disabled>&lsaquo;</button>
-      <div class="cc-dots">
-        {#each { length: total } as _, index (index)}
-          <button type="button" class="cc-dot" data-carousel-to={String(index)} aria-label="Slide {index + 1}" aria-current={String(index === 0)}></button>
-        {/each}
+      <span class="cc-count" aria-live="polite">1 / {total}</span>
+      <div class="cc-steps">
+        <button type="button" class="cc-step" data-carousel-step="-1" aria-label="Previous slide" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+        </button>
+        <button type="button" class="cc-step" data-carousel-step="1" aria-label="Next slide">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+        </button>
       </div>
-      <button type="button" class="cc-step" data-carousel-step="1" aria-label="Next slide">&rsaquo;</button>
     </div>
   {/if}
 </div>

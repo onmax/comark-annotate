@@ -5,6 +5,20 @@ import { css, start } from "./client.ts";
 export { default } from "./index.ts";
 
 const off = (value: unknown) => value === false || value === "false";
+const chevron = (d: string) =>
+  h(
+    "svg",
+    {
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: "currentColor",
+      "stroke-width": "2",
+      "stroke-linecap": "round",
+      "stroke-linejoin": "round",
+      "aria-hidden": "true",
+    },
+    [h("path", { d })],
+  );
 
 /** `::carousel` for `@comark/vue`. */
 export const Carousel = defineComponent({
@@ -25,40 +39,30 @@ export const Carousel = defineComponent({
       const controls =
         count > 1
           ? h("div", { class: "cc-controls" }, [
-              h(
-                "button",
-                {
-                  type: "button",
-                  class: "cc-step",
-                  "data-carousel-step": "-1",
-                  "aria-label": "Previous slide",
-                  disabled: true,
-                },
-                "‹",
-              ),
-              h(
-                "div",
-                { class: "cc-dots" },
-                Array.from({ length: count }, (_, index) =>
-                  h("button", {
+              h("span", { class: "cc-count", "aria-live": "polite" }, `1 / ${count}`),
+              h("div", { class: "cc-steps" }, [
+                h(
+                  "button",
+                  {
                     type: "button",
-                    class: "cc-dot",
-                    "data-carousel-to": String(index),
-                    "aria-label": `Slide ${index + 1}`,
-                    "aria-current": String(index === 0),
-                  }),
+                    class: "cc-step",
+                    "data-carousel-step": "-1",
+                    "aria-label": "Previous slide",
+                    disabled: true,
+                  },
+                  [chevron("m15 18-6-6 6-6")],
                 ),
-              ),
-              h(
-                "button",
-                {
-                  type: "button",
-                  class: "cc-step",
-                  "data-carousel-step": "1",
-                  "aria-label": "Next slide",
-                },
-                "›",
-              ),
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    class: "cc-step",
+                    "data-carousel-step": "1",
+                    "aria-label": "Next slide",
+                  },
+                  [chevron("m9 18 6-6-6-6")],
+                ),
+              ]),
             ])
           : null;
       return h(
