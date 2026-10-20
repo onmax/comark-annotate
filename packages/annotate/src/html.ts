@@ -20,9 +20,9 @@ function styles(state: State) {
   return `<style>${css}</style>`;
 }
 
-// Each render gets a fresh `state.context`, so a document carries the slider script once.
+// Each render gets a fresh `state.context`, so a document carries the script for sliders and copying once.
 const started = new WeakSet<object>();
-function sliderRuntime(state: State) {
+function runtime(state: State) {
   if (started.has(state.context)) return "";
   started.add(state.context);
   return `<script>(${start.toString()})()</script>`;
@@ -65,6 +65,12 @@ const ARROW = `<svg class="ca-arrow-line" viewBox="0 0 100 20" preserveAspectRat
 const HEAD = `<svg class="ca-arrow-head" viewBox="0 0 8 8"><path d="M6.5 1.5L1.5 4l5 2.5" vector-effect="non-scaling-stroke"/></svg>`;
 // The same stroke falling from a note above the image, with its head pointing down.
 const ARROW_DOWN = `<svg class="ca-arrow-line" viewBox="0 0 24 100" preserveAspectRatio="none"><path d="M17 2C2 26 3 66 12 98" vector-effect="non-scaling-stroke"/></svg>`;
+// Shown once the script starts and the browser can write images to the clipboard; a check replaces the icon once it has.
+const COPY =
+  `<button type="button" class="ca-copy" aria-label="Copy the screenshot with its marks" title="Copy with marks">` +
+  `<svg class="ca-copy-idle" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>` +
+  `<svg class="ca-copy-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></button>` +
+  `<span class="ca-copy-status" role="status"></span>`;
 const HEAD_DOWN = `<svg class="ca-arrow-head" viewBox="0 0 8 8"><path d="M1.5 1.5L4 6.5l2.5-5" vector-effect="non-scaling-stroke"/></svg>`;
 
 const attr = (value: string) => escapeHtml(value, { '"': "&quot;" });
@@ -96,7 +102,7 @@ function markSvg({ mark }: Annotation) {
 }
 
 // The pieces of a screenshot, which a figure stacks and a slider lays over each other.
-async function parts(shot: Screenshot, state: State, id: string) {
+async function parts(shot: Screenshot, state: State, id: string, copy = false) {
   const color = (annotation: Annotation) => paint(annotation.color);
   const style = (annotation: Annotation) =>
     annotation.color ? ` style="${color(annotation)}"` : "";
@@ -114,10 +120,14 @@ async function parts(shot: Screenshot, state: State, id: string) {
       : annotation.side
         ? letter(annotation)
         : "";
+  // The number sits outside the mark's top-left corner so it never covers what the mark points at. Against the image's
+  // left or top edge there's no room there, so it slides along that edge.
+  const edges = ({ x, y }: Annotation) =>
+    `${x < 4.5 ? " ca-at-left" : ""}${y < 7 ? " ca-at-top" : ""}`;
   // Marks aren't links: a click anywhere on the screenshot zooms it, notes included. Hovering a mark still lights up its note.
   const pins = shot.annotations.map(
     (annotation) =>
-      `<span class="ca-mark ca-${annotation.mark}" data-n="${annotation.n}" role="img" aria-label="${attr(annotation.number ? `${label(annotation)}: ${noteText(annotation)}` : label(annotation))}" title="${attr(noteText(annotation))}" ` +
+      `<span class="ca-mark ca-${annotation.mark}${edges(annotation)}" data-n="${annotation.n}" role="img" aria-label="${attr(annotation.number ? `${label(annotation)}: ${noteText(annotation)}` : label(annotation))}" title="${attr(noteText(annotation))}" ` +
       `style="${color(annotation)}left:${annotation.x}%;top:${annotation.y}%;width:${annotation.w}%;height:${annotation.h}%">` +
       `${markSvg(annotation)}${stamp(annotation)}</span>`,
   );
@@ -170,7 +180,7 @@ async function parts(shot: Screenshot, state: State, id: string) {
   return {
     sides: sided.map((annotation) => ` ca-${annotation.side}`),
     heading: heading && `<div class="ca-heading">${heading}</div>`,
-    frame: `<div class="ca-frame"><img src="${attr(shot.src)}" alt="${attr(shot.alt)}" loading="lazy" decoding="async">${pins.join("")}${arrows.join("")}</div>`,
+    frame: `<div class="ca-frame"><img src="${attr(shot.src)}" alt="${attr(shot.alt)}" loading="lazy" decoding="async">${pins.join("")}${arrows.join("")}${copy ? COPY : ""}</div>`,
     callouts,
     notes: caption || notes ? `${caption}${notes ? `<ol class="ca-notes">${notes}</ol>` : ""}` : "",
   };
@@ -178,7 +188,7 @@ async function parts(shot: Screenshot, state: State, id: string) {
 
 // `top` reserves room for notes above the image, so every image in a comparison starts at the same height.
 async function figure(shot: Screenshot, state: State, id: string, top = false) {
-  const { sides, heading, frame, callouts, notes } = await parts(shot, state, id);
+  const { sides, heading, frame, callouts, notes } = await parts(shot, state, id, true);
   const classes = [...new Set([...sides, ...(top ? [" ca-top"] : [])])].join("");
   return (
     `<figure class="ca-screenshot${classes}">${heading}<div class="ca-stage" data-zoom tabindex="0" data-zoom-context=".ca,.ca-screenshot" data-zoom-aside="figcaption" data-zoom-title="${attr(shot.title || shot.alt)}">${frame}${callouts}</div>` +
@@ -207,13 +217,13 @@ async function slider(title: string | undefined, shots: Screenshot[], state: Sta
     `<span class="ca-grip">${GRIP}</span></div>`;
   return (
     `<div class="ca ca-compare ca-slider"><div class="ca-swipe" data-zoom tabindex="0" data-zoom-context=".ca"${notes ? ' data-zoom-aside=".ca-swipe-notes"' : ""} data-zoom-title="${attr(title ?? names.join(" / "))}">${sides}${shots.length === 2 ? handle : ""}</div>` +
-    `${notes && `<div class="ca-swipe-notes">${notes}</div>`}</div>${zoomRuntime(state)}${sliderRuntime(state)}`
+    `${notes && `<div class="ca-swipe-notes">${notes}</div>`}</div>${zoomRuntime(state)}${runtime(state)}`
   );
 }
 
 const screenshot: NodeHandler = async (node, state) => {
   const shot = readScreenshot(node, [], state.renderData);
-  return `${styles(state)}<div class="ca">${await figure(shot, state, idFor([shot], state))}</div>${zoomRuntime(state)}`;
+  return `${styles(state)}<div class="ca">${await figure(shot, state, idFor([shot], state))}</div>${zoomRuntime(state)}${runtime(state)}`;
 };
 
 const compare: NodeHandler = async (node, state) => {
@@ -226,7 +236,7 @@ const compare: NodeHandler = async (node, state) => {
   const figures: string[] = [];
   for (const shot of shots) figures.push(await figure(shot, state, id, top));
   // Side by side on a wide page, one at a time on a narrow one; both screenshots zoom as one gallery.
-  return `${styles(state)}<div class="ca ca-compare">${carouselHtml(figures, { columns: 2, title: title ?? "Comparison" }, state)}</div>`;
+  return `${styles(state)}<div class="ca ca-compare">${carouselHtml(figures, { columns: 2, title: title ?? "Comparison" }, state)}</div>${runtime(state)}`;
 };
 
 /** HTML renderers for `::screenshot`, `::compare`, and `::annotation`. Pass them as `components`; the styles are inlined once per document. */

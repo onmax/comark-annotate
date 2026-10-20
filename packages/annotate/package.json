@@ -28,9 +28,6 @@
   ],
   "type": "module",
   "sideEffects": false,
-  "main": "./dist/index.mjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
   "exports": {
     ".": "./dist/index.mjs",
     "./html": "./dist/html.mjs",
@@ -57,5 +54,8 @@
   "peerDependencies": {
     "@comark/html": "^0.7.0",
     "comark": "^0.7.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

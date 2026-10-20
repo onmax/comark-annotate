@@ -8,7 +8,6 @@ export default defineConfig({
   publint: true,
   exports: {
     exclude: ["cli"],
-    legacy: true,
     bin: { "comark-annotate": "src/cli.ts" },
   },
 });

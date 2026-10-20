@@ -27,9 +27,6 @@
   "sideEffects": [
     "*.css"
   ],
-  "main": "./dist/index.mjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
   "exports": {
     ".": "./dist/index.mjs",
     "./client": "./dist/client.mjs",
@@ -41,6 +38,7 @@
       "svelte": "./dist/svelte/index.js",
       "default": "./dist/svelte/index.js"
     },
+    "./theme": "./dist/theme.mjs",
     "./vue": "./dist/vue.mjs",
     "./package.json": "./package.json"
   },
@@ -86,5 +84,8 @@
     "vue": {
       "optional": true
     }
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

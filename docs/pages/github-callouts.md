@@ -49,6 +49,8 @@ install: pnpm add comark @comark/html comark-github-callouts
 
 The five types are GitHub's. Each gets its icon, its color, and its title; the text after the marker on its line replaces the title.
 
+Comark's built-in [alert plugin](https://comark.dev/plugins/defaults/alert) already reads these markers: it tags the quote with its type and leaves the drawing to you. Use this package when you want them drawn: the icon, the title, and the styles in every renderer, plus a title written on the marker's line and configurable default titles.
+
 ## Usage
 
 Register the plugin and pass the renderer's `components`:
