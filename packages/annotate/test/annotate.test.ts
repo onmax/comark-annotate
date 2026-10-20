@@ -419,6 +419,16 @@ describe("comark-annotate", () => {
     expect(html).not.toContain("javascript:");
   });
 
+  it("reports an unsafe bound link even next to a plain one", async () => {
+    const { issues, html } = await run(
+      `::screenshot{src="a.png" alt="A" href="https://safe.example" :href='"javascript:alert(1)"'}\n::`,
+    );
+    expect(issues).toEqual([
+      'screenshot "a.png": `:href` resolves to an unsafe URL, so it\'s left out. Use an http:// or https:// URL.',
+    ]);
+    expect(html).not.toContain("javascript:");
+  });
+
   it("reports props named like Object's own keys without leaking them into the hint", async () => {
     const { issues } = await run(
       `::screenshot{src="a.png" alt="A" constructor="x" :__proto__="y"}\n::`,
