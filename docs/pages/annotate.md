@@ -121,7 +121,7 @@ Notes without a `side` stay in the list. **Apply** waits until every filter is s
 :::
 ::
 
-Hover a mark or a note to highlight the other, and click a screenshot to zoom it. A comparison shows its screenshots side by side, or one at a time on a narrow page, and they zoom as one gallery; a slider lays one over the other, and you drag the divider between them. The page reads the same without a script; [zoom](/zoom) and [carousel](/carousel) come with the package.
+Hover a mark or a note to highlight the other, and click a screenshot to zoom it, with its notes beside it. A comparison shows its screenshots side by side, or one at a time on a narrow page, and they zoom as one gallery; a slider lays one over the other, and you drag the divider between them. The page reads the same without a script; [zoom](/zoom) and [carousel](/carousel) come with the package.
 
 ## Usage
 

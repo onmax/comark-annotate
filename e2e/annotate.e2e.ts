@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("a comparison lines up its screenshots and zooms them with their marks, colors, and notes", async ({
+test("a comparison lines up its screenshots and zooms them with their marks and colors, and their notes beside them", async ({
   page,
 }) => {
   await page.goto("/annotate/");
@@ -17,7 +17,51 @@ test("a comparison lines up its screenshots and zooms them with their marks, col
   await expect(zoomed).toBeVisible();
   expect(await zoomed.evaluate((node) => getComputedStyle(node).color)).toBe(color);
   await expect(page.locator(".cz-count")).toHaveText("1 / 2");
-  await expect(page.locator(".cz-item .ca-notes").first()).toBeVisible();
+
+  // The notes sit beside the zoomed screenshot, and a mark lights up its note there too.
+  const note = page.locator(".cz-aside .ca-notes li").first();
+  await expect(note).toBeVisible();
+  const aside = await page.locator(".cz-aside").boundingBox();
+  const frame = await page.locator(".cz-item .ca-frame").boundingBox();
+  expect(aside!.x).toBeGreaterThanOrEqual(frame!.x + frame!.width - 1);
+  // Marks can overlap, so the note is the one to point at.
+  await note.hover();
+  await expect(page.locator('.cz-item .ca-mark[data-n="1"]')).toHaveCSS("--ca-on", "1");
+  // The thumbnails are copies too, and stay out of it.
+  await expect(page.locator('.cz-thumb .ca-mark[data-n="1"]').first()).not.toHaveCSS(
+    "--ca-on",
+    "1",
+  );
+});
+
+test("the zoom maps its copies to the page and back", async ({ page }) => {
+  await page.goto("/annotate/");
+  await page.evaluate(() => {
+    document.addEventListener("comark-zoom:open", (event) => {
+      const { content, aside, copyOf, originalOf } = event.detail;
+      const image = content.querySelector(".ca-frame img")!;
+      const note = aside!.querySelector(".ca-notes li")!;
+      const figure = event.detail.item.closest(".ca-screenshot")!;
+      Object.assign(window, {
+        mapped: {
+          content: content.matches(".ca-stage"),
+          image: originalOf(image) === event.detail.item.querySelector(".ca-frame img"),
+          back: copyOf(originalOf(image)!) === image,
+          note: originalOf(note) === figure.querySelector(".ca-notes li"),
+          outside: originalOf(document.body),
+        },
+      });
+    });
+  });
+  await page.locator(".ca-compare .ca-stage").first().click();
+  await expect(page.locator(".cz-dialog")).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { mapped: unknown }).mapped)).toEqual({
+    content: true,
+    image: true,
+    back: true,
+    note: true,
+    outside: null,
+  });
 });
 
 test("a host's `.ca` rule sets the default mark color, on the page and zoomed", async ({

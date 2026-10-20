@@ -1,11 +1,16 @@
 import { theme } from "comark-zoom/client";
 
 // Hovering, focusing, or linking to a mark or its note sets `--ca-on` on both, so each lights up the other without a script.
-const linked = Array.from(
-  { length: 40 },
-  (_, index) =>
-    `.ca:has([data-n="${index + 1}"]:is(:hover,:focus-visible,:target)) [data-n="${index + 1}"]{--ca-on:1}`,
-);
+// The zoomed view holds the screenshot and its notes in separate copies, so the dialog links those two, and only those:
+// its thumbnails are copies too.
+const zoomed = ":is(.cz-item,.cz-aside)";
+const linked = Array.from({ length: 40 }, (_, index) => {
+  const n = `[data-n="${index + 1}"]`;
+  return (
+    `.ca:has(${n}:is(:hover,:focus-visible,:target)) ${n}{--ca-on:1}` +
+    `.cz-dialog:has(${zoomed} ${n}:is(:hover,:focus-visible)) ${zoomed} ${n}{--ca-on:1}`
+  );
+});
 
 export const css = `@layer comark{${[
   // Surfaces, borders, and radii follow the shared `--comark-*` tokens; the mark colors stay their own.
