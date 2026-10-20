@@ -141,18 +141,39 @@ export function start(css: string): () => void {
     return node;
   }
 
+  // The text styles that set a copy's size. Without the page's it would take the dialog's, reflow to another height,
+  // and jump when the original takes its place at the end of the closing animation. Color stays the dialog's, which
+  // matches its backdrop.
+  const INHERITED = [
+    "font-family",
+    "font-size",
+    "font-style",
+    "font-weight",
+    "letter-spacing",
+    "text-align",
+  ];
+
   // `data-zoom-context` names an ancestor whose classes and styles the item needs, such as the figure that carries a
   // screenshot's colors. The copy goes inside an empty copy of it.
-  function copy(item: HTMLElement) {
+  function copy(item: HTMLElement, into: HTMLElement) {
     // SAFETY: a deep clone of an HTMLElement is an HTMLElement of the same kind.
     const clone = strip(item.cloneNode(true) as HTMLElement);
     const selector = item.getAttribute("data-zoom-context");
     const context = selector ? item.parentElement?.closest<HTMLElement>(selector) : null;
-    if (!context) return clone;
+    const parent = (context ?? item).parentElement;
+    if (parent) {
+      const page = getComputedStyle(parent);
+      for (const name of INHERITED) into.style.setProperty(name, page.getPropertyValue(name));
+      // The browser reports line-height in pixels. Pages mostly set it as a ratio, which text of another size inside
+      // the item scales by, so pass it on as one.
+      const line = parseFloat(page.lineHeight) / parseFloat(page.fontSize);
+      into.style.lineHeight = Number.isFinite(line) ? String(line) : page.lineHeight;
+    }
+    if (!context) return into.append(clone);
     // SAFETY: a shallow clone of an HTMLElement is an HTMLElement of the same kind.
     const shell = strip(context.cloneNode(false) as HTMLElement);
     shell.append(clone);
-    return shell;
+    into.append(shell);
   }
 
   function measure(item: HTMLElement) {
@@ -189,7 +210,9 @@ export function start(css: string): () => void {
 
   function render(current: View) {
     const item = current.items[current.index]!;
-    current.frame.replaceChildren(copy(item), el("div", "cz-layer"));
+    current.frame.replaceChildren();
+    copy(item, current.frame);
+    current.frame.append(el("div", "cz-layer"));
     current.title.textContent = titleOf(item);
     current.count.textContent =
       current.items.length > 1 ? `${current.index + 1} / ${current.items.length}` : "";
@@ -211,7 +234,7 @@ export function start(css: string): () => void {
       const inner = el("div", "");
       inner.style.width = `${width}px`;
       inner.style.transform = `scale(${Math.min(96 / width, 64 / height)})`;
-      inner.append(copy(item));
+      copy(item, inner);
       thumb.append(inner);
       thumb.addEventListener("click", () => go(index));
       strip.append(thumb);

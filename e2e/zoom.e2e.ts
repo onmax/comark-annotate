@@ -56,3 +56,18 @@ test("a zoomed table keeps its header row", async ({ page }) => {
   await block.click();
   await expect(page.locator(".cz-dialog th").first()).toHaveText("Attempt");
 });
+
+test("a zoomed block keeps its text styles, so it closes onto the original without a jump", async ({
+  page,
+}) => {
+  await page.goto("/zoom/");
+  const block = page
+    .locator("main .example-preview .cz")
+    .filter({ has: page.locator("table") })
+    .last();
+  await block.scrollIntoViewIfNeeded();
+  const height = await block.evaluate((node) => (node as HTMLElement).offsetHeight);
+  await block.click();
+  const copy = page.locator(".cz-item > .cz");
+  expect(await copy.evaluate((node) => (node as HTMLElement).offsetHeight)).toBe(height);
+});
