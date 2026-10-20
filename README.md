@@ -8,6 +8,7 @@
 | [`comark-carousel`](./packages/carousel) | A carousel of any Markdown content, with arrows, a counter, keys, and zoom. |
 | [`comark-embed`](./packages/embed) | YouTube, Vimeo, Loom, Spotify, CodePen, StackBlitz, and Figma players from a link, with no network fetch. |
 | [`comark-github-callouts`](./packages/github-callouts) | GitHub's `> [!NOTE]` alerts as callouts with an icon and a title. |
+| [`comark-include`](./packages/include) | Markdown partials and code snippets from files, by lines or by region. |
 | [`comark-zoom`](./packages/zoom) | Zoom images and any block like medium-zoom, with Escape, Back, and click-outside to close. |
 
 Docs and live demos: [comark.onmax.me](https://comark.onmax.me).
