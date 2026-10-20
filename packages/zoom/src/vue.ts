@@ -1,5 +1,5 @@
 import { defineComponent, h, onBeforeUnmount, onMounted } from "vue";
-import { css, start } from "./client.ts";
+import { start } from "./client.ts";
 
 export { default, RUNTIME_TAG } from "./index.ts";
 export type { ZoomOptions } from "./index.ts";
@@ -8,16 +8,19 @@ export type { ZoomDetail } from "./client.ts";
 /** `::zoom` for `@comark/vue`. */
 export const Zoom = defineComponent({
   name: "Zoom",
+  // Only the id and class pass through, as in the other renderers.
+  inheritAttrs: false,
   props: { group: String, title: String },
-  setup(props, { slots }) {
+  setup(props, { attrs, slots }) {
     let stop: (() => void) | undefined;
-    onMounted(() => (stop = start(css)));
+    onMounted(() => (stop = start()));
     onBeforeUnmount(() => stop?.());
     return () =>
       h(
         "div",
         {
-          class: "cz",
+          class: ["cz", attrs.class],
+          id: attrs.id,
           "data-zoom": "",
           tabindex: "0",
           "data-zoom-group": props.group,
@@ -33,7 +36,7 @@ export const ZoomRuntime = defineComponent({
   name: "ZoomRuntime",
   setup() {
     let stop: (() => void) | undefined;
-    onMounted(() => (stop = start(css)));
+    onMounted(() => (stop = start()));
     onBeforeUnmount(() => stop?.());
     return () => null;
   },
