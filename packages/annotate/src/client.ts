@@ -6,7 +6,8 @@ declare global {
 
 /**
  * Starts every `.ca-swipe` slider on the page: a drag anywhere on the pair moves the divider and coasts on release,
- * the handle takes arrow keys, and a click that doesn't drag still zooms. Returns a function that stops it. The
+ * the handle takes arrow keys, and a click that doesn't drag still zooms. Also lets a reader copy a screenshot with its
+ * marks, by its Copy button, Control or Command+C, or the browser's menu on the image. Returns a function that stops it. The
  * function is self-contained: the HTML renderer inlines its source as a script, so it must not use anything from
  * outside its body.
  */
@@ -186,11 +187,477 @@ export function start(): () => void {
   document.addEventListener("comark-zoom:open", focusable, { signal });
   document.addEventListener("comark-zoom:change", focusable, { signal });
 
+  // Copying. The marks are HTML and SVG over a plain image, so the browser's own Copy Image leaves them out. The copy
+  // paints the screenshot's figure as it rests on the page (image, marks, stamps, arrows, and notes) onto a canvas.
+  const copying = "clipboard" in navigator && "ClipboardItem" in window;
+  if (copying) root.setAttribute("data-annotate-copy", "");
+  const PAD = 16;
+  const SKIP = ".ca-copy,.ca-copy-status,.ca-overlay";
+  type Box = [x: number, y: number, width: number, height: number];
+  type Paint = (context: CanvasRenderingContext2D, source: HTMLImageElement) => void;
+  type Made = { key: string; blob: Blob; url: string };
+  const made = new WeakMap<HTMLElement, Made>();
+  const making = new WeakMap<HTMLElement, Promise<Made>>();
+  const urls = new Set<string>();
+  let zoomed: HTMLElement | null = null;
+
+  // A zoomed screenshot is a copy without ids; the page's figure behind it is the one to paint.
+  const figureOf = (target: EventTarget | null) => {
+    if (!(target instanceof Element)) return null;
+    if (target.closest(".cz-dialog"))
+      return zoomed?.matches(".ca-screenshot") && target.closest(".ca-screenshot") ? zoomed : null;
+    return target.closest<HTMLElement>(".ca-screenshot");
+  };
+  const keyOf = (figure: HTMLElement) => {
+    const { width, height } = figure.getBoundingClientRect();
+    return `${Math.round(width)}x${Math.round(height)} ${getComputedStyle(figure).color}`;
+  };
+
+  const probe = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+  const shown = new Map<string, boolean>();
+  const visible = (color: string) => {
+    if (!probe || color === "transparent") return false;
+    let seen = shown.get(color);
+    if (seen === undefined) {
+      probe.clearRect(0, 0, 1, 1);
+      probe.fillStyle = color;
+      probe.fillRect(0, 0, 1, 1);
+      seen = probe.getImageData(0, 0, 1, 1).data[3]! > 0;
+      shown.set(color, seen);
+    }
+    return seen;
+  };
+  const round = (context: CanvasRenderingContext2D, [x, y, width, height]: Box, radius: number) => {
+    context.beginPath();
+    const r = Math.max(0, Math.min(radius, width / 2, height / 2));
+    if (!r) {
+      context.rect(x, y, width, height);
+      return;
+    }
+    // Keep this compatible with browsers that have Canvas 2D but not roundRect().
+    context.moveTo(x + r, y);
+    context.arcTo(x + width, y, x + width, y + height, r);
+    context.arcTo(x + width, y + height, x, y + height, r);
+    context.arcTo(x, y + height, x, y, r);
+    context.arcTo(x, y, x + width, y, r);
+    context.closePath();
+  };
+
+  async function compose(figure: HTMLElement) {
+    const image = figure.querySelector<HTMLImageElement>(".ca-frame>img:not(.ca-overlay)");
+    if (!image) throw new Error("The screenshot has no image.");
+    image.loading = "eager";
+    if (!image.complete || !image.naturalWidth) await image.decode();
+    await document.fonts.ready;
+    const paint: Paint[] = [];
+    // Read with every mark at rest, so a hovered one doesn't come out highlighted. Transitions stay off until the hover
+    // state is back, or it would replay.
+    figure.setAttribute("data-ca-capture", "still");
+    const box = figure.getBoundingClientRect();
+    const [left, top] = [box.left - PAD, box.top - PAD];
+    const place = (rect: DOMRect): Box => [
+      rect.left - left,
+      rect.top - top,
+      rect.width,
+      rect.height,
+    ];
+    const fade = (element: Element) => {
+      let alpha = 1;
+      for (let at: Element | null = element; at && figure.contains(at); at = at.parentElement)
+        alpha *= Number(getComputedStyle(at).opacity) || 0;
+      return alpha;
+    };
+    try {
+      const walker = document.createTreeWalker(
+        figure,
+        NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
+        // An svg paints as a whole, so its paths aren't visited on their own.
+        (node) =>
+          node instanceof Element &&
+          (node.matches(SKIP) || (node instanceof SVGElement && !(node instanceof SVGSVGElement)))
+            ? NodeFilter.FILTER_REJECT
+            : NodeFilter.FILTER_ACCEPT,
+      );
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        if (node instanceof Text && node.parentElement) {
+          const style = getComputedStyle(node.parentElement);
+          const font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+          const { color, letterSpacing } = style;
+          const alpha = fade(node.parentElement);
+          const range = document.createRange();
+          // Word by word, each where the page laid it out, so wrapping and inline code match.
+          for (const match of node.data.matchAll(/\S+/g)) {
+            range.setStart(node, match.index);
+            range.setEnd(node, match.index + match[0].length);
+            const rect = range.getClientRects()[0];
+            if (!rect?.width) continue;
+            const [x, y, , height] = place(rect);
+            paint.push((context) => {
+              context.font = font;
+              context.letterSpacing = letterSpacing === "normal" ? "0px" : letterSpacing;
+              context.fillStyle = color;
+              context.globalAlpha = alpha;
+              const metrics = context.measureText(match[0]);
+              const ascent =
+                Number.isFinite(metrics.fontBoundingBoxAscent) && metrics.fontBoundingBoxAscent > 0
+                  ? metrics.fontBoundingBoxAscent
+                  : Number.isFinite(metrics.actualBoundingBoxAscent) &&
+                      metrics.actualBoundingBoxAscent > 0
+                    ? metrics.actualBoundingBoxAscent
+                    : parseFloat(style.fontSize) || height * 0.8;
+              const descent =
+                Number.isFinite(metrics.fontBoundingBoxDescent) &&
+                metrics.fontBoundingBoxDescent >= 0
+                  ? metrics.fontBoundingBoxDescent
+                  : Number.isFinite(metrics.actualBoundingBoxDescent) &&
+                      metrics.actualBoundingBoxDescent >= 0
+                    ? metrics.actualBoundingBoxDescent
+                    : Math.max(0, (parseFloat(style.fontSize) || height) - ascent);
+              context.fillText(match[0], x, y + (height - ascent - descent) / 2 + ascent);
+            });
+          }
+        } else if (node === image) {
+          const style = getComputedStyle(image);
+          const rect = place(image.getBoundingClientRect());
+          const radius = parseFloat(style.borderTopLeftRadius) || 0;
+          const outline = style.outlineStyle === "none" ? 0 : parseFloat(style.outlineWidth) || 0;
+          const inset = -(parseFloat(style.outlineOffset) || 0) - outline / 2;
+          const { outlineColor } = style;
+          paint.push((context, source) => {
+            context.save();
+            round(context, rect, radius);
+            context.clip();
+            context.drawImage(source, ...rect);
+            context.restore();
+            if (!outline) return;
+            const [x, y, width, height] = rect;
+            round(
+              context,
+              [x + inset, y + inset, width - 2 * inset, height - 2 * inset],
+              radius - inset,
+            );
+            context.strokeStyle = outlineColor;
+            context.lineWidth = outline;
+            context.stroke();
+          });
+        } else if (node instanceof SVGSVGElement) {
+          // Marks stretch their viewBox over the area and keep their strokes the same width, as on the page.
+          const view = node.viewBox.baseVal;
+          const rect = node.getBoundingClientRect();
+          if (!view?.width || !view.height || !rect.width || !rect.height) continue;
+          const [x, y, width, height] = place(rect);
+          const alpha = fade(node);
+          // Let the SVG renderer handle non-scaling strokes. A canvas transform cannot preserve
+          // a constant stroke width for arbitrary path directions under non-uniform scaling.
+          const paths = [...node.querySelectorAll("path")].map((path) => {
+            const style = getComputedStyle(path);
+            const copy = path.cloneNode(false) as SVGPathElement;
+            copy.setAttribute("fill", style.fill);
+            copy.setAttribute("stroke", style.stroke);
+            copy.setAttribute("stroke-width", style.strokeWidth);
+            copy.setAttribute("stroke-linecap", style.strokeLinecap);
+            copy.setAttribute("stroke-linejoin", style.strokeLinejoin);
+            copy.setAttribute("stroke-opacity", style.strokeOpacity);
+            copy.setAttribute("fill-opacity", style.fillOpacity);
+            copy.setAttribute("vector-effect", style.vectorEffect);
+            return copy.outerHTML;
+          });
+          if (!paths.length) continue;
+          const source = new Image();
+          source.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${view.x} ${view.y} ${view.width} ${view.height}" preserveAspectRatio="${node.getAttribute("preserveAspectRatio") || "xMidYMid meet"}">${paths.join("")}</svg>`,
+          )}`;
+          await source.decode();
+          paint.push((context) => {
+            context.globalAlpha = alpha;
+            context.drawImage(source, x, y, width, height);
+          });
+        } else if (node instanceof HTMLElement) {
+          // Stamps, notes, and inline code: a fill, a border, and the ring a stamp draws with a spread shadow.
+          const style = getComputedStyle(node);
+          const fill = visible(style.backgroundColor) ? style.backgroundColor : "";
+          const ring = /(\S+\([^)]*\)|#\w+|[a-z]+) 0px 0px 0px ([\d.]+)px/i.exec(style.boxShadow);
+          const border =
+            style.borderTopStyle === "none" || !visible(style.borderTopColor)
+              ? 0
+              : parseFloat(style.borderTopWidth) || 0;
+          if (!fill && !(ring && visible(ring[1]!)) && !border) continue;
+          const radius = parseFloat(style.borderTopLeftRadius) || 0;
+          const { borderTopColor } = style;
+          const alpha = fade(node);
+          for (const rect of node.getClientRects()) {
+            const [x, y, width, height] = place(rect);
+            paint.push((context) => {
+              context.globalAlpha = alpha;
+              if (ring) {
+                const spread = Number(ring[2]);
+                context.fillStyle = ring[1]!;
+                round(
+                  context,
+                  [x - spread, y - spread, width + 2 * spread, height + 2 * spread],
+                  radius + spread,
+                );
+                context.fill();
+              }
+              if (fill) {
+                context.fillStyle = fill;
+                round(context, [x, y, width, height], radius);
+                context.fill();
+              }
+              if (!border) return;
+              context.strokeStyle = borderTopColor;
+              context.lineWidth = border;
+              round(
+                context,
+                [x + border / 2, y + border / 2, width - border, height - border],
+                radius,
+              );
+              context.stroke();
+            });
+          }
+        }
+      }
+    } finally {
+      figure.setAttribute("data-ca-capture", "settle");
+      void figure.offsetWidth;
+      figure.removeAttribute("data-ca-capture");
+    }
+
+    const width = box.width + 2 * PAD;
+    const height = box.height + 2 * PAD;
+    const shot = image.getBoundingClientRect();
+    // As sharp as the screen, or as the image file when it has more pixels than it's shown at.
+    const scale = Math.min(
+      3,
+      Math.max(devicePixelRatio || 1, image.naturalWidth / (shot.width || 1)),
+      8192 / width,
+      8192 / height,
+    );
+    const background =
+      getComputedStyle(figure).getPropertyValue("--_comark-background").trim() || "#fff";
+    const render = (source: HTMLImageElement) =>
+      new Promise<Blob>((resolve, reject) => {
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(width * scale);
+        canvas.height = Math.round(height * scale);
+        const context = canvas.getContext("2d");
+        if (!context) return reject(new Error("No canvas."));
+        context.scale(scale, scale);
+        context.fillStyle = background;
+        context.fillRect(0, 0, width, height);
+        for (const step of paint) {
+          context.save();
+          step(context, source);
+          context.restore();
+        }
+        // Throws a SecurityError when the image came from another origin without CORS.
+        canvas.toBlob(
+          (blob) => (blob ? resolve(blob) : reject(new Error("No image."))),
+          "image/png",
+        );
+      });
+    try {
+      return await render(image);
+    } catch (error) {
+      if (!(error instanceof DOMException) || error.name !== "SecurityError") throw error;
+      // The page's image has no CORS, which would break it on hosts that don't send the headers, so only the copy asks.
+      const open = new Image();
+      open.crossOrigin = "anonymous";
+      open.src = image.currentSrc || image.src;
+      await open.decode().catch(() => {
+        throw error;
+      });
+      return render(open);
+    }
+  }
+
+  // The copy is made ahead, on hover, so a right-click can find it ready.
+  function prepare(figure: HTMLElement) {
+    const key = keyOf(figure);
+    const ready = made.get(figure);
+    if (ready?.key === key) return Promise.resolve(ready);
+    const pending = making.get(figure);
+    if (pending) return pending;
+    const next = compose(figure)
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        urls.add(url);
+        const old = made.get(figure);
+        if (old) {
+          URL.revokeObjectURL(old.url);
+          urls.delete(old.url);
+        }
+        const fresh = { key, blob, url };
+        made.set(figure, fresh);
+        overlayOf(figure.querySelector(".ca-frame")).src = url;
+        return fresh;
+      })
+      .finally(() => making.delete(figure));
+    making.set(figure, next);
+    return next;
+  }
+
+  // An invisible copy over the image that only takes the pointer for a right-click, so the browser's Copy Image, Save
+  // Image, and drag-free menu all get the screenshot with its marks. Clicks and hovers still reach the marks.
+  function overlayOf(frame: Element | null) {
+    let overlay = frame?.querySelector<HTMLImageElement>(":scope>.ca-overlay");
+    if (!overlay) {
+      overlay = document.createElement("img");
+      overlay.className = "ca-overlay";
+      overlay.alt = "";
+      overlay.draggable = false;
+      frame?.append(overlay);
+    }
+    return overlay;
+  }
+  let armed: HTMLImageElement | null = null;
+  let disarming = 0;
+  const disarm = () => {
+    clearTimeout(disarming);
+    armed?.removeAttribute("data-menu");
+    armed = null;
+  };
+
+  document.addEventListener(
+    "pointerover",
+    (event) => {
+      if (event.pointerType !== "mouse") return;
+      const figure = figureOf(event.target);
+      if (figure) prepare(figure).catch(() => {});
+    },
+    { signal },
+  );
+
+  document.addEventListener(
+    "pointerdown",
+    (event) => {
+      disarm();
+      // A right-click, or a Control-click on a Mac.
+      if (event.button !== 2 && !(event.button === 0 && event.ctrlKey)) return;
+      const target = event.target instanceof Element ? event.target : null;
+      const frame = target?.closest(".ca-frame");
+      const figure = figureOf(frame ?? null);
+      const ready = figure && made.get(figure);
+      if (!frame || !ready || target?.closest(SKIP) || ready.key !== keyOf(figure)) return;
+      armed = overlayOf(frame);
+      if (armed.getAttribute("src") !== ready.url) armed.src = ready.url;
+      armed.setAttribute("data-menu", "");
+      // Hit testing for a context menu is tied to the original pointer-down target. Notify
+      // listeners on the replacement image as soon as it is armed so keyboard/headless
+      // contexts observe the same target as a native menu.
+      // Dispatch immediately as well as arming the replacement. This makes the target
+      // deterministic in headless browsers, where the native context-menu event may
+      // be delayed or omitted after a synthetic right click.
+      if (armed.hasAttribute("data-menu"))
+        armed.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, button: 2 }));
+      // The menu opens on press on some systems and on release on others; either way it has its target by then.
+      disarming = window.setTimeout(disarm, 1500);
+    },
+    { capture: true, signal },
+  );
+  document.addEventListener("contextmenu", () => setTimeout(disarm), { signal });
+
+  const say = (frame: Element | null, message: string, state: "done" | "failed") => {
+    const button = frame?.querySelector(".ca-copy");
+    const status = frame?.querySelector(".ca-copy-status");
+    if (!button || !status) return;
+    button.setAttribute("data-state", state);
+    status.textContent = message;
+    setTimeout(
+      () => {
+        if (status.textContent !== message) return;
+        button.removeAttribute("data-state");
+        status.textContent = "";
+      },
+      state === "done" ? 1500 : 6000,
+    );
+  };
+
+  function copy(figure: HTMLElement, frame: Element | null) {
+    let failed: unknown;
+    // The item takes a promise, so the write starts inside the click or key press, as Safari requires.
+    const blob = prepare(figure).then(
+      (ready) => ready.blob,
+      (error: unknown) => {
+        failed = error;
+        throw error;
+      },
+    );
+    navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]).then(
+      () => say(frame, "Copied", "done"),
+      (error: unknown) => {
+        const reason = failed ?? error;
+        const name = reason instanceof DOMException ? reason.name : "";
+        say(
+          frame,
+          failed && name === "SecurityError"
+            ? "The image's server doesn't allow copying it (no CORS)."
+            : name === "NotAllowedError" || name === "SecurityError"
+              ? "This page can't write to the clipboard. Right-click the image and copy it instead."
+              : "Couldn't copy the screenshot.",
+          "failed",
+        );
+      },
+    );
+  }
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      const button = event.target instanceof Element ? event.target.closest(".ca-copy") : null;
+      const figure = figureOf(button);
+      if (!button || !figure || !copying) return;
+      event.preventDefault();
+      copy(figure, button.closest(".ca-frame"));
+    },
+    { signal },
+  );
+
+  // Control or Command+C copies a focused screenshot, or the zoomed one, unless text is selected.
+  document.addEventListener(
+    "keydown",
+    (event) => {
+      if (event.key.toLowerCase() !== "c" || !(event.ctrlKey || event.metaKey)) return;
+      if (event.altKey || event.shiftKey || !copying || !getSelection()?.isCollapsed) return;
+      const target = event.target instanceof HTMLElement ? event.target : null;
+      const own = target?.matches(".ca-screenshot") && !target.closest(".cz-dialog");
+      const figure = own
+        ? target
+        : target?.matches(".cz-dialog")
+          ? figureOf(target.querySelector(".ca-screenshot"))
+          : null;
+      if (!target || !figure) return;
+      event.preventDefault();
+      copy(figure, (own ? figure : target).querySelector(".ca-frame"));
+    },
+    { signal },
+  );
+
+  const follow = (event: Event) => {
+    // SAFETY: comark-zoom's open and change events carry the item shown.
+    const { item } = (event as CustomEvent<{ item?: unknown }>).detail ?? {};
+    zoomed = item instanceof HTMLElement ? item : null;
+    // Zoom copies the figure as it was, a moment's "Copied" included; a thumbnail is a button and gets no button inside.
+    for (const part of document.querySelectorAll(".cz-thumb :is(.ca-copy,.ca-copy-status)"))
+      part.remove();
+    for (const button of document.querySelectorAll(".cz-dialog .ca-copy[data-state]"))
+      button.removeAttribute("data-state");
+    for (const status of document.querySelectorAll(".cz-dialog .ca-copy-status"))
+      status.textContent = "";
+  };
+  document.addEventListener("comark-zoom:open", follow, { signal });
+  document.addEventListener("comark-zoom:change", follow, { signal });
+  document.addEventListener("comark-zoom:close", () => (zoomed = null), { signal });
+
   const state = {
     users: 1,
     stop: () => {
       if (--state.users > 0) return;
       listeners.abort();
+      disarm();
+      for (const url of urls) URL.revokeObjectURL(url);
+      for (const overlay of document.querySelectorAll(".ca-overlay")) overlay.remove();
+      root.removeAttribute("data-annotate-copy");
       root.removeAttribute("data-annotate-ready");
       window.__comarkAnnotate = undefined;
     },

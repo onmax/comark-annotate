@@ -121,7 +121,7 @@ Notes without a `side` stay in the list. **Apply** waits until every filter is s
 :::
 ::
 
-Hover a mark or a note to highlight the other, and click a screenshot to zoom it, with its notes beside it. A comparison shows its screenshots side by side, or one at a time on a narrow page, and they zoom as one gallery; a slider lays one over the other, and you drag the divider between them. The page reads the same without a script; [zoom](/zoom) and [carousel](/carousel) come with the package.
+Hover a mark or a note to highlight the other, and click a screenshot to zoom it. To share one, use its Copy button or press Ctrl+C (⌘C on a Mac) while it's focused; you get a PNG of the screenshot with its marks and notes. The browser's own Copy Image on the screenshot copies the same PNG once the pointer has been over it. If the image comes from another origin, its server has to send CORS headers. In an iframe, the frame needs `allow="clipboard-write"`. A comparison shows its screenshots side by side, or one at a time on a narrow page, and they zoom as one gallery; a slider lays one over the other, and you drag the divider between them. The page reads the same without a script; [zoom](/zoom) and [carousel](/carousel) come with the package.
 
 ## Usage
 
@@ -188,7 +188,7 @@ Accuracy now counts returns.
 
 ### compare
 
-Two screenshots side by side, titled **Before** and **After** unless they set their own `title`. Numbers continue from one side to the other, and the pair stacks on narrow screens.
+Two screenshots side by side, titled **Before** and **After** unless they set their own `title`. Numbers continue from one side to the other, and the pair stacks on narrow screens. Notes with `side="left"` or `side="right"` join the numbered list under their screenshot, since beside it they'd sit against the other one and shrink their own image; notes with `side="top"` stay above.
 
 With `mode="slider"`, the two screenshots share one frame: Before shows left of a divider and After right of it. Drag anywhere on the pair, or focus the handle and use the arrow keys, to move it; a click on the screenshots that doesn't drag zooms the pair. Use it when both screenshots show the same spot and the change is small, so the reader sees it at full width. Side notes become numbered notes in the list, since an arrow would cross the divider. Without the script, the two screenshots stack.
 
@@ -219,7 +219,7 @@ Fixed.
 
 ### Side notes
 
-`side="left"`, `side="right"`, or `side="top"` moves a note out of the list and next to or above the image, with a hand-drawn arrow to its mark. Pair it with `mark="none"` to point without drawing a box. Side notes have no number because the arrow links them. On narrow screens they drop under the image, the arrows hide, and each note and its target get a matching letter.
+`side="left"`, `side="right"`, or `side="top"` moves a note out of the list and next to or above the image, with a hand-drawn arrow to its mark. Pair it with `mark="none"` to point without drawing a box. Side notes have no number because the arrow links them. In a compare, only notes above keep their arrow. On narrow screens they drop under the image, the arrows hide, and each note and its target get a matching letter.
 
 Notes on the same side need room. The plugin reports side notes whose marks sit close together vertically, since they would likely overlap. It can't measure the text, so check the rendered page too, and move one note to the other side or into the list.
 

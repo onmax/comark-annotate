@@ -14,7 +14,7 @@ Pick what explains the change best, and mix freely with ordinary Markdown such a
 - One `::screenshot` with marks, when a single state shows the point.
 - A `::compare` of two screenshots, when the change is the point. Capture both at the same viewport, zoom, scroll, and page state, and set the same `viewport` on both.
 - `::compare{mode="slider"}` instead, when both screenshots show the same spot and the change is small, such as a number or a label at the same place. The reader drags a divider across one full-width image instead of reading two half-width ones. Side notes become numbered notes there, so skip `side`.
-- A side note (`side="left"`, `"right"`, or `"top"`) for the two or three points that matter most. With `mark="none"` the arrow alone points at the spot, which reads cleanest. Other notes stay numbered in the list under the image.
+- A side note (`side="left"`, `"right"`, or `"top"`) for the two or three points that matter most. With `mark="none"` the arrow alone points at the spot, which reads cleanest. Other notes stay numbered in the list under the image. In a side-by-side compare only `side="top"` keeps its arrow; left and right notes join the list.
 
 Keep it to about six marks per screenshot. Every note says what is wrong or what changed, not just "here".
 
