@@ -13,7 +13,7 @@ import { css } from "../src/styles.ts";
 async function run(markdown: string) {
   const document = await parseMarkdown(markdown, { plugins: [annotate()] });
   return {
-    issues: document.meta.annotateIssues,
+    issues: document.meta.issues,
     html: await renderHtmlFromDocument(document, { components }),
     document,
   };
@@ -27,7 +27,7 @@ Filters **wrap**.
 ::::
 :::
 
-:::screenshot{src="after.png" alt="New toolbar" url="https://pr2.example.com/plan" viewport="900x360"}
+:::screenshot{src="after.png" alt="New toolbar" href="https://pr2.example.com/plan" viewport="900x360"}
 ::::annotation{x=50 y=20 w=10 h=10 mark="check" color="#16a34a"}
 One row.
 ::::
@@ -47,16 +47,17 @@ describe("comark-annotate", () => {
     expect(html).toMatch(/<li id="ca-[a-z0-9]+-1" data-n="1">.*Filters <strong>wrap<\/strong>\./);
     expect(html).toContain('<span class="ca-label">Before</span>');
     expect(html).toContain(
-      '<span class="ca-label">After</span> <a href="https://pr2.example.com/plan" title="https://pr2.example.com/plan">Preview</a>',
+      '<span class="ca-label">After</span> <a href="https://pr2.example.com/plan" title="https://pr2.example.com/plan">pr2.example.com</a>',
     );
     expect(html).toMatch(
-      /<figure class="ca-screenshot" data-zoom tabindex="0" data-zoom-title="Before"><div class="ca-heading"><span class="ca-label">Before<\/span><\/div><div class="ca-stage">/,
+      /<figure class="ca-screenshot" data-zoom tabindex="0" data-zoom-context=".ca" data-zoom-aside="figcaption" data-zoom-title="Before"><div class="ca-heading"><span class="ca-label">Before<\/span><\/div><div class="ca-stage">/,
     );
     expect(html).not.toMatch(/<figcaption><div class="ca-heading">/);
     // Side by side on a wide page, one at a time on a narrow one, and both zoom as one gallery.
     expect(html).toContain(
       '<div class="ca ca-compare"><div class="cc" data-carousel-columns="2" data-carousel-fits data-zoom-gallery',
     );
+    expect(html).toMatch(/<div class="cc"[^>]* aria-label="Comparison"/);
     expect(html.match(/class="cc-slide"/g)).toHaveLength(2);
   });
 
@@ -68,9 +69,11 @@ describe("comark-annotate", () => {
     );
     expect(issues).toEqual([]);
     expect(html).toContain(
-      '<div class="ca ca-compare ca-slider"><div class="ca-swipe" data-zoom tabindex="0" data-zoom-title="Before / After"><div class="ca-side ca-side-before"><div class="ca-heading"><span class="ca-label">Before</span></div><div class="ca-stage"><div class="ca-frame"><img src="before.png"',
+      '<div class="ca ca-compare ca-slider"><div class="ca-swipe" data-zoom tabindex="0" data-zoom-context=".ca" data-zoom-aside=".ca-swipe-notes" data-zoom-title="Before / After"><div class="ca-side ca-side-before"><div class="ca-heading"><span class="ca-label">Before</span></div><div class="ca-stage"><div class="ca-frame"><img src="before.png"',
     );
-    expect(html).toContain('<div class="ca-side ca-side-after">');
+    expect(html).toContain(
+      '<div class="ca-side ca-side-after"><div class="ca-heading"><span class="ca-label">After</span> <a href="https://pr2.example.com/plan"',
+    );
     expect(html).toContain(
       '<div class="ca-handle" role="slider" tabindex="0" aria-label="Divider between Before and After" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="Before 50%, After 50%">',
     );
@@ -84,7 +87,6 @@ describe("comark-annotate", () => {
       /<div class="ca-side-notes ca-notes-after">.*<span class="ca-stamp">2<\/span><div>One row/,
     );
     expect(html).not.toContain('class="cc"');
-    expect(html.match(/__comarkAnnotate/g)?.length).toBeGreaterThan(0);
   });
 
   it("carries the slider script once per render", async () => {
@@ -165,7 +167,7 @@ describe("comark-annotate", () => {
     expect(html).toContain(
       "--ca-color:var(--ca-amber);--ca-solid:var(--ca-amber-solid);--ca-ink:var(--ca-amber-ink);",
     );
-    expect(html).toContain("--ca-color:#123456;--ca-solid:#123456;");
+    expect(html).toContain("--ca-color:#123456;--ca-solid:#123456;--ca-ink:#fff;");
   });
 
   it("reads props from YAML blocks and bindings", async () => {
@@ -181,7 +183,7 @@ describe("comark-annotate", () => {
   it("leaves props bound to render-time data to the renderer", async () => {
     const markdown = `::screenshot{src="a.png" alt="A"}\n:::annotation{:x="data.box.x" :y="data.box.y" w=10 h=10}\nNote\n:::\n::`;
     const document = await parseMarkdown(markdown, { plugins: [annotate()] });
-    expect(document.meta.annotateIssues).toEqual([]);
+    expect(document.meta.issues).toEqual([]);
     const html = await renderHtmlFromDocument(document, {
       components,
       data: { box: { x: 30, y: 40 } },
@@ -193,7 +195,7 @@ describe("comark-annotate", () => {
     const { issues, html } = await run(
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=1 y=1 w=10 h=10 mark="toString"}\nNote\n:::\n::`,
     );
-    expect((issues as string[]).join("\n")).toContain("`mark` must be one of");
+    expect(issues.join("\n")).toContain("`mark` must be one of");
     expect(html).toContain("ca-mark ca-box");
   });
 
@@ -205,7 +207,7 @@ describe("comark-annotate", () => {
     ],
     [
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10}\nNote\n:::\n::`,
-      "`h` must be a percentage",
+      "annotation 1: `h` is required",
     ],
     [
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10 mark="star"}\nNote\n:::\n::`,
@@ -216,16 +218,18 @@ describe("comark-annotate", () => {
       "write a note",
     ],
     [
-      `::screenshot{src="a.png" alt="A" url="javascript:alert(1)"}\n::`,
-      "`url` must start with http",
+      `::screenshot{src="a.png" alt="A" href="javascript:alert(1)"}\n::`,
+      "`href` must start with http",
     ],
     [`::compare\n:::screenshot{src="a.png" alt="A"}\n:::\n::`, "needs exactly two screenshots"],
-    [compare.replace('viewport="900x360"', 'viewport="1440x900"'), "different viewports"],
     [
-      compare.replace("::compare", '::compare{mode="swipe"}'),
-      '`mode` must be columns or slider (got "swipe")',
+      compare.replace('viewport="900x360"', 'viewport="1440x900"'),
+      'compare 1: screenshot "before.png" was captured at 1440x900 and screenshot "after.png" at 900x360, so they can\'t be compared. Recapture both at the same viewport.',
     ],
-    [`::annotation{x=0 y=0 w=10 h=10}\nNote\n::`, "must be inside a screenshot"],
+    [
+      `::annotation{x=0 y=0 w=10 h=10}\nStray note\n::`,
+      'annotation 1 outside a screenshot ("Stray note"): it has nothing to point at.',
+    ],
     [
       `::screenshot{src="a.png" alt="A"}\n> :::annotation{x=0 y=0 w=10 h=10}\n> Note\n> :::\n::`,
       "Annotations must be direct children of a screenshot",
@@ -250,27 +254,31 @@ describe("comark-annotate", () => {
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=10 y=50 w=10 h=10 side="top"}\nA\n:::\n:::annotation{x=20 y=50 w=10 h=10 side="top"}\nB\n:::\n::`,
       "top notes for annotations 1 and 2 would overlap",
     ],
+    [
+      compare.replace("::compare", '::compare{mode="swipe"}'),
+      'compare 1: `mode` is "swipe", which isn\'t a compare mode. Use `columns` (side by side, the default) or `slider`.',
+    ],
   ])("reports %#: %s", async (markdown, issue) => {
     const { issues } = await run(markdown);
-    expect((issues as string[]).join("\n")).toContain(issue);
+    expect(issues.join("\n")).toContain(issue);
   });
 
   it("escapes attributes and drops unsafe links", async () => {
     const { html } = await run(
-      `::screenshot{src='a.png" onerror="x' alt="<b>" url="javascript:alert(1)"}\n::`,
+      `::screenshot{src='a.png" onerror="x' alt="<b>" href="javascript:alert(1)"}\n::`,
     );
     expect(html).toContain('src="a.png&quot; onerror=&quot;x"');
     expect(html).toContain('alt="&lt;b&gt;"');
     expect(html).not.toContain("javascript:");
     const { html: lookalike } = await run(
-      `::screenshot{src="a.png" alt="A" url="httpx:alert(1)"}\n::`,
+      `::screenshot{src="a.png" alt="A" href="httpx:alert(1)"}\n::`,
     );
     expect(lookalike).not.toContain("<a href");
     const { issues, html: upper } = await run(
-      `::screenshot{src="a.png" alt="A" url="HTTPS://x.com"}\n::`,
+      `::screenshot{src="a.png" alt="A" href="HTTPS://x.com"}\n::`,
     );
     expect(issues).toEqual([]);
-    expect(upper).toContain('<a href="HTTPS://x.com" title="HTTPS://x.com">Preview</a>');
+    expect(upper).toContain('<a href="HTTPS://x.com" title="HTTPS://x.com">x.com</a>');
   });
 
   it("checks and renders files from the CLI", async () => {
@@ -289,5 +297,189 @@ describe("comark-annotate", () => {
     await expect(cli("check", join(dir, "bad.md"))).rejects.toMatchObject({ code: 1 });
     await cli("render", join(dir, "ok.md"));
     expect(await readFile(join(dir, "ok.html"), "utf8")).toContain('class="ca-mark ca-box"');
+
+    // Every file is checked, and each issue says which file it's in.
+    const both = cli("check", join(dir, "ok.md"), join(dir, "bad.md"));
+    await expect(both).rejects.toMatchObject({
+      code: 1,
+      stderr: `${join(dir, "bad.md")}: screenshot "a.png": \`alt\` is required. Describe what the screenshot shows.\n`,
+    });
+    await expect(cli("check", join(dir, "missing.md"))).rejects.toMatchObject({
+      code: 2,
+      stderr: `comark-annotate: can't read ${join(dir, "missing.md")}\n`,
+    });
+    await expect(
+      cli("render", join(dir, "ok.md"), "-o", join(dir, "nowhere", "ok.html")),
+    ).rejects.toMatchObject({
+      code: 2,
+      stderr: `comark-annotate: can't write ${join(dir, "nowhere", "ok.html")}\n`,
+    });
+
+    await writeFile(
+      join(dir, "mixed.md"),
+      `::carousel\n![One](a.png)\n\n![Two](b.png)\n::\n\n::zoom\nA block\n::`,
+    );
+    await cli("render", join(dir, "mixed.md"));
+    const mixed = await readFile(join(dir, "mixed.html"), "utf8");
+    expect(mixed.match(/class="cc-slide"/g)).toHaveLength(2);
+    expect(mixed).toContain('<div class="cz" data-zoom');
+  });
+
+  it("names each annotation by its place in its own screenshot", async () => {
+    const { issues } = await run(compare.replace("x=50 y=20", "x=95 y=20"));
+    expect(issues).toEqual([
+      'screenshot "after.png", annotation 1 (stamp 2): the box runs past the image edge. Keep x + w and y + h within 100.',
+    ]);
+    const { issues: side } = await run(
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=1 y=1 w=5 h=5}\nOne\n:::\n:::annotation{x=1 y=1 w=5 h=5 side="left"}\n:::\n::`,
+    );
+    expect(side).toEqual([
+      'screenshot "a.png", annotation 2 (left note): write a note explaining what the mark points at.',
+    ]);
+  });
+
+  it("tells screenshots apart when their src is missing or shared", async () => {
+    const { issues } = await run(
+      `::screenshot{alt="Dashboard before"}\n::\n\n::screenshot{alt="Dashboard after"}\n::\n\n::screenshot{src="a.png"}\n::\n\n::screenshot{src="a.png" alt="Again" href="ftp://x"}\n::`,
+    );
+    expect(issues).toEqual([
+      'screenshot 1 ("Dashboard before"): `src` is required. Point it at the image file.',
+      'screenshot 2 ("Dashboard after"): `src` is required. Point it at the image file.',
+      "screenshot 3: `alt` is required. Describe what the screenshot shows.",
+      'screenshot 4 ("Again"): `href` must start with http:// or https://. Link the page you captured.',
+    ]);
+  });
+
+  it("names the compare in its messages and says how to fix them", async () => {
+    const { issues } = await run(
+      `::compare{title="Toolbar"}\n:::screenshot{src="a.png" alt="A"}\n:::\nStray text\n::`,
+    );
+    expect(issues).toEqual([
+      'compare 1 ("Toolbar"): only `screenshot` blocks can go inside a compare (found text). Move it before or after the compare.',
+      'compare 1 ("Toolbar"): needs exactly two screenshots, before and after (got 1). Add the missing one.',
+    ]);
+  });
+
+  it("reports bindings that point at missing frontmatter, and reads the ones that resolve", async () => {
+    const { issues, html } = await run(
+      `---\npos:\n  x: 30\n---\n::screenshot{src="a.png" alt="A"}\n:::annotation{:x="frontmatter.pos.x" :y="frontmatter.pos.yy" w=10 h=10}\nNote\n:::\n::`,
+    );
+    expect(issues).toEqual([
+      'screenshot "a.png", annotation 1: `:y` points at frontmatter.pos.yy, which is undefined. Fix the path or set `y` directly.',
+    ]);
+    expect(html).toContain("left:30%;");
+  });
+
+  it('reports mark="none" without a side note, since nothing would point at the spot', async () => {
+    const { issues } = await run(
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=1 y=1 w=5 h=5 mark="none"}\nNote\n:::\n::`,
+    );
+    expect(issues.join("\n")).toContain(
+      'annotation 1: `mark="none"` draws nothing, so without a `side` note nothing points at the spot.',
+    );
+  });
+
+  it("reports unknown props with the valid ones and a likely fix", async () => {
+    const { issues } = await run(
+      `::compare{label="Toolbar"}\n:::screenshot{src="a.png" alt="A" label="Before" url="https://x.com" caption="Hi"}\n::::annotation{x=1 y=1 width=5 h=5 sid="left" colour="red"}\nNote\n::::\n:::\n\n:::screenshot{src="b.png" alt="B"}\n:::\n::`,
+    );
+    expect(issues).toEqual([
+      "compare 1: `label` isn't a prop of `::compare`. Did you mean `title`? Valid props: title, mode.",
+      'screenshot "a.png": `label` isn\'t a prop of `::screenshot`. Did you mean `title`? Valid props: src, alt, title, href, viewport.',
+      'screenshot "a.png": `url` isn\'t a prop of `::screenshot`. Did you mean `href`? Valid props: src, alt, title, href, viewport.',
+      'screenshot "a.png": `caption` isn\'t a prop of `::screenshot`. Write the caption as Markdown inside the block, after the annotations. Valid props: src, alt, title, href, viewport.',
+      'screenshot "a.png", annotation 1: `width` isn\'t a prop of `::annotation`. Did you mean `w`? Valid props: x, y, w, h, mark, color, side.',
+      'screenshot "a.png", annotation 1: `sid` isn\'t a prop of `::annotation`. Did you mean `side`? Valid props: x, y, w, h, mark, color, side.',
+      'screenshot "a.png", annotation 1: `colour` isn\'t a prop of `::annotation`. Did you mean `color`? Valid props: x, y, w, h, mark, color, side.',
+      'screenshot "a.png", annotation 1: `w` is required: a percentage of the image, a number without %, above 0 and up to 100.',
+    ]);
+  });
+
+  it("accepts only plain decimal coordinates", async () => {
+    const { issues } = await run(
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x="10%" y=0x10 w=.5 h=12.5}\nNote\n:::\n::`,
+    );
+    expect(issues).toEqual([
+      'screenshot "a.png", annotation 1: `x` must be a percentage of the image, a number without %, from 0 to 100 (got "10%").',
+      'screenshot "a.png", annotation 1: `y` must be a percentage of the image, a number without %, from 0 to 100 (got "0x10").',
+    ]);
+  });
+
+  it("gives a light hex color a dark number, and rejects hex with alpha", async () => {
+    const { issues, html } = await run(
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10 color="#fde047"}\nA\n:::\n:::annotation{x=50 y=50 w=10 h=10 color="#e11d4800"}\nB\n:::\n:::annotation{x=80 y=80 w=10 h=10 color="#FF0"}\nC\n:::\n::`,
+    );
+    expect(html).toContain("--ca-color:#fde047;--ca-solid:#fde047;--ca-ink:#1c1917;");
+    expect(html).toContain("--ca-color:#FF0;--ca-solid:#FF0;--ca-ink:#1c1917;");
+    expect(issues).toEqual([
+      'screenshot "a.png", annotation 2: `color` must be red, amber, green, blue, gray, or a 3- or 6-digit hex color like #e5484d (got "#e11d4800").',
+    ]);
+  });
+
+  it("titles a screenshot and a comparison", async () => {
+    const { issues, html } = await run(
+      `::compare{title="Toolbar fix"}\n:::screenshot{src="a.png" alt="A" title="Main"}\n:::\n\n:::screenshot{src="b.png" alt="B"}\n:::\n::`,
+    );
+    expect(issues).toEqual([]);
+    expect(html).toMatch(/<div class="cc"[^>]* aria-label="Toolbar fix"/);
+    expect(html).toContain(
+      'data-zoom-title="Main"><div class="ca-heading"><span class="ca-label">Main</span>',
+    );
+    expect(html).toContain('<span class="ca-label">After</span>');
+  });
+
+  it("compares viewports by size, however they're written", async () => {
+    const same = compare.replace('viewport="900x360"', 'viewport="900 × 360"');
+    expect((await run(same)).issues).toEqual([]);
+    const { issues } = await run(compare.replace('viewport="900x360"', 'viewport="wide"'));
+    expect(issues).toEqual([
+      'screenshot "before.png": `viewport` must be the capture size in pixels, like 1440x900 (got "wide").',
+    ]);
+  });
+
+  it("leaves Comark's own attributes alone", async () => {
+    const { issues } = await run(
+      `::screenshot{src="a.png" alt="A" #hero .wide style="margin:0" data-testid="shot" aria-describedby="d" :class="data.cls" :data-x="data.x"}\n:::annotation{x=1 y=1 w=5 h=5 .pulse data-step="1"}\nNote\n:::\n::`,
+    );
+    expect(issues).toEqual([]);
+  });
+
+  it("reports a link without a host, and an unsafe bound link, and leaves both out", async () => {
+    const { issues, html } = await run(
+      `::screenshot{src="a.png" alt="A" href="https://?x"}\n::\n\n::screenshot{src="b.png" alt="B" :href='"javascript:alert(1)"'}\n::`,
+    );
+    expect(issues).toEqual([
+      'screenshot "a.png": `href` must be an http:// or https:// URL with a host. Link the page you captured.',
+      'screenshot "b.png": `:href` resolves to an unsafe URL, so it\'s left out. Use an http:// or https:// URL.',
+    ]);
+    expect(html).not.toContain("<a href");
+    expect(html).not.toContain("javascript:");
+  });
+
+  it("reports an unsafe bound link even next to a plain one", async () => {
+    const { issues, html } = await run(
+      `::screenshot{src="a.png" alt="A" href="https://safe.example" :href='"javascript:alert(1)"'}\n::`,
+    );
+    expect(issues).toEqual([
+      'screenshot "a.png": `:href` resolves to an unsafe URL, so it\'s left out. Use an http:// or https:// URL.',
+    ]);
+    expect(html).not.toContain("javascript:");
+  });
+
+  it("reports props named like Object's own keys without leaking them into the hint", async () => {
+    const { issues } = await run(
+      `::screenshot{src="a.png" alt="A" constructor="x" :__proto__="y"}\n::`,
+    );
+    expect(issues).toEqual([
+      'screenshot "a.png": `constructor` isn\'t a prop of `::screenshot`. Valid props: src, alt, title, href, viewport.',
+      'screenshot "a.png": `__proto__` isn\'t a prop of `::screenshot`. Valid props: src, alt, title, href, viewport.',
+    ]);
+  });
+
+  it("quotes names taken from the document", async () => {
+    const { issues } = await run(`::screenshot{src='a"b.png'}\n::`);
+    expect(issues).toEqual([
+      'screenshot "a\\"b.png": `alt` is required. Describe what the screenshot shows.',
+    ]);
   });
 });

@@ -55,19 +55,34 @@ test("a slider moves its divider by drag and by key, and a click without a drag 
   const swipe = page.locator(".ca-swipe:visible").first();
   const handle = swipe.locator(".ca-handle");
   await expect(handle).toHaveAttribute("aria-valuenow", "50");
+
   const box = (await swipe.boundingBox())!;
   const y = box.y + box.height * 0.6;
   await page.mouse.move(box.x + box.width * 0.5, y);
   await page.mouse.down();
   for (let step = 1; step <= 10; step++)
     await page.mouse.move(box.x + box.width * (0.5 - 0.025 * step), y);
+  // Holding still before letting go places the divider instead of flicking it.
   await page.waitForTimeout(150);
   await page.mouse.up();
   await expect(handle).toHaveAttribute("aria-valuenow", "25");
+  await expect(handle).toHaveAttribute("aria-valuetext", "Before 25%, After 75%");
+  // The click that ends a drag doesn't zoom.
+  await expect(page.locator(".cz-dialog")).toHaveCount(0);
+
   await handle.focus();
   await page.keyboard.press("End");
   await page.keyboard.press("ArrowLeft");
   await expect(handle).toHaveAttribute("aria-valuenow", "95");
+
+  await swipe.locator(".ca-grip").click();
+  await expect(page.locator(".cz-dialog")).toHaveCount(0);
+
   await page.mouse.click(box.x + box.width * 0.3, y);
   await expect(page.locator(".cz-item .ca-swipe")).toBeVisible();
+  const zoomed = page.locator(".cz-item .ca-handle");
+  await expect(zoomed).toHaveAttribute("aria-valuenow", "95");
+  await zoomed.focus();
+  await page.keyboard.press("Home");
+  await expect(zoomed).toHaveAttribute("aria-valuenow", "0");
 });

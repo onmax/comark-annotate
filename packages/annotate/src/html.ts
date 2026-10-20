@@ -42,12 +42,23 @@ function idFor(shots: Screenshot[], state: State) {
 }
 
 const named = new Set<string>(PALETTE);
+// The stamp's number takes whichever of white or the dark ink contrasts more with a hex color, by WCAG luminance.
+// read.ts only lets 3- and 6-digit hex through.
+function ink(hex: string) {
+  const full = hex.length === 4 ? hex.replaceAll(/[\da-f]/gi, (digit) => digit + digit) : hex;
+  const [r, g, b] = [1, 3, 5].map((at) => {
+    const channel = Number.parseInt(full.slice(at, at + 2), 16) / 255;
+    return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+  const luminance = 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+  return 1.05 / (luminance + 0.05) >= (luminance + 0.05) / 0.0605 ? "#fff" : "#1c1917";
+}
 const paint = (color?: string) =>
   !color
     ? ""
     : named.has(color)
       ? `--ca-color:var(--ca-${color});--ca-solid:var(--ca-${color}-solid);--ca-ink:var(--ca-${color}-ink);`
-      : `--ca-color:${color};--ca-solid:${color};`;
+      : `--ca-color:${color};--ca-solid:${color};--ca-ink:${ink(color)};`;
 
 // A loose hand-drawn stroke that stretches between the mark and its note, and a head that keeps its size.
 const ARROW = `<svg class="ca-arrow-line" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M2 10C30 3 62 17 98 9" vector-effect="non-scaling-stroke"/></svg>`;
@@ -64,6 +75,14 @@ async function each<T>(items: T[], render: (item: T) => Promise<string>) {
   let html = "";
   for (const item of items) html += await render(item);
   return html;
+}
+// The link reads as the host it points at; `href` is already checked to be http or https.
+function host(href: string) {
+  try {
+    return new URL(href).host || "Preview";
+  } catch {
+    return "Preview";
+  }
 }
 const noteText = (annotation: Annotation) =>
   textContent(wrap(annotation.note)).trim().slice(0, 120);
@@ -126,21 +145,22 @@ async function parts(shot: Screenshot, state: State, id: string) {
     return `<span class="ca-arrow ca-arrow-${annotation.side}" data-n="${annotation.n}" style="${color(annotation)}${place}" aria-hidden="true">${line}${head}</span>`;
   });
   // Side notes live outside the frame so the frame, and every percentage inside it, stays the size of the image.
-  // A top note's x is a share of the frame, which sits between any left and right gutters.
+  // A note's x or y is a share of the frame, which sits between the gutters for notes beside and above it.
   const callouts = await each(sided, async (annotation) => {
     const { x, y } = center(annotation);
     const place =
       annotation.side === "top"
         ? `left:calc(var(--ca-pl,0px) + (100% - var(--ca-pl,0px) - var(--ca-pr,0px)) * ${x / 100})`
-        : `top:${y}%`;
+        : `top:calc(var(--ca-pt,0px) + (100% - var(--ca-pt,0px)) * ${y / 100})`;
     return (
       `<div class="ca-callout ca-callout-${annotation.side}" id="${id}-${annotation.n}" data-n="${annotation.n}" style="${color(annotation)}${place}">` +
       `${letter(annotation)}<div>${await children(annotation.note, state)}</div></div>`
     );
   });
   const heading = [
-    shot.label && `<span class="ca-label">${escapeHtml(shot.label)}</span>`,
-    shot.url && `<a href="${attr(shot.url)}" title="${attr(shot.url)}">Preview</a>`,
+    shot.title && `<span class="ca-label">${escapeHtml(shot.title)}</span>`,
+    shot.href &&
+      `<a href="${attr(shot.href)}" title="${attr(shot.href)}">${escapeHtml(host(shot.href))}</a>`,
   ]
     .filter(Boolean)
     .join(" ");
@@ -161,7 +181,7 @@ async function figure(shot: Screenshot, state: State, id: string, top = false) {
   const { sides, heading, frame, callouts, notes } = await parts(shot, state, id);
   const classes = [...new Set([...sides, ...(top ? [" ca-top"] : [])])].join("");
   return (
-    `<figure class="ca-screenshot${classes}" data-zoom tabindex="0" data-zoom-title="${attr(shot.label || shot.alt)}">${heading}<div class="ca-stage">${frame}${callouts}</div>` +
+    `<figure class="ca-screenshot${classes}" data-zoom tabindex="0" data-zoom-context=".ca" data-zoom-aside="figcaption" data-zoom-title="${attr(shot.title || shot.alt)}">${heading}<div class="ca-stage">${frame}${callouts}</div>` +
     (notes ? `<figcaption>${notes}</figcaption>` : "") +
     "</figure>"
   );
@@ -169,11 +189,10 @@ async function figure(shot: Screenshot, state: State, id: string, top = false) {
 
 const GRIP = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${[5, 12, 19].map((y) => `<circle cx="9" cy="${y}" r="1.5"/><circle cx="15" cy="${y}" r="1.5"/>`).join("")}</svg>`;
 
-// Without the script the two screenshots stack, each under its label. The script lays them over each other and lets
-// the reader drag the divider; the notes stay under the pair.
-async function slider(shots: Screenshot[], state: State, id: string) {
-  const labels = shots.map((shot) => shot.label || shot.alt);
-  const name = labels.join(" / ");
+// Without the script the two screenshots stack, each under its title. The script lays them over each other and lets
+// the reader drag the divider; the notes stay under the pair, and beside it when zoomed.
+async function slider(title: string | undefined, shots: Screenshot[], state: State, id: string) {
+  const names = shots.map((shot) => shot.title || shot.alt);
   let sides = "";
   let notes = "";
   for (const [index, shot] of shots.entries()) {
@@ -181,13 +200,13 @@ async function slider(shots: Screenshot[], state: State, id: string) {
     const which = index ? "after" : "before";
     sides += `<div class="ca-side ca-side-${which}">${part.heading}<div class="ca-stage">${part.frame}</div></div>`;
     if (part.notes)
-      notes += `<div class="ca-side-notes ca-notes-${which}">${shot.label ? `<div class="ca-heading"><span class="ca-label">${escapeHtml(shot.label)}</span></div>` : ""}${part.notes}</div>`;
+      notes += `<div class="ca-side-notes ca-notes-${which}">${shot.title ? `<div class="ca-heading"><span class="ca-label">${escapeHtml(shot.title)}</span></div>` : ""}${part.notes}</div>`;
   }
   const handle =
-    `<div class="ca-handle" role="slider" tabindex="0" aria-label="${attr(`Divider between ${labels.join(" and ")}`)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="${attr(`${labels[0]} 50%, ${labels[1]} 50%`)}">` +
+    `<div class="ca-handle" role="slider" tabindex="0" aria-label="${attr(`Divider between ${names.join(" and ")}`)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="${attr(`${names[0]} 50%, ${names[1]} 50%`)}">` +
     `<span class="ca-grip">${GRIP}</span></div>`;
   return (
-    `<div class="ca ca-compare ca-slider"><div class="ca-swipe" data-zoom tabindex="0" data-zoom-title="${attr(name)}">${sides}${shots.length === 2 ? handle : ""}</div>` +
+    `<div class="ca ca-compare ca-slider"><div class="ca-swipe" data-zoom tabindex="0" data-zoom-context=".ca"${notes ? ' data-zoom-aside=".ca-swipe-notes"' : ""} data-zoom-title="${attr(title ?? names.join(" / "))}">${sides}${shots.length === 2 ? handle : ""}</div>` +
     `${notes && `<div class="ca-swipe-notes">${notes}</div>`}</div>${zoomRuntime(state)}${sliderRuntime(state)}`
   );
 }
@@ -198,16 +217,16 @@ const screenshot: NodeHandler = async (node, state) => {
 };
 
 const compare: NodeHandler = async (node, state) => {
-  const { mode, shots } = readCompare(node, [], state.renderData);
+  const { title, mode, shots } = readCompare(node, [], state.renderData);
   const id = idFor(shots, state);
-  if (mode === "slider") return `${styles(state)}${await slider(shots, state, id)}`;
+  if (mode === "slider") return `${styles(state)}${await slider(title, shots, state, id)}`;
   const top = shots.some((shot) =>
     shot.annotations.some((annotation) => annotation.side === "top"),
   );
   const figures: string[] = [];
   for (const shot of shots) figures.push(await figure(shot, state, id, top));
   // Side by side on a wide page, one at a time on a narrow one; both screenshots zoom as one gallery.
-  return `${styles(state)}<div class="ca ca-compare">${carouselHtml(figures, { columns: 2, title: "Comparison" }, state)}</div>`;
+  return `${styles(state)}<div class="ca ca-compare">${carouselHtml(figures, { columns: 2, title: title ?? "Comparison" }, state)}</div>`;
 };
 
 /** HTML renderers for `::screenshot`, `::compare`, and `::annotation`. Pass them as `components`; the styles are inlined once per document. */

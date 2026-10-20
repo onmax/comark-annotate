@@ -26,7 +26,9 @@ export function start(): () => void {
 
   type Drag = { swipe: HTMLElement; id: number; x: number; moved: boolean; t: number; v: number };
   let drag: Drag | null = null;
-  const swallow = new WeakMap<HTMLElement, number>();
+  // Whether the last press on each slider dragged. A browser may send that press's click late, even after the next
+  // press starts, so it's dropped when the click comes rather than on a timer.
+  const dragged = new WeakMap<HTMLElement, boolean>();
   const splits = new WeakMap<HTMLElement, number>();
   const coasting = new WeakMap<HTMLElement, number>();
 
@@ -120,29 +122,24 @@ export function start(): () => void {
     if (!drag || event.pointerId !== drag.id) return;
     const { swipe, moved, v, t } = drag;
     drag = null;
+    dragged.set(swipe, moved && event.type === "pointerup");
     if (!moved) return;
     swipe.removeAttribute("data-dragging");
-    // Keep the compatibility click suppressed until it is actually delivered.
-    if (event.type === "pointerup") swallow.set(swipe, (swallow.get(swipe) ?? 0) + 1);
     // A pause before letting go means the reader placed the divider, not flicked it.
     if (event.type === "pointerup" && event.timeStamp - t < 80) coast(swipe, v);
   };
   document.addEventListener("pointerup", release, { signal });
   document.addEventListener("pointercancel", release, { signal });
 
-  // Zoom skips a click that's already handled: the one ending a drag, and any on the handle.
+  // Zoom skips a click that's already handled: the one ending a drag, and any on the handle, which is there to drag.
   addEventListener(
     "click",
     (event) => {
-      const handle = event.target instanceof Element && event.target.closest(".ca-handle");
       const swipe = swipeOf(event.target);
       if (!swipe) return;
-      const pending = swallow.get(swipe) ?? 0;
-      // Compatibility clicks identify their touch origin through sourceCapabilities. Keep a
-      // pending marker for genuine mouse clicks so a delayed touch click cannot open zoom later.
-      const touchClick = event.detail === 0 || event.sourceCapabilities?.firesTouchEvents === true;
-      if (!handle && (pending === 0 || !touchClick)) return;
-      if (!handle && pending > 0) swallow.set(swipe, pending - 1);
+      const handle = event.target instanceof Element && event.target.closest(".ca-handle");
+      if (!handle && !dragged.get(swipe)) return;
+      dragged.delete(swipe);
       event.preventDefault();
     },
     { capture: true, signal },
@@ -180,6 +177,14 @@ export function start(): () => void {
     },
     { signal },
   );
+
+  // Zoom copies the slider without its tab stops; the handle needs its own back to move by key.
+  const focusable = () => {
+    for (const handle of document.querySelectorAll(".cz-dialog .ca-handle"))
+      handle.setAttribute("tabindex", "0");
+  };
+  document.addEventListener("comark-zoom:open", focusable, { signal });
+  document.addEventListener("comark-zoom:change", focusable, { signal });
 
   const state = {
     users: 1,

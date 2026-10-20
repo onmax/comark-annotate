@@ -145,7 +145,7 @@ An image with marks on it. Other content inside the block becomes the caption.
 
 ::example
 ```md
-::screenshot{src="/after.png" alt="Filter toolbar on one row" label="After" url="https://pr42.preview.example.com/plan"}
+::screenshot{src="/after.png" alt="Filter toolbar on one row" title="After" href="https://pr42.preview.example.com/plan"}
 :::annotation{x=67.9 y=34.8 w=13 h=14.2}
 Extra filters collapse into **+2 filters**.
 :::
@@ -157,9 +157,9 @@ Extra filters collapse into **+2 filters**.
 | --- | --- |
 | `src` | Image URL. Required. |
 | `alt` | What the screenshot shows. Required. |
-| `label` | Heading above the notes. |
-| `url` | The page you captured, linked as **Preview** next to the label. |
-| `viewport` | Capture size, like `1440x900`. A compare checks that both sides match. |
+| `title` | Heading above the image, and the title of its zoomed view. |
+| `href` | The page you captured, linked by its host next to the title. |
+| `viewport` | Capture size in pixels, like `1440x900`. A compare checks that both sides match. |
 
 ### annotation
 
@@ -181,20 +181,20 @@ Accuracy now counts returns.
 
 | Prop | |
 | --- | --- |
-| `x` `y` `w` `h` | The marked area, as percentages of the image from 0 to 100. |
-| `mark` | `box` (default), `circle`, `underline`, `highlight`, `cross`, `check`, or `none` to let an arrow do the pointing. |
+| `x` `y` `w` `h` | The marked area, as percentages of the image: numbers from 0 to 100, without `%`. All four are required. |
+| `mark` | `box` (default), `circle`, `underline`, `highlight`, `cross`, `check`, or `none` to let a side note's arrow do the pointing. `none` needs a `side`. |
 | `side` | `left`, `right`, or `top` puts the note beside or above the image with an arrow. |
-| `color` | `blue` (default) points something out, `red` flags a problem, `amber` a warning, `green` a fix, `gray` anything neutral. Each has a dark-mode value. Any hex color like `#e11d48` works too. |
+| `color` | `blue` (default) points something out, `red` flags a problem, `amber` a warning, `green` a fix, `gray` anything neutral. Each has a dark-mode value. A 3- or 6-digit hex color like `#e11d48` works too, and its stamp gets whichever of a white or dark number reads better. |
 
 ### compare
 
-Two screenshots side by side, labelled **Before** and **After** unless they set their own `label`. Numbers continue from one side to the other, and the pair stacks on narrow screens.
+Two screenshots side by side, titled **Before** and **After** unless they set their own `title`. Numbers continue from one side to the other, and the pair stacks on narrow screens.
 
-With `mode="slider"`, the two screenshots share one frame: Before shows left of a divider and After right of it. Drag anywhere on the pair, or focus the handle and use the arrow keys, to move it; a click that doesn't drag zooms the pair. Use it when both screenshots show the same spot and the change is small, so the reader sees it at full width. Side notes become numbered notes in the list, since an arrow would cross the divider. Without the script, the two screenshots stack.
+With `mode="slider"`, the two screenshots share one frame: Before shows left of a divider and After right of it. Drag anywhere on the pair, or focus the handle and use the arrow keys, to move it; a click on the screenshots that doesn't drag zooms the pair. Use it when both screenshots show the same spot and the change is small, so the reader sees it at full width. Side notes become numbered notes in the list, since an arrow would cross the divider. Without the script, the two screenshots stack.
 
 ::example
 ```md
-::compare
+::compare{title="Toolbar alignment"}
 :::screenshot{src="/before.png" alt="Toolbar wrapping" viewport="640x250"}
 ::::annotation{x=50.9 y=55.4 w=10.5 h=14.2 mark="circle" color="red"}
 **Apply** sits lower than the chips.
@@ -212,6 +212,7 @@ Fixed.
 
 | Prop | |
 | --- | --- |
+| `title` | What the comparison shows, read out by screen readers. Defaults to "Comparison". |
 | `mode` | `columns` (default) puts the screenshots side by side; `slider` lays them over each other with a divider to drag. |
 
 ## Guides
@@ -240,21 +241,23 @@ For a full-page screenshot, add the scroll offset and divide by the page size in
 
 ### Validation
 
-The plugin checks every block while parsing and lists the problems in `meta.annotateIssues`, so you can reject a document before publishing it.
+The plugin checks every block while parsing and adds the problems to `meta.issues`, so you can reject a document before publishing it. Zoom and carousel add theirs to the same list.
 
 ```ts
 import { parseMarkdown } from "comark";
 import annotate from "comark-annotate";
 
 const { meta } = await parseMarkdown(markdown, { plugins: [annotate()] });
-if (meta.annotateIssues.length) throw new Error(meta.annotateIssues.join("\n"));
+if (meta.issues.length) throw new Error(meta.issues.join("\n"));
 ```
 
-Each issue names its block and says how to fix it:
+Each issue names its block and says how to fix it. A screenshot goes by its `src`, or by its position and `alt` when another screenshot shares it; an annotation goes by its position in its screenshot:
 
 ```txt
-screenshot "after.png", annotation 2: the box runs past the image edge (x + w and y + h must stay within 100).
+screenshot "after.png", annotation 2: the box runs past the image edge. Keep x + w and y + h within 100.
 ```
+
+Unknown props are reported with the valid ones, and so is a `:bound` prop that points at missing frontmatter. Bindings to `data` or `props` are left to the renderer.
 
 Rendering never throws.
 
@@ -298,7 +301,7 @@ The rules sit in a `comark` CSS layer, so any plain rule of your own wins withou
 }
 ```
 
-The mark colors are separate from the theme, because each one means something: a plain `.ca { --ca-color: #0070f3; --ca-ink: #fff }` changes the default mark and stamp colors, and `--ca-red`, `--ca-amber`, `--ca-green`, `--ca-blue`, and `--ca-gray` change the named ones. Side notes and labels use `--ca-note-font`; this page sets it to Caveat for the handwritten look.
+The mark colors are separate from the theme, because each one means something: a plain `.ca { --ca-color: #0070f3; --ca-solid: #0070f3; --ca-ink: #fff }` changes the default marks, arrows, and notes (`--ca-color`), stamps (`--ca-solid`), and stamp numbers (`--ca-ink`), and `--ca-red`, `--ca-amber`, `--ca-green`, `--ca-blue`, and `--ca-gray` change the named ones. Side notes and labels use `--ca-note-font`; this page sets it to Caveat for the handwritten look.
 
 ## Agents
 
@@ -308,10 +311,10 @@ The package ships an agent skill with the syntax, how to measure marks from the 
 npx skills add https://comark.onmax.me
 ```
 
-It also comes with a small CLI. `check` lists every problem and exits with 1 if there are any; `render` writes a standalone page you can open and screenshot to confirm each mark sits on its target.
+It also comes with a small CLI that knows zoom and carousel too. `check` lists every problem in one or more files and exits with 1 if there are any; `render` writes a standalone page next to each file, which you can open and screenshot to confirm each mark sits on its target.
 
 ```sh
-npx comark-annotate check report.md
+npx comark-annotate check report.md other.md
 npx comark-annotate render report.md -o report.html
 ```
 
