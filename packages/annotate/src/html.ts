@@ -274,7 +274,7 @@ const diff: NodeHandler = async (node, state) => {
   const classes = ["ca-code", code.class].filter(Boolean).join(" ");
   return (
     `${styles(state)}<figure class="ca ca-diff"><figcaption>${header}</figcaption>` +
-    `<div class="ca-scroll"><table class="${attr(classes)}"${code.style ? ` style="${attr(code.style)}"` : ""}><tbody>${body}</tbody></table></div></figure>`
+    `<div class="ca-scroll" tabindex="0"><table class="${attr(classes)}"${code.style ? ` style="${attr(code.style)}"` : ""}><tbody>${body}</tbody></table></div></figure>`
   );
 };
 

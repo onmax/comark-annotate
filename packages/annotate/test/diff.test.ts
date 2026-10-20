@@ -46,6 +46,7 @@ describe("::diff", () => {
       expect(html).toContain(
         '<span class="ca-diff-label">Suggested change</span><span class="ca-file">src/a.ts</span><span class="ca-counts"><span class="ca-added">+1</span> <span class="ca-removed">−1</span></span></figcaption>',
       );
+      expect(html).toContain('<div class="ca-scroll" tabindex="0"><table');
       expect(rows(html)).toEqual([
         "same 12 12 const gap = 8",
         "same 13 13 ",
