@@ -50,7 +50,7 @@ describe("comark-annotate", () => {
       '<span class="ca-label">After</span> <a href="https://pr2.example.com/plan" title="https://pr2.example.com/plan">pr2.example.com</a>',
     );
     expect(html).toMatch(
-      /<figure class="ca-screenshot" data-zoom tabindex="0" data-zoom-context=".ca" data-zoom-title="Before"><div class="ca-heading"><span class="ca-label">Before<\/span><\/div><div class="ca-stage">/,
+      /<figure class="ca-screenshot" data-zoom tabindex="0" data-zoom-context=".ca" data-zoom-aside="figcaption" data-zoom-title="Before"><div class="ca-heading"><span class="ca-label">Before<\/span><\/div><div class="ca-stage">/,
     );
     expect(html).not.toMatch(/<figcaption><div class="ca-heading">/);
     // Side by side on a wide page, one at a time on a narrow one, and both zoom as one gallery.
@@ -395,6 +395,52 @@ describe("comark-annotate", () => {
     const { issues } = await run(compare.replace('viewport="900x360"', 'viewport="wide"'));
     expect(issues).toEqual([
       'screenshot "before.png": `viewport` must be the capture size in pixels, like 1440x900 (got "wide").',
+    ]);
+  });
+
+  it("leaves Comark's own attributes alone", async () => {
+    const { issues } = await run(
+      `::screenshot{src="a.png" alt="A" #hero .wide style="margin:0" data-testid="shot" aria-describedby="d" :class="data.cls" :data-x="data.x"}\n:::annotation{x=1 y=1 w=5 h=5 .pulse data-step="1"}\nNote\n:::\n::`,
+    );
+    expect(issues).toEqual([]);
+  });
+
+  it("reports a link without a host, and an unsafe bound link, and leaves both out", async () => {
+    const { issues, html } = await run(
+      `::screenshot{src="a.png" alt="A" href="https://?x"}\n::\n\n::screenshot{src="b.png" alt="B" :href='"javascript:alert(1)"'}\n::`,
+    );
+    expect(issues).toEqual([
+      'screenshot "a.png": `href` must be an http:// or https:// URL with a host. Link the page you captured.',
+      'screenshot "b.png": `:href` resolves to an unsafe URL, so it\'s left out. Use an http:// or https:// URL.',
+    ]);
+    expect(html).not.toContain("<a href");
+    expect(html).not.toContain("javascript:");
+  });
+
+  it("reports an unsafe bound link even next to a plain one", async () => {
+    const { issues, html } = await run(
+      `::screenshot{src="a.png" alt="A" href="https://safe.example" :href='"javascript:alert(1)"'}\n::`,
+    );
+    expect(issues).toEqual([
+      'screenshot "a.png": `:href` resolves to an unsafe URL, so it\'s left out. Use an http:// or https:// URL.',
+    ]);
+    expect(html).not.toContain("javascript:");
+  });
+
+  it("reports props named like Object's own keys without leaking them into the hint", async () => {
+    const { issues } = await run(
+      `::screenshot{src="a.png" alt="A" constructor="x" :__proto__="y"}\n::`,
+    );
+    expect(issues).toEqual([
+      'screenshot "a.png": `constructor` isn\'t a prop of `::screenshot`. Valid props: src, alt, title, href, viewport.',
+      'screenshot "a.png": `__proto__` isn\'t a prop of `::screenshot`. Valid props: src, alt, title, href, viewport.',
+    ]);
+  });
+
+  it("quotes names taken from the document", async () => {
+    const { issues } = await run(`::screenshot{src='a"b.png'}\n::`);
+    expect(issues).toEqual([
+      'screenshot "a\\"b.png": `alt` is required. Describe what the screenshot shows.',
     ]);
   });
 });

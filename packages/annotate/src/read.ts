@@ -134,10 +134,23 @@ function checkProps(
   node: ElementNode,
   attrs: Record<string, unknown>,
   problems: string[],
+  data: Data,
 ) {
   const valid: readonly string[] = PROPS[block];
   for (const key of Object.keys(attrs)) {
     if (valid.includes(key)) {
+      // Comark drops a bound `src` or `href` that resolves to an unsafe URL, such as javascript:. The binding is
+      // resolved alone, since a plain value next to it would still fill `attrs`.
+      const bound = `:${key}`;
+      if (
+        Object.hasOwn(node[1], bound) &&
+        !Object.hasOwn(props([node[0], { [bound]: node[1][bound] }], data), key)
+      ) {
+        problems.push(
+          `\`:${key}\` resolves to an unsafe URL, so it's left out. Use an http:// or https:// URL${key === "src" ? " or a path to the image file" : ""}.`,
+        );
+        continue;
+      }
       const path = text(node[1][`:${key}`]);
       if (unresolved(node, attrs, key) && !later(path))
         problems.push(
@@ -170,7 +183,7 @@ export function readScreenshot(
   const where = names.get(node) ?? "screenshot";
   const problems: string[] = [];
   const attrs = props(node, data);
-  checkProps("screenshot", node, attrs, problems);
+  checkProps("screenshot", node, attrs, problems, data);
   const src = text(attrs.src);
   if (!src && !unresolved(node, attrs, "src"))
     problems.push("`src` is required. Point it at the image file.");
@@ -244,7 +257,7 @@ export function readScreenshot(
 
 function readAnnotation(node: ElementNode, problems: string[], data: Data): Omit<Annotation, "n"> {
   const attrs = props(node, data);
-  checkProps("annotation", node, attrs, problems);
+  checkProps("annotation", node, attrs, problems, data);
   const box = { x: 0, y: 0, w: 0, h: 0 };
   let known = true;
   for (const key of ["x", "y", "w", "h"] as const) {
@@ -321,7 +334,7 @@ export function readCompare(
   const where = names.get(node) ?? "compare";
   const attrs = props(node, data);
   const problems: string[] = [];
-  checkProps("compare", node, attrs, problems);
+  checkProps("compare", node, attrs, problems, data);
   issues.push(...problems.map((problem) => `${where}: ${problem}`));
   const shots: Screenshot[] = [];
   const viewports: { name: string; size?: string }[] = [];

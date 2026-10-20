@@ -80,9 +80,9 @@ export function start(css: string): () => void {
     pushed: boolean;
     closing: boolean;
     pressed: EventTarget | null;
+    restoration: ScrollRestoration | null;
   };
   let view: View | null = null;
-  let restoration: ScrollRestoration | null = null;
 
   const el = <K extends keyof HTMLElementTagNameMap>(
     tag: K,
@@ -359,9 +359,9 @@ export function start(css: string): () => void {
     unlocked = null;
   }
 
-  function restore() {
-    const saved = restoration;
-    restoration = null;
+  function restore(current: View) {
+    const saved = current.restoration;
+    current.restoration = null;
     // The browser restores scroll after popstate, so put the setting back once it has skipped that.
     if (saved) setTimeout(() => (history.scrollRestoration = saved));
   }
@@ -400,6 +400,7 @@ export function start(css: string): () => void {
       pushed: false,
       closing: false,
       pressed: null,
+      restoration: null,
     };
     if (items.length > 1) {
       for (const [name, step, label] of [
@@ -431,13 +432,13 @@ export function start(css: string): () => void {
     // when the click landed during a smooth scroll; the page stays where it is instead.
     // The setting belongs to each history entry, so it goes on the page's entry before the zoom's is pushed.
     try {
-      restoration = history.scrollRestoration;
+      current.restoration = history.scrollRestoration;
       history.scrollRestoration = "manual";
       history.pushState({ ...history.state, comarkZoom: true }, "");
       current.pushed = true;
     } catch {
-      if (restoration) history.scrollRestoration = restoration;
-      restoration = null;
+      if (current.restoration) history.scrollRestoration = current.restoration;
+      current.restoration = null;
     }
 
     const shown = items[current.index]!;
@@ -466,9 +467,9 @@ export function start(css: string): () => void {
     current.closing = true;
     if (current.pushed && !fromHistory && history.state?.comarkZoom) {
       // stop() may have removed the listener that puts scroll restoration back.
-      addEventListener("popstate", restore, { once: true });
+      addEventListener("popstate", () => restore(current), { once: true });
       history.back();
-    } else if (!fromHistory) restore();
+    } else if (!fromHistory) restore(current);
     const item = current.items[current.index]!;
     if (!motion.matches) {
       // A close can come while the opening animation still runs. Measure the frame where it settles, so the path back
@@ -567,7 +568,7 @@ export function start(css: string): () => void {
   addEventListener(
     "popstate",
     () => {
-      restore();
+      if (view) restore(view);
       void shut(true);
     },
     { signal },
