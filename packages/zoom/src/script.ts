@@ -71,6 +71,7 @@ export function script(css: string): () => void {
   };
   let view: View | null = null;
   let restoration: ScrollRestoration | null = null;
+  let restoring: (() => void) | null = null;
 
   const el = <K extends keyof HTMLElementTagNameMap>(
     tag: K,
@@ -96,9 +97,12 @@ export function script(css: string): () => void {
   }
 
   // An item inside another one zooms with it, so only the outer one is a tab stop. Renderers can't know: a slide and
-  // the screenshot inside it come from different plugins. Any other tabindex is the author's and stays.
-  function settle() {
-    for (const node of document.querySelectorAll<HTMLElement>(`${SELECTOR}[tabindex="0"]`))
+  // the screenshot inside it come from different plugins. A tabindex="0" goes even when the author set it, since Enter
+  // there opens the outer item and the stop would be a dead one. Any other tabindex is the author's and stays.
+  function settle(root: Element) {
+    const nodes = [...root.querySelectorAll(`${SELECTOR}[tabindex="0"]`)];
+    if (root.matches(`${SELECTOR}[tabindex="0"]`)) nodes.push(root);
+    for (const node of nodes)
       if (node.parentElement?.closest(SELECTOR)) node.removeAttribute("tabindex");
   }
 
@@ -350,11 +354,19 @@ export function script(css: string): () => void {
     unlocked = null;
   }
 
-  function restore() {
+  function restore(later = false) {
     const saved = restoration;
     restoration = null;
-    // The browser restores scroll after popstate, so put the setting back once it has skipped that.
-    if (saved) setTimeout(() => (history.scrollRestoration = saved));
+    if (!saved) return;
+    const put = () => {
+      history.scrollRestoration = saved;
+      restoring = null;
+    };
+    if (!later) return put();
+    // The browser restores scroll after popstate, so put the setting back once it has skipped that. A zoom that opens
+    // first puts it back itself, so it doesn't save "manual" as the page's setting.
+    restoring = put;
+    setTimeout(() => restoring === put && put());
   }
 
   function open(item: HTMLElement) {
@@ -419,6 +431,7 @@ export function script(css: string): () => void {
     // when the click landed during a smooth scroll; the page stays where it is instead.
     // The setting belongs to each history entry, so it goes on the page's entry before the zoom's is pushed.
     try {
+      restoring?.();
       restoration = history.scrollRestoration;
       history.scrollRestoration = "manual";
       history.pushState({ ...history.state, comarkZoom: true }, "");
@@ -448,15 +461,14 @@ export function script(css: string): () => void {
     );
   }
 
-  async function shut(fromHistory = false) {
+  // Closing from the page goes back in history, so the zoom's entry goes away. stop() doesn't: with its listeners gone,
+  // that late popstate could close a zoom opened after it. The entry stays, and a later Back does nothing.
+  async function shut(from: "page" | "history" | "stop" = "page") {
     const current = view;
     if (!current || current.closing) return;
     current.closing = true;
-    if (current.pushed && !fromHistory && history.state?.comarkZoom) {
-      // stop() may have removed the listener that puts scroll restoration back.
-      addEventListener("popstate", restore, { once: true });
-      history.back();
-    } else if (!fromHistory) restore();
+    if (from === "page" && current.pushed && history.state?.comarkZoom) history.back();
+    else if (from !== "history") restore();
     const item = current.items[current.index]!;
     if (!motion.matches) {
       // A close can come while the opening animation still runs. Measure the frame where it settles, so the path back
@@ -555,8 +567,8 @@ export function script(css: string): () => void {
   addEventListener(
     "popstate",
     () => {
-      restore();
-      void shut(true);
+      restore(true);
+      void shut("history");
     },
     { signal },
   );
@@ -564,8 +576,11 @@ export function script(css: string): () => void {
 
   // Items keep coming after the script starts: the rest of the page after the HTML renderer's inline script, and
   // whatever an app renders later.
-  settle();
-  const added = new MutationObserver(settle);
+  settle(document.documentElement);
+  const added = new MutationObserver((records) => {
+    for (const record of records)
+      for (const node of record.addedNodes) if (node instanceof Element) settle(node);
+  });
   added.observe(document.documentElement, { childList: true, subtree: true });
 
   const state = {
@@ -575,7 +590,7 @@ export function script(css: string): () => void {
       added.disconnect();
       listeners.abort();
       style?.remove();
-      void shut();
+      void shut("stop");
       window.__comarkZoom = undefined;
     },
   };

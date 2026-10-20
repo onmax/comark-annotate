@@ -143,18 +143,6 @@ test("a zoomed screenshot keeps the dialog's text color inside its context", asy
   expect(await color(".cz-item > .ca")).toBe(await color(".cz-dialog"));
 });
 
-test("stopping the zoom while it's open gives the page its scroll restoration back", async ({
-  page,
-}) => {
-  await page.goto("/zoom/");
-  await page.locator("main img[data-zoom]").first().click();
-  await expect(page.locator(".cz-dialog")).toBeVisible();
-  expect(await page.evaluate(() => history.scrollRestoration)).toBe("manual");
-  await page.evaluate(() => window.__comarkZoom!.stop());
-  await expect(page.locator(".cz-dialog")).toHaveCount(0);
-  await expect.poll(() => page.evaluate(() => history.scrollRestoration)).toBe("auto");
-});
-
 test("Enter on an item inside a slide opens that slide, the only tab stop", async ({ page }) => {
   const shot = (src: string, alt: string) => `:::screenshot{src="${src}" alt="${alt}"}\n:::`;
   const slides = [
@@ -204,6 +192,25 @@ test("stopping the zoom while it's open gives the page its scroll restoration ba
   await expect(page.locator(".cz-dialog")).toBeVisible();
   expect(await page.evaluate(() => history.scrollRestoration)).toBe("manual");
   await page.evaluate(() => window.__comarkZoom!.stop());
+  await expect(page.locator(".cz-dialog")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => history.scrollRestoration)).toBe("auto");
+});
+
+test("a zoom opened as another closes keeps scroll restoration off until it closes too", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/zoom/");
+  const image = page.locator("main img[data-zoom]").first();
+  await image.click();
+  await image.evaluate((node) =>
+    node.addEventListener("comark-zoom:close", () => (node as HTMLElement).click(), { once: true }),
+  );
+  await page.goBack();
+  await expect(page.locator(".cz-dialog")).toBeVisible();
+  await page.waitForTimeout(50);
+  expect(await page.evaluate(() => history.scrollRestoration)).toBe("manual");
+  await page.keyboard.press("Escape");
   await expect(page.locator(".cz-dialog")).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => history.scrollRestoration)).toBe("auto");
 });
