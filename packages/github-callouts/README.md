@@ -2,6 +2,8 @@
 
 GitHub's alerts, `> [!NOTE]` through `> [!CAUTION]`, as callouts with an icon and a title. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 
+Comark's built-in alert plugin already reads these markers, tags the quote with its type, and leaves the drawing to you. This package draws them in every renderer, takes a title from the marker's line, and lets you change the default titles.
+
 ```sh
 pnpm add comark comark-github-callouts
 ```
