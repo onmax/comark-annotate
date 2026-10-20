@@ -1,5 +1,5 @@
 import { createHtmlRenderer } from "@comark/html";
-import { expect, type Locator, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";

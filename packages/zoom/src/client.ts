@@ -1,3 +1,5 @@
+import { css } from "./styles.ts";
+
 /** What `comark-zoom:open` and `comark-zoom:change` carry, so a host can add its own UI to the zoomed view. */
 export interface ZoomDetail {
   dialog: HTMLElement;
@@ -29,16 +31,15 @@ declare global {
     "comark-zoom:change": CustomEvent<ZoomDetail>;
     "comark-zoom:close": CustomEvent<{ item: HTMLElement }>;
   }
-  // The events bubble, so a host can listen once on the document.
-  interface HTMLElementEventMap extends ComarkZoomEventMap {}
-  interface DocumentEventMap extends ComarkZoomEventMap {}
+  // The events bubble, so hosts can listen on window or document.
+  interface GlobalEventHandlersEventMap extends ComarkZoomEventMap {}
 }
 
 /**
  * Starts zoom for every `[data-zoom]` element on the page and returns a function that stops it. Every caller shares one
  * set of listeners, which stop with the last caller. It adds the bundled styles unless you pass others.
  */
-export function start(css: string): () => void {
+export function start(styles = css): () => void {
   const running = window.__comarkZoom;
   if (running) {
     running.users++;
@@ -53,7 +54,7 @@ export function start(css: string): () => void {
     : document.createElement("style");
   if (style) {
     style.setAttribute("data-comark-zoom", "");
-    style.textContent = css;
+    style.textContent = styles;
     document.head.append(style);
   }
 
@@ -83,7 +84,6 @@ export function start(css: string): () => void {
     restoration: ScrollRestoration | null;
   };
   let view: View | null = null;
-  let restorationEpoch = 0;
 
   const el = <K extends keyof HTMLElementTagNameMap>(
     tag: K,
@@ -374,7 +374,6 @@ export function start(css: string): () => void {
 
   function open(item: HTMLElement) {
     if (view) return;
-    restorationEpoch++;
     window.__comarkZoomEpoch = (window.__comarkZoomEpoch ?? 0) + 1;
     const items = groupOf(item);
     const dialog = el("div", "cz-dialog", { role: "dialog", "aria-modal": "true", tabindex: "-1" });
