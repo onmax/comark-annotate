@@ -47,6 +47,7 @@ const pages = [
   { slug: "zoom", file: "zoom.md", npm: "comark-zoom" },
   { slug: "carousel", file: "carousel.md", npm: "comark-carousel" },
   { slug: "github-callouts", file: "github-callouts.md", npm: "comark-github-callouts" },
+  { slug: "lint", file: "lint.md", npm: "comark-lint" },
   { slug: "include", file: "include.md", npm: "comark-include" },
   { slug: "embed", file: "embed.md", npm: "comark-embed" },
 ];

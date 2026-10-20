@@ -1,0 +1,80 @@
+{
+  "name": "comark-lint",
+  "version": "0.2.0",
+  "description": "Finds unclosed blocks, unknown components, broken anchors, and plugin issues in Comark documents. A library, a CLI, and a Vite Doctor extension.",
+  "keywords": [
+    "comark",
+    "lint",
+    "markdown",
+    "mdc",
+    "vite-doctor"
+  ],
+  "homepage": "https://comark.onmax.me/lint",
+  "bugs": "https://github.com/onmax/comark-plugins/issues",
+  "license": "MIT",
+  "author": "onmax",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onmax/comark-plugins.git",
+    "directory": "packages/lint"
+  },
+  "bin": {
+    "comark-lint": "./dist/cli.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./doctor": "./dist/doctor.mjs",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
+    "prepack": "pnpm --filter comark-lint... build"
+  },
+  "devDependencies": {
+    "comark": "catalog:",
+    "comark-annotate": "workspace:*",
+    "comark-carousel": "workspace:*",
+    "comark-github-callouts": "workspace:*",
+    "comark-zoom": "workspace:*",
+    "vite-doctor": "catalog:"
+  },
+  "peerDependencies": {
+    "comark": "^0.7.0",
+    "comark-annotate": "workspace:^",
+    "comark-carousel": "workspace:^",
+    "comark-github-callouts": "workspace:^",
+    "comark-zoom": "workspace:^",
+    "vite-doctor": "^0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "comark-annotate": {
+      "optional": true
+    },
+    "comark-carousel": {
+      "optional": true
+    },
+    "comark-github-callouts": {
+      "optional": true
+    },
+    "comark-zoom": {
+      "optional": true
+    },
+    "vite-doctor": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}
