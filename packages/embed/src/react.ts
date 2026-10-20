@@ -1,9 +1,26 @@
 import { createElement, useEffect } from "react";
-import { addStyles, allow, referrerPolicy } from "./client.ts";
+import { addStyles, allow, icons, referrerPolicy } from "./client.ts";
 import type { EmbedAttributes } from "./index.ts";
 
 export { default } from "./index.ts";
 export type { EmbedAttributes, EmbedMeta, Size } from "./index.ts";
+
+const icon = (d: string) =>
+  createElement(
+    "svg",
+    {
+      viewBox: "0 0 24 24",
+      width: 16,
+      height: 16,
+      fill: "none",
+      stroke: "currentColor",
+      strokeWidth: 2,
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+      "aria-hidden": true,
+    },
+    createElement("path", { d }),
+  );
 
 /** `::embed` for `@comark/react`. */
 export function Embed({ provider, src, label, size, href, title, host }: EmbedAttributes) {
@@ -13,7 +30,9 @@ export function Embed({ provider, src, label, size, href, title, host }: EmbedAt
     return createElement(
       "a",
       { className: "ce-card", href },
+      icon(icons.globe),
       createElement("strong", null, title),
+      " ",
       createElement("span", null, host),
     );
   return createElement(
@@ -31,7 +50,7 @@ export function Embed({ provider, src, label, size, href, title, host }: EmbedAt
         referrerPolicy,
       }),
     ),
-    createElement("figcaption", null, createElement("a", { href }, title)),
+    createElement("figcaption", null, createElement("a", { href }, title, icon(icons.external))),
   );
 }
 

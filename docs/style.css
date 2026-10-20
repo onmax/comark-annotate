@@ -366,7 +366,8 @@ li {
   text-wrap: pretty;
 }
 
-a {
+/* Unlayered, these would beat the embed's own link styles, which the page shows off. */
+a:where(:not(.ce-card, .ce a)) {
   color: var(--fg);
   text-decoration: underline;
   text-decoration-color: var(--line);
@@ -375,7 +376,7 @@ a {
   transition: text-decoration-color 150ms ease;
 }
 
-a:hover {
+a:where(:not(.ce-card, .ce a)):hover {
   text-decoration-color: var(--fg);
 }
 
@@ -598,7 +599,7 @@ blockquote {
   padding: 1.75rem 1.5rem;
 }
 
-.example-preview > .ca {
+.example-preview > :is(.ca, .ce, .ce-card) {
   margin: 0;
 }
 
