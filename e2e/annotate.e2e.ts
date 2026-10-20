@@ -78,7 +78,9 @@ test("a slider moves its divider by drag and by key, and a click without a drag 
   await swipe.locator(".ca-grip").click();
   await expect(page.locator(".cz-dialog")).toHaveCount(0);
 
-  await page.mouse.click(box.x + box.width * 0.3, y);
+  // Focusing and clicking the handle can scroll the page, so measure the pair again.
+  const now = (await swipe.boundingBox())!;
+  await page.mouse.click(now.x + now.width * 0.3, now.y + now.height * 0.6);
   await expect(page.locator(".cz-item .ca-swipe")).toBeVisible();
   const zoomed = page.locator(".cz-item .ca-handle");
   await expect(zoomed).toHaveAttribute("aria-valuenow", "95");

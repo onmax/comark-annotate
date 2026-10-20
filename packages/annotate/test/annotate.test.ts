@@ -219,7 +219,7 @@ describe("comark-annotate", () => {
     ],
     [
       `::screenshot{src="a.png" alt="A" href="javascript:alert(1)"}\n::`,
-      "`href` must start with http",
+      "`href` must be an http:// or https:// URL",
     ],
     [`::compare\n:::screenshot{src="a.png" alt="A"}\n:::\n::`, "needs exactly two screenshots"],
     [
@@ -346,7 +346,7 @@ describe("comark-annotate", () => {
       'screenshot 1 ("Dashboard before"): `src` is required. Point it at the image file.',
       'screenshot 2 ("Dashboard after"): `src` is required. Point it at the image file.',
       "screenshot 3: `alt` is required. Describe what the screenshot shows.",
-      'screenshot 4 ("Again"): `href` must start with http:// or https://. Link the page you captured.',
+      'screenshot 4 ("Again"): `href` must be an http:// or https:// URL with a host. Link the page you captured.',
     ]);
   });
 
@@ -431,6 +431,8 @@ describe("comark-annotate", () => {
   it("compares viewports by size, however they're written", async () => {
     const same = compare.replace('viewport="900x360"', 'viewport="900 × 360"');
     expect((await run(same)).issues).toEqual([]);
+    const padded = compare.replace('viewport="900x360"', 'viewport="0900x0360"');
+    expect((await run(padded)).issues).toEqual([]);
     const { issues } = await run(compare.replace('viewport="900x360"', 'viewport="wide"'));
     expect(issues).toEqual([
       'screenshot "before.png": `viewport` must be the capture size in pixels, like 1440x900 (got "wide").',
