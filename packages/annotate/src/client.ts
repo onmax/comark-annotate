@@ -378,11 +378,12 @@ export function start(): () => void {
               }
               context.globalAlpha = alpha * strokeOpacity;
               context.strokeStyle = stroke;
-              // Canvas scales stroke widths with the transform. SVG marks use non-scaling-stroke,
-              // so compensate for the largest axis to keep their rendered width in CSS pixels.
+              // Canvas scales stroke widths with the transform. SVG marks use non-scaling-stroke;
+              // compensate by the transform's geometric mean, which avoids biasing widths toward
+              // either axis when preserveAspectRatio="none" produces a non-uniform resize.
               context.lineWidth =
                 vectorEffect === "non-scaling-stroke"
-                  ? lineWidth / Math.max(Math.abs(sx), Math.abs(sy), 1e-6)
+                  ? lineWidth / Math.sqrt(Math.abs(sx * sy) || 1e-6)
                   : lineWidth;
               // SAFETY: a computed stroke-linecap is butt, round, or square, which canvas takes as is.
               context.lineCap = strokeLinecap as CanvasLineCap;
@@ -562,6 +563,13 @@ export function start(): () => void {
       armed = overlayOf(frame);
       if (armed.getAttribute("src") !== ready.url) armed.src = ready.url;
       armed.setAttribute("data-menu", "");
+      // Hit testing for a context menu is tied to the original pointer-down target. Notify
+      // listeners on the replacement image as soon as it is armed so keyboard/headless
+      // contexts observe the same target as a native menu.
+      queueMicrotask(() => {
+        if (armed === overlayOf(frame) && armed.hasAttribute("data-menu"))
+          armed.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, button: 2 }));
+      });
       // The menu opens on press on some systems and on release on others; either way it has its target by then.
       disarming = window.setTimeout(disarm, 1500);
     },
