@@ -168,9 +168,13 @@ async function include(source: string, folder: string, chain: string[], run: Run
   const src = args.get("src")?.trim();
   if (!src) return fail('include: `src` is required, like :include{src="./part.md"}.');
   const name = `include "${src}"`;
+  let invalidOption = false;
   for (const key of args.keys())
-    if (!OPTIONS.has(key))
+    if (!OPTIONS.has(key)) {
+      invalidOption = true;
       fail(`${name}: \`${key}\` isn't an include option; use src, lines, region, code, or lang.`);
+    }
+  if (invalidOption) return;
   if (/^[a-z][a-z\d+.-]*:/i.test(src)) return fail(`${name}: only local files can be included.`);
   const path = resolve(src.startsWith("/") ? "" : folder, src);
   const leaves = `${name}: the path leaves the root. Move the file under the root or widen \`root\`.`;

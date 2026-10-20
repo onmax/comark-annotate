@@ -214,6 +214,10 @@ describe("comark-include", () => {
         'See :include{src="/code.ts"} here.',
         'include "/code.ts" isn\'t on its own line, so it was dropped. Put it on a line of its own with nothing else.',
       ],
+      [
+        ':include{src="/code.ts" typo="x"}',
+        'include "/code.ts": `typo` isn\'t an include option; use src, lines, region, code, or lang.',
+      ],
     ];
     for (const [markdown, issue] of cases) {
       expect(await issues(markdown, options), markdown).toEqual([issue]);
