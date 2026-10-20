@@ -42,8 +42,9 @@ describe("::diff", () => {
     for (const highlight of [false, true]) {
       const { issues, html } = await run(suggestion, highlight);
       expect(issues).toEqual([]);
+      expect(html).toContain('<figure class="ca ca-diff"><figcaption><svg class="ca-diff-icon"');
       expect(html).toContain(
-        '<figure class="ca ca-diff"><figcaption><strong>Suggested change</strong><code>src/a.ts</code><span class="ca-counts"><span class="ca-added">+1</span> <span class="ca-removed">−1</span></span></figcaption>',
+        '<span class="ca-diff-label">Suggested change</span><span class="ca-file">src/a.ts</span><span class="ca-counts"><span class="ca-added">+1</span> <span class="ca-removed">−1</span></span></figcaption>',
       );
       expect(rows(html)).toEqual([
         "same 12 12 const gap = 8",
@@ -147,7 +148,9 @@ describe("::diff", () => {
       diff('const a = "<b>"', 'const a = "<i>"', ' {file="<x>.ts" label="A & B"}', "ts"),
     );
     expect(issues).toEqual([]);
-    expect(html).toContain("<strong>A &amp; B</strong><code>&lt;x&gt;.ts</code>");
+    expect(html).toContain(
+      '<span class="ca-diff-label">A &amp; B</span><span class="ca-file">&lt;x&gt;.ts</span>',
+    );
     expect(html).toContain('const a = "&lt;<del>b</del>&gt;"');
     expect(html).toContain('const a = "&lt;<ins>i</ins>&gt;"');
     expect(html).not.toMatch(/<[bix]>/);
