@@ -5,7 +5,7 @@ tagline: Click an image or any block to zoom it out of its place. Escape, Back, 
 install: pnpm add comark @comark/html comark-zoom
 ---
 
-::tabs
+::examples
 :::example{label="Image"}
 ```md
 ![Forecast planning dashboard](/dashboard.png)

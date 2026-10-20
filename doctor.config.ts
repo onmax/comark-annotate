@@ -8,7 +8,7 @@ export default defineDoctorConfig({
     comark({
       include: "docs/pages/*.md",
       // docs/build.ts renders these itself.
-      components: ["example", "plugins", "tabs"],
+      components: ["example", "examples", "plugins"],
     }),
   ],
 });

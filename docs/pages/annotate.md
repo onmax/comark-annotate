@@ -5,7 +5,7 @@ tagline: Mark up screenshots in Markdown with hand-drawn marks, numbered notes, 
 install: pnpm add comark @comark/html comark-annotate
 ---
 
-::tabs
+::examples
 :::example{label="Before / after"}
 ```md
 ::compare
