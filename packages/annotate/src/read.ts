@@ -28,8 +28,13 @@ export interface Screenshot {
   caption: Node[];
 }
 
+/** How a compare shows its pair: side by side, or laid over each other with a divider the reader drags. */
+export const MODES = ["columns", "slider"] as const;
+export type Mode = (typeof MODES)[number];
+
 export interface Compare {
   title?: string;
+  mode: Mode;
   shots: Screenshot[];
 }
 
@@ -91,7 +96,7 @@ export const MAX_LINKED = 40;
 
 const PROPS = {
   screenshot: ["src", "alt", "title", "href", "viewport"],
-  compare: ["title"],
+  compare: ["title", "mode"],
   annotation: ["x", "y", "w", "h", "mark", "color", "side"],
 } as const;
 type Block = keyof typeof PROPS;
@@ -376,7 +381,28 @@ export function readCompare(
     issues.push(
       `${where}: ${before.name} was captured at ${before.size} and ${after.name} at ${after.size}, so they can't be compared. Recapture both at the same viewport.`,
     );
-  return { title: text(attrs.title) || undefined, shots };
+  const mode = text(attrs.mode) || "columns";
+  const known = MODES.find((item) => item === mode);
+  if (!known)
+    issues.push(
+      `${where}: \`mode\` is ${quote(mode)}, which isn't a compare mode. Use \`columns\` (side by side, the default) or \`slider\`.`,
+    );
+  const title = text(attrs.title) || undefined;
+  if (known !== "slider") return { title, mode: "columns", shots };
+  // An arrow out to the side would cross the divider, so a slider lists every note under it, numbered in order.
+  let number = 0;
+  return {
+    title,
+    mode: known,
+    shots: shots.map((shot) => ({
+      ...shot,
+      annotations: shot.annotations.map((annotation) => ({
+        ...annotation,
+        side: undefined,
+        number: ++number,
+      })),
+    })),
+  };
 }
 
 // Every screenshot is named by its src when no other screenshot shares it, and otherwise by its position and alt.

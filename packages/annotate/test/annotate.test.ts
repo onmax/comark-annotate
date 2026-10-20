@@ -61,6 +61,41 @@ describe("comark-annotate", () => {
     expect(html.match(/class="cc-slide"/g)).toHaveLength(2);
   });
 
+  it("lays a slider's screenshots over each other, with a handle to drag and every note listed", async () => {
+    const { issues, html } = await run(
+      compare
+        .replace("::compare", '::compare{mode="slider"}')
+        .replace("x=10 y=20 w=30 h=15}", 'x=10 y=20 w=30 h=15 side="left"}'),
+    );
+    expect(issues).toEqual([]);
+    expect(html).toContain(
+      '<div class="ca ca-compare ca-slider"><div class="ca-swipe" data-zoom tabindex="0" data-zoom-context=".ca" data-zoom-aside=".ca-swipe-notes" data-zoom-title="Before / After"><div class="ca-side ca-side-before"><div class="ca-heading"><span class="ca-label">Before</span></div><div class="ca-stage"><div class="ca-frame"><img src="before.png"',
+    );
+    expect(html).toContain(
+      '<div class="ca-side ca-side-after"><div class="ca-heading"><span class="ca-label">After</span> <a href="https://pr2.example.com/plan"',
+    );
+    expect(html).toContain(
+      '<div class="ca-handle" role="slider" tabindex="0" aria-label="Divider between Before and After" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="Before 50%, After 50%">',
+    );
+    // A side note would point across the divider, so it joins the numbered list.
+    expect(html).not.toContain('class="ca-callout');
+    expect(html).not.toContain('class="ca-arrow');
+    expect(html).toMatch(
+      /<div class="ca-side-notes ca-notes-before">.*<span class="ca-stamp">1<\/span><div>Filters/,
+    );
+    expect(html).toMatch(
+      /<div class="ca-side-notes ca-notes-after">.*<span class="ca-stamp">2<\/span><div>One row/,
+    );
+    expect(html).not.toContain('class="cc"');
+  });
+
+  it("carries the slider script once per render", async () => {
+    const slider = compare.replace("::compare", '::compare{mode="slider"}');
+    const { html } = await run(`${slider}\n${slider.replaceAll(".png", "-2.png")}`);
+    expect(html.match(/<div class="ca-swipe"/g)).toHaveLength(2);
+    expect(html.match(/<script>\(function start\(\) \{/g)).toHaveLength(1);
+  });
+
   it("inlines the styles once per render and keeps ids stable and unique", async () => {
     const { document } = await run(
       `${compare}\n::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10}\nNote\n:::\n::\n\n::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10}\nAgain\n:::\n::`,
@@ -219,6 +254,10 @@ describe("comark-annotate", () => {
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=10 y=50 w=10 h=10 side="top"}\nA\n:::\n:::annotation{x=20 y=50 w=10 h=10 side="top"}\nB\n:::\n::`,
       "top notes for annotations 1 and 2 would overlap",
     ],
+    [
+      compare.replace("::compare", '::compare{mode="swipe"}'),
+      'compare 1: `mode` is "swipe", which isn\'t a compare mode. Use `columns` (side by side, the default) or `slider`.',
+    ],
   ])("reports %#: %s", async (markdown, issue) => {
     const { issues } = await run(markdown);
     expect(issues.join("\n")).toContain(issue);
@@ -345,7 +384,7 @@ describe("comark-annotate", () => {
       `::compare{label="Toolbar"}\n:::screenshot{src="a.png" alt="A" label="Before" url="https://x.com" caption="Hi"}\n::::annotation{x=1 y=1 width=5 h=5 sid="left" colour="red"}\nNote\n::::\n:::\n\n:::screenshot{src="b.png" alt="B"}\n:::\n::`,
     );
     expect(issues).toEqual([
-      "compare 1: `label` isn't a prop of `::compare`. Did you mean `title`? Valid props: title.",
+      "compare 1: `label` isn't a prop of `::compare`. Did you mean `title`? Valid props: title, mode.",
       'screenshot "a.png": `label` isn\'t a prop of `::screenshot`. Did you mean `title`? Valid props: src, alt, title, href, viewport.',
       'screenshot "a.png": `url` isn\'t a prop of `::screenshot`. Did you mean `href`? Valid props: src, alt, title, href, viewport.',
       'screenshot "a.png": `caption` isn\'t a prop of `::screenshot`. Write the caption as Markdown inside the block, after the annotations. Valid props: src, alt, title, href, viewport.',

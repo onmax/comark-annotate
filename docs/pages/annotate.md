@@ -32,6 +32,24 @@ Extra filters collapse into **+2 filters**.
 ```
 :::
 
+:::example{label="Slider"}
+```md
+::compare{mode="slider"}
+:::screenshot{src="/before.png" alt="Filter toolbar wrapping onto a second row" viewport="640x250"}
+::::annotation{x=50.9 y=55.4 w=10.5 h=14.2 mark="circle" color="red"}
+**Apply** sits 6px lower than the chips.
+::::
+:::
+
+:::screenshot{src="/after.png" alt="Filter toolbar on one row" viewport="640x250"}
+::::annotation{x=82.5 y=34.8 w=10.5 h=14.2 mark="check" color="green"}
+**Apply** lines up with the chips.
+::::
+:::
+::
+```
+:::
+
 :::example{label="Pointers"}
 ```md
 ::screenshot{src="/dashboard.png" alt="Forecast planning dashboard"}
@@ -103,7 +121,7 @@ Notes without a `side` stay in the list. **Apply** waits until every filter is s
 :::
 ::
 
-Hover a mark or a note to highlight the other, and click a screenshot to zoom it. A comparison shows its screenshots side by side, or one at a time on a narrow page, and they zoom as one gallery. The page reads the same without a script; [zoom](/zoom) and [carousel](/carousel) come with the package.
+Hover a mark or a note to highlight the other, and click a screenshot to zoom it. A comparison shows its screenshots side by side, or one at a time on a narrow page, and they zoom as one gallery; a slider lays one over the other, and you drag the divider between them. The page reads the same without a script; [zoom](/zoom) and [carousel](/carousel) come with the package.
 
 ## Usage
 
@@ -172,6 +190,8 @@ Accuracy now counts returns.
 
 Two screenshots side by side, titled **Before** and **After** unless they set their own `title`. Numbers continue from one side to the other, and the pair stacks on narrow screens.
 
+With `mode="slider"`, the two screenshots share one frame: Before shows left of a divider and After right of it. Drag anywhere on the pair, or focus the handle and use the arrow keys, to move it; a click on the screenshots that doesn't drag zooms the pair. Use it when both screenshots show the same spot and the change is small, so the reader sees it at full width. Side notes become numbered notes in the list, since an arrow would cross the divider. Without the script, the two screenshots stack.
+
 ::example
 ```md
 ::compare{title="Toolbar alignment"}
@@ -193,6 +213,7 @@ Fixed.
 | Prop | |
 | --- | --- |
 | `title` | What the comparison shows, read out by screen readers. Defaults to "Comparison". |
+| `mode` | `columns` (default) puts the screenshots side by side; `slider` lays them over each other with a divider to drag. |
 
 ## Guides
 

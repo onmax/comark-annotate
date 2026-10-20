@@ -13,6 +13,7 @@ Pick what explains the change best, and mix freely with ordinary Markdown such a
 
 - One `::screenshot` with marks, when a single state shows the point.
 - A `::compare` of two screenshots, when the change is the point. Capture both at the same viewport, zoom, scroll, and page state, and set the same `viewport` on both.
+- `::compare{mode="slider"}` instead, when both screenshots show the same spot and the change is small, such as a number or a label at the same place. The reader drags a divider across one full-width image instead of reading two half-width ones. Side notes become numbered notes there, so skip `side`.
 - A side note (`side="left"`, `"right"`, or `"top"`) for the two or three points that matter most. With `mark="none"` the arrow alone points at the spot, which reads cleanest. Other notes stay numbered in the list under the image.
 
 Keep it to about six marks per screenshot. Every note says what is wrong or what changed, not just "here".
@@ -35,7 +36,7 @@ Five filters don't fit, so the toolbar wraps and pushes the table down.
 ::
 ```
 
-- `::compare`: `title` is optional and names the comparison for screen readers. Its two screenshots are titled Before and After unless they set their own.
+- `::compare`: `title` is optional and names the comparison for screen readers. `mode` is `columns` (default, side by side) or `slider`. Its two screenshots are titled Before and After unless they set their own.
 - `::screenshot`: `src` and `alt` are required; `title` (the heading above the image), `href` (the captured page, linked by its host), and `viewport` (like `1440x900`) are optional. Other content becomes the caption.
 - `::annotation`: `x y w h` are required percentages of the image, numbers from 0 to 100 without `%`. `mark` is `box` (default), `circle`, `underline`, `highlight`, `cross`, `check`, or `none`, which needs a `side`. `color` is `blue` (default) to point something out, `red` for a problem, `amber` for a warning, `green` for a fix, `gray` for neutral, or a 3- or 6-digit hex color. `side` is `left`, `right`, or `top`; keep top notes at least a quarter of the image apart and left or right notes an eighth apart.
 - Annotations must be direct children of a screenshot.
