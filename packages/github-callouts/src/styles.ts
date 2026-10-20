@@ -1,4 +1,4 @@
-import { theme } from "comark-zoom/client";
+import { theme } from "comark-zoom/theme";
 
 const types = ["note", "tip", "important", "warning", "caution"];
 

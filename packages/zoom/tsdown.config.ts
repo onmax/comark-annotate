@@ -2,7 +2,14 @@ import { defineConfig } from "tsdown";
 import { css } from "./src/styles.ts";
 
 export default defineConfig({
-  entry: ["src/index.ts", "src/html.ts", "src/client.ts", "src/vue.ts", "src/react.ts"],
+  entry: [
+    "src/index.ts",
+    "src/html.ts",
+    "src/client.ts",
+    "src/theme.ts",
+    "src/vue.ts",
+    "src/react.ts",
+  ],
   format: ["esm"],
   dts: true,
   clean: true,
