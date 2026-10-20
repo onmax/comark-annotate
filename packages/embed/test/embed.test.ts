@@ -18,11 +18,11 @@ describe("comark-embed", () => {
     expect(html).toContain(
       '<figure class="ce" data-provider="youtube" data-size="video"><div class="ce-frame">' +
         '<iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" title="Launch demo" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>' +
-        '<figcaption><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Launch demo</a></figcaption></figure>',
+        '<figcaption><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Launch demo<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></a></figcaption></figure>',
     );
     // Without a title, the player is named after its provider and the link after its host.
     expect(html).toContain('title="Vimeo video"');
-    expect(html).toContain('<figcaption><a href="https://vimeo.com/76979871">vimeo.com</a>');
+    expect(html).toContain('<figcaption><a href="https://vimeo.com/76979871">vimeo.com<svg');
     expect(html.match(/<style data-comark-embed>/g)).toHaveLength(1);
   });
 
@@ -118,15 +118,17 @@ describe("comark-embed", () => {
   });
 
   it("renders any other https link as a card, and escapes what it prints", async () => {
+    // The space keeps the title and host apart where the styles don't load, such as a feed reader.
     expect(await render(block("https://example.com/docs", ' title="Setup guide"'))).toContain(
-      '<a class="ce-card" href="https://example.com/docs"><strong>Setup guide</strong><span>example.com</span></a>',
+      '<a class="ce-card" href="https://example.com/docs"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12a10 10 0 1 0 20 0 10 10 0 1 0-20 0M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"></path></svg>' +
+        "<strong>Setup guide</strong> <span>example.com</span></a>",
     );
     expect(await render(block("https://example.com/"))).toContain(
-      "<strong>example.com</strong><span>example.com</span>",
+      "<strong>example.com</strong> <span>example.com</span>",
     );
     // A provider's link with no ID in it is still worth following.
-    expect(await render(block("https://www.youtube.com/@vitejs"))).toContain(
-      '<a class="ce-card" href="https://www.youtube.com/@vitejs"><strong>youtube.com</strong>',
+    expect(await render(block("https://www.youtube.com/@vitejs"))).toMatch(
+      /<a class="ce-card" href="https:\/\/www\.youtube\.com\/@vitejs"><svg [^>]*>.*?<\/svg><strong>youtube\.com<\/strong>/,
     );
     const html = await render(block("https://example.com/?q=%22x%22", " title='<b>\"Hi\"</b>'"));
     expect(html).toContain("<strong>&lt;b&gt;&quot;Hi&quot;&lt;/b&gt;</strong>");
