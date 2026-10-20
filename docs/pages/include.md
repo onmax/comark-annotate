@@ -100,7 +100,7 @@ include({ read: async (path) => files[`./content/${path}`]?.() });
 
 ### Validation
 
-An include that fails is dropped, and the plugin adds a sentence to `meta.issues` that names it and says how to fix it:
+An include that fails is dropped, and the plugin adds a sentence to `meta.issues` that names it and says how to fix it, as [Validation](/guide/validation/) describes:
 
 ```txt
 include "./x.md": file not found. It resolved to "guide/x.md" under the root; check the path or base.
@@ -108,7 +108,7 @@ include "../../etc/passwd": the path leaves the root. Move the file under the ro
 include "./a.md": guide/a.md includes itself (guide/a.md -> guide/b.md -> guide/a.md). Remove one of the includes.
 ```
 
-It reports a missing `src`, an argument it doesn't know, a missing file, a path that leaves the root, a URL, a cycle, nesting past `depth`, a `lines` range that is malformed or runs past the end, a missing or unclosed `region`, `lines` with `region`, a reader that throws, and an include that isn't alone on its line or is written `::include`. A partial that leaves a `::block` open is closed at the end of its paste and reported. Rendering never throws.
+It reports a missing `src`, an argument it doesn't know, a missing file, a path that leaves the root, a URL, a cycle, nesting past `depth`, a `lines` range that is malformed or runs past the end, a missing or unclosed `region`, `lines` with `region`, a reader that throws, and an include that isn't alone on its line or is written `::include`. A partial that leaves a `::block` open is closed at the end of its paste and reported.
 
 ### One parse
 
@@ -122,4 +122,4 @@ GitHub and npm show a README's source, and no Comark renderer runs there. For th
 
 ## Credits
 
-[Comark](https://comark.dev), by the [Comark team](https://github.com/comarkdown), parses the Markdown and renders it. The arguments follow [automd](https://github.com/unjs/automd).
+The arguments follow [automd](https://github.com/unjs/automd).

@@ -41,6 +41,8 @@ import embed, { components } from "comark-embed/html";
 const render = createHtmlRenderer({ plugins: [embed()], components });
 ```
 
+For Vue, React, or Svelte, import from `comark-embed/vue`, `comark-embed/react`, or `comark-embed/svelte`; the components add the styles when they mount. Import `comark-embed/style.css` with your styles so a server-rendered page doesn't shift. [Renderers](/guide/renderers/) covers using it with other plugins.
+
 ## Syntax
 
 ```md
@@ -68,13 +70,13 @@ Close the block with `::` on the next line; anything inside it is dropped.
 
 Any other `https://` link renders as a card with its `title` and host. Cards don't fetch the page's title yet, so give each one a `title`.
 
-The plugin adds every problem to `meta.issues`, so a host can reject a document before publishing it: a missing `url`, one that isn't `https://` (it renders nothing), a provider's link it can't read an ID from (it renders as a card), a card without a `title`, a `start` that isn't whole seconds or is set on a player that can't seek, and content inside the block. Each issue names its block and says how to fix it.
+The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes: a missing `url`, one that isn't `https://` (it renders nothing), a provider's link it can't read an ID from (it renders as a card), a card without a `title`, a `start` that isn't whole seconds or is set on a player that can't seek, and content inside the block. Each issue names its block and says how to fix it.
 
 ## Guides
 
 ### Theming
 
-Players sit in a bordered frame with their link under it, and cards follow shadcn/ui's Item: a globe, the title, and the host. Both read shadcn/ui's variables, such as `--background`, `--border`, and `--muted-foreground`, when the page has them, and use its neutral theme otherwise; the shared `--comark-*` tokens theme them together with the other plugins. Override `--ce-app-height` to change the height of CodePen, StackBlitz, and Figma:
+Players sit in a bordered frame with their link under it, and cards follow shadcn/ui's Item: a globe, the title, and the host. Both follow the shared tokens in [Theming](/guide/theming/). Override `--ce-app-height` to change the height of CodePen, StackBlitz, and Figma:
 
 ```css
 .ce {
@@ -82,17 +84,4 @@ Players sit in a bordered frame with their link under it, and cards follow shadc
 }
 ```
 
-The rules sit in a `comark` CSS layer, so any plain rule of your own wins. A player is a `figure.ce` with `data-provider` and `data-size`, holding `.ce-frame` and a `figcaption`; a card is an `a.ce-card`.
-
-### Renderers
-
-The same markup comes out of every renderer. Import the components from the entry for yours:
-
-| Renderer | Import |
-| --- | --- |
-| `@comark/html` | `comark-embed/html` inlines the styles once per document |
-| `@comark/vue` | `comark-embed/vue` |
-| `@comark/react` | `comark-embed/react` |
-| `@comark/svelte` | `comark-embed/svelte` |
-
-The Vue, React, and Svelte components add the styles when they mount. Import `comark-embed/style.css` with your styles so a server-rendered page doesn't shift.
+A player is a `figure.ce` with `data-provider` and `data-size`, holding `.ce-frame` and a `figcaption`; a card is an `a.ce-card`.

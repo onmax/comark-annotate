@@ -66,6 +66,8 @@ The plugin is named `alert`, so it takes the place of Comark's built-in alert pl
 
 `githubCallouts({ titles: { note: "Nota", warning: "Aviso" } })` changes the default titles, for a site in another language.
 
+For Vue, React, or Svelte, import from `comark-github-callouts/vue`, `comark-github-callouts/react`, or `comark-github-callouts/svelte`; the components add the styles when they mount. Import `comark-github-callouts/style.css` with your styles so a server-rendered page doesn't shift. [Renderers](/guide/renderers/) covers using it with other plugins.
+
 ## Syntax
 
 ```md
@@ -87,7 +89,7 @@ The marker is case-insensitive. Callouts work inside lists and other blocks.
 
 ### Theming
 
-Callouts follow shadcn/ui's Alert. They read its variables, such as `--background`, `--border`, `--muted-foreground`, and `--destructive`, when the page has them, and use its neutral theme otherwise. The shared `--comark-*` tokens theme them together with zoom, carousel, and annotate. Set `--cgc-note`, `--cgc-tip`, `--cgc-important`, `--cgc-warning`, or `--cgc-caution` to recolor one type:
+Callouts follow shadcn/ui's Alert and the shared tokens in [Theming](/guide/theming/), and read shadcn's `--destructive` for `CAUTION`. Set `--cgc-note`, `--cgc-tip`, `--cgc-important`, `--cgc-warning`, or `--cgc-caution` to recolor one type:
 
 ```css
 .cgc {
@@ -95,17 +97,4 @@ Callouts follow shadcn/ui's Alert. They read its variables, such as `--backgroun
 }
 ```
 
-The rules sit in a `comark` CSS layer, so any plain rule of your own wins. A callout is a `.cgc` with `data-type`, holding `.cgc-icon`, `.cgc-title`, and `.cgc-body`.
-
-### Renderers
-
-The same markup comes out of every renderer. Import the components from the entry for yours:
-
-| Renderer | Import |
-| --- | --- |
-| `@comark/html` | `comark-github-callouts/html` inlines the styles once per document |
-| `@comark/vue` | `comark-github-callouts/vue` |
-| `@comark/react` | `comark-github-callouts/react` |
-| `@comark/svelte` | `comark-github-callouts/svelte` |
-
-The Vue, React, and Svelte components add the styles when they mount. Import `comark-github-callouts/style.css` with your styles so a server-rendered page doesn't shift.
+A callout is a `.cgc` with `data-type`, holding `.cgc-icon`, `.cgc-title`, and `.cgc-body`.

@@ -6,9 +6,9 @@ export default defineDoctorConfig({
   extends: ["comark/recommended"],
   extensions: [
     comark({
-      include: "docs/pages/*.md",
+      include: "docs/pages/**/*.md",
       // docs/build.ts renders these itself.
-      components: ["example", "examples", "plugins"],
+      components: ["cards", "example", "examples"],
     }),
   ],
 });
