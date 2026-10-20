@@ -17,7 +17,7 @@ const missing = (error: unknown, name: string) =>
   error instanceof Error &&
   "code" in error &&
   error.code === "ERR_MODULE_NOT_FOUND" &&
-  error.message.includes(`'${name}'`);
+  error.message.match(/Cannot find package '([^']+)'/)?.[1] === name.split("/", 1)[0];
 
 /** The parse plugins and components of every comark-plugins package installed, plus `config`'s. */
 export async function resolveConfig(config: Config = {}): Promise<Required<LintOptions>> {
