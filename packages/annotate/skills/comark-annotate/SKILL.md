@@ -21,7 +21,7 @@ Keep it to about six marks per screenshot. Every note says what is wrong or what
 
 ```md
 ::compare
-:::screenshot{src="before.png" alt="Filter toolbar wrapping onto a second row" viewport="1440x900" url="https://pr12.preview.example.com/plan"}
+:::screenshot{src="before.png" alt="Filter toolbar wrapping onto a second row" viewport="1440x900" href="https://pr12.preview.example.com/plan"}
 ::::annotation{x=3.6 y=20.6 w=92.9 h=31.4 color="red"}
 Five filters don't fit, so the toolbar wraps and pushes the table down.
 ::::
@@ -35,8 +35,9 @@ Five filters don't fit, so the toolbar wraps and pushes the table down.
 ::
 ```
 
-- `::screenshot`: `src` and `alt` are required; `label`, `url` (the captured page, linked as Preview), and `viewport` are optional. Other content becomes the caption.
-- `::annotation`: `x y w h` are percentages of the image, 0 to 100. `mark` is `box` (default), `circle`, `underline`, `highlight`, `cross`, `check`, or `none`. `color` is `blue` (default) to point something out, `red` for a problem, `amber` for a warning, `green` for a fix, `gray` for neutral, or a hex color. `side` is `left`, `right`, or `top`; keep top notes at least a quarter of the image apart and left or right notes an eighth apart.
+- `::compare`: `title` is optional and names the comparison for screen readers. Its two screenshots are titled Before and After unless they set their own.
+- `::screenshot`: `src` and `alt` are required; `title` (the heading above the image), `href` (the captured page, linked by its host), and `viewport` (like `1440x900`) are optional. Other content becomes the caption.
+- `::annotation`: `x y w h` are required percentages of the image, numbers from 0 to 100 without `%`. `mark` is `box` (default), `circle`, `underline`, `highlight`, `cross`, `check`, or `none`, which needs a `side`. `color` is `blue` (default) to point something out, `red` for a problem, `amber` for a warning, `green` for a fix, `gray` for neutral, or a 3- or 6-digit hex color. `side` is `left`, `right`, or `top`; keep top notes at least a quarter of the image apart and left or right notes an eighth apart.
 - Annotations must be direct children of a screenshot.
 
 ## Measure every mark
@@ -57,7 +58,7 @@ npx comark-annotate check report.md
 npx comark-annotate render report.md -o report.html
 ```
 
-`check` prints one line per problem and exits with 1 if there are any. Fix every one. `render` writes a standalone page; open it in a browser, take a screenshot, and confirm each mark sits on its target and each number matches its note. If a mark can't be verified, say so in the report instead of guessing. Relative `src` paths resolve next to the output file.
+`check` prints one line per problem and exits with 1 if there are any. Each line names the block, such as `screenshot "after.png", annotation 2`, counting annotations within their screenshot, and says how to fix it. Fix every one. Pass several files to check them all. `render` writes a standalone page; open it in a browser, take a screenshot, and confirm each mark sits on its target and each number matches its note. If a mark can't be verified, say so in the report instead of guessing. Relative `src` paths resolve next to the output file.
 
 ## In a Comark host
 
@@ -68,4 +69,4 @@ import annotate, { components } from "comark-annotate/html";
 const render = createHtmlRenderer({ plugins: [annotate()], components });
 ```
 
-Hosts can reject a document while `meta.annotateIssues` is non-empty. For untrusted input, add Comark's `security` plugin with `blockedTags` such as `script`, `style`, and `iframe`; it cleans notes too.
+Hosts can reject a document while `meta.issues` is non-empty. For untrusted input, add Comark's `security` plugin with `blockedTags` such as `script`, `style`, and `iframe`; it cleans notes too.
