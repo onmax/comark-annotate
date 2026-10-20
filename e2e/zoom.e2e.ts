@@ -285,9 +285,23 @@ test("an image zooms no larger than its natural size", async ({ page }) => {
       body: '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50"><rect width="100" height="50"/></svg>',
     }),
   );
+  await page.route("**/medium.svg", (route) =>
+    route.fulfill({
+      contentType: "image/svg+xml",
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="150" height="75"><rect width="150" height="75"/></svg>',
+    }),
+  );
   await fixture(page, await render('![Small](/small.svg){width="50"}'));
   await page.locator("main img").click();
   await expect.poll(async () => Math.round((await rect(page, ".cz-item")).width)).toBe(100);
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".cz-dialog")).toHaveCount(0);
+
+  // A larger file stops at its own size too.
+  await fixture(page, await render('![Small](/small.svg){width="50" data-zoom-src="/medium.svg"}'));
+  await page.locator("main img").click();
+  await expect(page.locator(".cz-item img")).toHaveAttribute("src", "/medium.svg");
+  await expect.poll(async () => Math.round((await rect(page, ".cz-item")).width)).toBe(150);
 });
 
 test("start() from the client entry adds its own styles", async ({ page }) => {

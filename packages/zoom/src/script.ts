@@ -228,9 +228,16 @@ export function script(css: string): () => void {
     current.frame.style.width = `${width}px`;
     const height = current.frame.offsetHeight || 1;
     const box = current.stage.getBoundingClientRect();
+    // An image grows no larger than its file. While a data-zoom-src file loads, the page's image may stretch, since
+    // the larger file will take its place.
+    const image = current.frame.firstElementChild;
+    const large = image?.getAttribute("data-zoom-src");
     const natural =
-      item instanceof HTMLImageElement && item.naturalWidth && !item.hasAttribute("data-zoom-src")
-        ? Math.max(1, item.naturalWidth / width)
+      item instanceof HTMLImageElement &&
+      image instanceof HTMLImageElement &&
+      image.naturalWidth &&
+      (!large || image.getAttribute("src") === large)
+        ? Math.max(1, image.naturalWidth / width)
         : 4;
     current.scale = Math.max(
       0.1,
