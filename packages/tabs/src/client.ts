@@ -53,6 +53,8 @@ export function start(css: string): () => void {
   const key = (sync: string) => `comark-tabs:${sync}`;
   const current = new Map<string, string>();
   const read = (sync: string) => {
+    const selected = current.get(sync);
+    if (selected !== undefined) return selected;
     try {
       const saved = localStorage.getItem(key(sync));
       if (saved !== null) return saved;
