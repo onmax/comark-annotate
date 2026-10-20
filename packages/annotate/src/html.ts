@@ -165,7 +165,7 @@ async function figure(shot: Screenshot, state: State, id: string, top = false) {
     ? await children(shot.caption, state)
     : "";
   return (
-    `<figure class="ca-screenshot${sides}" data-zoom tabindex="0" data-zoom-context=".ca" data-zoom-title="${attr(shot.title || shot.alt)}">${heading && `<div class="ca-heading">${heading}</div>`}<div class="ca-stage"><div class="ca-frame"><img src="${attr(shot.src)}" alt="${attr(shot.alt)}" loading="lazy" decoding="async">${pins.join("")}${arrows.join("")}</div>${callouts}</div>` +
+    `<figure class="ca-screenshot${sides}" data-zoom tabindex="0" data-zoom-context=".ca" data-zoom-aside="figcaption" data-zoom-title="${attr(shot.title || shot.alt)}">${heading && `<div class="ca-heading">${heading}</div>`}<div class="ca-stage"><div class="ca-frame"><img src="${attr(shot.src)}" alt="${attr(shot.alt)}" loading="lazy" decoding="async">${pins.join("")}${arrows.join("")}</div>${callouts}</div>` +
     (caption || notes
       ? `<figcaption>${caption}${notes ? `<ol class="ca-notes">${notes}</ol>` : ""}</figcaption>`
       : "") +

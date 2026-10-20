@@ -82,6 +82,7 @@ export function start(css: string): () => void {
     pressed: EventTarget | null;
   };
   let view: View | null = null;
+  let restoration: ScrollRestoration | null = null;
 
   const el = <K extends keyof HTMLElementTagNameMap>(
     tag: K,
@@ -264,6 +265,19 @@ export function start(css: string): () => void {
     current.frame.style.transform = `scale(${current.scale})`;
   }
 
+  // The move that puts the copy, at scale 1, over the item. It aims at the copy's center rather than the frame's,
+  // since margins inside the copy can sit in the frame but outside the item on the page.
+  function travel(current: View, item: HTMLElement) {
+    const center = (node: Element) => {
+      const rect = node.getBoundingClientRect();
+      return [rect.left + rect.width / 2, rect.top + rect.height / 2] as const;
+    };
+    const [fx, fy] = center(current.frame);
+    const [cx, cy] = center(current.frame.firstElementChild!);
+    const [tx, ty] = center(item);
+    return `translate(${tx - fx - (cx - fx) / current.scale}px, ${ty - fy - (cy - fy) / current.scale}px)`;
+  }
+
   function render(current: View) {
     const item = current.items[current.index]!;
     current.frame.replaceChildren();
@@ -320,6 +334,9 @@ export function start(css: string): () => void {
   let unlocked: { overflow: string; gutter: string; padding: string } | null = null;
 
   function lock() {
+    // A smooth scroll still under way would carry on once the zoom closes and move the item away from the copy that
+    // is flying back to it. Stop it where it is.
+    scrollTo({ left: scrollX, top: scrollY, behavior: "instant" });
     const scrollbar = innerWidth - root.clientWidth;
     unlocked = {
       overflow: root.style.overflow,
@@ -340,6 +357,13 @@ export function start(css: string): () => void {
     root.style.scrollbarGutter = unlocked.gutter;
     root.style.paddingRight = unlocked.padding;
     unlocked = null;
+  }
+
+  function restore() {
+    const saved = restoration;
+    restoration = null;
+    // The browser restores scroll after popstate, so put the setting back once it has skipped that.
+    if (saved) setTimeout(() => (history.scrollRestoration = saved));
   }
 
   function open(item: HTMLElement) {
@@ -403,19 +427,25 @@ export function start(css: string): () => void {
     dialog.focus({ preventScroll: true });
 
     // Back closes the zoom, like a photo viewer. A frame with an opaque origin can't push history; Escape still works.
+    // Going back would also restore the scroll position saved when the zoom opened, and the page may have moved since,
+    // when the click landed during a smooth scroll; the page stays where it is instead.
+    // The setting belongs to each history entry, so it goes on the page's entry before the zoom's is pushed.
     try {
+      restoration = history.scrollRestoration;
+      history.scrollRestoration = "manual";
       history.pushState({ ...history.state, comarkZoom: true }, "");
       current.pushed = true;
-    } catch {}
+    } catch {
+      if (restoration) history.scrollRestoration = restoration;
+      restoration = null;
+    }
 
     const shown = items[current.index]!;
     if (!motion.matches) {
-      const from = shown.getBoundingClientRect();
-      const to = frame.getBoundingClientRect();
       frame.animate(
         [
           {
-            transform: `translate(${from.left + from.width / 2 - (to.left + to.width / 2)}px, ${from.top + from.height / 2 - (to.top + to.height / 2)}px) scale(1)`,
+            transform: `${travel(current, shown)} scale(1)`,
           },
           { transform: `scale(${current.scale})` },
         ],
@@ -434,10 +464,17 @@ export function start(css: string): () => void {
     const current = view;
     if (!current || current.closing) return;
     current.closing = true;
-    if (current.pushed && !fromHistory && history.state?.comarkZoom) history.back();
+    if (current.pushed && !fromHistory && history.state?.comarkZoom) {
+      // stop() may have removed the listener that puts scroll restoration back.
+      addEventListener("popstate", restore, { once: true });
+      history.back();
+    } else if (!fromHistory) restore();
     const item = current.items[current.index]!;
     if (!motion.matches) {
-      const from = current.frame.getBoundingClientRect();
+      // A close can come while the opening animation still runs. Measure the frame where it settles, so the path back
+      // ends on the item, and start from where it is now.
+      const now = getComputedStyle(current.frame).transform;
+      for (const animation of current.frame.getAnimations()) animation.cancel();
       const to = item.getBoundingClientRect();
       const visible = to.bottom > 0 && to.top < innerHeight;
       const animations = [
@@ -450,12 +487,7 @@ export function start(css: string): () => void {
       animations.push(
         current.frame.animate(
           visible
-            ? [
-                { transform: `scale(${current.scale})` },
-                {
-                  transform: `translate(${to.left + to.width / 2 - (from.left + from.width / 2)}px, ${to.top + to.height / 2 - (from.top + from.height / 2)}px) scale(1)`,
-                },
-              ]
+            ? [{ transform: now }, { transform: `${travel(current, item)} scale(1)` }]
             : [{ opacity: 1 }, { opacity: 0 }],
           { duration: 200, easing, fill: "forwards" },
         ),
@@ -532,7 +564,14 @@ export function start(css: string): () => void {
     { signal },
   );
 
-  addEventListener("popstate", () => void shut(true), { signal });
+  addEventListener(
+    "popstate",
+    () => {
+      restore();
+      void shut(true);
+    },
+    { signal },
+  );
   addEventListener("resize", () => view && place(view), { signal });
 
   const state = {

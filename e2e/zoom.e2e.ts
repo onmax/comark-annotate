@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 test("an image zooms, and Escape, Back, and a click around it close it", async ({ page }) => {
   await page.goto("/zoom/");
