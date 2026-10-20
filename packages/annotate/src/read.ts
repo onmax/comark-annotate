@@ -45,6 +45,8 @@ export interface DiffRow {
   new?: number;
   /** The line's content: Shiki's token spans when the code is highlighted, with changed words in `del` or `ins`. */
   nodes: Node[];
+  /** Whether its block highlights the line, as in ```ts {2}. */
+  highlight: boolean;
 }
 
 export interface Diff {
@@ -496,12 +498,43 @@ function lines(pre: ElementNode): Node[][] {
     }
   };
   add(code && code[0] === "code" ? children(code) : children(pre));
+  // A newline at the end leaves an empty line after it, which the code block doesn't show either.
+  if (result.length > 1 && !lineText(result.at(-1)!)) result.pop();
   // An empty fence still parses as one empty line.
   return result.length === 1 && !lineText(result[0]!) ? [] : result;
 }
 
-// Words, runs of spaces, and single symbols, so a changed name is marked whole and a changed bracket alone.
-const words = (line: string) => line.match(/\w+|\s+|[^\w\s]/g) ?? [];
+// The block's highlighted lines, counted from 1. Comark keeps them on the block with or without Shiki.
+const highlights = (pre?: ElementNode) => {
+  const value: unknown = pre?.[1].highlights;
+  return new Set<unknown>(Array.isArray(value) ? value : []);
+};
+
+const graphemes = new Intl.Segmenter("en", { granularity: "grapheme" });
+// Comark prints a `&` in text as it is, so `&lt;` in code reaches the browser as a character reference.
+const REFERENCE = /(&(?:[a-z][\da-z]*|#\d+|#x[\da-f]+);)/i;
+
+// Words, runs of spaces, and single symbols, so a changed name is marked whole and a changed bracket alone. Each piece
+// is made of whole graphemes and a reference is one symbol, so a mark never splits an emoji, an accent from its
+// letter, or a reference into the letters of its name.
+function words(line: string) {
+  const tokens: string[] = [];
+  let last = "";
+  for (const [index, part] of line.split(REFERENCE).entries()) {
+    if (index % 2) {
+      tokens.push(part);
+      last = "";
+      continue;
+    }
+    for (const { segment } of graphemes.segment(part)) {
+      const kind = /^[\p{L}\p{N}_]/u.test(segment) ? "word" : /^\s/u.test(segment) ? "space" : "";
+      if (kind && kind === last) tokens[tokens.length - 1] += segment;
+      else tokens.push(segment);
+      last = kind;
+    }
+  }
+  return tokens;
+}
 
 // The character ranges of a line that the other line doesn't share, joined across the spaces between them.
 function changed(steps: Step[], tokens: string[], side: "del" | "add") {
@@ -638,6 +671,7 @@ export function readDiff(
 
   const rows: DiffRow[] = [];
   const at = (n: number) => (line === undefined ? undefined : line + n);
+  const [litBefore, litAfter] = [highlights(first), highlights(second)];
   let removed: DiffRow[] = [];
   let added: DiffRow[] = [];
   const flush = () => {
@@ -647,12 +681,29 @@ export function readDiff(
     added = [];
   };
   for (const step of steps) {
-    if (step[0] === "del") removed.push({ kind: "del", old: at(step[1]), nodes: old[step[1]]! });
+    if (step[0] === "del")
+      removed.push({
+        kind: "del",
+        old: at(step[1]),
+        nodes: old[step[1]]!,
+        highlight: litBefore.has(step[1] + 1),
+      });
     else if (step[0] === "add")
-      added.push({ kind: "add", new: at(step[1]), nodes: next[step[1]]! });
+      added.push({
+        kind: "add",
+        new: at(step[1]),
+        nodes: next[step[1]]!,
+        highlight: litAfter.has(step[1] + 1),
+      });
     else {
       flush();
-      rows.push({ kind: "same", old: at(step[1]), new: at(step[2]), nodes: old[step[1]]! });
+      rows.push({
+        kind: "same",
+        old: at(step[1]),
+        new: at(step[2]),
+        nodes: old[step[1]]!,
+        highlight: litBefore.has(step[1] + 1) || litAfter.has(step[2] + 1),
+      });
     }
   }
   flush();
