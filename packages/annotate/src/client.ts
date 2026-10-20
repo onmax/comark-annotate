@@ -632,7 +632,7 @@ export function start(): () => void {
       const figure = own
         ? target
         : target?.matches(".cz-dialog")
-          ? figureOf(target.querySelector(".ca-screenshot"))
+          ? figureOf(target.querySelector(".ca-screenshot, .ca-swipe"))
           : null;
       if (!target || !figure) return;
       event.preventDefault();
