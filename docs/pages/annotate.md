@@ -1,7 +1,7 @@
 ---
 title: comark-annotate
 description: Hand-drawn marks, numbered notes, and arrows on screenshots, written in Markdown.
-tagline: Mark up screenshots in Markdown with hand-drawn marks, numbered notes, arrows, and before/after comparisons.
+tagline: Mark up screenshots in Markdown with hand-drawn marks, numbered notes, arrows, and before/after comparisons, and show code changes as suggested changes.
 install: pnpm add comark @comark/html comark-annotate
 ---
 
@@ -215,6 +215,37 @@ Fixed.
 | `title` | What the comparison shows, read out by screen readers. Defaults to "Comparison". |
 | `mode` | `columns` (default) puts the screenshots side by side; `slider` lays them over each other with a divider to drag. |
 
+### diff
+
+A code change, shown the way a pull request review shows a suggested change. Write the code before and after as two ordinary fenced blocks; the diff marks removed lines red and added lines green, and within a pair of changed lines, the words that changed. The header shows the file and how many lines were added and removed. Leave the first block empty for a new file, or the second for a deleted one.
+
+::example
+````md
+::diff{line=212 label="Suggested change"}
+```ts [packages/zoom/src/client.ts]
+function close() {
+  dialog.close();
+  history.back();
+}
+```
+```ts
+function close() {
+  dialog.close();
+  if (opened) history.back();
+}
+```
+::
+````
+::
+
+| Prop | |
+| --- | --- |
+| `file` | The file's path. Defaults to the name on the first block, like `` ```ts [src/a.ts] ``; one of the two is required. |
+| `line` | The file's line number for the first line of both blocks. Without it, the diff has no line numbers. |
+| `label` | A heading before the file name, such as "Suggested change". |
+
+Keep both blocks to the lines around the change; the plugin reports a block over 200 lines, two blocks in different languages or files, and a diff with no change. The line numbers and the `+` and `−` come from CSS, so copying a selection copies only the code. With Comark's `shiki` plugin, both blocks keep their highlighting. One diff shows one file and takes no unified diff: it's for a change a reader should see, which a few lines before and after show best.
+
 ## Guides
 
 ### Side notes
@@ -271,9 +302,9 @@ Set the `--comark-*` tokens to theme zoom, carousel, and annotate at once. Each 
 | --- | --- | --- |
 | `--comark-background` | `--background` | Button faces, the zoom backdrop, the ring around stamps |
 | `--comark-foreground` | `--foreground` | Text, icons, the current thumbnail, slide panels |
-| `--comark-muted` | `--muted-foreground` | The zoom and carousel counters |
-| `--comark-border` | `--border` | Button, thumbnail, and screenshot borders |
-| `--comark-accent` | `--accent` | Hovered buttons |
+| `--comark-muted` | `--muted-foreground` | The zoom and carousel counters, diff line numbers |
+| `--comark-border` | `--border` | Button, thumbnail, screenshot, and diff borders |
+| `--comark-accent` | `--accent` | Hovered buttons, the diff header |
 | `--comark-ring` | `--ring` | Focus rings |
 | `--comark-radius` | `--radius` | Corners, a little smaller on buttons and images |
 | `--comark-font` | `--font-sans` | The zoomed view's header |
@@ -301,7 +332,7 @@ The rules sit in a `comark` CSS layer, so any plain rule of your own wins withou
 }
 ```
 
-The mark colors are separate from the theme, because each one means something: a plain `.ca { --ca-color: #0070f3; --ca-solid: #0070f3; --ca-ink: #fff }` changes the default marks, arrows, and notes (`--ca-color`), stamps (`--ca-solid`), and stamp numbers (`--ca-ink`), and `--ca-red`, `--ca-amber`, `--ca-green`, `--ca-blue`, and `--ca-gray` change the named ones. Side notes and labels use `--ca-note-font`; this page sets it to Caveat for the handwritten look.
+The mark colors are separate from the theme, because each one means something: a plain `.ca { --ca-color: #0070f3; --ca-solid: #0070f3; --ca-ink: #fff }` changes the default marks, arrows, and notes (`--ca-color`), stamps (`--ca-solid`), and stamp numbers (`--ca-ink`), and `--ca-red`, `--ca-amber`, `--ca-green`, `--ca-blue`, and `--ca-gray` change the named ones. Side notes and labels use `--ca-note-font`; this page sets it to Caveat for the handwritten look. A diff's code uses `--ca-code-font`, and its colors come from `--ca-red` and `--ca-green`.
 
 ## Agents
 

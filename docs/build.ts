@@ -64,7 +64,10 @@ const example: NodeHandler = async ([, attrs, ...children], state) => {
   const pre = children.find(isPre);
   if (!pre) throw new Error(`Example "${str(attrs.label)}" needs a fenced code block.`);
   const source = textContent(pre);
-  const preview = await parseMarkdown(source, { plugins: contentPlugins() });
+  // Highlighted like the page, so a diff in an example keeps its colors.
+  const preview = await parseMarkdown(source, {
+    plugins: [...contentPlugins(), shiki({ themes: { light, dark } })],
+  });
   if (preview.meta.issues.length)
     throw new Error(`Example "${str(attrs.label)}":\n${preview.meta.issues.join("\n")}`);
   return (

@@ -1,6 +1,6 @@
 ---
 name: comark-annotate
-description: Writes annotated screenshots and before/after comparisons in Markdown with the comark-annotate Comark plugin, measures each mark from the page, and checks the rendered result. Use when the user wants PR evidence, a visual bug report, a design review, or any screenshot with marks, numbered notes, or arrows in a Markdown document.
+description: Writes annotated screenshots, before/after comparisons, and suggested code changes in Markdown with the comark-annotate Comark plugin, measures each mark from the page, and checks the rendered result. Use when the user wants PR evidence, a visual bug report, a design review, a code suggestion, or any screenshot with marks, numbered notes, or arrows in a Markdown document.
 ---
 
 # Annotated screenshots
@@ -14,6 +14,7 @@ Pick what explains the change best, and mix freely with ordinary Markdown such a
 - One `::screenshot` with marks, when a single state shows the point.
 - A `::compare` of two screenshots, when the change is the point. Capture both at the same viewport, zoom, scroll, and page state, and set the same `viewport` on both.
 - `::compare{mode="slider"}` instead, when both screenshots show the same spot and the change is small, such as a number or a label at the same place. The reader drags a divider across one full-width image instead of reading two half-width ones. Side notes become numbered notes there, so skip `side`.
+- A `::diff` of two code blocks, when a few lines of code are the point, such as a suggested fix. It renders like a suggested change in a GitHub review.
 - A side note (`side="left"`, `"right"`, or `"top"`) for the two or three points that matter most. With `mark="none"` the arrow alone points at the spot, which reads cleanest. Other notes stay numbered in the list under the image. In a side-by-side compare only `side="top"` keeps its arrow; left and right notes join the list.
 
 Keep it to about six marks per screenshot. Every note says what is wrong or what changed, not just "here".
@@ -41,6 +42,21 @@ Five filters don't fit, so the toolbar wraps and pushes the table down.
 - `::annotation`: `x y w h` are required percentages of the image, numbers from 0 to 100 without `%`. `mark` is `box` (default), `circle`, `underline`, `highlight`, `cross`, `check`, or `none`, which needs a `side`. `color` is `blue` (default) to point something out, `red` for a problem, `amber` for a warning, `green` for a fix, `gray` for neutral, or a 3- or 6-digit hex color. `side` is `left`, `right`, or `top`; keep top notes at least a quarter of the image apart and left or right notes an eighth apart.
 - Annotations must be direct children of a screenshot.
 
+````md
+::diff{line=12 label="Suggested change"}
+```ts [src/zoom/client.ts]
+const gap = 8
+history.back()
+```
+```ts
+const gap = 8
+if (opened) history.back()
+```
+::
+````
+
+- `::diff`: exactly two fenced blocks, before then after, in the same language, and nothing else inside; put explanations above or below it. Name the file on the first block or with `file`. `line` is the file's line number for the first line and adds line numbers; `label` is an optional heading. Keep only the lines around the change, at most 200. Leave a block empty for an added or deleted file.
+
 ## Measure every mark
 
 Never estimate coordinates from the image. In the browser you captured, measure the element and divide by the viewport:
@@ -59,7 +75,7 @@ npx comark-annotate check report.md
 npx comark-annotate render report.md -o report.html
 ```
 
-`check` prints one line per problem and exits with 1 if there are any. Each line names the block, such as `screenshot "after.png", annotation 2`, counting annotations within their screenshot, and says how to fix it. Fix every one. Pass several files to check them all. `render` writes a standalone page; open it in a browser, take a screenshot, and confirm each mark sits on its target and each number matches its note. If a mark can't be verified, say so in the report instead of guessing. Relative `src` paths resolve next to the output file.
+`check` prints one line per problem and exits with 1 if there are any. Each line names the block, such as `screenshot "after.png", annotation 2` or `diff "src/a.ts"`, counting annotations within their screenshot, and says how to fix it. Fix every one. Pass several files to check them all. `render` writes a standalone page; open it in a browser, take a screenshot, and confirm each mark sits on its target and each number matches its note. If a mark can't be verified, say so in the report instead of guessing. Relative `src` paths resolve next to the output file.
 
 ## In a Comark host
 
