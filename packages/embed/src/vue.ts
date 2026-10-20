@@ -1,8 +1,25 @@
 import { defineComponent, h, onMounted } from "vue";
-import { addStyles, allow, referrerPolicy } from "./client.ts";
+import { addStyles, allow, icons, referrerPolicy } from "./client.ts";
 
 export { default } from "./index.ts";
 export type { EmbedAttributes, EmbedMeta, Size } from "./index.ts";
+
+const icon = (d: string) =>
+  h(
+    "svg",
+    {
+      viewBox: "0 0 24 24",
+      width: "16",
+      height: "16",
+      fill: "none",
+      stroke: "currentColor",
+      "stroke-width": "2",
+      "stroke-linecap": "round",
+      "stroke-linejoin": "round",
+      "aria-hidden": "true",
+    },
+    [h("path", { d })],
+  );
 
 /** `::embed` for `@comark/vue`. */
 export const Embed = defineComponent({
@@ -23,7 +40,9 @@ export const Embed = defineComponent({
       if (!props.href) return null;
       if (!props.src)
         return h("a", { class: "ce-card", href: props.href }, [
+          icon(icons.globe),
           h("strong", props.title),
+          " ",
           h("span", props.host),
         ]);
       return h(
@@ -40,7 +59,7 @@ export const Embed = defineComponent({
               referrerpolicy: referrerPolicy,
             }),
           ]),
-          h("figcaption", [h("a", { href: props.href }, props.title)]),
+          h("figcaption", [h("a", { href: props.href }, [props.title, icon(icons.external)])]),
         ],
       );
     };
