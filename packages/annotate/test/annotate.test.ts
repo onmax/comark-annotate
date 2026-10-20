@@ -146,6 +146,27 @@ describe("comark-annotate", () => {
     expect(html.match(/class="ca-screenshot ca-top"/g)).toHaveLength(2);
   });
 
+  it("lists the notes beside a compared screenshot under it and keeps the ones above", async () => {
+    const { issues, html } = await run(
+      `::compare\n:::screenshot{src="a.png" alt="A"}\n::::annotation{x=6 y=18 w=8 h=5 side="right"}\nFar from its note.\n::::\n::::annotation{x=6 y=22 w=8 h=5 side="right"}\nClose to the first.\n::::\n:::\n\n:::screenshot{src="b.png" alt="B"}\n::::annotation{x=40 y=50 w=20 h=10 mark="none" side="left"}\nPointed at.\n::::\n::::annotation{x=40 y=10 w=20 h=10 side="top"}\nAbove.\n::::\n:::\n::`,
+    );
+    // Listed notes can't overlap, so two close together aren't reported.
+    expect(issues).toEqual([]);
+    expect(html).not.toMatch(/class="ca-screenshot[^"]* ca-(left|right)/);
+    expect(html).not.toMatch(/class="ca-(callout|arrow) ca-(callout|arrow)-(left|right)/);
+    expect(html).toMatch(
+      /<li id="ca-[a-z0-9]+-1" data-n="1"><span class="ca-stamp">1<\/span><div>Far/,
+    );
+    expect(html).toMatch(
+      /<li id="ca-[a-z0-9]+-2" data-n="2"><span class="ca-stamp">2<\/span><div>Close/,
+    );
+    expect(html).toMatch(
+      /<li id="ca-[a-z0-9]+-3" data-n="3"><span class="ca-stamp">3<\/span><div>Pointed/,
+    );
+    expect(html).toMatch(/class="ca-callout ca-callout-top" id="ca-[a-z0-9]+-4" data-n="4"/);
+    expect(html.match(/class="ca-screenshot ca-top"/g)).toHaveLength(2);
+  });
+
   it("points from a note above the image without drawing a mark", async () => {
     const { issues, html } = await run(
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=40 y=50 w=20 h=10 mark="none" side="top"}\nStart with what failed.\n:::\n::`,

@@ -90,6 +90,7 @@ const hasContent = (nodes: Node[]): boolean =>
 // Allow half a percent of rounding error when an agent converts pixels to percentages.
 const EDGE = 100.5;
 const SIDES = ["left", "right", "top"] as const;
+type Side = (typeof SIDES)[number];
 // Notes on one side closer than this would likely overlap: % of the image height for left and right, of its
 // width for top. A heuristic, since the text itself can't be measured.
 const SIDE_GAP = { left: 12, right: 12, top: 25 };
@@ -203,7 +204,7 @@ export function readScreenshot(
   issues: string[],
   data: Data,
   names: Names = new Map(),
-  start = { n: 1, number: 1 },
+  start: { n: number; number: number; sides?: readonly Side[] } = { n: 1, number: 1 },
 ): Screenshot & { viewport?: { width: number; height: number } } {
   let number = start.number;
   const where = names.get(node) ?? "screenshot";
@@ -236,6 +237,8 @@ export function readScreenshot(
       const n = start.n + annotations.length;
       const found: string[] = [];
       const annotation = readAnnotation(child, found, data);
+      if (annotation.side && !(start.sides ?? SIDES).includes(annotation.side))
+        annotation.side = undefined;
       const stamp = annotation.side ? undefined : number++;
       const index = annotations.length + 1;
       const label = `${where}, annotation ${index}${annotation.side ? ` (${annotation.side} note)` : stamp === index ? "" : ` (stamp ${stamp})`}`;
@@ -365,6 +368,11 @@ export function readCompare(
   const problems: string[] = [];
   checkProps("compare", node, attrs, problems, data);
   issues.push(...problems.map((problem) => `${where}: ${problem}`));
+  const mode = text(attrs.mode) || "columns";
+  const known = MODES.find((item) => item === mode);
+  // A note beside one screenshot of a pair would sit against the other one and narrow its own image, and in a slider
+  // its arrow would cross the divider. Those notes join the numbered list; a note above stays in its own column.
+  const sides = known === "slider" ? [] : (["top"] as const);
   const shots: Screenshot[] = [];
   const viewports: { name: string; size?: { width: number; height: number } }[] = [];
   for (const child of children(node)) {
@@ -373,6 +381,7 @@ export function readCompare(
       const { viewport, ...shot } = readScreenshot(child, issues, data, names, {
         n: 1 + all.length,
         number: 1 + all.filter((annotation) => annotation.number).length,
+        sides,
       });
       shots.push({ ...shot, title: shot.title ?? (shots.length ? "After" : "Before") });
       viewports.push({ name: names.get(child) ?? "screenshot", size: viewport });
@@ -395,28 +404,11 @@ export function readCompare(
     issues.push(
       `${where}: ${before.name} was captured at ${px(before.size)} and ${after.name} at ${px(after.size)}, so they can't be compared. Recapture both at the same viewport.`,
     );
-  const mode = text(attrs.mode) || "columns";
-  const known = MODES.find((item) => item === mode);
   if (!known)
     issues.push(
       `${where}: \`mode\` is ${quote(mode)}, which isn't a compare mode. Use \`columns\` (side by side, the default) or \`slider\`.`,
     );
-  const title = text(attrs.title) || undefined;
-  if (known !== "slider") return { title, mode: "columns", shots };
-  // An arrow out to the side would cross the divider, so a slider lists every note under it, numbered in order.
-  let number = 0;
-  return {
-    title,
-    mode: known,
-    shots: shots.map((shot) => ({
-      ...shot,
-      annotations: shot.annotations.map((annotation) => ({
-        ...annotation,
-        side: undefined,
-        number: ++number,
-      })),
-    })),
-  };
+  return { title: text(attrs.title) || undefined, mode: known ?? "columns", shots };
 }
 
 // Every screenshot is named by its src when no other screenshot shares it, and otherwise by its position and alt.
