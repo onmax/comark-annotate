@@ -23,10 +23,13 @@ catalog:
   shiki: ^4.5.0
   tsdown: ^0.23.1
   typescript: ^6.0.3
-  vite-doctor: ^0.0.12
+  vite-doctor: ^0.1.0
   "@types/node": ^24.0.0
   vite: npm:@voidzero-dev/vite-plus-core@^1.1.0
   vite-plus: ^1.1.0
 
 overrides:
   vite: "catalog:"
+
+minimumReleaseAgeExclude:
+  - vite-doctor@0.1.0
