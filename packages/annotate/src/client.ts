@@ -26,7 +26,7 @@ export function start(): () => void {
 
   type Drag = { swipe: HTMLElement; id: number; x: number; moved: boolean; t: number; v: number };
   let drag: Drag | null = null;
-  let swallow: HTMLElement | null = null;
+  const swallow = new WeakSet<HTMLElement>();
   const splits = new WeakMap<HTMLElement, number>();
   const coasting = new WeakMap<HTMLElement, number>();
 
@@ -85,8 +85,6 @@ export function start(): () => void {
       if (!swipe || !event.isPrimary || event.button !== 0) return;
       if (event.target instanceof Element && event.target.closest("a")) return;
       stop(swipe);
-      // A new pointer sequence starts a fresh click decision.
-      if (swallow === swipe) swallow = null;
       drag = {
         swipe,
         id: event.pointerId,
@@ -125,7 +123,7 @@ export function start(): () => void {
     if (!moved) return;
     swipe.removeAttribute("data-dragging");
     // Keep the compatibility click suppressed until it is actually delivered.
-    swallow = event.type === "pointerup" ? swipe : null;
+    if (event.type === "pointerup") swallow.add(swipe);
     // A pause before letting go means the reader placed the divider, not flicked it.
     if (event.type === "pointerup" && event.timeStamp - t < 80) coast(swipe, v);
   };
@@ -138,8 +136,9 @@ export function start(): () => void {
     (event) => {
       const handle = event.target instanceof Element && event.target.closest(".ca-handle");
       const swipe = swipeOf(event.target);
-      if (!handle && swallow !== swipe) return;
-      if (swallow === swipe) swallow = null;
+      if (!swipe) return;
+      if (!handle && !swallow.has(swipe)) return;
+      if (swallow.has(swipe)) swallow.delete(swipe);
       event.preventDefault();
     },
     { capture: true, signal },

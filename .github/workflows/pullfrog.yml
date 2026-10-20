@@ -22,7 +22,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
       - name: Configure proxy access
@@ -31,7 +31,7 @@ jobs:
           {"provider":{"openai-compatible":{"options":{"headers":{"CF-Access-Client-Id":"{env:CF_ACCESS_CLIENT_ID}","CF-Access-Client-Secret":"{env:CF_ACCESS_CLIENT_SECRET}"}}}}}
           JSON
       - name: Run agent
-        uses: pullfrog/pullfrog@v0
+        uses: pullfrog/pullfrog@ed800018463e1b84e8e3377f662173aed1da98b0 # v0.1.95
         with:
           prompt: ${{ inputs.prompt }}
           model: openai-compatible/byok

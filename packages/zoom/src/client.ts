@@ -70,6 +70,7 @@ export function start(css: string): () => void {
     pressed: EventTarget | null;
   };
   let view: View | null = null;
+  let restoration: ScrollRestoration | null = null;
 
   const el = <K extends keyof HTMLElementTagNameMap>(
     tag: K,
@@ -141,18 +142,51 @@ export function start(css: string): () => void {
     return node;
   }
 
+  // The text styles that set a copy's size. Without the page's it would take the dialog's, reflow to another height,
+  // and jump when the original takes its place at the end of the closing animation. Color stays the dialog's, which
+  // matches its backdrop.
+  const INHERITED = [
+    "font-family",
+    "font-size",
+    "font-style",
+    "font-weight",
+    "letter-spacing",
+    "text-align",
+  ];
+
+  // The browser reports line-height in pixels, whether the page set a ratio, which text of another size inside the
+  // item scales by, or a length, which it keeps. Text at twice the size tells them apart.
+  function lineHeight(parent: HTMLElement, page: CSSStyleDeclaration) {
+    const size = parseFloat(page.fontSize);
+    if (page.lineHeight === "normal" || !size) return page.lineHeight;
+    // Important inline styles win over any rule of the host's, so the probe can't be restyled or take up room.
+    const probe = el("span", "");
+    probe.style.cssText = `all:initial!important;position:absolute!important;visibility:hidden!important;font-size:${size * 2}px!important;line-height:inherit!important`;
+    parent.append(probe);
+    const scaled = getComputedStyle(probe).lineHeight !== page.lineHeight;
+    probe.remove();
+    return scaled ? String(parseFloat(page.lineHeight) / size) : page.lineHeight;
+  }
+
   // `data-zoom-context` names an ancestor whose classes and styles the item needs, such as the figure that carries a
   // screenshot's colors. The copy goes inside an empty copy of it.
-  function copy(item: HTMLElement) {
+  function copy(item: HTMLElement, into: HTMLElement) {
     // SAFETY: a deep clone of an HTMLElement is an HTMLElement of the same kind.
     const clone = strip(item.cloneNode(true) as HTMLElement);
     const selector = item.getAttribute("data-zoom-context");
     const context = selector ? item.parentElement?.closest<HTMLElement>(selector) : null;
-    if (!context) return clone;
+    const parent = (context ?? item).parentElement;
+    if (parent) {
+      const page = getComputedStyle(parent);
+      for (const name of INHERITED) into.style.setProperty(name, page.getPropertyValue(name));
+      into.style.lineHeight = lineHeight(parent, page);
+    }
+    if (!context) return into.append(clone);
     // SAFETY: a shallow clone of an HTMLElement is an HTMLElement of the same kind.
     const shell = strip(context.cloneNode(false) as HTMLElement);
+    shell.style.color = "inherit";
     shell.append(clone);
-    return shell;
+    into.append(shell);
   }
 
   function measure(item: HTMLElement) {
@@ -187,9 +221,24 @@ export function start(css: string): () => void {
     current.frame.style.transform = `scale(${current.scale})`;
   }
 
+  // The move that puts the copy, at scale 1, over the item. It aims at the copy's center rather than the frame's,
+  // since margins inside the copy can sit in the frame but outside the item on the page.
+  function travel(current: View, item: HTMLElement) {
+    const center = (node: Element) => {
+      const rect = node.getBoundingClientRect();
+      return [rect.left + rect.width / 2, rect.top + rect.height / 2] as const;
+    };
+    const [fx, fy] = center(current.frame);
+    const [cx, cy] = center(current.frame.firstElementChild!);
+    const [tx, ty] = center(item);
+    return `translate(${tx - fx - (cx - fx) / current.scale}px, ${ty - fy - (cy - fy) / current.scale}px)`;
+  }
+
   function render(current: View) {
     const item = current.items[current.index]!;
-    current.frame.replaceChildren(copy(item), el("div", "cz-layer"));
+    current.frame.replaceChildren();
+    copy(item, current.frame);
+    current.frame.append(el("div", "cz-layer"));
     current.title.textContent = titleOf(item);
     current.count.textContent =
       current.items.length > 1 ? `${current.index + 1} / ${current.items.length}` : "";
@@ -211,7 +260,7 @@ export function start(css: string): () => void {
       const inner = el("div", "");
       inner.style.width = `${width}px`;
       inner.style.transform = `scale(${Math.min(96 / width, 64 / height)})`;
-      inner.append(copy(item));
+      copy(item, inner);
       thumb.append(inner);
       thumb.addEventListener("click", () => go(index));
       strip.append(thumb);
@@ -236,6 +285,9 @@ export function start(css: string): () => void {
   let unlocked: { overflow: string; gutter: string; padding: string } | null = null;
 
   function lock() {
+    // A smooth scroll still under way would carry on once the zoom closes and move the item away from the copy that
+    // is flying back to it. Stop it where it is.
+    scrollTo({ left: scrollX, top: scrollY, behavior: "instant" });
     const scrollbar = innerWidth - root.clientWidth;
     unlocked = {
       overflow: root.style.overflow,
@@ -256,6 +308,13 @@ export function start(css: string): () => void {
     root.style.scrollbarGutter = unlocked.gutter;
     root.style.paddingRight = unlocked.padding;
     unlocked = null;
+  }
+
+  function restore() {
+    const saved = restoration;
+    restoration = null;
+    // The browser restores scroll after popstate, so put the setting back once it has skipped that.
+    if (saved) setTimeout(() => (history.scrollRestoration = saved));
   }
 
   function open(item: HTMLElement) {
@@ -316,19 +375,25 @@ export function start(css: string): () => void {
     dialog.focus({ preventScroll: true });
 
     // Back closes the zoom, like a photo viewer. A frame with an opaque origin can't push history; Escape still works.
+    // Going back would also restore the scroll position saved when the zoom opened, and the page may have moved since,
+    // when the click landed during a smooth scroll; the page stays where it is instead.
+    // The setting belongs to each history entry, so it goes on the page's entry before the zoom's is pushed.
     try {
+      restoration = history.scrollRestoration;
+      history.scrollRestoration = "manual";
       history.pushState({ ...history.state, comarkZoom: true }, "");
       current.pushed = true;
-    } catch {}
+    } catch {
+      if (restoration) history.scrollRestoration = restoration;
+      restoration = null;
+    }
 
     const shown = items[current.index]!;
     if (!motion.matches) {
-      const from = shown.getBoundingClientRect();
-      const to = frame.getBoundingClientRect();
       frame.animate(
         [
           {
-            transform: `translate(${from.left + from.width / 2 - (to.left + to.width / 2)}px, ${from.top + from.height / 2 - (to.top + to.height / 2)}px) scale(1)`,
+            transform: `${travel(current, shown)} scale(1)`,
           },
           { transform: `scale(${current.scale})` },
         ],
@@ -347,10 +412,17 @@ export function start(css: string): () => void {
     const current = view;
     if (!current || current.closing) return;
     current.closing = true;
-    if (current.pushed && !fromHistory && history.state?.comarkZoom) history.back();
+    if (current.pushed && !fromHistory && history.state?.comarkZoom) {
+      // stop() may have removed the listener that puts scroll restoration back.
+      addEventListener("popstate", restore, { once: true });
+      history.back();
+    } else if (!fromHistory) restore();
     const item = current.items[current.index]!;
     if (!motion.matches) {
-      const from = current.frame.getBoundingClientRect();
+      // A close can come while the opening animation still runs. Measure the frame where it settles, so the path back
+      // ends on the item, and start from where it is now.
+      const now = getComputedStyle(current.frame).transform;
+      for (const animation of current.frame.getAnimations()) animation.cancel();
       const to = item.getBoundingClientRect();
       const visible = to.bottom > 0 && to.top < innerHeight;
       const animations = [
@@ -363,12 +435,7 @@ export function start(css: string): () => void {
       animations.push(
         current.frame.animate(
           visible
-            ? [
-                { transform: `scale(${current.scale})` },
-                {
-                  transform: `translate(${to.left + to.width / 2 - (from.left + from.width / 2)}px, ${to.top + to.height / 2 - (from.top + from.height / 2)}px) scale(1)`,
-                },
-              ]
+            ? [{ transform: now }, { transform: `${travel(current, item)} scale(1)` }]
             : [{ opacity: 1 }, { opacity: 0 }],
           { duration: 200, easing, fill: "forwards" },
         ),
@@ -445,7 +512,14 @@ export function start(css: string): () => void {
     { signal },
   );
 
-  addEventListener("popstate", () => void shut(true), { signal });
+  addEventListener(
+    "popstate",
+    () => {
+      restore();
+      void shut(true);
+    },
+    { signal },
+  );
   addEventListener("resize", () => view && place(view), { signal });
 
   const state = {
