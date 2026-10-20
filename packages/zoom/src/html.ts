@@ -1,6 +1,6 @@
 import type { NodeHandler, State } from "comark";
 import { escapeHtml } from "comark/utils";
-import { start } from "./client.ts";
+import { script } from "./script.ts";
 import { RUNTIME_TAG } from "./index.ts";
 import { css } from "./styles.ts";
 
@@ -16,19 +16,22 @@ export function runtime(state: State): string {
   if (started.has(state.context)) return "";
   started.add(state.context);
   // The styles come inline before the script, so the script has nothing to add.
-  return `<style data-comark-zoom>${css}</style><script>(${start.toString()})("")</script>`;
+  return `<style data-comark-zoom>${css}</style><script>(${script.toString()})("")</script>`;
 }
 
 const attr = (value: unknown) => escapeHtml(String(value), { '"': "&quot;" });
 
 const zoom: NodeHandler = async ([, attrs, ...children], state) => {
   const extra = [
+    attrs.id !== undefined && ` id="${attr(attrs.id)}"`,
+    ' data-zoom tabindex="0"',
     attrs.group !== undefined && ` data-zoom-group="${attr(attrs.group)}"`,
     attrs.title !== undefined && ` data-zoom-title="${attr(attrs.title)}"`,
   ]
     .filter(Boolean)
     .join("");
-  return `<div class="cz" data-zoom tabindex="0"${extra}>${await state.flow(["div", {}, ...children], state)}</div>${runtime(state)}`;
+  const className = attrs.class ? `cz ${attr(attrs.class)}` : "cz";
+  return `<div class="${className}"${extra}>${await state.flow(["div", {}, ...children], state)}</div>${runtime(state)}`;
 };
 
 /** HTML renderers for `::zoom` and the script the plugin adds. Pass them as `components`. */

@@ -50,13 +50,19 @@ import zoom, { components } from "comark-zoom/html";
 const render = createHtmlRenderer({ plugins: [zoom()], components });
 ```
 
-`zoom({ images: false })` leaves images alone, so only `::zoom` blocks zoom.
+`zoom({ images: false })` leaves images alone, so only `::zoom` blocks and images you mark with `{data-zoom}` zoom.
 
 ## Components
 
 ### Images
 
-Content images zoom on their own, except images inside links, which keep their link. The zoomed view shows the image's `alt` text as its title. Give an image a `data-zoom-src` to load a larger file when it opens.
+Content images zoom on their own, except images inside links, which keep their link. The zoomed view shows the image's `alt` text as its title, and an image grows no larger than its natural size, so it stays sharp.
+
+Give an image a `data-zoom-src` to load a larger file when it opens. The zoom shows the page's image until the larger file has loaded, and the strip of a group keeps the page's images. To keep one image from zooming, give it `zoom=false`:
+
+```md
+![Company logo](/logo.png){zoom=false}
+```
 
 ### zoom
 
@@ -78,12 +84,13 @@ Zooms any block: a table, a code block, a diagram, or several of them together.
 | --- | --- |
 | `title` | Heading of the zoomed view. |
 | `group` | Items with the same group page through one zoomed view. |
+| `#id`, `.class` | Go on the block, as on any other. |
 
 ## Guides
 
 ### Groups
 
-Items in one `group` page through a single zoomed view with a strip of them at the bottom. Arrow keys and the strip move between them.
+Items in one `group` page through a single zoomed view with a strip of them at the bottom. Arrow keys and the strip move between them. Items that are hidden when the view opens, such as those in a closed tab, are left out.
 
 ::example
 ```md
@@ -110,9 +117,11 @@ The same markup comes out of every renderer. Import the components from the entr
 
 The Vue, React, and Svelte components start the script when they mount and stop it when the last one unmounts. Import `comark-zoom/style.css` with your styles so a server-rendered page doesn't shift when the script starts.
 
+Without a renderer, call `start()` from `comark-zoom/client` once on a page with `data-zoom` elements. It adds the styles and returns a function that stops it.
+
 ### Events
 
-The zoomed view fires `comark-zoom:open`, `comark-zoom:change`, and `comark-zoom:close` on the item. `open` and `change` carry the dialog's `header` and `footer`, and a `layer` over the zoomed content, sized to it, where a host can draw its own pins or controls.
+The zoomed view fires `comark-zoom:open`, `comark-zoom:change`, and `comark-zoom:close` on the item, and they bubble to `document` and `window`, where TypeScript knows them too. `open` and `change` carry the dialog's `header` and `footer`, and a `layer` over the zoomed content, sized to it, where a host can draw its own pins or controls.
 
 ```ts
 document.addEventListener("comark-zoom:open", (event) => {
@@ -163,7 +172,16 @@ The rules sit in a `comark` CSS layer, so any plain rule of your own wins withou
 }
 ```
 
-To theme only the zoomed view, set `--cz-backdrop`, `--cz-ink`, `--cz-muted`, `--cz-line`, `--cz-hover`, or `--cz-active`; each overrides the token it replaces. An item that needs styles from an ancestor names it with `data-zoom-context`, and the zoomed copy goes inside an empty copy of that ancestor.
+To theme only the zoomed view, set the tokens on `.cz-dialog`:
+
+```css
+.cz-dialog {
+  --comark-background: #000;
+  --comark-foreground: #fff;
+}
+```
+
+An item that needs styles from an ancestor names it with `data-zoom-context`, and the zoomed copy goes inside an empty copy of that ancestor.
 
 ## Credits
 
