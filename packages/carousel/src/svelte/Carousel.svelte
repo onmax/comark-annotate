@@ -17,8 +17,8 @@
 
 <div
   class="cc"
-  data-columns={perView > 1 ? String(perView) : undefined}
-  data-fits={total <= perView ? "" : undefined}
+  data-carousel-columns={perView > 1 ? String(perView) : undefined}
+  data-carousel-fits={total <= perView ? "" : undefined}
   data-zoom-gallery={off(zoom) ? undefined : ""}
   role="region"
   aria-roledescription="carousel"
@@ -29,7 +29,7 @@
     <div class="cc-controls">
       <span class="cc-count" aria-live="polite">1 / {total}</span>
       <div class="cc-steps">
-        <button type="button" class="cc-step" data-carousel-step="-1" aria-label="Previous slide" disabled>
+        <button type="button" class="cc-step" data-carousel-step="-1" aria-label="Previous slide" aria-disabled="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
         </button>
         <button type="button" class="cc-step" data-carousel-step="1" aria-label="Next slide">

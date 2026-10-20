@@ -49,7 +49,7 @@ Pass the plugin and its `components` to the renderer.
 :::
 ::
 
-Slides scroll and snap without a script. The script adds arrows, a slide counter, and arrow keys, and a click zooms a slide.
+Slides scroll and snap without a script, with a scrollbar to reach the others. The script swaps the scrollbar for arrows, a slide counter, and arrow keys, and a click zooms a slide.
 
 ## Usage
 
@@ -80,13 +80,15 @@ Every block inside `::carousel` is a slide, unless it holds `:::slide` blocks.
 
 | Prop | |
 | --- | --- |
-| `title` | Name read out by screen readers. Default `Carousel`. |
-| `columns` | `2` or `3` shows several slides at once on a wide page and one at a time on a narrow one. |
+| `title` | Name read out by screen readers, and the heading of a zoomed slide that has no title or image of its own. Default `Carousel`. |
+| `columns` | `2` or `3` shows several slides at once on a wide page and one at a time on a narrow one. Default `1`. |
 | `zoom` | `false` turns zoom off. |
+
+Props can be inline or bound, such as `:columns="2"`. Bind `zoom` and `title` to the document or its front matter, not to render-time data: each slide takes them while parsing.
 
 ### slide
 
-One slide that holds several blocks. Once a carousel has a `:::slide`, only its slides count.
+One slide that holds several blocks. Once a carousel has a `:::slide`, only its slides count: anything else inside it is dropped and reported. A `:::slide` outside a carousel renders as plain content.
 
 ::example
 ````md
@@ -108,7 +110,33 @@ Pass the plugin and its `components` to the renderer.
 | --- | --- |
 | `title` | Heading of the slide when it's zoomed. |
 
+An image alone in a slide, or alone in its paragraph, is centered, and so is a link around one. An image inside a sentence stays in the text.
+
 ## Guides
+
+### Keys
+
+With focus in a carousel, the left and right arrow keys page through it, following the reading direction on a right-to-left page. They leave alone keys pressed with Alt, Ctrl, Meta, or Shift, and keys meant for a form field, video, `<summary>`, menu, tab list, slider, combo box, tree, or a wide code block in a slide. From a link or a button, they page. A disabled arrow keeps its focus, so the keys keep working. Paging jumps instead of scrolling smoothly when the reader prefers reduced motion.
+
+### Validation
+
+The plugin checks every carousel while parsing and adds the problems to `meta.issues`, so you can reject a document before publishing it.
+
+```ts
+import { parseMarkdown } from "comark";
+import carousel from "comark-carousel";
+
+const { meta } = await parseMarkdown(markdown, { plugins: [carousel()] });
+if (meta.issues.length) throw new Error(meta.issues.join("\n"));
+```
+
+Each issue names its block and says how to fix it:
+
+```txt
+carousel 2 ("Setup") drops the paragraph "Pass the plugin" because it sits outside every :::slide; move it into a :::slide.
+```
+
+It reports content outside every `:::slide`, a carousel with no slides, `columns` that isn't 1, 2, or 3, a `:::slide` outside a carousel, and a `:zoom` or `:title` that reads render-time data. Rendering never throws.
 
 ### Zoom
 
