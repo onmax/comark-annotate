@@ -5,7 +5,7 @@ export interface ZoomDetail {
   /** A layer over the zoomed content, sized to it. Draw pins or outlines here. */
   layer: HTMLElement;
   footer: HTMLElement;
-  /** The zoomed copy of the item, inside copies of its `data-zoom-context` ancestors. */
+  /** The zoomed copy of the item. Copies of its `data-zoom-context` ancestors sit around it. */
   content: HTMLElement;
   /** The column beside the zoomed content that holds a copy of the item's `data-zoom-aside`, or null when it has none. */
   aside: HTMLElement | null;
@@ -202,14 +202,15 @@ export function start(css: string): () => void {
   }
 
   // `data-zoom-aside` names an element the zoomed view shows beside the item at its own size, such as a screenshot's
-  // notes. It's the first match outside the item, in its innermost context or else its parent.
+  // notes. It's the first match that neither holds the item nor sits in it, in its innermost context or else its parent.
   function asideOf(item: HTMLElement) {
     const selector = item.getAttribute("data-zoom-aside");
     const scope = contexts(item).at(-1) ?? item.parentElement;
     if (!selector || !scope) return null;
     return (
-      [...scope.querySelectorAll<HTMLElement>(selector)].find((node) => !item.contains(node)) ??
-      null
+      [...scope.querySelectorAll<HTMLElement>(selector)].find(
+        (node) => !item.contains(node) && !node.contains(item),
+      ) ?? null
     );
   }
 
@@ -239,8 +240,8 @@ export function start(css: string): () => void {
       header: current.header,
       footer: current.footer,
       layer: current.frame.querySelector<HTMLElement>(".cz-layer")!,
-      // SAFETY: render() always puts the zoomed copy first in the frame.
-      content: current.frame.firstElementChild as HTMLElement,
+      // SAFETY: render() always pairs the item with its copy first, and the copy of an HTMLElement is one too.
+      content: current.pairs[0]![1] as HTMLElement,
       aside: current.aside.firstElementChild ? current.aside : null,
       item: current.items[current.index]!,
       index: current.index,

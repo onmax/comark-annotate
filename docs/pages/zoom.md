@@ -167,7 +167,7 @@ To theme only the zoomed view, set `--cz-backdrop`, `--cz-ink`, `--cz-muted`, `-
 
 ### Captions beside the zoom
 
-`data-zoom-aside` names an element, by selector, that the zoomed view shows beside the item at its own size, so a caption stays readable however far the item zooms. It's the first match outside the item, in its innermost `data-zoom-context` or else its parent. On a narrow screen it sits below. comark-annotate uses it for a screenshot's notes.
+`data-zoom-aside` names an element, by selector, that the zoomed view shows beside the item at its own size, so a caption stays readable however far the item zooms. It's the first match that neither holds the item nor sits in it, in its innermost `data-zoom-context` or else its parent. On a narrow screen it sits below. comark-annotate uses it for a screenshot's notes.
 
 ```html
 <figure>
