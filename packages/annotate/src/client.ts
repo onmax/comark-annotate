@@ -201,11 +201,18 @@ export function start(): () => void {
   const urls = new Set<string>();
   let zoomed: HTMLElement | null = null;
 
-  // A zoomed screenshot is a copy without ids; the page's figure behind it is the one to paint.
+  // A zoomed screenshot is a copy without ids; the page's source behind it is the one to paint.
   const figureOf = (target: EventTarget | null) => {
     if (!(target instanceof Element)) return null;
     if (target.closest(".cz-dialog"))
-      return zoomed?.matches(".ca-screenshot") && target.closest(".ca-screenshot") ? zoomed : null;
+      return zoomed &&
+        target.closest(
+          zoomed.matches(".ca-side") || zoomed.matches(".ca-swipe")
+            ? ".ca-swipe"
+            : ".ca-screenshot",
+        )
+        ? zoomed
+        : null;
     return target.closest<HTMLElement>(".ca-screenshot");
   };
   const keyOf = (figure: HTMLElement) => {
@@ -351,6 +358,7 @@ export function start(): () => void {
           // a constant stroke width for arbitrary path directions under non-uniform scaling.
           const paths = [...node.querySelectorAll("path")].map((path) => {
             const style = getComputedStyle(path);
+            // SAFETY: a shallow clone of an SVGPathElement is an SVGPathElement.
             const copy = path.cloneNode(false) as SVGPathElement;
             copy.setAttribute("fill", style.fill);
             copy.setAttribute("stroke", style.stroke);
@@ -624,7 +632,7 @@ export function start(): () => void {
       const figure = own
         ? target
         : target?.matches(".cz-dialog")
-          ? figureOf(target.querySelector(".ca-screenshot"))
+          ? figureOf(target.querySelector(".ca-screenshot, .ca-swipe"))
           : null;
       if (!target || !figure) return;
       event.preventDefault();
@@ -636,7 +644,15 @@ export function start(): () => void {
   const follow = (event: Event) => {
     // SAFETY: comark-zoom's open and change events carry the item shown.
     const { item } = (event as CustomEvent<{ item?: unknown }>).detail ?? {};
-    zoomed = item instanceof HTMLElement ? item : null;
+    // A screenshot zooms its stage, inside the source that copy paints. Sliders zoom their pair, so use the first
+    // side as the screenshot source for the keyboard copy path.
+    zoomed =
+      item instanceof HTMLElement
+        ? (item.closest<HTMLElement>(".ca-screenshot") ??
+          (item.matches(".ca-swipe")
+            ? item.querySelector<HTMLElement>(".ca-side-before .ca-stage")
+            : null))
+        : null;
     // Zoom copies the figure as it was, a moment's "Copied" included; a thumbnail is a button and gets no button inside.
     for (const part of document.querySelectorAll(".cz-thumb :is(.ca-copy,.ca-copy-status)"))
       part.remove();
