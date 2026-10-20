@@ -649,7 +649,9 @@ export function start(): () => void {
     zoomed =
       item instanceof HTMLElement
         ? (item.closest<HTMLElement>(".ca-screenshot") ??
-          (item.matches(".ca-swipe") ? item.querySelector<HTMLElement>(".ca-side-before") : null))
+          (item.matches(".ca-swipe")
+            ? item.querySelector<HTMLElement>(".ca-side-before .ca-stage")
+            : null))
         : null;
     // Zoom copies the figure as it was, a moment's "Copied" included; a thumbnail is a button and gets no button inside.
     for (const part of document.querySelectorAll(".cz-thumb :is(.ca-copy,.ca-copy-status)"))
