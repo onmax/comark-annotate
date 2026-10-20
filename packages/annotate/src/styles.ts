@@ -9,23 +9,23 @@ const linked = Array.from(
 
 export const css = `@layer comark{${[
   // Surfaces, borders, and radii follow the shared `--comark-*` tokens; the mark colors stay their own.
-  theme(".ca,.ca-screenshot"),
+  theme(".ca"),
   // One meaning per color: blue points something out (the default), red flags a problem, amber a warning, green a fix, gray anything neutral.
   // Strokes, arrows, and notes use the color, which lightens in dark mode. Stamps use a deeper solid shade in both themes,
   // so their number stays white (4.7:1 or better); only amber keeps a dark number.
-  // :where() keeps these at zero specificity, so a host's plain `.ca { --ca-color: … }` wins.
-  ":where(.ca,.ca-screenshot){--ca-red:#f43f5e;--ca-amber:#f5a524;--ca-green:#2f9e6b;--ca-blue:#5b6cf0;--ca-gray:#71717a;--ca-red-solid:#e11d48;--ca-amber-solid:#f59e0b;--ca-green-solid:#15803d;--ca-blue-solid:#4f46e5;--ca-gray-solid:#52525b;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-solid:var(--ca-blue-solid);--ca-ink:var(--ca-blue-ink)}",
-  // The figure carries the colors too, so a zoomed screenshot keeps them outside `.ca`.
+  // Declared on `.ca` alone and at zero specificity, so a host's plain `.ca { --ca-color: … }` reaches every mark. A
+  // zoomed screenshot sits in a copy of its `.ca`, so it keeps them too.
+  ":where(.ca){--ca-gutter:10rem;--ca-top-gutter:5rem;--ca-gap:1.25rem;--ca-red:#f43f5e;--ca-amber:#f5a524;--ca-green:#2f9e6b;--ca-blue:#5b6cf0;--ca-gray:#71717a;--ca-red-solid:#e11d48;--ca-amber-solid:#f59e0b;--ca-green-solid:#15803d;--ca-blue-solid:#4f46e5;--ca-gray-solid:#52525b;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-solid:var(--ca-blue-solid);--ca-ink:var(--ca-blue-ink)}",
   ":where(.ca){margin:1.5rem 0}",
-  "@media (prefers-color-scheme:dark){:where(.ca,.ca-screenshot){--ca-red:#fb7185;--ca-amber:#ffb224;--ca-green:#56d39a;--ca-blue:#a5b4fc;--ca-gray:#a1a1aa}}",
+  "@media (prefers-color-scheme:dark){:where(.ca){--ca-red:#fb7185;--ca-amber:#ffb224;--ca-green:#56d39a;--ca-blue:#a5b4fc;--ca-gray:#a1a1aa}}",
   // Before and after are bare and line up at the top, even when one screenshot is taller.
   ".ca-compare .cc{margin:0;--cc-gap:1.5rem}",
   ".ca-compare .cc-track>.cc-slide{align-content:start;padding:0;background:none}",
-  ".ca-screenshot{--ca-gutter:10rem;--ca-top-gutter:5rem;--ca-gap:1.25rem;margin:0;container-type:inline-size}",
+  ".ca-screenshot{margin:0;container-type:inline-size}",
   ".ca-stage{position:relative}",
   ".ca-right .ca-stage{--ca-pr:var(--ca-gutter);padding-right:var(--ca-gutter)}",
   ".ca-left .ca-stage{--ca-pl:var(--ca-gutter);padding-left:var(--ca-gutter)}",
-  ".ca-top .ca-stage{padding-top:var(--ca-top-gutter)}",
+  ".ca-top .ca-stage{--ca-pt:var(--ca-top-gutter);padding-top:var(--ca-top-gutter)}",
   ".ca-frame{position:relative;line-height:0}",
   ".ca-frame img{display:block;width:100%;height:auto;margin:0;border-radius:calc(var(--_comark-radius) - 4px);outline:1px solid var(--_comark-border);outline-offset:-1px}",
   ".ca-mark{position:absolute;color:var(--ca-color);text-decoration:none;outline:none}",
