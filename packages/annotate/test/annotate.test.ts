@@ -338,7 +338,9 @@ describe("comark-annotate", () => {
     expect((await cli("check", join(dir, "ok.md"))).stdout).toContain("No problems.");
     await expect(cli("check", join(dir, "bad.md"))).rejects.toMatchObject({ code: 1 });
     await cli("render", join(dir, "ok.md"));
-    expect(await readFile(join(dir, "ok.html"), "utf8")).toContain('class="ca-mark ca-box"');
+    expect(await readFile(join(dir, "ok.html"), "utf8")).toContain(
+      'class="ca-mark ca-box ca-at-left ca-at-top"',
+    );
 
     // Every file is checked, and each issue says which file it's in.
     const both = cli("check", join(dir, "ok.md"), join(dir, "bad.md"));

@@ -17,12 +17,12 @@ export const css = `@layer comark{${[
   theme(".ca"),
   // One meaning per color: blue points something out (the default), red flags a problem, amber a warning, green a fix, gray anything neutral.
   // Strokes, arrows, and notes use the color, which lightens in dark mode. Stamps use a deeper solid shade in both themes,
-  // so their number stays white (4.7:1 or better); only amber keeps a dark number.
+  // so their number stays white (5:1 or better); only amber keeps a dark number.
   // Declared on `.ca` alone and at zero specificity, so a host's plain `.ca { --ca-color: … }` reaches every mark. A
   // zoomed screenshot sits in a copy of its `.ca`, so it keeps them too.
-  ":where(.ca){--ca-gutter:10rem;--ca-top-gutter:5rem;--ca-gap:1.25rem;--ca-red:#f43f5e;--ca-amber:#f5a524;--ca-green:#2f9e6b;--ca-blue:#5b6cf0;--ca-gray:#71717a;--ca-red-solid:#e11d48;--ca-amber-solid:#f59e0b;--ca-green-solid:#15803d;--ca-blue-solid:#4f46e5;--ca-gray-solid:#52525b;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-solid:var(--ca-blue-solid);--ca-ink:var(--ca-blue-ink)}",
+  ":where(.ca){--ca-gutter:10rem;--ca-top-gutter:5rem;--ca-gap:1.25rem;--ca-red:#ee3533;--ca-amber:#f5a524;--ca-green:#259f56;--ca-blue:#0581e6;--ca-gray:#71717a;--ca-red-solid:#d01d21;--ca-amber-solid:#f59e0b;--ca-green-solid:#037e3f;--ca-blue-solid:#0267c7;--ca-gray-solid:#52525b;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-solid:var(--ca-blue-solid);--ca-ink:var(--ca-blue-ink)}",
   ":where(.ca){margin:1.5rem 0}",
-  "@media (prefers-color-scheme:dark){:where(.ca){--ca-red:#fb7185;--ca-amber:#ffb224;--ca-green:#56d39a;--ca-blue:#a5b4fc;--ca-gray:#a1a1aa}}",
+  "@media (prefers-color-scheme:dark){:where(.ca){--ca-red:#fd736d;--ca-amber:#ffb224;--ca-green:#59d38c;--ca-blue:#67b0f9;--ca-gray:#a1a1aa}}",
   // Before and after are bare and line up at the top, even when one screenshot is taller.
   ".ca-compare .cc{margin:0;--cc-gap:1.5rem}",
   ".ca-compare .cc-track>.cc-slide{align-content:start;padding:0;background:none}",
@@ -80,16 +80,26 @@ export const css = `@layer comark{${[
   "[data-ca-capture] *{transition:none!important}",
   "[data-ca-capture=still] *{--ca-on:0!important}",
   ".ca-mark{position:absolute;color:var(--ca-color);text-decoration:none;outline:none}",
-  ".ca-mark svg{position:absolute;left:-5px;top:-5px;width:calc(100% + 10px);height:calc(100% + 10px);overflow:visible;fill:none;stroke:currentColor;stroke-width:calc(2.75px + .75px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round;transition:stroke-width .15s ease}",
+  // Strokes are the solid color 65% of the mark's color over the page would give, so they outline the area without
+  // competing with the screenshot; hovering a mark or its note brings it to full color.
+  ".ca-mark,.ca-arrow{--ca-stroke:color-mix(in srgb,var(--ca-color) calc(65% + 35% * var(--ca-on,0)),var(--_comark-background))}",
+  // A dark page would muddy them, but screenshots stay light, so dark mode mixes the deeper shade with white instead.
+  "@media (prefers-color-scheme:dark){.ca-mark,.ca-arrow{--ca-stroke:color-mix(in srgb,var(--ca-solid,var(--ca-color)) calc(65% + 35% * var(--ca-on,0)),#fff)}}",
+  ".ca-mark svg{position:absolute;left:-5px;top:-5px;width:calc(100% + 10px);height:calc(100% + 10px);overflow:visible;fill:none;stroke:currentColor;stroke:var(--ca-stroke,currentColor);stroke-width:calc(1.5px + .5px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round;transition:stroke-width .15s ease}",
   ".ca-highlight svg{left:0;top:0;width:100%;height:100%;fill:currentColor;fill-opacity:calc(.14 + .08 * var(--ca-on,0));stroke:none}",
   ".ca-underline svg{top:calc(100% - 5px);height:12px}",
   // A tick beside the target, so it doesn't hide what it approves.
   ".ca-check svg{left:calc(100% + 4px);top:50%;width:20px;height:20px;transform:translateY(-50%)}",
-  ".ca-stamp{display:inline-grid;place-items:center;flex:none;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:var(--ca-solid,var(--ca-color));color:var(--ca-ink);font-family:inherit;font-size:11px;font-weight:600;line-height:1;letter-spacing:-.01em;font-variant-numeric:tabular-nums}",
+  ".ca-stamp{display:inline-grid;place-items:center;flex:none;min-width:15px;height:15px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:var(--ca-solid,var(--ca-color));color:var(--ca-ink);font-family:inherit;font-size:9.5px;font-weight:600;line-height:1;letter-spacing:-.01em;font-variant-numeric:tabular-nums}",
   ".ca-letter{display:none}",
-  ".ca-mark .ca-stamp{position:absolute;left:-9px;top:-9px;box-shadow:0 0 0 2px var(--ca-ring,var(--_comark-background)),0 1px 3px rgb(0 0 0/.18);transform:scale(calc(1 + .1 * var(--ca-on,0)));transition:transform .15s ease}",
+  ".ca-mark .ca-stamp{position:absolute;right:calc(100% + 4px);bottom:calc(100% + 4px);box-shadow:0 0 0 2px var(--ca-ring,var(--_comark-background)),0 1px 3px rgb(0 0 0/.18);transform:scale(calc(1 + .1 * var(--ca-on,0)));transition:transform .15s ease}",
+  ".ca-at-left .ca-stamp{right:auto;left:-4px}",
+  ".ca-at-top .ca-stamp{bottom:auto;top:-4px}",
+  ".ca-at-left.ca-at-top .ca-stamp{left:3px;top:3px}",
+  // A numbered mark that draws nothing is only its number, so the number stays on the corner.
+  ".ca-mark.ca-none .ca-stamp{right:auto;bottom:auto;left:-7.5px;top:-7.5px}",
   ".ca-arrow{position:absolute;height:16px;color:var(--ca-color);transform:translateY(-50%);pointer-events:none}",
-  ".ca-arrow svg{position:absolute;overflow:visible;fill:none;stroke:currentColor;stroke-width:calc(2px + .5px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round}",
+  ".ca-arrow svg{position:absolute;overflow:visible;fill:none;stroke:currentColor;stroke:var(--ca-stroke,currentColor);stroke-width:calc(1.5px + .5px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round}",
   ".ca-arrow-line{inset:0;width:100%;height:100%}",
   ".ca-arrow-head{top:4.5px;width:7px;height:7px}",
   ".ca-arrow-right .ca-arrow-head{left:1px}",
