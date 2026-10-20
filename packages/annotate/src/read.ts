@@ -60,7 +60,17 @@ const unresolved = (node: ElementNode, attrs: Record<string, unknown>, key: stri
   attrs[key] === undefined && Object.hasOwn(node[1], `:${key}`);
 // Only the renderer's `data` and the parent's `props` are unknown while parsing; frontmatter and meta are already here.
 const later = (path: string) => /^(?:data|props)(?:\.|$)/.test(path);
-const isHttp = (url: string) => /^https?:\/\/\S/i.test(url);
+// A link the reader can follow: http or https with a host, which the prefix alone doesn't promise.
+function isHttp(url: string) {
+  try {
+    const { protocol, hostname } = new URL(url);
+    return (protocol === "http:" || protocol === "https:") && hostname !== "";
+  } catch {
+    return false;
+  }
+}
+// Quotes what an author wrote, so a quote inside it can't blur where the name ends.
+const quote = (value: string) => JSON.stringify(value);
 const named = new Set<string>(PALETTE);
 // Alpha hex colors are left out: a transparent one would hide the mark.
 const isColor = (color: string) => named.has(color) || /^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(color);
@@ -87,6 +97,8 @@ const PROPS = {
   annotation: ["x", "y", "w", "h", "mark", "color", "side"],
 } as const;
 type Block = keyof typeof PROPS;
+// Comark's own attributes, which a host may style or test by, so they aren't reported.
+const NATIVE = /^(?:id|class|style|data-.+|aria-.+)$/i;
 // Names an author is likely to guess, and what to write instead.
 const HINTS: Record<Block, Record<string, string>> = {
   screenshot: {
@@ -136,8 +148,19 @@ function checkProps(
   problems: string[],
 ) {
   const valid: readonly string[] = PROPS[block];
-  for (const key of Object.keys(attrs)) {
+  // The raw keys, since resolving drops some: a bound `__proto__` would set the result's prototype instead.
+  const keys = new Set(Object.keys(node[1]).map((key) => key.replace(/^:/, "")));
+  keys.delete("$");
+  for (const key of keys) {
+    if (NATIVE.test(key)) continue;
     if (valid.includes(key)) {
+      // Comark drops a bound `src` or `href` that resolves to an unsafe URL, such as javascript:.
+      if (Object.hasOwn(node[1], `:${key}`) && !Object.hasOwn(attrs, key)) {
+        problems.push(
+          `\`:${key}\` resolves to an unsafe URL, so it's left out. Use an http:// or https:// URL${key === "src" ? " or a path to the image file" : ""}.`,
+        );
+        continue;
+      }
       const path = text(node[1][`:${key}`]);
       if (unresolved(node, attrs, key) && !later(path))
         problems.push(
@@ -149,7 +172,12 @@ function checkProps(
     const close = valid.find(
       (name) => lower.length >= 3 && distance(lower, name) <= (lower.length >= 5 ? 2 : 1),
     );
-    const hint = HINTS[block][lower] ?? (close ? `Did you mean \`${close}\`?` : "");
+    const hints = HINTS[block];
+    const hint = Object.hasOwn(hints, lower)
+      ? hints[lower]
+      : close
+        ? `Did you mean \`${close}\`?`
+        : "";
     problems.push(
       `\`${key}\` isn't a prop of \`::${block}\`.${hint ? ` ${hint}` : ""} Valid props: ${valid.join(", ")}.`,
     );
@@ -165,7 +193,7 @@ export function readScreenshot(
   data: Data,
   names: Names = new Map(),
   start = { n: 1, number: 1 },
-): Screenshot & { viewport?: string } {
+): Screenshot & { viewport?: { width: number; height: number } } {
   let number = start.number;
   const where = names.get(node) ?? "screenshot";
   const problems: string[] = [];
@@ -179,12 +207,14 @@ export function readScreenshot(
     problems.push("`alt` is required. Describe what the screenshot shows.");
   const href = text(attrs.href);
   if (href && !isHttp(href))
-    problems.push("`href` must start with http:// or https://. Link the page you captured.");
+    problems.push(
+      "`href` must be an http:// or https:// URL with a host. Link the page you captured.",
+    );
   const viewport = text(attrs.viewport);
   const size = VIEWPORT.exec(viewport);
   if (viewport && !size)
     problems.push(
-      `\`viewport\` must be the capture size in pixels, like 1440x900 (got "${viewport}").`,
+      `\`viewport\` must be the capture size in pixels, like 1440x900 (got ${quote(viewport)}).`,
     );
   issues.push(...problems.map((problem) => `${where}: ${problem}`));
 
@@ -236,7 +266,7 @@ export function readScreenshot(
     alt,
     title: text(attrs.title) || undefined,
     href: isHttp(href) ? href : undefined,
-    viewport: size ? `${size[1]}x${size[2]}` : undefined,
+    viewport: size ? { width: Number(size[1]), height: Number(size[2]) } : undefined,
     annotations,
     caption,
   };
@@ -264,7 +294,7 @@ function readAnnotation(node: ElementNode, problems: string[], data: Data): Omit
     } else if (!valid) {
       known = false;
       problems.push(
-        `\`${key}\` must be a percentage of the image, a number without %, ${range} (got ${JSON.stringify(raw)}).`,
+        `\`${key}\` must be a percentage of the image, a number without %, ${range} (got ${quote(raw)}).`,
       );
     } else box[key] = value;
   }
@@ -273,15 +303,16 @@ function readAnnotation(node: ElementNode, problems: string[], data: Data): Omit
 
   const mark = text(attrs.mark) || "box";
   if (!isMark(mark))
-    problems.push(`\`mark\` must be one of ${Object.keys(marks).join(", ")} (got "${mark}").`);
+    problems.push(`\`mark\` must be one of ${Object.keys(marks).join(", ")} (got ${quote(mark)}).`);
   const color = text(attrs.color);
   if (color && !isColor(color))
     problems.push(
-      `\`color\` must be ${PALETTE.join(", ")}, or a 3- or 6-digit hex color like #e5484d (got "${color}").`,
+      `\`color\` must be ${PALETTE.join(", ")}, or a 3- or 6-digit hex color like #e5484d (got ${quote(color)}).`,
     );
   const side = text(attrs.side);
   const knownSide = SIDES.find((item) => item === side);
-  if (side && !knownSide) problems.push(`\`side\` must be left, right, or top (got "${side}").`);
+  if (side && !knownSide)
+    problems.push(`\`side\` must be left, right, or top (got ${quote(side)}).`);
   if (mark === "none" && !side && !unresolved(node, attrs, "side"))
     problems.push(
       '`mark="none"` draws nothing, so without a `side` note nothing points at the spot. Add `side="left"`, `"right"`, or `"top"`, or pick a visible mark such as `box`.',
@@ -324,7 +355,7 @@ export function readCompare(
   checkProps("compare", node, attrs, problems);
   issues.push(...problems.map((problem) => `${where}: ${problem}`));
   const shots: Screenshot[] = [];
-  const viewports: { name: string; size?: string }[] = [];
+  const viewports: { name: string; size?: { width: number; height: number } }[] = [];
   for (const child of children(node)) {
     if (isElement(child) && child[0] === "screenshot") {
       const all = shots.flatMap((item) => item.annotations);
@@ -344,9 +375,14 @@ export function readCompare(
       `${where}: needs exactly two screenshots, before and after (got ${shots.length}). ${shots.length < 2 ? "Add the missing one" : "Split the rest into another compare"}.`,
     );
   const [before, after] = viewports;
-  if (before?.size && after?.size && before.size !== after.size)
+  const px = (size: { width: number; height: number }) => `${size.width}x${size.height}`;
+  if (
+    before?.size &&
+    after?.size &&
+    (before.size.width !== after.size.width || before.size.height !== after.size.height)
+  )
     issues.push(
-      `${where}: ${before.name} was captured at ${before.size} and ${after.name} at ${after.size}, so they can't be compared. Recapture both at the same viewport.`,
+      `${where}: ${before.name} was captured at ${px(before.size)} and ${after.name} at ${px(after.size)}, so they can't be compared. Recapture both at the same viewport.`,
     );
   return { title: text(attrs.title) || undefined, shots };
 }
@@ -374,13 +410,13 @@ function name(nodes: Node[], data: Data): Names {
     names.set(
       node,
       src && srcs.indexOf(src) === srcs.lastIndexOf(src)
-        ? `screenshot "${src}"`
-        : `screenshot ${index + 1}${alt ? ` ("${alt}")` : ""}`,
+        ? `screenshot ${quote(src)}`
+        : `screenshot ${index + 1}${alt ? ` (${quote(alt)})` : ""}`,
     );
   }
   for (const [index, node] of compares.entries()) {
     const title = text(props(node, data).title);
-    names.set(node, `compare ${index + 1}${title ? ` ("${title}")` : ""}`);
+    names.set(node, `compare ${index + 1}${title ? ` (${quote(title)})` : ""}`);
   }
   return names;
 }
@@ -400,7 +436,7 @@ export function check(nodes: Node[], data: Data): string[] {
           .trim()
           .slice(0, 40);
         issues.push(
-          `annotation ${++stray} outside a screenshot${note ? ` ("${note}")` : ""}: it has nothing to point at. Move it inside the \`::screenshot\` it marks, as a direct child.`,
+          `annotation ${++stray} outside a screenshot${note ? ` (${quote(note)})` : ""}: it has nothing to point at. Move it inside the \`::screenshot\` it marks, as a direct child.`,
         );
       } else walk(children(node));
     }

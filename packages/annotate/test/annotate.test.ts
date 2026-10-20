@@ -184,7 +184,7 @@ describe("comark-annotate", () => {
     ],
     [
       `::screenshot{src="a.png" alt="A" href="javascript:alert(1)"}\n::`,
-      "`href` must start with http",
+      "`href` must be an http:// or https:// URL",
     ],
     [`::compare\n:::screenshot{src="a.png" alt="A"}\n:::\n::`, "needs exactly two screenshots"],
     [
@@ -307,7 +307,7 @@ describe("comark-annotate", () => {
       'screenshot 1 ("Dashboard before"): `src` is required. Point it at the image file.',
       'screenshot 2 ("Dashboard after"): `src` is required. Point it at the image file.',
       "screenshot 3: `alt` is required. Describe what the screenshot shows.",
-      'screenshot 4 ("Again"): `href` must start with http:// or https://. Link the page you captured.',
+      'screenshot 4 ("Again"): `href` must be an http:// or https:// URL with a host. Link the page you captured.',
     ]);
   });
 
@@ -392,9 +392,47 @@ describe("comark-annotate", () => {
   it("compares viewports by size, however they're written", async () => {
     const same = compare.replace('viewport="900x360"', 'viewport="900 × 360"');
     expect((await run(same)).issues).toEqual([]);
+    const padded = compare.replace('viewport="900x360"', 'viewport="0900x0360"');
+    expect((await run(padded)).issues).toEqual([]);
     const { issues } = await run(compare.replace('viewport="900x360"', 'viewport="wide"'));
     expect(issues).toEqual([
       'screenshot "before.png": `viewport` must be the capture size in pixels, like 1440x900 (got "wide").',
+    ]);
+  });
+
+  it("leaves Comark's own attributes alone", async () => {
+    const { issues } = await run(
+      `::screenshot{src="a.png" alt="A" #hero .wide style="margin:0" data-testid="shot" aria-describedby="d" :class="data.cls" :data-x="data.x"}\n:::annotation{x=1 y=1 w=5 h=5 .pulse data-step="1"}\nNote\n:::\n::`,
+    );
+    expect(issues).toEqual([]);
+  });
+
+  it("reports a link without a host, and an unsafe bound link, and leaves both out", async () => {
+    const { issues, html } = await run(
+      `::screenshot{src="a.png" alt="A" href="https://?x"}\n::\n\n::screenshot{src="b.png" alt="B" :href='"javascript:alert(1)"'}\n::`,
+    );
+    expect(issues).toEqual([
+      'screenshot "a.png": `href` must be an http:// or https:// URL with a host. Link the page you captured.',
+      'screenshot "b.png": `:href` resolves to an unsafe URL, so it\'s left out. Use an http:// or https:// URL.',
+    ]);
+    expect(html).not.toContain("<a href");
+    expect(html).not.toContain("javascript:");
+  });
+
+  it("reports props named like Object's own keys without leaking them into the hint", async () => {
+    const { issues } = await run(
+      `::screenshot{src="a.png" alt="A" constructor="x" :__proto__="y"}\n::`,
+    );
+    expect(issues).toEqual([
+      'screenshot "a.png": `constructor` isn\'t a prop of `::screenshot`. Valid props: src, alt, title, href, viewport.',
+      'screenshot "a.png": `__proto__` isn\'t a prop of `::screenshot`. Valid props: src, alt, title, href, viewport.',
+    ]);
+  });
+
+  it("quotes names taken from the document", async () => {
+    const { issues } = await run(`::screenshot{src='a"b.png'}\n::`);
+    expect(issues).toEqual([
+      'screenshot "a\\"b.png": `alt` is required. Describe what the screenshot shows.',
     ]);
   });
 });

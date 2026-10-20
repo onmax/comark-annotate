@@ -236,7 +236,7 @@ Each issue names its block and says how to fix it. A screenshot goes by its `src
 screenshot "after.png", annotation 2: the box runs past the image edge. Keep x + w and y + h within 100.
 ```
 
-Unknown props are reported with the valid ones, and so is a `:bound` prop that points at missing frontmatter. Bindings to `data` or `props` are left to the renderer.
+Unknown props are reported with the valid ones, though not `id`, `class`, `style`, `data-*`, or `aria-*`. So is a `:bound` prop that points at missing frontmatter or resolves to an unsafe URL. Bindings to `data` or `props` are left to the renderer.
 
 Rendering never throws.
 
