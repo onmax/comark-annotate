@@ -10,15 +10,23 @@ import dark from "shiki/themes/vitesse-dark.mjs";
 import light from "shiki/themes/vitesse-light.mjs";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
+import githubCallouts, {
+  components as githubCalloutsComponents,
+} from "../packages/github-callouts/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
 
 const root = new URL("./", import.meta.url);
 const dist = new URL("dist/", root);
 const fonts = new URL("../node_modules/geist/dist/fonts/", root);
 const site = "https://comark.onmax.me";
-const contentPlugins = () => [annotate(), carousel(), zoom()];
+const contentPlugins = () => [annotate(), carousel(), githubCallouts(), zoom()];
 const plugins = [...contentPlugins(), shiki({ themes: { light, dark } })];
-const components = { ...annotateComponents, ...carouselComponents, ...zoomComponents };
+const components = {
+  ...annotateComponents,
+  ...carouselComponents,
+  ...githubCalloutsComponents,
+  ...zoomComponents,
+};
 
 // The index first, then one page per package, each at its own path.
 const pages = [
@@ -26,6 +34,7 @@ const pages = [
   { slug: "annotate", file: "annotate.md", npm: "comark-annotate" },
   { slug: "zoom", file: "zoom.md", npm: "comark-zoom" },
   { slug: "carousel", file: "carousel.md", npm: "comark-carousel" },
+  { slug: "github-callouts", file: "github-callouts.md", npm: "comark-github-callouts" },
 ];
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;

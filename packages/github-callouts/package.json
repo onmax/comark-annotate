@@ -1,0 +1,94 @@
+{
+  "name": "comark-github-callouts",
+  "version": "0.2.0",
+  "description": "GitHub's alerts, > [!NOTE] through > [!CAUTION], as shadcn-style callouts with an icon and a title. A Comark plugin.",
+  "keywords": [
+    "admonition",
+    "alert",
+    "callout",
+    "comark",
+    "github",
+    "markdown",
+    "mdc",
+    "plugin"
+  ],
+  "homepage": "https://comark.onmax.me/github-callouts",
+  "bugs": "https://github.com/onmax/comark-plugins/issues",
+  "license": "MIT",
+  "author": "onmax",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onmax/comark-plugins.git",
+    "directory": "packages/github-callouts"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./client": "./dist/client.mjs",
+    "./html": "./dist/html.mjs",
+    "./react": "./dist/react.mjs",
+    "./style.css": "./dist/style.css",
+    "./svelte": {
+      "types": "./dist/svelte/index.d.ts",
+      "svelte": "./dist/svelte/index.js",
+      "default": "./dist/svelte/index.js"
+    },
+    "./vue": "./dist/vue.mjs",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
+    "prepack": "pnpm --filter comark-github-callouts... build"
+  },
+  "dependencies": {
+    "comark-zoom": "workspace:*"
+  },
+  "devDependencies": {
+    "@comark/html": "catalog:",
+    "@comark/react": "catalog:",
+    "@comark/vue": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "comark": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "svelte": "catalog:",
+    "vue": "catalog:"
+  },
+  "peerDependencies": {
+    "@comark/html": "^0.7.0",
+    "comark": "^0.7.0",
+    "react": ">=18",
+    "svelte": ">=5",
+    "vue": ">=3.5"
+  },
+  "peerDependenciesMeta": {
+    "@comark/html": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
+  }
+}
