@@ -65,6 +65,7 @@ const unresolved = (node: ElementNode, attrs: Record<string, unknown>, key: stri
   attrs[key] === undefined && Object.hasOwn(node[1], `:${key}`);
 // Only the renderer's `data` and the parent's `props` are unknown while parsing; frontmatter and meta are already here.
 const later = (path: string) => /^(?:data|props)(?:\.|$)/.test(path);
+// A link the reader can follow: http or https with a host, which the prefix alone doesn't promise.
 function isHttp(url: string) {
   try {
     const { protocol, hostname } = new URL(url);
@@ -73,6 +74,7 @@ function isHttp(url: string) {
     return false;
   }
 }
+// Quotes what an author wrote, so a quote inside it can't blur where the name ends.
 const quote = (value: string) => JSON.stringify(value);
 const named = new Set<string>(PALETTE);
 // Alpha hex colors are left out: a transparent one would hide the mark.
@@ -100,6 +102,7 @@ const PROPS = {
   annotation: ["x", "y", "w", "h", "mark", "color", "side"],
 } as const;
 type Block = keyof typeof PROPS;
+// Comark's own attributes, which a host may style or test by, so they aren't reported.
 const NATIVE = /^(?:id|class|style|data-.+|aria-.+)$/i;
 // Names an author is likely to guess, and what to write instead.
 const HINTS: Record<Block, Record<string, string>> = {
@@ -151,6 +154,7 @@ function checkProps(
   data: Data,
 ) {
   const valid: readonly string[] = PROPS[block];
+  // The raw keys, since resolving drops some: a bound `__proto__` would set the result's prototype instead.
   const keys = new Set(Object.keys(node[1]).map((key) => key.replace(/^:/, "")));
   keys.delete("$");
   for (const key of keys) {
@@ -179,7 +183,12 @@ function checkProps(
     const close = valid.find(
       (name) => lower.length >= 3 && distance(lower, name) <= (lower.length >= 5 ? 2 : 1),
     );
-    const hint = HINTS[block][lower] ?? (close ? `Did you mean \`${close}\`?` : "");
+    const hints = HINTS[block];
+    const hint = Object.hasOwn(hints, lower)
+      ? hints[lower]
+      : close
+        ? `Did you mean \`${close}\`?`
+        : "";
     problems.push(
       `\`${key}\` isn't a prop of \`::${block}\`.${hint ? ` ${hint}` : ""} Valid props: ${valid.join(", ")}.`,
     );
@@ -195,7 +204,7 @@ export function readScreenshot(
   data: Data,
   names: Names = new Map(),
   start = { n: 1, number: 1 },
-): Screenshot & { viewport?: string } {
+): Screenshot & { viewport?: { width: number; height: number } } {
   let number = start.number;
   const where = names.get(node) ?? "screenshot";
   const problems: string[] = [];
@@ -268,7 +277,7 @@ export function readScreenshot(
     alt,
     title: text(attrs.title) || undefined,
     href: isHttp(href) ? href : undefined,
-    viewport: size ? `${size[1]}x${size[2]}` : undefined,
+    viewport: size ? { width: Number(size[1]), height: Number(size[2]) } : undefined,
     annotations,
     caption,
   };
@@ -357,7 +366,7 @@ export function readCompare(
   checkProps("compare", node, attrs, problems, data);
   issues.push(...problems.map((problem) => `${where}: ${problem}`));
   const shots: Screenshot[] = [];
-  const viewports: { name: string; size?: string }[] = [];
+  const viewports: { name: string; size?: { width: number; height: number } }[] = [];
   for (const child of children(node)) {
     if (isElement(child) && child[0] === "screenshot") {
       const all = shots.flatMap((item) => item.annotations);
@@ -377,9 +386,14 @@ export function readCompare(
       `${where}: needs exactly two screenshots, before and after (got ${shots.length}). ${shots.length < 2 ? "Add the missing one" : "Split the rest into another compare"}.`,
     );
   const [before, after] = viewports;
-  if (before?.size && after?.size && before.size !== after.size)
+  const px = (size: { width: number; height: number }) => `${size.width}x${size.height}`;
+  if (
+    before?.size &&
+    after?.size &&
+    (before.size.width !== after.size.width || before.size.height !== after.size.height)
+  )
     issues.push(
-      `${where}: ${before.name} was captured at ${before.size} and ${after.name} at ${after.size}, so they can't be compared. Recapture both at the same viewport.`,
+      `${where}: ${before.name} was captured at ${px(before.size)} and ${after.name} at ${px(after.size)}, so they can't be compared. Recapture both at the same viewport.`,
     );
   const mode = text(attrs.mode) || "columns";
   const known = MODES.find((item) => item === mode);
