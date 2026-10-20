@@ -1,0 +1,27 @@
+<!-- `::tabs` and `::code-group` for `@comark/svelte`. -->
+<script>
+  import { onMount, setContext } from "svelte";
+  import { css, start } from "comark-tabs/client";
+
+  let { labels = [], sync = undefined, code = undefined, children } = $props();
+  const id = $props.id();
+  setContext("comark-tabs", id);
+
+  onMount(() => start(css));
+</script>
+
+<div class="ct" data-tabs-code={code ? "" : undefined} data-tabs-sync={sync || undefined}>
+  <div class="ct-list" role="tablist">
+    {#each labels as label, at}
+      <button
+        type="button"
+        class="ct-tab"
+        role="tab"
+        id="{id}-tab-{at + 1}"
+        aria-controls="{id}-panel-{at + 1}"
+        aria-selected={String(at === 0)}
+        tabindex={at === 0 ? 0 : -1}>{label}</button>
+    {/each}
+  </div>
+  {@render children?.()}
+</div>
