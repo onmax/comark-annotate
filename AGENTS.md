@@ -19,7 +19,7 @@ A pnpm workspace. Every package in `packages/` is published to npm under its own
   - `src/index.ts` is `lint()`. Comark gives nodes no positions, so block components take their line from markdown-exit tokens (plus the stripped frontmatter's lines) and everything else is found by searching the source with fenced code blanked out.
   - `src/config.ts` loads the other packages in this repo through optional dynamic imports; they are optional peer dependencies. Add a new package there.
   - `src/doctor.ts` is `comark-lint/doctor`. Vite Doctor has no Markdown visitor, so its Rules are manifest Rules that glob the Markdown in `onProjectEnd`. The root `doctor.config.ts` lints `docs/pages` with it as part of `pnpm run doctor`.
-- `packages/tabs` is `comark-tabs`. Its parse plugin turns `::code-group` into `::tabs` and gives each `tabs-item` its label and position, and the `tabs` node every label, so no renderer splits children. Its script is built like carousel's.
+- `packages/tabs` is `comark-tabs`. Its parse plugin turns `::code-group` into `::tabs` and gives each `tabs-item` its label and position, and the `tabs` node every label and a `uid` from a hash of the source, so no renderer splits children and the HTML renderer's ids differ between documents on one page. Its script is built like carousel's.
 - `packages/zoom` is `comark-zoom`.
   - `src/index.ts` is the parse plugin. It marks content images and adds one `zoom-runtime` node to a document with anything to zoom.
   - `src/script.ts` is the browser script. `script()` is self-contained because the HTML renderer inlines its source. `src/client.ts` exports `start()`, which runs it with the bundled styles; Vue, React, and Svelte components call it on mount and stop it on unmount.

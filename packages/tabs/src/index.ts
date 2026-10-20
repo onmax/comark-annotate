@@ -52,6 +52,17 @@ interface Walk {
   tabs: number;
   groups: number;
   strays: number;
+  blocks: number;
+  prefix: string;
+}
+
+// FNV-1a of the source. Ids from it differ between documents on one page, and from the ids authors write, yet stay
+// the same every time a document renders.
+function hash(text: string) {
+  let value = 0x811c9dc5;
+  for (let at = 0; at < text.length; at++)
+    value = Math.imul(value ^ text.charCodeAt(at), 0x01000193);
+  return (value >>> 0).toString(36);
 }
 
 const resolve = (node: ElementNode, walk: Walk) =>
@@ -120,7 +131,7 @@ function tabs(node: ElementNode, walk: Walk) {
   }
   const sync = text(attrs.sync);
   const code = node[1].code;
-  node[1] = { count: String(items.length), labels };
+  node[1] = { uid: `${walk.prefix}-${++walk.blocks}`, count: String(items.length), labels };
   if (sync) node[1].sync = sync;
   if (code) node[1].code = "true";
   node.splice(2, node.length - 2, ...items);
@@ -158,6 +169,8 @@ export default defineComarkPlugin<void, TabsMeta>(() => ({
       tabs: 0,
       groups: 0,
       strays: 0,
+      blocks: 0,
+      prefix: `ct-${hash(state.markdown)}`,
     };
     normalize(tree.nodes, walk);
     tree.meta.issues = [...(tree.meta.issues ?? []), ...walk.issues];

@@ -19,28 +19,40 @@ const pm =
 describe("comark-tabs", () => {
   it("renders a tab strip and panels with WAI-ARIA tabs markup", async () => {
     const html = await render(os);
+    const [, id] = /id="(ct-[a-z0-9]+-1)-tab-1"/.exec(html) ?? [];
     expect(html).toContain(
       '<div class="ct" data-tabs-sync="os"><div class="ct-list" role="tablist">' +
-        '<button type="button" class="ct-tab" role="tab" id="ct-1-tab-1" aria-controls="ct-1-panel-1" aria-selected="true" tabindex="0">macOS</button>' +
-        '<button type="button" class="ct-tab" role="tab" id="ct-1-tab-2" aria-controls="ct-1-panel-2" aria-selected="false" tabindex="-1">Windows</button></div>',
+        `<button type="button" class="ct-tab" role="tab" id="${id}-tab-1" aria-controls="${id}-panel-1" aria-selected="true" tabindex="0">macOS</button>` +
+        `<button type="button" class="ct-tab" role="tab" id="${id}-tab-2" aria-controls="${id}-panel-2" aria-selected="false" tabindex="-1">Windows</button></div>`,
     );
     expect(html).toContain(
-      '<div class="ct-panel" role="tabpanel" id="ct-1-panel-1" aria-labelledby="ct-1-tab-1" tabindex="0"><div class="ct-caption">macOS</div>',
+      `<div class="ct-panel" role="tabpanel" id="${id}-panel-1" aria-labelledby="${id}-tab-1" tabindex="0"><div class="ct-caption">macOS</div>`,
     );
     // Without the script every panel shows, so none of them is `hidden`.
     expect(html).toContain(
-      '<div class="ct-panel" role="tabpanel" id="ct-1-panel-2" aria-labelledby="ct-1-tab-2" tabindex="0" data-inactive><div class="ct-caption">Windows</div>',
+      `<div class="ct-panel" role="tabpanel" id="${id}-panel-2" aria-labelledby="${id}-tab-2" tabindex="0" data-inactive><div class="ct-caption">Windows</div>`,
     );
     expect(await markup(os)).not.toContain("hidden");
     expect(html).toContain("<strong>⌘K</strong>");
     expect(html.match(/<script>/g)).toHaveLength(1);
   });
 
-  it("numbers the ids of every block in a document, and inlines the script once", async () => {
+  it("numbers the ids of every block in a document, the same on every render, and inlines the script once", async () => {
     const html = await markup(`${os}\n\n${os}`);
-    expect(html.match(/id="ct-1-tab-1"/g)).toHaveLength(1);
-    expect(html).toContain('id="ct-2-tab-1"');
+    expect(html).toMatch(/id="ct-[a-z0-9]+-1-tab-1"/);
+    expect(html).toMatch(/id="ct-[a-z0-9]+-2-tab-1"/);
+    expect(await markup(`${os}\n\n${os}`)).toBe(html);
     expect((await render(`${os}\n\n${os}`)).match(/<script>/g)).toHaveLength(1);
+  });
+
+  it("keeps the ids of two documents on one page apart, and apart from the author's", async () => {
+    const page = (
+      await Promise.all([os, `# Setup {#ct-1-tab-1}\n\n${os}\n\n${pm}`].map(markup))
+    ).join("");
+    const ids = [...page.matchAll(/ id="([^"]+)"/g)].map(([, id]) => id);
+    expect(ids).toContain("ct-1-tab-1");
+    expect(ids.length).toBeGreaterThan(12);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 
   it("turns a code group into tabs labelled by each block's filename", async () => {
@@ -57,8 +69,8 @@ describe("comark-tabs", () => {
     const html = await markup(
       '::tabs\n:::tabs-item{label="Outer"}\n::::tabs\n:::::tabs-item{label="Inner"}\nIn\n:::::\n::::\n:::\n::',
     );
-    expect(html).toContain('id="ct-1-tab-1"');
-    expect(html).toContain('id="ct-2-tab-1"');
+    expect(html).toMatch(/id="ct-[a-z0-9]+-1-tab-1"/);
+    expect(html).toMatch(/id="ct-[a-z0-9]+-2-tab-1"/);
     expect(html.match(/class="ct-list"/g)).toHaveLength(2);
   });
 

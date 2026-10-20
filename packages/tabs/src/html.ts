@@ -6,9 +6,8 @@ import { css } from "./styles.ts";
 export { default } from "./index.ts";
 export type { TabsMeta } from "./index.ts";
 
-// Each render gets a fresh `state.context`, so a document carries the script once and numbers its tabs from 1.
+// Each render gets a fresh `state.context`, so a document carries the script once.
 const started = new WeakSet<object>();
-const counters = new WeakMap<object, number>();
 
 /** The tabs script as one inline `<script>`, once per render. */
 export function runtime(state: State): string {
@@ -31,9 +30,7 @@ function tabHtml(id: string, label: string, index: number) {
 }
 
 const tabs: NodeHandler = async ([, attrs, ...children], state) => {
-  const number = (counters.get(state.context) ?? 0) + 1;
-  counters.set(state.context, number);
-  const id = `ct-${number}`;
+  const id = attr(attrs.uid);
   const labels = Array.isArray(attrs.labels) ? attrs.labels.map(String) : [];
   const panels = await Promise.all(
     children.filter(isItem).map(async ([, item, ...content]) => {
