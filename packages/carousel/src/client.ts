@@ -1,11 +1,11 @@
 declare global {
   interface Window {
-    __comarkCarousel?: { users: number; stop: () => void };
+    __comarkCarousel?: { users: number; stop: () => void; watch: () => void };
   }
 }
 
 /**
- * Starts the arrows, dots, and keys of every `.cc` carousel on the page and returns a function that stops them. Every
+ * Starts the arrows, counter, and keys of every `.cc` carousel on the page and returns a function that stops them. Every
  * caller shares one set of listeners, which stop with the last caller. The function is self-contained: the HTML
  * renderer inlines its source as a script, so it must not use anything from outside its body.
  */
@@ -13,6 +13,7 @@ export function start(css: string): () => void {
   const running = window.__comarkCarousel;
   if (running) {
     running.users++;
+    running.watch();
     return running.stop;
   }
   const listeners = new AbortController();
@@ -51,8 +52,10 @@ export function start(css: string): () => void {
     const { track, slides } = parts(root);
     if (!track) return;
     const index = current(root);
-    for (const [at, dot] of [...root.querySelectorAll(".cc-dot")].entries())
-      dot.setAttribute("aria-current", String(at === index));
+    const count = root.querySelector(".cc-count");
+    const text = `${index + 1} / ${slides.length}`;
+    // Only on a change: the counter is a live region, so each write is read out.
+    if (count && count.textContent !== text) count.textContent = text;
     const end = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
     const prev = root.querySelector<HTMLButtonElement>(".cc-step[data-carousel-step='-1']");
     const next = root.querySelector<HTMLButtonElement>(".cc-step[data-carousel-step='1']");
@@ -60,24 +63,29 @@ export function start(css: string): () => void {
     if (next) next.disabled = end || index >= slides.length - 1;
   }
 
-  for (const root of document.querySelectorAll(".cc")) sync(root);
+  // A carousel in a hidden tab or a closed details measures 0 wide, which reads as the last slide. Each track syncs
+  // when it's first observed and whenever its size changes, including when it's shown.
+  const resized = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      const root = entry.target.closest(".cc");
+      if (root) sync(root);
+    }
+  });
+  const watch = () => {
+    for (const track of document.querySelectorAll(".cc>.cc-track")) resized.observe(track);
+  };
+  watch();
 
   document.addEventListener(
     "click",
     (event) => {
       const button =
         event.target instanceof Element
-          ? event.target.closest<HTMLElement>("[data-carousel-step],[data-carousel-to]")
+          ? event.target.closest<HTMLElement>("[data-carousel-step]")
           : null;
       const root = button?.closest(".cc");
       if (!button || !root) return;
-      const to = button.getAttribute("data-carousel-to");
-      show(
-        root,
-        to === null
-          ? current(root) + Number(button.getAttribute("data-carousel-step"))
-          : Number(to),
-      );
+      show(root, current(root) + Number(button.getAttribute("data-carousel-step")));
     },
     { signal },
   );
@@ -123,9 +131,11 @@ export function start(css: string): () => void {
 
   const state = {
     users: 1,
+    watch,
     stop: () => {
       if (--state.users > 0) return;
       listeners.abort();
+      resized.disconnect();
       style?.remove();
       document.documentElement.removeAttribute("data-carousel-ready");
       window.__comarkCarousel = undefined;

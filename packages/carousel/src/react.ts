@@ -5,6 +5,20 @@ import { css, start } from "./client.ts";
 export { default } from "./index.ts";
 
 const off = (value: unknown) => value === false || value === "false";
+const chevron = (d: string) =>
+  createElement(
+    "svg",
+    {
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: "currentColor",
+      strokeWidth: 2,
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+      "aria-hidden": true,
+    },
+    createElement("path", { d }),
+  );
 
 type CarouselProps = {
   count?: string | number;
@@ -27,40 +41,31 @@ export function Carousel({ count, columns, title, zoom, children }: CarouselProp
       ? createElement(
           "div",
           { className: "cc-controls" },
-          createElement(
-            "button",
-            {
-              type: "button",
-              className: "cc-step",
-              "data-carousel-step": "-1",
-              "aria-label": "Previous slide",
-              disabled: true,
-            },
-            "‹",
-          ),
+          createElement("span", { className: "cc-count", "aria-live": "polite" }, `1 / ${total}`),
           createElement(
             "div",
-            { className: "cc-dots" },
-            Array.from({ length: total }, (_, index) =>
-              createElement("button", {
-                key: index,
+            { className: "cc-steps" },
+            createElement(
+              "button",
+              {
                 type: "button",
-                className: "cc-dot",
-                "data-carousel-to": String(index),
-                "aria-label": `Slide ${index + 1}`,
-                "aria-current": String(index === 0),
-              }),
+                className: "cc-step",
+                "data-carousel-step": "-1",
+                "aria-label": "Previous slide",
+                disabled: true,
+              },
+              chevron("m15 18-6-6 6-6"),
             ),
-          ),
-          createElement(
-            "button",
-            {
-              type: "button",
-              className: "cc-step",
-              "data-carousel-step": "1",
-              "aria-label": "Next slide",
-            },
-            "›",
+            createElement(
+              "button",
+              {
+                type: "button",
+                className: "cc-step",
+                "data-carousel-step": "1",
+                "aria-label": "Next slide",
+              },
+              chevron("m9 18 6-6-6-6"),
+            ),
           ),
         )
       : null;

@@ -29,7 +29,7 @@ function normalize(nodes: Node[]) {
 
 /**
  * Turns `::carousel` into slides: every block inside it, or every `:::slide` when there are any. Slides scroll and
- * snap without a script; the script adds arrows, dots, and keys, and zooms a slide with the others in a strip.
+ * snap without a script; the script adds arrows, a counter, and keys, and zooms a slide with the others in a strip.
  */
 export default defineComarkPlugin(() => ({
   name: "comark-carousel",

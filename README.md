@@ -5,7 +5,7 @@
 | Package | What it does |
 | --- | --- |
 | [`comark-annotate`](./packages/annotate) | Hand-drawn marks, numbered notes, and arrows on screenshots, and before/after comparisons. |
-| [`comark-carousel`](./packages/carousel) | A carousel of any Markdown content, with arrows, dots, keys, and zoom. |
+| [`comark-carousel`](./packages/carousel) | A carousel of any Markdown content, with arrows, a counter, keys, and zoom. |
 | [`comark-zoom`](./packages/zoom) | Zoom images and any block like medium-zoom, with Escape, Back, and click-outside to close. |
 
 Docs and live demos: [comark.onmax.me](https://comark.onmax.me).

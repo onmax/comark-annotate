@@ -20,7 +20,8 @@ const expectCarousel = (html: string) => {
   );
   expect(html.match(/class="cc-slide"/g)).toHaveLength(2);
   expect(html).toMatch(/aria-label="2 of 2" data-zoom(="")? tabindex="0"/);
-  expect(html.match(/class="cc-dot"/g)).toHaveLength(2);
+  expect(html).toMatch(/<span class="cc-count" aria-live="polite">1 \/ (<!-- -->)?2<\/span>/);
+  expect(html.match(/class="cc-step"/g)).toHaveLength(2);
   expect(html).toContain("<strong>bold</strong>");
 };
 

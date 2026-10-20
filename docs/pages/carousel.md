@@ -1,7 +1,7 @@
 ---
 title: comark-carousel
 description: A carousel of any Markdown content, written in Markdown.
-tagline: Slides of images, code, or anything else that scroll and snap, with arrows, dots, keys, and zoom.
+tagline: Slides of images, code, or anything else that scroll and snap, with arrows, a counter, keys, and zoom.
 install: pnpm add comark @comark/html comark-carousel
 ---
 
@@ -49,7 +49,7 @@ Pass the plugin and its `components` to the renderer.
 :::
 ::
 
-Slides scroll and snap without a script. The script adds arrows, dots, and arrow keys, and a click zooms a slide.
+Slides scroll and snap without a script. The script adds arrows, a slide counter, and arrow keys, and a click zooms a slide.
 
 ## Usage
 
@@ -127,15 +127,15 @@ Import `comark-carousel/style.css` and `comark-zoom/style.css` with your styles 
 
 ### Theming
 
-The styles follow [shadcn/ui](https://ui.shadcn.com). On a site that already uses its CSS variables, the arrows and dots match it with no setup, and a `.dark` class anywhere above them switches the theme. Elsewhere they use shadcn's neutral theme and follow the system's light or dark mode.
+The styles follow [shadcn/ui](https://ui.shadcn.com). On a site that already uses its CSS variables, the arrows and counter match it with no setup, and a `.dark` class anywhere above them switches the theme. Elsewhere they use shadcn's neutral theme and follow the system's light or dark mode.
 
 Set the `--comark-*` tokens to theme zoom, carousel, and annotate at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
 
 | Token | Falls back to | Used for |
 | --- | --- | --- |
 | `--comark-background` | `--background` | Button faces, the zoom backdrop, the ring around stamps |
-| `--comark-foreground` | `--foreground` | Text, icons, the current dot and thumbnail |
-| `--comark-muted` | `--muted-foreground` | The zoom counter |
+| `--comark-foreground` | `--foreground` | Text, icons, the current thumbnail, slide panels |
+| `--comark-muted` | `--muted-foreground` | The zoom and carousel counters |
 | `--comark-border` | `--border` | Button, thumbnail, and screenshot borders |
 | `--comark-accent` | `--accent` | Hovered buttons |
 | `--comark-ring` | `--ring` | Focus rings |
@@ -165,7 +165,7 @@ The rules sit in a `comark` CSS layer, so any plain rule of your own wins withou
 }
 ```
 
-Override `--cc-gap` to change the space between slides.
+Override `--cc-gap` to change the space between slides. Each slide sits on a soft panel as tall as the tallest one, so slides of different heights line up; set `--cc-surface` to change its color, or to `transparent` with `.cc-slide { padding: 0 }` to drop it.
 
 ## Credits
 

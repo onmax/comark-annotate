@@ -19,6 +19,8 @@ export function runtime(state: State): string {
 
 const attr = (value: unknown) => escapeHtml(String(value), { '"': "&quot;" });
 const off = (value: unknown) => value === false || value === "false";
+const chevron = (path: string) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${path}"/></svg>`;
 
 export interface CarouselOptions {
   /** How many slides show at once on a wide page: 1 to 3. */
@@ -31,14 +33,11 @@ export interface CarouselOptions {
 function shell(count: number, options: CarouselOptions, track: string, state: State) {
   const columns = Math.min(3, Math.max(1, Number(options.columns) || 1));
   const gallery = options.gallery ?? true;
-  const dots = Array.from(
-    { length: count },
-    (_, index) =>
-      `<button type="button" class="cc-dot" data-carousel-to="${index}" aria-label="Slide ${index + 1}" aria-current="${index === 0}"></button>`,
-  ).join("");
   const controls =
     count > 1
-      ? `<div class="cc-controls"><button type="button" class="cc-step" data-carousel-step="-1" aria-label="Previous slide" disabled>\u2039</button><div class="cc-dots">${dots}</div><button type="button" class="cc-step" data-carousel-step="1" aria-label="Next slide">\u203a</button></div>`
+      ? `<div class="cc-controls"><span class="cc-count" aria-live="polite">1 / ${count}</span><div class="cc-steps">` +
+        `<button type="button" class="cc-step" data-carousel-step="-1" aria-label="Previous slide" disabled>${chevron("m15 18-6-6 6-6")}</button>` +
+        `<button type="button" class="cc-step" data-carousel-step="1" aria-label="Next slide">${chevron("m9 18 6-6-6-6")}</button></div></div>`
       : "";
   return (
     `<div class="cc"${columns > 1 ? ` data-columns="${columns}"` : ""}${count <= columns ? " data-fits" : ""}${gallery ? " data-zoom-gallery" : ""} role="region" aria-roledescription="carousel" aria-label="${attr(options.title ?? "Carousel")}">` +
