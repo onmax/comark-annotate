@@ -51,12 +51,13 @@ export function start(css: string): () => void {
 
   // Storage can throw, in a sandboxed frame or with cookies blocked; the tabs still switch without it.
   const key = (sync: string) => `comark-tabs:${sync}`;
+  const current = new Map<string, string>();
   const read = (sync: string) => {
     try {
-      return localStorage.getItem(key(sync));
-    } catch {
-      return null;
-    }
+      const saved = localStorage.getItem(key(sync));
+      if (saved !== null) return saved;
+    } catch {}
+    return current.get(sync) ?? null;
   };
   const synced = (sync: string) =>
     document.querySelectorAll(`.ct[data-tabs-sync="${CSS.escape(sync)}"]`);
@@ -87,8 +88,10 @@ export function start(css: string): () => void {
       for (const other of synced(sync)) selectLabel(other, label(tab));
       select(root, tabsOf(root).indexOf(tab));
       window.scrollBy({ top: tab.getBoundingClientRect().top - before, behavior: "instant" });
+      const selected = label(tab);
+      current.set(sync, selected);
       try {
-        localStorage.setItem(key(sync), label(tab));
+        localStorage.setItem(key(sync), selected);
       } catch {}
     } else select(root, tabsOf(root).indexOf(tab));
     if (focus) tab.focus();

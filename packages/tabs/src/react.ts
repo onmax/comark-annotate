@@ -15,7 +15,9 @@ type TabsProps = {
 /** `::tabs` and `::code-group` for `@comark/react`. */
 export function Tabs({ labels = [], sync, code, children }: TabsProps) {
   const id = useId();
-  useEffect(() => start(css), []);
+  useEffect(() => {
+    return start(css);
+  }, []);
   return createElement(
     TabsId.Provider,
     { value: id },
