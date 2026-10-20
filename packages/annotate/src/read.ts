@@ -60,7 +60,15 @@ const unresolved = (node: ElementNode, attrs: Record<string, unknown>, key: stri
   attrs[key] === undefined && Object.hasOwn(node[1], `:${key}`);
 // Only the renderer's `data` and the parent's `props` are unknown while parsing; frontmatter and meta are already here.
 const later = (path: string) => /^(?:data|props)(?:\.|$)/.test(path);
-const isHttp = (url: string) => /^https?:\/\/\S/i.test(url);
+function isHttp(url: string) {
+  try {
+    const { protocol, hostname } = new URL(url);
+    return (protocol === "http:" || protocol === "https:") && hostname !== "";
+  } catch {
+    return false;
+  }
+}
+const quote = (value: string) => JSON.stringify(value);
 const named = new Set<string>(PALETTE);
 // Alpha hex colors are left out: a transparent one would hide the mark.
 const isColor = (color: string) => named.has(color) || /^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(color);
@@ -87,6 +95,7 @@ const PROPS = {
   annotation: ["x", "y", "w", "h", "mark", "color", "side"],
 } as const;
 type Block = keyof typeof PROPS;
+const NATIVE = /^(?:id|class|style|data-.+|aria-.+)$/i;
 // Names an author is likely to guess, and what to write instead.
 const HINTS: Record<Block, Record<string, string>> = {
   screenshot: {
@@ -137,7 +146,10 @@ function checkProps(
   data: Data,
 ) {
   const valid: readonly string[] = PROPS[block];
-  for (const key of Object.keys(attrs)) {
+  const keys = new Set(Object.keys(node[1]).map((key) => key.replace(/^:/, "")));
+  keys.delete("$");
+  for (const key of keys) {
+    if (NATIVE.test(key)) continue;
     if (valid.includes(key)) {
       // Comark drops a bound `src` or `href` that resolves to an unsafe URL, such as javascript:. The binding is
       // resolved alone, since a plain value next to it would still fill `attrs`.
@@ -192,12 +204,14 @@ export function readScreenshot(
     problems.push("`alt` is required. Describe what the screenshot shows.");
   const href = text(attrs.href);
   if (href && !isHttp(href))
-    problems.push("`href` must start with http:// or https://. Link the page you captured.");
+    problems.push(
+      "`href` must be an http:// or https:// URL with a host. Link the page you captured.",
+    );
   const viewport = text(attrs.viewport);
   const size = VIEWPORT.exec(viewport);
   if (viewport && !size)
     problems.push(
-      `\`viewport\` must be the capture size in pixels, like 1440x900 (got "${viewport}").`,
+      `\`viewport\` must be the capture size in pixels, like 1440x900 (got ${quote(viewport)}).`,
     );
   issues.push(...problems.map((problem) => `${where}: ${problem}`));
 
@@ -277,7 +291,7 @@ function readAnnotation(node: ElementNode, problems: string[], data: Data): Omit
     } else if (!valid) {
       known = false;
       problems.push(
-        `\`${key}\` must be a percentage of the image, a number without %, ${range} (got ${JSON.stringify(raw)}).`,
+        `\`${key}\` must be a percentage of the image, a number without %, ${range} (got ${quote(raw)}).`,
       );
     } else box[key] = value;
   }
@@ -286,15 +300,15 @@ function readAnnotation(node: ElementNode, problems: string[], data: Data): Omit
 
   const mark = text(attrs.mark) || "box";
   if (!isMark(mark))
-    problems.push(`\`mark\` must be one of ${Object.keys(marks).join(", ")} (got "${mark}").`);
+    problems.push(`\`mark\` must be one of ${Object.keys(marks).join(", ")} (got ${quote(mark)}).`);
   const color = text(attrs.color);
   if (color && !isColor(color))
     problems.push(
-      `\`color\` must be ${PALETTE.join(", ")}, or a 3- or 6-digit hex color like #e5484d (got "${color}").`,
+      `\`color\` must be ${PALETTE.join(", ")}, or a 3- or 6-digit hex color like #e5484d (got ${quote(color)}).`,
     );
   const side = text(attrs.side);
   const knownSide = SIDES.find((item) => item === side);
-  if (side && !knownSide) problems.push(`\`side\` must be left, right, or top (got "${side}").`);
+  if (side && !knownSide) problems.push(`\`side\` must be left, right, or top (got ${quote(side)}).`);
   if (mark === "none" && !side && !unresolved(node, attrs, "side"))
     problems.push(
       '`mark="none"` draws nothing, so without a `side` note nothing points at the spot. Add `side="left"`, `"right"`, or `"top"`, or pick a visible mark such as `box`.',
@@ -359,7 +373,7 @@ export function readCompare(
   const [before, after] = viewports;
   if (before?.size && after?.size && before.size !== after.size)
     issues.push(
-      `${where}: ${before.name} was captured at ${before.size} and ${after.name} at ${after.size}, so they can't be compared. Recapture both at the same viewport.`,
+        `${where}: ${before.name} was captured at ${before.size} and ${after.name} at ${after.size}, so they can't be compared. Recapture both at the same viewport.`,
     );
   return { title: text(attrs.title) || undefined, shots };
 }
@@ -387,13 +401,13 @@ function name(nodes: Node[], data: Data): Names {
     names.set(
       node,
       src && srcs.indexOf(src) === srcs.lastIndexOf(src)
-        ? `screenshot "${src}"`
-        : `screenshot ${index + 1}${alt ? ` ("${alt}")` : ""}`,
+        ? `screenshot ${quote(src)}`
+        : `screenshot ${index + 1}${alt ? ` (${quote(alt)})` : ""}`,
     );
   }
   for (const [index, node] of compares.entries()) {
     const title = text(props(node, data).title);
-    names.set(node, `compare ${index + 1}${title ? ` ("${title}")` : ""}`);
+    names.set(node, `compare ${index + 1}${title ? ` (${quote(title)})` : ""}`);
   }
   return names;
 }
@@ -413,7 +427,7 @@ export function check(nodes: Node[], data: Data): string[] {
           .trim()
           .slice(0, 40);
         issues.push(
-          `annotation ${++stray} outside a screenshot${note ? ` ("${note}")` : ""}: it has nothing to point at. Move it inside the \`::screenshot\` it marks, as a direct child.`,
+          `annotation ${++stray} outside a screenshot${note ? ` (${quote(note)})` : ""}: it has nothing to point at. Move it inside the \`::screenshot\` it marks, as a direct child.`,
         );
       } else walk(children(node));
     }

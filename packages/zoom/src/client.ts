@@ -83,6 +83,7 @@ export function start(css: string): () => void {
     restoration: ScrollRestoration | null;
   };
   let view: View | null = null;
+  let restorationEpoch = 0;
 
   const el = <K extends keyof HTMLElementTagNameMap>(
     tag: K,
@@ -363,11 +364,17 @@ export function start(css: string): () => void {
     const saved = current.restoration;
     current.restoration = null;
     // The browser restores scroll after popstate, so put the setting back once it has skipped that.
-    if (saved) setTimeout(() => (history.scrollRestoration = saved));
+    if (saved) {
+      const epoch = restorationEpoch;
+      setTimeout(() => {
+        if (restorationEpoch === epoch) history.scrollRestoration = saved;
+      });
+    }
   }
 
   function open(item: HTMLElement) {
     if (view) return;
+    restorationEpoch++;
     const items = groupOf(item);
     const dialog = el("div", "cz-dialog", { role: "dialog", "aria-modal": "true", tabindex: "-1" });
     const header = el("div", "cz-header");
