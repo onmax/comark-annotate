@@ -14,6 +14,10 @@ A pnpm workspace. Every package in `packages/` is published to npm under its own
   - `src/marks.ts` holds the hand-drawn marks, taken from AnnotationKit.
 - `packages/carousel` is `comark-carousel`. Its parse plugin turns `::carousel` content into explicit `slide` nodes with their position, so no renderer splits children. Its script is built like zoom's, and a carousel is a zoom gallery.
 - `packages/github-callouts` is `comark-github-callouts`. Its parse plugin is named `alert`, so Comark's dedupe swaps it in for the built-in alert plugin and it always sees the raw `[!TYPE]` marker. It turns those blockquotes into `github-callout` nodes with `type` and `title`; the renderers only draw them. No script: the components add the styles on mount.
+- `packages/lint` is `comark-lint`, a library, CLI, and Vite Doctor extension that lints Comark documents.
+  - `src/index.ts` is `lint()`. Comark gives nodes no positions, so block components take their line from markdown-exit tokens (plus the stripped frontmatter's lines) and everything else is found by searching the source with fenced code blanked out.
+  - `src/config.ts` loads the other packages in this repo through optional dynamic imports; they are optional peer dependencies. Add a new package there.
+  - `src/doctor.ts` is `comark-lint/doctor`. Vite Doctor has no Markdown visitor, so its Rules are manifest Rules that glob the Markdown in `onProjectEnd`. The root `doctor.config.ts` lints `docs/pages` with it as part of `pnpm run doctor`.
 - `packages/zoom` is `comark-zoom`.
   - `src/index.ts` is the parse plugin. It marks content images and adds one `zoom-runtime` node to a document with anything to zoom.
   - `src/script.ts` is the browser script. `script()` is self-contained because the HTML renderer inlines its source. `src/client.ts` exports `start()`, which runs it with the bundled styles; Vue, React, and Svelte components call it on mount and stop it on unmount.

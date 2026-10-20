@@ -35,6 +35,7 @@ const pages = [
   { slug: "zoom", file: "zoom.md", npm: "comark-zoom" },
   { slug: "carousel", file: "carousel.md", npm: "comark-carousel" },
   { slug: "github-callouts", file: "github-callouts.md", npm: "comark-github-callouts" },
+  { slug: "lint", file: "lint.md", npm: "comark-lint" },
 ];
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;

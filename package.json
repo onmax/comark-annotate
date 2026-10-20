@@ -1,7 +1,7 @@
 {
   "name": "comark-plugins",
   "private": true,
-  "description": "Comark plugins by onmax: annotated screenshots, zoom, carousels, and GitHub callouts. One version for every package.",
+  "description": "Comark plugins by onmax: annotated screenshots, zoom, carousels, GitHub callouts, and a linter. One version for every package.",
   "homepage": "https://comark.onmax.me",
   "license": "MIT",
   "repository": {
@@ -15,7 +15,8 @@
     "lint": "vp lint",
     "typecheck": "tsc --noEmit",
     "test": "vp test",
-    "doctor": "pnpm -r --filter \"./packages/*\" run doctor",
+    "doctor": "pnpm -r --filter \"./packages/*\" run doctor && pnpm run lint:docs",
+    "lint:docs": "vite-doctor . --config doctor.config.ts --no-cache --max-warnings 0 --format text",
     "check": "vp check",
     "ready": "vp fmt && pnpm build && pnpm check && pnpm test && pnpm run doctor",
     "release:check": "pnpm build && pnpm check && pnpm test && pnpm run doctor",
@@ -29,6 +30,7 @@
     "@playwright/test": "catalog:",
     "@types/node": "catalog:",
     "comark": "catalog:",
+    "comark-lint": "workspace:*",
     "geist": "catalog:",
     "pkg-pr-new": "catalog:",
     "publint": "catalog:",
