@@ -28,7 +28,8 @@ function seconds(value: string | null) {
   const parts = value ? match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/, value) : undefined;
   if (!parts) return;
   const [, h = 0, m = 0, s = 0] = parts;
-  return Number(h) * 3600 + Number(m) * 60 + Number(s) || undefined;
+  const total = Number(h) * 3600 + Number(m) * 60 + Number(s);
+  return Number.isSafeInteger(total) && total > 0 ? total : undefined;
 }
 
 const PROVIDERS = {
@@ -63,6 +64,8 @@ const PROVIDERS = {
       const [, id, hash = url.searchParams.get("h")] =
         match(/\/(\d+)(?:\/([\da-f]+))?\/?$/, url.pathname) ?? [];
       if (!id) return { hint: "Use a vimeo.com/<number> link." };
+      if (hash && !/^[\da-f]+$/.test(hash))
+        return { hint: "The `h` hash of an unlisted video is letters a to f and digits only." };
       return {
         provider: "vimeo",
         src: `https://player.vimeo.com/video/${id}?dnt=1${hash ? `&h=${hash}` : ""}${start ? `#t=${start}s` : ""}`,

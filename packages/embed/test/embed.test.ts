@@ -138,6 +138,7 @@ describe("comark-embed", () => {
       "::embed\n::",
       block("javascript:alert(1)"),
       block("http://example.com"),
+      block("https://alice:secret@example.com/"),
       block("not a url"),
     ]) {
       const html = await render(`Before\n\n${markdown}\n\nAfter`);
@@ -168,6 +169,17 @@ describe("comark-embed", () => {
     ).toEqual(["`::embed` 2: `url` must start with https://."]);
     expect(await issues(block("http://example.com"))).toEqual([
       "`::embed` 1: `url` must start with https://.",
+    ]);
+    expect(await issues(block("https://alice:secret@www.youtube.com/watch?v=dQw4w9WgXcQ"))).toEqual(
+      [
+        "`::embed` 1: `url` has a user name or password before the host. Remove the part up to and including `@`.",
+      ],
+    );
+    expect(await issues(block("https://vimeo.com/76979871?h=%26dnt%3D0"))).toEqual([
+      "`::embed` 1: can't read a video ID from https://vimeo.com/76979871?h=%26dnt%3D0. The `h` hash of an unlisted video is letters a to f and digits only.",
+    ]);
+    expect(await issues(block("https://youtu.be/dQw4w9WgXcQ", " start=9007199254740993"))).toEqual([
+      "`::embed` 1: `start` must be a whole number of seconds, such as `start=90`.",
     ]);
     expect(await issues(block("https://www.youtube.com/watch?v=short"))).toEqual([
       "`::embed` 1: can't read a video ID from https://www.youtube.com/watch?v=short. Use a youtube.com/watch, youtu.be, or /shorts/ link.",

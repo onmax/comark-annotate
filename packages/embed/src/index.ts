@@ -63,9 +63,18 @@ function embed(node: ElementNode, number: number, data: Data, issues: string[]):
     issues.push(`${name}: \`url\` must start with https://.`);
     return {};
   }
+  if (url.username || url.password) {
+    issues.push(
+      `${name}: \`url\` has a user name or password before the host. Remove the part up to and including \`@\`.`,
+    );
+    return {};
+  }
   const provider = providerOf(url);
   const startText = text(attrs.start);
-  const start = /^\d+$/.test(startText) ? Number(startText) : undefined;
+  const start =
+    /^\d+$/.test(startText) && Number.isSafeInteger(Number(startText))
+      ? Number(startText)
+      : undefined;
   if (startText && start === undefined)
     issues.push(`${name}: \`start\` must be a whole number of seconds, such as \`start=90\`.`);
   else if (startText && !provider?.seeks)
