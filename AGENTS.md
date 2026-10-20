@@ -1,15 +1,15 @@
 # comark-plugins
 
-Comark plugins for review documents: annotated screenshots and before/after comparisons. Agents write most of the documents they render, often as PR evidence. Because of that, the issue messages are as important as the HTML: every one names its block and says how to fix it.
+Comark plugins for review documents: annotated screenshots, before/after comparisons, and suggested code changes. Agents write most of the documents they render, often as PR evidence. Because of that, the issue messages are as important as the HTML: every one names its block and says how to fix it.
 
 ## Shape
 
 A pnpm workspace. Every package in `packages/` is published to npm under its own name, and all of them share one version.
 
 - `packages/annotate` is `comark-annotate`.
-  - `src/read.ts` reads `::screenshot`, `::compare`, and `::annotation` nodes and reports their issues. The plugin and the renderer both go through it, so they can't disagree.
+  - `src/read.ts` reads `::screenshot`, `::compare`, `::diff`, and `::annotation` nodes and reports their issues. The plugin and the renderer both go through it, so they can't disagree.
   - `src/index.ts` is the parse plugin. It appends its problems to `meta.issues`.
-  - `src/html.ts` is the `@comark/html` renderer. The output reads without a script; the zoom and carousel scripts and all styles are inlined once per document. A screenshot zooms with `comark-zoom`, and `::compare` is a two-column `comark-carousel`. Marks are not links, so a click anywhere on a screenshot zooms it.
+  - `src/html.ts` is the `@comark/html` renderer. The output reads without a script; the zoom and carousel scripts and all styles are inlined once per document. A screenshot zooms with `comark-zoom`, and `::compare` is a two-column `comark-carousel`. Marks are not links, so a click anywhere on a screenshot zooms it. `::diff` is a table of before and after lines with no script, and doesn't zoom: its code scrolls in place.
   - Only the HTML renderer exists: notes are Markdown, and Vue, React, and Svelte versions would each copy the whole figure template.
   - `src/marks.ts` holds the hand-drawn marks, taken from AnnotationKit.
 - `packages/carousel` is `comark-carousel`. Its parse plugin turns `::carousel` content into explicit `slide` nodes with their position, so no renderer splits children. Its script is built like zoom's, and a carousel is a zoom gallery.
