@@ -1,4 +1,5 @@
 import { createHtmlRenderer } from "@comark/html";
+import { defineComarkPlugin, parseMarkdown } from "comark";
 import zoom, { components as zoomComponents } from "comark-zoom/html";
 import { describe, expect, it } from "vite-plus/test";
 import carousel, { components } from "../src/html.ts";
@@ -8,6 +9,8 @@ const render = (markdown: string) =>
     plugins: [carousel(), zoom()],
     components: { ...components, ...zoomComponents },
   })(markdown);
+const issues = async (markdown: string) =>
+  (await parseMarkdown(markdown, { plugins: [carousel()] })).meta.issues;
 
 describe("comark-carousel", () => {
   it("makes every block a zoomable slide, with arrows and a counter", async () => {
@@ -19,10 +22,13 @@ describe("comark-carousel", () => {
     );
     expect(html.match(/class="cc-slide"/g)).toHaveLength(3);
     expect(html).toContain(
-      '<div class="cc-slide" role="group" aria-roledescription="slide" aria-label="2 of 3" data-zoom tabindex="0">',
+      '<div class="cc-slide" role="group" aria-roledescription="slide" aria-label="2 of 3" data-zoom tabindex="0"',
     );
     expect(html).toContain('<span class="cc-count" aria-live="polite">1 / 3</span>');
-    expect(html).toContain('data-carousel-step="-1" aria-label="Previous slide" disabled');
+    // Not `disabled`, which would drop the focus of a reader who pages back to the start with the button.
+    expect(html).toContain(
+      'data-carousel-step="-1" aria-label="Previous slide" aria-disabled="true"',
+    );
     // One zoom script and one carousel script, even with an image that zooms on its own.
     expect(html.match(/<script>/g)).toHaveLength(2);
   });
@@ -38,16 +44,90 @@ describe("comark-carousel", () => {
     expect(html).toContain("<p>Still one</p>");
   });
 
+  it("names a zoomed slide without a title or an image after the carousel", async () => {
+    const html = await render(
+      '::carousel{title="Setup"}\n:::slide{title="Install"}\nOne\n:::\n\n:::slide\nTwo\n:::\n\n:::slide\n![Three](c.png)\n:::\n::',
+    );
+    expect(html).toContain('aria-label="1 of 3" data-zoom tabindex="0" data-zoom-title="Install">');
+    expect(html).toContain('aria-label="2 of 3" data-zoom tabindex="0" data-zoom-title="Setup">');
+    // An image names its zoomed view with its alt text.
+    expect(html).toContain('aria-label="3 of 3" data-zoom tabindex="0">');
+    expect(await render("::carousel\nOne\n\nTwo\n::")).not.toContain('data-zoom-title="');
+  });
+
   it("shows several columns, and marks slides that all fit so wide pages hide the controls", async () => {
     const html = await render("::carousel{columns=2}\nOne\n\nTwo\n::");
-    expect(html).toContain('<div class="cc" data-columns="2" data-fits data-zoom-gallery');
+    expect(html).toContain(
+      '<div class="cc" data-carousel-columns="2" data-carousel-fits data-zoom-gallery',
+    );
     expect(html).toContain('<div class="cc-controls">');
     expect(await render("::carousel\nOnly one\n::")).not.toContain('<div class="cc-controls">');
   });
 
-  it("can turn zoom off", async () => {
-    const html = await render("::carousel{zoom=false}\nOne\n\nTwo\n::");
-    expect(html).not.toContain("data-zoom");
-    expect(html.match(/<script>/g)).toHaveLength(1);
+  it("can turn zoom off, with a plain or a bound prop", async () => {
+    for (const props of ["zoom=false", ':zoom="false"']) {
+      const html = await render(`::carousel{${props}}\nOne\n\nTwo\n::`);
+      expect(html).toContain('<div class="cc" role="region"');
+      expect(html).toContain(
+        '<div class="cc-slide" role="group" aria-roledescription="slide" aria-label="2 of 2">',
+      );
+      expect(html.match(/<script>/g)).toHaveLength(1);
+    }
+    expect(await render('::carousel{:columns="2"}\nOne\n\nTwo\n::')).toContain(
+      'data-carousel-columns="2"',
+    );
+  });
+
+  it("lifts an image out of its own paragraph, and leaves inline images in their text", async () => {
+    const html = await render(
+      "::carousel\n:::slide\nIntro\n\n![Shot](a.png)\n:::\n\n:::slide\nBuild ![passing](b.svg) on main\n:::\n::",
+    );
+    expect(html).toContain('<p>Intro</p><img src="a.png" alt="Shot">');
+    expect(html).toContain('<p>Build <img src="b.svg" alt="passing"> on main</p>');
+  });
+
+  it("skips comments instead of making them slides", async () => {
+    const html = await render("::carousel\nOne\n\n<!-- a note to the author -->\n\nTwo\n::");
+    expect(html.match(/class="cc-slide"/g)).toHaveLength(2);
+    expect(html).toContain('<span class="cc-count" aria-live="polite">1 / 2</span>');
+  });
+
+  it("reports what it drops or changes in meta.issues, naming the block and the fix", async () => {
+    expect(await issues("::carousel\nOne\n\nTwo\n::")).toEqual([]);
+    expect(
+      await issues(
+        '::carousel\nOne\n::\n\n::carousel{title="Tour"}\n:::slide\nOne\n:::\n\nStray text\n\n<!-- fine -->\n::',
+      ),
+    ).toEqual([
+      'carousel 2 ("Tour") drops the paragraph "Stray text" because it sits outside every :::slide; move it into a :::slide.',
+    ]);
+    expect(await issues("::carousel\n::")).toEqual([
+      "carousel 1 has no slides; put blocks or :::slide blocks inside it, or remove it.",
+    ]);
+    expect(await issues("::carousel{columns=5}\nOne\n\nTwo\n::")).toEqual([
+      "carousel 1 has columns=5; use 1, 2, or 3.",
+    ]);
+    expect(await issues(':::slide{title="Lost"}\nOne\n:::')).toEqual([
+      ':::slide 1 ("Lost") sits outside a ::carousel, so it renders as plain content; wrap it in a ::carousel or remove the :::slide fence.',
+    ]);
+  });
+
+  it("adds its issues to the ones other plugins found", async () => {
+    const before = defineComarkPlugin(() => ({
+      name: "before",
+      post(state) {
+        state.tree.meta.issues = ["An earlier plugin's issue."];
+      },
+    }));
+    const document = await parseMarkdown("::carousel\n::", { plugins: [before(), carousel()] });
+    expect(document.meta.issues).toHaveLength(2);
+    expect(document.meta.issues[0]).toBe("An earlier plugin's issue.");
+  });
+
+  it("renders a slide outside a carousel as plain content", async () => {
+    const html = await render(':::slide{title="Lost"}\nOne\n:::');
+    expect(html).toMatch(/^<div>\s*One\s*<\/div>/);
+    expect(html).not.toContain("cc-slide");
+    expect(html).not.toContain("undefined");
   });
 });
