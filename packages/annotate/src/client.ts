@@ -229,7 +229,18 @@ export function start(): () => void {
   };
   const round = (context: CanvasRenderingContext2D, [x, y, width, height]: Box, radius: number) => {
     context.beginPath();
-    context.roundRect(x, y, width, height, Math.min(radius, width / 2, height / 2));
+    const r = Math.max(0, Math.min(radius, width / 2, height / 2));
+    if (!r) {
+      context.rect(x, y, width, height);
+      return;
+    }
+    // Keep this compatible with browsers that have Canvas 2D but not roundRect().
+    context.moveTo(x + r, y);
+    context.arcTo(x + width, y, x + width, y + height, r);
+    context.arcTo(x + width, y + height, x, y + height, r);
+    context.arcTo(x, y + height, x, y, r);
+    context.arcTo(x, y, x + width, y, r);
+    context.closePath();
   };
 
   async function compose(figure: HTMLElement) {
@@ -286,8 +297,19 @@ export function start(): () => void {
               context.letterSpacing = letterSpacing === "normal" ? "0px" : letterSpacing;
               context.fillStyle = color;
               context.globalAlpha = alpha;
-              const { fontBoundingBoxAscent: ascent, fontBoundingBoxDescent: descent } =
-                context.measureText(match[0]);
+              const metrics = context.measureText(match[0]);
+              const ascent =
+                Number.isFinite(metrics.fontBoundingBoxAscent) && metrics.fontBoundingBoxAscent > 0
+                  ? metrics.fontBoundingBoxAscent
+                  : Number.isFinite(metrics.actualBoundingBoxAscent) && metrics.actualBoundingBoxAscent > 0
+                    ? metrics.actualBoundingBoxAscent
+                    : parseFloat(style.fontSize) || height * 0.8;
+              const descent =
+                Number.isFinite(metrics.fontBoundingBoxDescent) && metrics.fontBoundingBoxDescent >= 0
+                  ? metrics.fontBoundingBoxDescent
+                  : Number.isFinite(metrics.actualBoundingBoxDescent) && metrics.actualBoundingBoxDescent >= 0
+                    ? metrics.actualBoundingBoxDescent
+                    : Math.max(0, (parseFloat(style.fontSize) || height) - ascent);
               context.fillText(match[0], x, y + (height - ascent - descent) / 2 + ascent);
             });
           }
@@ -334,22 +356,23 @@ export function start(): () => void {
           const alpha = fade(node);
           for (const path of node.querySelectorAll("path")) {
             const style = getComputedStyle(path);
-            const shape = new Path2D();
-            shape.addPath(
-              new Path2D(path.getAttribute("d") ?? ""),
-              new DOMMatrix([sx, 0, 0, sy, tx, ty]),
-            );
+            const shape = new Path2D(path.getAttribute("d") ?? "");
             const { fill, stroke, strokeLinecap, strokeLinejoin } = style;
             const fillOpacity = Number(style.fillOpacity);
             const strokeOpacity = Number(style.strokeOpacity);
             const lineWidth = parseFloat(style.strokeWidth) || 0;
             paint.push((context) => {
+              context.save();
+              context.transform(sx, 0, 0, sy, tx, ty);
               if (fill !== "none") {
                 context.globalAlpha = alpha * fillOpacity;
                 context.fillStyle = fill;
                 context.fill(shape);
               }
-              if (stroke === "none" || !lineWidth) return;
+              if (stroke === "none" || !lineWidth) {
+                context.restore();
+                return;
+              }
               context.globalAlpha = alpha * strokeOpacity;
               context.strokeStyle = stroke;
               context.lineWidth = lineWidth;
@@ -358,6 +381,7 @@ export function start(): () => void {
               // SAFETY: as above, a computed stroke-linejoin is miter, round, or bevel.
               context.lineJoin = strokeLinejoin as CanvasLineJoin;
               context.stroke(shape);
+              context.restore();
             });
           }
         } else if (node instanceof HTMLElement) {
