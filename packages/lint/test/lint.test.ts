@@ -339,14 +339,14 @@ describe("comark-lint CLI", () => {
 
   it("adds a config's components to the installed packages'", async () => {
     const dir = await mkdtemp(join(tmpdir(), "comark-lint-"));
-    await writeFile(join(dir, "tabs.md"), `::tabs\n::\n`);
+    await writeFile(join(dir, "steps.md"), `::steps\n::\n`);
     await writeFile(
       join(dir, "comark-lint.config.mjs"),
-      `export default { components: ["tabs"] };\n`,
+      `export default { components: ["steps"] };\n`,
     );
-    await expect(cli(join(dir, "tabs.md"))).rejects.toMatchObject({ code: 1 });
+    await expect(cli(join(dir, "steps.md"))).rejects.toMatchObject({ code: 1 });
     expect(
-      (await cli(join(dir, "tabs.md"), "--config", join(dir, "comark-lint.config.mjs"))).stdout,
+      (await cli(join(dir, "steps.md"), "--config", join(dir, "comark-lint.config.mjs"))).stdout,
     ).toBe("No problems.\n");
   });
 });

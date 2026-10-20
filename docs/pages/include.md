@@ -5,7 +5,7 @@ tagline: Paste a shared section, or a few lines of real source, into any page wi
 install: pnpm add comark comark-include
 ---
 
-::tabs
+::examples
 :::example{label="Partial"}
 ```md
 :include{src="./partials/install.md"}

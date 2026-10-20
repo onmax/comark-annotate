@@ -5,7 +5,7 @@ tagline: Write > [!NOTE] through > [!CAUTION] as on GitHub, and get a shadcn-sty
 install: pnpm add comark @comark/html comark-github-callouts
 ---
 
-::tabs
+::examples
 :::example{label="Types"}
 ```md
 > [!NOTE]

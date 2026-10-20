@@ -1,0 +1,82 @@
+import { createContext, createElement, type ReactNode, useContext, useEffect, useId } from "react";
+import { css, start } from "./client.ts";
+
+export { default } from "./index.ts";
+
+const TabsId = createContext("");
+
+type TabsProps = {
+  labels?: string[];
+  sync?: string;
+  code?: string | boolean;
+  children?: ReactNode;
+};
+
+/** `::tabs` and `::code-group` for `@comark/react`. */
+export function Tabs({ labels = [], sync, code, children }: TabsProps) {
+  const id = useId();
+  useEffect(() => {
+    return start(css);
+  }, []);
+  return createElement(
+    TabsId.Provider,
+    { value: id },
+    createElement(
+      "div",
+      {
+        className: "ct",
+        "data-tabs-code": code ? "" : undefined,
+        "data-tabs-sync": sync || undefined,
+      },
+      createElement(
+        "div",
+        { className: "ct-list", role: "tablist" },
+        labels.map((label, at) =>
+          createElement(
+            "button",
+            {
+              key: at,
+              type: "button",
+              className: "ct-tab",
+              role: "tab",
+              id: `${id}-tab-${at + 1}`,
+              "aria-controls": `${id}-panel-${at + 1}`,
+              "aria-selected": at === 0,
+              tabIndex: at === 0 ? 0 : -1,
+            },
+            label,
+          ),
+        ),
+      ),
+      children,
+    ),
+  );
+}
+
+type TabsItemProps = {
+  label?: string;
+  index?: string | number;
+  children?: ReactNode;
+};
+
+/** `:::tabs-item` for `@comark/react`. */
+export function TabsItem({ label, index, children }: TabsItemProps) {
+  const id = useContext(TabsId);
+  const at = Number(index) || 1;
+  return createElement(
+    "div",
+    {
+      className: "ct-panel",
+      role: "tabpanel",
+      id: `${id}-panel-${at}`,
+      "aria-labelledby": `${id}-tab-${at}`,
+      tabIndex: 0,
+      "data-inactive": at > 1 ? "" : undefined,
+    },
+    createElement("div", { className: "ct-caption" }, label),
+    children,
+  );
+}
+
+/** Pass these as `components` to `@comark/react`. */
+export const components = { Tabs, TabsItem };

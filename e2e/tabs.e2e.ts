@@ -1,0 +1,71 @@
+import { createHtmlRenderer } from "@comark/html";
+import { expect, type Page, test } from "@playwright/test";
+import tabs, { components } from "../packages/tabs/src/html.ts";
+
+const render = createHtmlRenderer({ plugins: [tabs()], components });
+// A page of its own for each case, on the docs site's origin so the tabs can save a choice. Not a docs page:
+// `setContent` keeps the window, and with it the running script of a page that has tabs.
+const open = async (page: Page, markdown: string, options: { script?: boolean } = {}) => {
+  let html = await render(markdown);
+  if (options.script === false) html = html.replace(/<script>[\s\S]*?<\/script>/g, "");
+  await page.goto("/no-such-page");
+  await page.setContent(
+    `<!doctype html><html><body style="width:40rem;margin:2rem">${html}</body></html>`,
+  );
+};
+const block = (label: string, sync = "") =>
+  `::tabs${sync ? `{sync="${sync}"}` : ""}\n:::tabs-item{label="${label}"}\n${label} one\n:::\n\n:::tabs-item{label="B"}\n${label} two\n:::\n\n:::tabs-item{label="C"}\n${label} three\n:::\n::`;
+
+test("a tab opens its panel, and the arrow keys, Home, and End move between tabs", async ({
+  page,
+}) => {
+  await open(page, block("A"));
+  const tab = (name: string) => page.getByRole("tab", { name });
+  await expect(page.getByRole("tabpanel")).toContainText("A one");
+  await tab("B").click();
+  await expect(page.getByRole("tabpanel")).toContainText("A two");
+  await expect(tab("B")).toHaveAttribute("aria-selected", "true");
+  await expect(tab("A")).toHaveAttribute("tabindex", "-1");
+  await page.keyboard.press("ArrowRight");
+  await expect(tab("C")).toBeFocused();
+  await expect(page.getByRole("tabpanel")).toContainText("A three");
+  await page.keyboard.press("ArrowRight");
+  await expect(tab("A")).toBeFocused();
+  await page.keyboard.press("End");
+  await expect(tab("C")).toHaveAttribute("aria-selected", "true");
+  await page.keyboard.press("Home");
+  await expect(tab("A")).toHaveAttribute("tabindex", "0");
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("tabpanel")).toBeFocused();
+});
+
+test("synced blocks switch together, keep the clicked tab still, and remember the choice", async ({
+  page,
+}) => {
+  const tall = `::tabs{sync="os"}\n:::tabs-item{label="A"}\n${"Tall\n\n".repeat(30)}:::\n\n:::tabs-item{label="B"}\nShort\n:::\n::`;
+  await open(page, `${tall}\n\n${"Filler\n\n".repeat(30)}\n\n${block("A", "os")}`);
+  await page.evaluate(() => localStorage.clear());
+  const lower = page.locator(".ct").nth(1);
+  const tab = lower.getByRole("tab", { name: "B" });
+  await tab.scrollIntoViewIfNeeded();
+  const before = await tab.evaluate((element) => element.getBoundingClientRect().top);
+  await tab.click();
+  await expect(page.locator(".ct").first().getByRole("tabpanel")).toContainText("Short");
+  expect(
+    Math.abs((await tab.evaluate((element) => element.getBoundingClientRect().top)) - before),
+  ).toBeLessThan(2);
+  expect(await page.evaluate(() => localStorage.getItem("comark-tabs:os"))).toBe("B");
+
+  // A later page restores the choice, in blocks the script meets after it starts too.
+  await open(page, `${block("A", "os")}\n\n${block("X", "os")}`);
+  for (const root of await page.locator(".ct").all())
+    await expect(root.getByRole("tab", { name: "B" })).toHaveAttribute("aria-selected", "true");
+});
+
+test("without the script, every panel shows under its label", async ({ page }) => {
+  await open(page, block("A"), { script: false });
+  await expect(page.getByRole("tablist")).toBeHidden();
+  await expect(page.locator(".ct-panel")).toHaveCount(3);
+  for (const panel of await page.locator(".ct-panel").all()) await expect(panel).toBeVisible();
+  await expect(page.locator(".ct-caption").nth(1)).toHaveText("B");
+});

@@ -16,6 +16,7 @@ import githubCallouts, {
   components as githubCalloutsComponents,
 } from "../packages/github-callouts/src/html.ts";
 import include from "../packages/include/src/index.ts";
+import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
 
 const root = new URL("./", import.meta.url);
@@ -29,6 +30,7 @@ const contentPlugins = () => [
   carousel(),
   embed(),
   githubCallouts(),
+  tabs(),
   zoom(),
 ];
 const plugins = [...contentPlugins(), shiki({ themes: { light, dark } })];
@@ -37,6 +39,7 @@ const components = {
   ...carouselComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
+  ...tabsComponents,
   ...zoomComponents,
 };
 
@@ -46,6 +49,7 @@ const pages = [
   { slug: "annotate", file: "annotate.md", npm: "comark-annotate" },
   { slug: "zoom", file: "zoom.md", npm: "comark-zoom" },
   { slug: "carousel", file: "carousel.md", npm: "comark-carousel" },
+  { slug: "tabs", file: "tabs.md", npm: "comark-tabs" },
   { slug: "github-callouts", file: "github-callouts.md", npm: "comark-github-callouts" },
   { slug: "lint", file: "lint.md", npm: "comark-lint" },
   { slug: "include", file: "include.md", npm: "comark-include" },
@@ -79,7 +83,8 @@ const example: NodeHandler = async ([, attrs, ...children], state) => {
   );
 };
 
-const tabs: NodeHandler = async ([, , ...children], state) => {
+// The examples at the top of each page. Not comark-tabs: each example's Preview/Code switch shares the tab row.
+const examples: NodeHandler = async ([, , ...children], state) => {
   const panels = children.filter(isElement);
   const labels = panels.map((panel, i) => {
     const label = escapeHtml(str(panel[1].label) || `Example ${i + 1}`);
@@ -91,7 +96,7 @@ const tabs: NodeHandler = async ([, , ...children], state) => {
         `<div role="tabpanel" data-tab="${i}"${i ? " hidden" : ""}>${await state.one(panel, state)}</div>`,
     ),
   );
-  return `<div class="tabs"><div class="tablist" role="tablist">${labels.join("")}</div>${bodies.join("")}</div>`;
+  return `<div class="examples"><div class="tablist" role="tablist">${labels.join("")}</div>${bodies.join("")}</div>`;
 };
 
 const nav = (document: { nodes: Node[] }) =>
@@ -163,11 +168,11 @@ const links = (current: string) =>
 const npmx = `<svg viewBox="0 0 153 153" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M17.6 107.2h24.1v23.7h-24zM119.8.8 116.2 11 69.9 142l-3.6 10.2h15.5l3.6-10.2 11.7-33.2L135.4.8z"/></svg>`;
 const logo = `<span class="logo" aria-hidden="true">1</span>`;
 
-// Tabs, the Preview/Code switch, copy buttons, and the active sidebar link. Without it the page still reads top to bottom.
+// The example tabs, the Preview/Code switch, copy buttons, and the active sidebar link. Without it the page still reads top to bottom.
 const script = `
-for (const t of document.querySelectorAll(".tabs")) t.querySelector(".tablist").addEventListener("click", e => {
+for (const t of document.querySelectorAll(".examples")) t.querySelector(".tablist").addEventListener("click", e => {
   const b = e.target.closest("[role=tab]"); if (!b) return;
-  for (const x of t.querySelectorAll("[role=tab]")) x.setAttribute("aria-selected", x === b);
+  for (const x of t.querySelectorAll(":scope > .tablist > [role=tab]")) x.setAttribute("aria-selected", x === b);
   for (const p of t.querySelectorAll(":scope > [role=tabpanel]")) p.hidden = p.dataset.tab !== b.dataset.tab;
 });
 for (const ex of document.querySelectorAll(".example")) ex.querySelector(".seg").addEventListener("click", e => {
@@ -265,7 +270,7 @@ for (const page of parsed) {
 <div class="content">
 <div class="hero enter"><h1>${page.title}</h1><p>${escapeHtml(page.tagline)}</p>
 ${page.install ? installerFor(page.install) : ""}</div>
-<main class="enter" style="--i:1">${await renderHtmlFromDocument(page.document, { components: { ...components, example, tabs, plugins: pluginCards } })}</main>
+<main class="enter" style="--i:1">${await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, plugins: pluginCards } })}</main>
 <footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>. Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>
 </div>
 </div>

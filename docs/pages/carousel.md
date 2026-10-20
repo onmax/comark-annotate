@@ -5,7 +5,7 @@ tagline: Slides of images, code, or anything else that scroll and snap, with arr
 install: pnpm add comark @comark/html comark-carousel
 ---
 
-::tabs
+::examples
 :::example{label="Images"}
 ```md
 ::carousel{title="Filters"}

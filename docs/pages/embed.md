@@ -5,7 +5,7 @@ tagline: Paste a YouTube, Vimeo, Loom, Spotify, CodePen, StackBlitz, or Figma li
 install: pnpm add comark @comark/html comark-embed
 ---
 
-::tabs
+::examples
 :::example{label="Video"}
 ```md
 ::embed{url="https://www.youtube.com/watch?v=KCrXgy8qtjM" title="Vite in 100 Seconds"}
