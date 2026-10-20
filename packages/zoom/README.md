@@ -38,6 +38,8 @@ Each entry exports the parse plugin as `default` and the renderer's `components`
 
 ## Customize
 
-The zoomed view fires `comark-zoom:open`, `comark-zoom:change`, and `comark-zoom:close` on the item. `open` and `change` carry the dialog's `header`, `footer`, and a `layer` sized to the zoomed content, so a host can add its own controls or draw pins over it. 
+The zoomed view fires `comark-zoom:open`, `comark-zoom:change`, and `comark-zoom:close` on the item. `open` and `change` carry the dialog's `header`, `footer`, and a `layer` sized to the zoomed content, so a host can add its own controls or draw pins over it, plus `copyOf(element)` and `originalOf(element)` to go between the page and the zoomed copy.
+
+An item that needs styles from its ancestors names them with `data-zoom-context`, a selector: the copy goes inside empty copies of every ancestor that matches. `data-zoom-aside`, another selector, puts a copy of that element beside the zoomed item at its own size, such as a caption; it's looked up outside the item, in its innermost context or else its parent.
 
 The styles follow shadcn/ui: they read its CSS variables, such as `--background` and `--border`, when the page has them, and use its neutral theme otherwise. Set `--comark-background`, `--comark-foreground`, `--comark-muted`, `--comark-border`, `--comark-accent`, `--comark-ring`, `--comark-radius`, or `--comark-font` to theme zoom, carousel, and annotate at once; the rules sit in a `comark` CSS layer, so any plain rule of your own wins. See [Theming](https://comark.onmax.me/zoom/#guides-theming) for the Nuxt UI mapping. `--cz-backdrop`, `--cz-ink`, `--cz-muted`, `--cz-line`, `--cz-hover`, and `--cz-active` theme only the zoomed view.

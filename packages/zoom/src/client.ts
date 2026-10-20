@@ -5,23 +5,32 @@ export interface ZoomDetail {
   /** A layer over the zoomed content, sized to it. Draw pins or outlines here. */
   layer: HTMLElement;
   footer: HTMLElement;
-  /** The zoomed copy of the item. */
+  /** The zoomed copy of the item, inside copies of its `data-zoom-context` ancestors. */
   content: HTMLElement;
+  /** The column beside the zoomed content that holds a copy of the item's `data-zoom-aside`, or null when it has none. */
+  aside: HTMLElement | null;
   /** The item on the page that is shown. */
   item: HTMLElement;
   index: number;
   items: HTMLElement[];
+  /** The copy in the zoomed view of an element of the item or its aside, or null when it isn't one of them. */
+  copyOf(node: Element): Element | null;
+  /** The element on the page that a node of the zoomed copy or the aside copies, or null when it isn't one of them. */
+  originalOf(node: Element): Element | null;
 }
 
 declare global {
   interface Window {
     __comarkZoom?: { users: number; stop: () => void };
   }
-  interface HTMLElementEventMap {
+  interface ComarkZoomEventMap {
     "comark-zoom:open": CustomEvent<ZoomDetail>;
     "comark-zoom:change": CustomEvent<ZoomDetail>;
     "comark-zoom:close": CustomEvent<{ item: HTMLElement }>;
   }
+  // The events bubble, so a host can listen once on the document.
+  interface HTMLElementEventMap extends ComarkZoomEventMap {}
+  interface DocumentEventMap extends ComarkZoomEventMap {}
 }
 
 /**
@@ -59,8 +68,11 @@ export function start(css: string): () => void {
     title: HTMLElement;
     count: HTMLElement;
     stage: HTMLElement;
+    aside: HTMLElement;
     footer: HTMLElement;
     frame: HTMLElement;
+    // Each original shown, with its copy: the item, and its aside when it has one.
+    pairs: Array<[Element, Element]>;
     items: HTMLElement[];
     index: number;
     scale: number;
@@ -153,14 +165,23 @@ export function start(css: string): () => void {
     "text-align",
   ];
 
-  // `data-zoom-context` names an ancestor whose classes and styles the item needs, such as the figure that carries a
-  // screenshot's colors. The copy goes inside an empty copy of it.
-  function copy(item: HTMLElement, into: HTMLElement) {
-    // SAFETY: a deep clone of an HTMLElement is an HTMLElement of the same kind.
-    const clone = strip(item.cloneNode(true) as HTMLElement);
+  // `data-zoom-context` names the ancestors whose classes and styles the item needs, such as the figure that carries a
+  // screenshot's layout and the wrapper that carries its colors. Every ancestor that matches is copied, outermost first.
+  function contexts(item: HTMLElement) {
     const selector = item.getAttribute("data-zoom-context");
-    const context = selector ? item.parentElement?.closest<HTMLElement>(selector) : null;
-    const parent = (context ?? item).parentElement;
+    const found: HTMLElement[] = [];
+    if (selector)
+      for (let up = item.parentElement; up; up = up.parentElement)
+        if (up.matches(selector)) found.unshift(up);
+    return found;
+  }
+
+  // The copy goes inside empty copies of the item's contexts. `node` is the item, or its aside, which needs them too.
+  function copy(item: HTMLElement, into: HTMLElement, node: HTMLElement = item) {
+    // SAFETY: a deep clone of an HTMLElement is an HTMLElement of the same kind.
+    const clone = strip(node.cloneNode(true) as HTMLElement);
+    const around = contexts(item);
+    const parent = (around[0] ?? item).parentElement;
     if (parent) {
       const page = getComputedStyle(parent);
       for (const name of INHERITED) into.style.setProperty(name, page.getPropertyValue(name));
@@ -169,11 +190,42 @@ export function start(css: string): () => void {
       const line = parseFloat(page.lineHeight) / parseFloat(page.fontSize);
       into.style.lineHeight = Number.isFinite(line) ? String(line) : page.lineHeight;
     }
-    if (!context) return into.append(clone);
-    // SAFETY: a shallow clone of an HTMLElement is an HTMLElement of the same kind.
-    const shell = strip(context.cloneNode(false) as HTMLElement);
-    shell.append(clone);
-    into.append(shell);
+    let inner = into;
+    for (const context of around) {
+      // SAFETY: a shallow clone of an HTMLElement is an HTMLElement of the same kind.
+      const shell = strip(context.cloneNode(false) as HTMLElement);
+      inner.append(shell);
+      inner = shell;
+    }
+    inner.append(clone);
+    return clone;
+  }
+
+  // `data-zoom-aside` names an element the zoomed view shows beside the item at its own size, such as a screenshot's
+  // notes. It's the first match outside the item, in its innermost context or else its parent.
+  function asideOf(item: HTMLElement) {
+    const selector = item.getAttribute("data-zoom-aside");
+    const scope = contexts(item).at(-1) ?? item.parentElement;
+    if (!selector || !scope) return null;
+    return (
+      [...scope.querySelectorAll<HTMLElement>(selector)].find((node) => !item.contains(node)) ??
+      null
+    );
+  }
+
+  // A copy has its original's tree, so the same child positions lead from one to the other.
+  function across(pairs: Array<[Element, Element]>, node: Element, from: 0 | 1) {
+    for (const pair of pairs) {
+      const start = pair[from];
+      if (!start.contains(node)) continue;
+      const path: number[] = [];
+      for (let at = node; at !== start && at.parentElement; at = at.parentElement)
+        path.unshift([...at.parentElement.children].indexOf(at));
+      let out: Element | undefined = pair[from === 0 ? 1 : 0];
+      for (const index of path) out = out?.children[index];
+      return out ?? null;
+    }
+    return null;
   }
 
   function measure(item: HTMLElement) {
@@ -189,9 +241,12 @@ export function start(css: string): () => void {
       layer: current.frame.querySelector<HTMLElement>(".cz-layer")!,
       // SAFETY: render() always puts the zoomed copy first in the frame.
       content: current.frame.firstElementChild as HTMLElement,
+      aside: current.aside.firstElementChild ? current.aside : null,
       item: current.items[current.index]!,
       index: current.index,
       items: current.items,
+      copyOf: (node) => across(current.pairs, node, 0),
+      originalOf: (node) => across(current.pairs, node, 1),
     };
   }
 
@@ -211,8 +266,13 @@ export function start(css: string): () => void {
   function render(current: View) {
     const item = current.items[current.index]!;
     current.frame.replaceChildren();
-    copy(item, current.frame);
+    current.pairs = [[item, copy(item, current.frame)]];
     current.frame.append(el("div", "cz-layer"));
+    // Set before place() measures the stage, which the aside's column narrows.
+    const aside = asideOf(item);
+    current.aside.replaceChildren();
+    current.dialog.toggleAttribute("data-aside", Boolean(aside));
+    if (aside) current.pairs.push([aside, copy(item, current.aside, aside)]);
     current.title.textContent = titleOf(item);
     current.count.textContent =
       current.items.length > 1 ? `${current.index + 1} / ${current.items.length}` : "";
@@ -294,17 +354,20 @@ export function start(css: string): () => void {
     const stage = el("div", "cz-stage");
     const frame = el("div", "cz-item");
     stage.append(frame);
+    const aside = el("div", "cz-aside");
     const footer = el("div", "cz-footer");
     const backdrop = el("div", "cz-backdrop");
-    dialog.append(backdrop, header, stage, footer);
+    dialog.append(backdrop, header, stage, aside, footer);
     const current: View = {
       dialog,
       header,
       title,
       count,
       stage,
+      aside,
       footer,
       frame,
+      pairs: [],
       items,
       index: Math.max(0, items.indexOf(item)),
       scale: 1,
@@ -357,7 +420,7 @@ export function start(css: string): () => void {
         ],
         { duration: 260, easing },
       );
-      for (const part of [backdrop, header, footer])
+      for (const part of [backdrop, header, aside, footer])
         part.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200 });
     }
     shown.style.visibility = "hidden";
@@ -378,7 +441,7 @@ export function start(css: string): () => void {
       const visible = to.bottom > 0 && to.top < innerHeight;
       const animations = [
         ...current.dialog.querySelectorAll<HTMLElement>(
-          ".cz-backdrop,.cz-header,.cz-footer,.cz-nav",
+          ".cz-backdrop,.cz-header,.cz-aside,.cz-footer,.cz-nav",
         ),
       ].map((part) =>
         part.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, fill: "forwards" }),

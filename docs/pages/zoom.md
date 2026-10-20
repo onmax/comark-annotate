@@ -112,7 +112,7 @@ The Vue, React, and Svelte components start the script when they mount and stop 
 
 ### Events
 
-The zoomed view fires `comark-zoom:open`, `comark-zoom:change`, and `comark-zoom:close` on the item. `open` and `change` carry the dialog's `header` and `footer`, and a `layer` over the zoomed content, sized to it, where a host can draw its own pins or controls.
+The zoomed view fires `comark-zoom:open`, `comark-zoom:change`, and `comark-zoom:close` on the item. `open` and `change` carry the dialog's `header` and `footer`, and a `layer` over the zoomed content, sized to it, where a host can draw its own pins or controls. `copyOf(element)` finds the copy of a page element in the zoomed view, and `originalOf(element)` goes back, so a pin can follow what it points at. Both return `null` for anything the zoom doesn't show.
 
 ```ts
 document.addEventListener("comark-zoom:open", (event) => {
@@ -163,7 +163,18 @@ The rules sit in a `comark` CSS layer, so any plain rule of your own wins withou
 }
 ```
 
-To theme only the zoomed view, set `--cz-backdrop`, `--cz-ink`, `--cz-muted`, `--cz-line`, `--cz-hover`, or `--cz-active`; each overrides the token it replaces. An item that needs styles from an ancestor names it with `data-zoom-context`, and the zoomed copy goes inside an empty copy of that ancestor.
+To theme only the zoomed view, set `--cz-backdrop`, `--cz-ink`, `--cz-muted`, `--cz-line`, `--cz-hover`, or `--cz-active`; each overrides the token it replaces. An item that needs styles from its ancestors names them with `data-zoom-context`, a selector, and the zoomed copy goes inside empty copies of every ancestor that matches.
+
+### Captions beside the zoom
+
+`data-zoom-aside` names an element, by selector, that the zoomed view shows beside the item at its own size, so a caption stays readable however far the item zooms. It's the first match outside the item, in its innermost `data-zoom-context` or else its parent. On a narrow screen it sits below. comark-annotate uses it for a screenshot's notes.
+
+```html
+<figure>
+  <img data-zoom data-zoom-aside="figcaption" src="chart.png" alt="Weekly sales">
+  <figcaption>Sales dip in week 3, when the store closed.</figcaption>
+</figure>
+```
 
 ## Credits
 
