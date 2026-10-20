@@ -126,29 +126,43 @@ export const css = `@layer comark{${[
   ".ca-notes>li{display:flex;gap:.625rem;align-items:baseline;margin:0;padding:.3rem .5rem;border-radius:calc(var(--_comark-radius) - 4px);scroll-margin:1rem;background:color-mix(in srgb,var(--ca-color) calc(8% * var(--ca-on,0)),transparent);transition:background .15s ease}",
   ".ca-notes>li>div>:first-child{margin-top:0}",
   ".ca-notes>li>div>:last-child{margin-bottom:0}",
-  // A diff reads like a suggested change in a GitHub review: the file and its counts above, removed lines red, added
-  // lines green, and the words that changed within a pair of lines a shade deeper.
-  ".ca-diff{overflow:hidden;border:1px solid var(--_comark-border);border-radius:var(--_comark-radius);background:var(--_comark-background);color:var(--_comark-foreground)}",
-  ".ca-diff>figcaption{display:flex;gap:.5rem;align-items:center;margin:0;padding:.5rem .75rem;border-bottom:1px solid var(--_comark-border);background:var(--_comark-accent);font-family:var(--_comark-font);font-size:.8125rem;line-height:1.5}",
-  ".ca-diff>figcaption strong{font-weight:600}",
-  ".ca-diff>figcaption code{min-width:0;overflow:hidden;font-family:var(--ca-code-font,ui-monospace,SFMono-Regular,Menlo,Consolas,monospace);font-size:.75rem;text-overflow:ellipsis;white-space:nowrap}",
-  ".ca-counts{flex:none;margin-left:auto;font-weight:500;font-variant-numeric:tabular-nums}",
-  ".ca-added{color:var(--ca-green)}",
-  ".ca-removed{color:var(--ca-red)}",
-  ".ca-scroll{overflow-x:auto}",
-  ".ca-code{width:100%;margin:0;border:0;border-collapse:collapse;background:none;font:.8125rem/1.6 var(--ca-code-font,ui-monospace,SFMono-Regular,Menlo,Consolas,monospace);tab-size:2}",
+  // A diff reads like a suggested change in a GitHub review, framed like shadcn/ui's Card: the file and its counts in a
+  // quiet header, removed lines red, added lines green, and the words that changed within a pair of lines a shade
+  // deeper. Tints are translucent and text colors are mixed with the foreground, so wherever the `--comark-*` tokens
+  // turn dark, a `.dark` class included, the diff turns with them.
+  ".ca-diff{overflow:hidden;border:1px solid var(--_comark-border);border-radius:var(--_comark-radius);background:var(--_comark-background);color:var(--_comark-foreground);box-shadow:0 1px 2px rgb(0 0 0/.05)}",
+  // On a narrow page the file drops under the label and wraps, rather than lose the end of its name.
+  ".ca-diff>figcaption{display:flex;flex-wrap:wrap;gap:.125rem .5rem;align-items:flex-start;margin:0;padding:.5rem .75rem;border-bottom:1px solid var(--_comark-border);background:color-mix(in srgb,var(--_comark-accent) 50%,var(--_comark-background));font:.8125rem/1.25rem var(--_comark-font)}",
+  ".ca-diff-icon{flex:none;width:1rem;height:1rem;margin:.125rem 0;color:var(--_comark-muted);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}",
+  ".ca-diff-label{font-weight:500}",
+  ".ca-file,.ca-counts{font:.75rem/1.25rem var(--ca-code-font,ui-monospace,SFMono-Regular,Menlo,Consolas,monospace)}",
+  ".ca-file{flex:1 1 12rem;min-width:0;color:var(--_comark-muted);overflow-wrap:anywhere}",
+  ".ca-counts{display:flex;flex:none;gap:.375rem;margin-left:auto;font-weight:500;font-variant-numeric:tabular-nums}",
+  // As much of each color as keeps 4.5:1 on the header, light or dark, whichever of its two shades the system picked.
+  ".ca-added,.ca-add .ca-line::before{color:color-mix(in oklab,var(--ca-green) 60%,var(--_comark-foreground))}",
+  ".ca-removed,.ca-del .ca-line::before{color:color-mix(in oklab,var(--ca-red) 70%,var(--_comark-foreground))}",
+  // A long line scrolls instead of wrapping, so it stays beside its number.
+  ".ca-scroll{overflow-x:auto;padding:.25rem 0;scrollbar-width:thin}",
+  ".ca-scroll:focus-visible{outline:2px solid var(--_comark-ring);outline-offset:-2px}",
+  ".ca-code{width:100%;margin:0;border:0;border-collapse:collapse;background:none;font:.8125rem/1.375rem var(--ca-code-font,ui-monospace,SFMono-Regular,Menlo,Consolas,monospace);tab-size:2}",
   ".ca-code td{padding:0;border:0;vertical-align:top}",
-  ".ca-code .ca-num{width:1%;min-width:2.5rem;padding:0 .5rem;color:var(--_comark-muted);text-align:right;white-space:nowrap;-webkit-user-select:none;user-select:none}",
+  ".ca-code .ca-num{width:1%;padding:0 .375rem 0 .75rem;color:var(--_comark-muted);text-align:right;white-space:nowrap;-webkit-user-select:none;user-select:none}",
   ".ca-num::before{content:attr(data-line)}",
   ".ca-code .ca-line{padding-right:1rem;white-space:pre}",
   // The marker also gives an empty line its height.
   ".ca-line::before{content:' ';display:inline-block;width:1.75em;text-align:center;-webkit-user-select:none;user-select:none}",
   ".ca-del .ca-line::before{content:'−'}",
   ".ca-add .ca-line::before{content:'+'}",
-  ".ca-del{background:color-mix(in srgb,var(--ca-red) 12%,transparent)}",
+  ".ca-del{background:color-mix(in srgb,var(--ca-red) 10%,transparent)}",
   ".ca-add{background:color-mix(in srgb,var(--ca-green) 12%,transparent)}",
+  // The numbers of a changed line sit a shade deeper, as on GitHub.
+  ".ca-del .ca-num{background:color-mix(in srgb,var(--ca-red) 8%,transparent)}",
+  ".ca-add .ca-num{background:color-mix(in srgb,var(--ca-green) 8%,transparent)}",
   ".ca-code :is(del,ins){color:inherit;text-decoration:none}",
   ".ca-code del{background:color-mix(in srgb,var(--ca-red) 30%,transparent)}",
   ".ca-code ins{background:color-mix(in srgb,var(--ca-green) 30%,transparent)}",
+  // A highlighted line keeps its row's color under a neutral wash, with a bar on its edge.
+  ".ca-code [data-highlight]{background-image:linear-gradient(color-mix(in srgb,var(--_comark-foreground) 6%,transparent) 0 0)}",
+  ".ca-code [data-highlight]>:first-child{box-shadow:inset 2px 0 var(--_comark-ring)}",
   ...linked,
 ].join("")}}`;

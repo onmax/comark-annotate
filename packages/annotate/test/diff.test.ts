@@ -27,22 +27,26 @@ const suggestion = diff(
 );
 // Each row's class, its two line numbers, and its code without tags.
 const rows = (html: string) =>
-  [...html.matchAll(/<tr class="ca-(\w+)">(.*?)<\/tr>/g)].map(([, kind, cells]) => {
-    const numbers = [...cells!.matchAll(/<td class="ca-num"(?: data-line="(\d+)")?>/g)].map(
-      ([, n]) => n ?? "",
-    );
-    const code = /<td class="ca-line">(.*)<\/td>/.exec(cells!)![1]!.replaceAll(/<[^>]+>/g, "");
-    return [kind, ...numbers, code].join(" ");
-  });
+  [...html.matchAll(/<tr class="ca-(\w+)"(?: data-highlight)?>(.*?)<\/tr>/g)].map(
+    ([, kind, cells]) => {
+      const numbers = [...cells!.matchAll(/<td class="ca-num"(?: data-line="(\d+)")?>/g)].map(
+        ([, n]) => n ?? "",
+      );
+      const code = /<td class="ca-line">(.*)<\/td>/.exec(cells!)![1]!.replaceAll(/<[^>]+>/g, "");
+      return [kind, ...numbers, code].join(" ");
+    },
+  );
 
 describe("::diff", () => {
   it("renders a suggested change with its file, counts, and line numbers", async () => {
     for (const highlight of [false, true]) {
       const { issues, html } = await run(suggestion, highlight);
       expect(issues).toEqual([]);
+      expect(html).toContain('<figure class="ca ca-diff"><figcaption><svg class="ca-diff-icon"');
       expect(html).toContain(
-        '<figure class="ca ca-diff"><figcaption><strong>Suggested change</strong><code>src/a.ts</code><span class="ca-counts"><span class="ca-added">+1</span> <span class="ca-removed">−1</span></span></figcaption>',
+        '<span class="ca-diff-label">Suggested change</span><span class="ca-file">src/a.ts</span><span class="ca-counts"><span class="ca-added">+1</span> <span class="ca-removed">−1</span></span></figcaption>',
       );
+      expect(html).toContain('<div class="ca-scroll" tabindex="0"><table');
       expect(rows(html)).toEqual([
         "same 12 12 const gap = 8",
         "same 13 13 ",
@@ -92,12 +96,62 @@ describe("::diff", () => {
     }
   });
 
+  it("never cuts inside an emoji, an accented letter, or a character reference", async () => {
+    for (const highlight of [false, true]) {
+      const { html } = await run(diff("😀 a\ne\u0301 b", "😃 a\ne\u0302 b"), highlight);
+      expect(html).toContain("<del>😀</del>");
+      expect(html).toContain("<ins>😃</ins>");
+      expect(html).toContain("<del>e\u0301</del>");
+      expect(html).toContain("<ins>e\u0302</ins>");
+      // No half of a surrogate pair, and no accent without its letter.
+      expect(html).not.toMatch(
+        /[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/,
+      );
+      expect(html).not.toMatch(/<(?:del|ins)>\p{M}/u);
+    }
+    // Comark prints `&lt;` as a reference, so it changes whole.
+    const { html } = await run(diff("x &lt; limit", "x &gt; limit"));
+    expect(html).toContain('<td class="ca-line">x <del>&lt;</del> limit</td>');
+    expect(html).toContain('<td class="ca-line">x <ins>&gt;</ins> limit</td>');
+  });
+
+  it("ignores the empty line a final newline leaves, and keeps a blank line before it", async () => {
+    for (const highlight of [false, true]) {
+      const same = await run(diff("a\n", "a"), highlight);
+      expect(same.issues).toEqual([
+        'diff "src/a.ts": before and after are the same, so there\'s no change to show. Edit the after block, or remove the diff.',
+      ]);
+      expect(rows(same.html)).toEqual(["same a"]);
+      const { issues, html } = await run(diff("a\nb\n", "a\nc"), highlight);
+      expect(issues).toEqual([]);
+      expect(rows(html)).toEqual(["same a", "del b", "add c"]);
+      expect(html).toContain('<span class="ca-added">+1</span> <span class="ca-removed">−1</span>');
+      expect(rows((await run(diff("a\n\n", "a"), highlight)).html)).toEqual(["same a", "del "]);
+    }
+  });
+
+  it("keeps the lines each block highlights", async () => {
+    for (const highlight of [false, true]) {
+      const { issues, html } = await run(
+        `::diff\n${fence}ts [a.ts] {2}\na\nb\nc\n${fence}\n${fence}ts {3}\na\nB\nc\n${fence}\n::`,
+        highlight,
+      );
+      expect(issues).toEqual([]);
+      const kinds = [...html.matchAll(/<tr class="ca-(\w+)"( data-highlight)?>/g)].map(
+        ([, kind, lit]) => `${kind}${lit ? " highlighted" : ""}`,
+      );
+      expect(kinds).toEqual(["same", "del highlighted", "add", "same highlighted"]);
+    }
+  });
+
   it("takes the file from the prop first, and escapes it and the code", async () => {
     const { issues, html } = await run(
       diff('const a = "<b>"', 'const a = "<i>"', ' {file="<x>.ts" label="A & B"}', "ts"),
     );
     expect(issues).toEqual([]);
-    expect(html).toContain("<strong>A &amp; B</strong><code>&lt;x&gt;.ts</code>");
+    expect(html).toContain(
+      '<span class="ca-diff-label">A &amp; B</span><span class="ca-file">&lt;x&gt;.ts</span>',
+    );
     expect(html).toContain('const a = "&lt;<del>b</del>&gt;"');
     expect(html).toContain('const a = "&lt;<ins>i</ins>&gt;"');
     expect(html).not.toMatch(/<[bix]>/);
