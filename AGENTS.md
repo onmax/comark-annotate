@@ -8,7 +8,7 @@ A pnpm workspace. Every package in `packages/` is published to npm under its own
 
 - `packages/annotate` is `comark-annotate`.
   - `src/read.ts` reads `::screenshot`, `::compare`, and `::annotation` nodes and reports their issues. The plugin and the renderer both go through it, so they can't disagree.
-  - `src/index.ts` is the parse plugin. It writes `meta.annotateIssues`.
+  - `src/index.ts` is the parse plugin. It appends its problems to `meta.issues`.
   - `src/html.ts` is the `@comark/html` renderer. The output reads without a script; the zoom and carousel scripts and all styles are inlined once per document. A screenshot zooms with `comark-zoom`, and `::compare` is a two-column `comark-carousel`. Marks are not links, so a click anywhere on a screenshot zooms it.
   - Only the HTML renderer exists: notes are Markdown, and Vue, React, and Svelte versions would each copy the whole figure template.
   - `src/marks.ts` holds the hand-drawn marks, taken from AnnotationKit.
@@ -23,7 +23,7 @@ A pnpm workspace. Every package in `packages/` is published to npm under its own
 
 - Follow the 90/10 rule. If a feature would take most of the code for a small share of users, leave it out.
 - Test through the public interface: parse plus render. Don't test internals.
-- Rendering never throws. Problems go in `meta.annotateIssues`.
+- Rendering never throws. Problems go in `meta.issues`, one sentence each that names the block and the fix. Every plugin appends to the list and never replaces it, since several run on one document.
 - Comments are rare and explain why, never what.
 - Every build runs publint, so a package whose `exports`, `files`, or types don't resolve fails to build. Svelte entries ship as source with a hand-written `index.d.ts`; keep it in step with the components' props.
 - `pnpm ready` formats, lints, typechecks, builds, tests, and runs Vite Doctor with the strict TypeScript preset (each package's `doctor.config.json`). Run it before opening a PR; CI runs the same steps.

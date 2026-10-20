@@ -42,8 +42,8 @@ const example: NodeHandler = async ([, attrs, ...children], state) => {
   if (!pre) throw new Error(`Example "${str(attrs.label)}" needs a fenced code block.`);
   const source = textContent(pre);
   const preview = await parseMarkdown(source, { plugins: contentPlugins() });
-  if (preview.meta.annotateIssues.length)
-    throw new Error(`Example "${str(attrs.label)}":\n${preview.meta.annotateIssues.join("\n")}`);
+  if (preview.meta.issues.length)
+    throw new Error(`Example "${str(attrs.label)}":\n${preview.meta.issues.join("\n")}`);
   return (
     `<div class="example"><div class="example-bar"><div class="seg" role="group" aria-label="View">` +
     `<button type="button" data-view="preview" aria-pressed="true">Preview</button><button type="button" data-view="code" aria-pressed="false">Code</button></div></div>` +
@@ -83,8 +83,8 @@ const parsed = await Promise.all(
       await readFile(new URL(`pages/${page.file}`, root), "utf8"),
       { plugins },
     );
-    if (document.meta.annotateIssues.length)
-      throw new Error(`docs/pages/${page.file}:\n${document.meta.annotateIssues.join("\n")}`);
+    if (document.meta.issues.length)
+      throw new Error(`docs/pages/${page.file}:\n${document.meta.issues.join("\n")}`);
     const [title, description, tagline, install] = [
       "title",
       "description",

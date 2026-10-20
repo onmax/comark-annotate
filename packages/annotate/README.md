@@ -33,18 +33,18 @@ Five filters don't fit, so the toolbar wraps onto a second row.
 ::
 ```
 
-Coordinates are percentages of the image. Props can be inline, in a YAML props block, or bound with `:x`. Marks: `box`, `circle`, `underline`, `highlight`, `cross`, `check`. Colors: `blue` (default), `red`, `amber`, `green`, `gray`, or any hex. Add `side="left"`, `side="right"`, or `side="top"` to put a note beside or above the image with a hand-drawn arrow, and `mark="none"` to let the arrow do the pointing. Set `--ca-note-font` for handwritten notes; the docs use Caveat. The plugin lists every problem in `meta.annotateIssues`, so a host can reject a document before publishing it.
+Coordinates are percentages of the image, written as numbers without `%`. Props can be inline, in a YAML props block, or bound with `:x`. Marks: `box`, `circle`, `underline`, `highlight`, `cross`, `check`. Colors: `blue` (default), `red`, `amber`, `green`, `gray`, or a 3- or 6-digit hex. Add `side="left"`, `side="right"`, or `side="top"` to put a note beside or above the image with a hand-drawn arrow, and `mark="none"` to let the arrow do the pointing. A screenshot takes a `title` above the image and an `href` to the captured page; a compare takes a `title` for screen readers. Set `--ca-note-font` for handwritten notes; the docs use Caveat. The plugin adds every problem to `meta.issues`, one sentence each naming the block and the fix, so a host can reject a document before publishing it.
 
 The output is static HTML with one inlined `<style>` per document and `style` attributes for positions, so a strict CSP needs `style-src 'unsafe-inline'`. Notes are ordinary Markdown, so raw HTML in them renders like anywhere else in the document; for untrusted input, add Comark's `security` plugin and list the tags to drop, such as `security({ blockedTags: ["script", "style", "iframe"] })`; it cleans notes too. 
 
-The styles follow shadcn/ui: they read its CSS variables, such as `--background` and `--border`, when the page has them, and use its neutral theme otherwise. Set `--comark-background`, `--comark-foreground`, `--comark-muted`, `--comark-border`, `--comark-accent`, `--comark-ring`, `--comark-radius`, or `--comark-font` to theme zoom, carousel, and annotate at once; the rules sit in a `comark` CSS layer, so any plain rule of your own wins. See [Theming](https://comark.onmax.me/annotate/#guides-theming) for the Nuxt UI mapping. The mark colors are separate: override them with a plain rule such as `.ca { --ca-color: #0070f3; --ca-ink: #fff }`.
+The styles follow shadcn/ui: they read its CSS variables, such as `--background` and `--border`, when the page has them, and use its neutral theme otherwise. Set `--comark-background`, `--comark-foreground`, `--comark-muted`, `--comark-border`, `--comark-accent`, `--comark-ring`, `--comark-radius`, or `--comark-font` to theme zoom, carousel, and annotate at once; the rules sit in a `comark` CSS layer, so any plain rule of your own wins. See [Theming](https://comark.onmax.me/annotate/#guides-theming) for the Nuxt UI mapping. The mark colors are separate: override them with a plain rule such as `.ca { --ca-color: #0070f3; --ca-solid: #0070f3; --ca-ink: #fff }`, which sets the marks, the stamps, and the stamp numbers.
 
 ## Agents
 
 An agent skill ships in the package (`skills/comark-annotate/SKILL.md`) and is served at the docs site, so `npx skills add https://comark.onmax.me` installs it. The CLI checks and previews documents:
 
 ```sh
-npx comark-annotate check report.md                 # one line per problem, exit 1 if any
+npx comark-annotate check report.md other.md        # one line per problem, exit 1 if any
 npx comark-annotate render report.md -o report.html # standalone page to screenshot
 ```
 
