@@ -9,18 +9,46 @@ const linked = Array.from(
 
 export const css = `@layer comark{${[
   // Surfaces, borders, and radii follow the shared `--comark-*` tokens; the mark colors stay their own.
-  theme(".ca,.ca-screenshot"),
+  theme(".ca,.ca-screenshot,.ca-swipe"),
   // One meaning per color: blue points something out (the default), red flags a problem, amber a warning, green a fix, gray anything neutral.
   // Strokes, arrows, and notes use the color, which lightens in dark mode. Stamps use a deeper solid shade in both themes,
   // so their number stays white (4.7:1 or better); only amber keeps a dark number.
   // :where() keeps these at zero specificity, so a host's plain `.ca { --ca-color: … }` wins.
-  ":where(.ca,.ca-screenshot){--ca-red:#f43f5e;--ca-amber:#f5a524;--ca-green:#2f9e6b;--ca-blue:#5b6cf0;--ca-gray:#71717a;--ca-red-solid:#e11d48;--ca-amber-solid:#f59e0b;--ca-green-solid:#15803d;--ca-blue-solid:#4f46e5;--ca-gray-solid:#52525b;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-solid:var(--ca-blue-solid);--ca-ink:var(--ca-blue-ink)}",
-  // The figure carries the colors too, so a zoomed screenshot keeps them outside `.ca`.
+  ":where(.ca,.ca-screenshot,.ca-swipe){--ca-red:#f43f5e;--ca-amber:#f5a524;--ca-green:#2f9e6b;--ca-blue:#5b6cf0;--ca-gray:#71717a;--ca-red-solid:#e11d48;--ca-amber-solid:#f59e0b;--ca-green-solid:#15803d;--ca-blue-solid:#4f46e5;--ca-gray-solid:#52525b;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-solid:var(--ca-blue-solid);--ca-ink:var(--ca-blue-ink)}",
+  // The figure and the slider carry the colors too, so a zoomed copy keeps them outside `.ca`.
   ":where(.ca){margin:1.5rem 0}",
-  "@media (prefers-color-scheme:dark){:where(.ca,.ca-screenshot){--ca-red:#fb7185;--ca-amber:#ffb224;--ca-green:#56d39a;--ca-blue:#a5b4fc;--ca-gray:#a1a1aa}}",
+  "@media (prefers-color-scheme:dark){:where(.ca,.ca-screenshot,.ca-swipe){--ca-red:#fb7185;--ca-amber:#ffb224;--ca-green:#56d39a;--ca-blue:#a5b4fc;--ca-gray:#a1a1aa}}",
   // Before and after are bare and line up at the top, even when one screenshot is taller.
   ".ca-compare .cc{margin:0;--cc-gap:1.5rem}",
   ".ca-compare .cc-track>.cc-slide{align-content:start;padding:0;background:none}",
+  // A slider without its script stacks the pair, each under its label.
+  ".ca-slider{container-type:inline-size}",
+  ".ca-swipe{display:grid;gap:1.5rem}",
+  ".ca-handle{display:none}",
+  // With it, both screenshots share one cell and each shows on its own side of the divider; the labels stay above.
+  "[data-annotate-ready] .ca-swipe{--ca-split:50%;grid-template-columns:1fr 1fr;gap:0;touch-action:pan-y;-webkit-user-select:none;user-select:none}",
+  "[data-annotate-ready] .ca-side{display:contents}",
+  "[data-annotate-ready] .ca-side-before>.ca-heading{grid-area:1/1}",
+  "[data-annotate-ready] .ca-side-after>.ca-heading{grid-area:1/2;justify-content:flex-end}",
+  "[data-annotate-ready] .ca-swipe .ca-stage{grid-area:2/1/3/3;align-self:start}",
+  "[data-annotate-ready] .ca-side-before>.ca-stage{clip-path:inset(0 calc(100% - var(--ca-split)) 0 0)}",
+  "[data-annotate-ready] .ca-side-after>.ca-stage{clip-path:inset(0 0 0 var(--ca-split))}",
+  ".ca-swipe img{-webkit-user-drag:none}",
+  // A thin line with a round grip, as in React Bits' comparison slider. The shadow keeps it visible on a white page.
+  "[data-annotate-ready] .ca-handle{grid-area:2/1/3/3;position:relative;left:var(--ca-split);display:block;width:0;outline:none;cursor:ew-resize;touch-action:none}",
+  ".ca-handle::before{content:'';position:absolute;inset:0 auto 0 -1px;width:2px;background:var(--_comark-background);box-shadow:0 0 0 .5px rgb(0 0 0/.15),0 0 10px rgb(0 0 0/.25)}",
+  ".ca-grip{position:absolute;top:50%;left:0;display:grid;place-items:center;width:2rem;height:2rem;border-radius:999px;background:var(--_comark-background);color:var(--_comark-foreground);box-shadow:0 0 0 1px var(--_comark-border),0 2px 8px rgb(0 0 0/.25);transform:translate(-50%,-50%);transition:transform .15s ease,box-shadow .15s ease}",
+  ".ca-grip svg{width:1rem;height:1rem}",
+  ".ca-swipe[data-dragging]{cursor:ew-resize}",
+  ".ca-swipe[data-dragging] .ca-grip{transform:translate(-50%,-50%) scale(1.1)}",
+  ".ca-handle:focus-visible .ca-grip{box-shadow:0 0 0 1px var(--_comark-border),0 0 0 4px color-mix(in srgb,var(--_comark-ring) 50%,transparent)}",
+  "@media (pointer:coarse){.ca-grip{width:2.5rem;height:2.5rem}}",
+  "@media (prefers-reduced-motion:reduce){.ca-grip{transition:none}}",
+  // Each screenshot's notes sit under its own side, and stack on a narrow page.
+  ".ca-swipe-notes{display:grid;grid-template-columns:1fr 1fr;gap:.75rem 1.5rem;margin-top:.75rem}",
+  ".ca-notes-after{grid-column:2}",
+  "@container (max-width:36rem){.ca-swipe-notes{grid-template-columns:1fr}.ca-notes-after{grid-column:auto}}",
+  ".ca-swipe-notes .ca-notes{margin-top:0}",
   ".ca-screenshot{--ca-gutter:10rem;--ca-top-gutter:5rem;--ca-gap:1.25rem;margin:0;container-type:inline-size}",
   ".ca-stage{position:relative}",
   ".ca-right .ca-stage{--ca-pr:var(--ca-gutter);padding-right:var(--ca-gutter)}",

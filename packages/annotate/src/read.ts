@@ -198,8 +198,19 @@ function nested(nodes: Node[], where: string, issues: string[]) {
   }
 }
 
+/** How a compare shows its pair: side by side, or laid over each other with a divider the reader drags. */
+export const MODES = ["columns", "slider"] as const;
+export type Mode = (typeof MODES)[number];
+
 /** Reads a `::compare` node: two screenshots numbered as one sequence, labelled Before and After unless they say otherwise. */
-export function readCompare(node: ElementNode, issues: string[], data: Data): Screenshot[] {
+export function readCompare(
+  node: ElementNode,
+  issues: string[],
+  data: Data,
+): { mode: Mode; shots: Screenshot[] } {
+  const mode = text(props(node, data).mode) || "columns";
+  const known = MODES.find((item) => item === mode);
+  if (!known) issues.push(`compare: \`mode\` must be ${MODES.join(" or ")} (got "${mode}").`);
   const shots: Screenshot[] = [];
   const viewports: string[] = [];
   for (const child of children(node)) {
@@ -220,7 +231,20 @@ export function readCompare(node: ElementNode, issues: string[], data: Data): Sc
     issues.push(
       `compare: the screenshots were captured at different viewports (${viewports[0]} and ${viewports[1]}), so they can't be compared.`,
     );
-  return shots;
+  if (known !== "slider") return { mode: "columns", shots };
+  // An arrow out to the side would cross the divider, so a slider lists every note under it, numbered in order.
+  let number = 0;
+  return {
+    mode: known,
+    shots: shots.map((shot) => ({
+      ...shot,
+      annotations: shot.annotations.map((annotation) => ({
+        ...annotation,
+        side: undefined,
+        number: ++number,
+      })),
+    })),
+  };
 }
 
 /** Every problem in a document's screenshots, compares, and annotations. */

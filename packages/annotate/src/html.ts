@@ -2,6 +2,7 @@ import type { ElementNode, Node, NodeHandler, State } from "comark";
 import { escapeHtml, textContent } from "comark/utils";
 import { carouselHtml } from "comark-carousel/html";
 import { runtime as zoomRuntime } from "comark-zoom/html";
+import { start } from "./client.ts";
 import { marks } from "./marks.ts";
 import { type Annotation, PALETTE, readCompare, readScreenshot, type Screenshot } from "./read.ts";
 import { css } from "./styles.ts";
@@ -17,6 +18,14 @@ function styles(state: State) {
   if (styled.has(state.context)) return "";
   styled.add(state.context);
   return `<style>${css}</style>`;
+}
+
+// Each render gets a fresh `state.context`, so a document carries the slider script once.
+const started = new WeakSet<object>();
+function sliderRuntime(state: State) {
+  if (started.has(state.context)) return "";
+  started.add(state.context);
+  return `<script>(${start.toString()})()</script>`;
 }
 
 // Ids come from the images and their order, so they stay stable across renders and don't collide with a
@@ -67,8 +76,8 @@ function markSvg({ mark }: Annotation) {
   return `<svg viewBox="${viewBox}"${aspect} aria-hidden="true">${paths.map((d) => `<path d="${d}" vector-effect="non-scaling-stroke"/>`).join("")}</svg>`;
 }
 
-// `top` reserves room for notes above the image, so every image in a comparison starts at the same height.
-async function figure(shot: Screenshot, state: State, id: string, top = false) {
+// The pieces of a screenshot, which a figure stacks and a slider lays over each other.
+async function parts(shot: Screenshot, state: State, id: string) {
   const color = (annotation: Annotation) => paint(annotation.color);
   const style = (annotation: Annotation) =>
     annotation.color ? ` style="${color(annotation)}"` : "";
@@ -129,12 +138,6 @@ async function figure(shot: Screenshot, state: State, id: string, top = false) {
       `${letter(annotation)}<div>${await children(annotation.note, state)}</div></div>`
     );
   });
-  const sides = [
-    ...new Set([
-      ...sided.map((annotation) => ` ca-${annotation.side}`),
-      ...(top ? [" ca-top"] : []),
-    ]),
-  ].join("");
   const heading = [
     shot.label && `<span class="ca-label">${escapeHtml(shot.label)}</span>`,
     shot.url && `<a href="${attr(shot.url)}" title="${attr(shot.url)}">Preview</a>`,
@@ -144,12 +147,48 @@ async function figure(shot: Screenshot, state: State, id: string, top = false) {
   const caption = shot.caption.some((node) => Array.isArray(node) || node.trim() !== "")
     ? await children(shot.caption, state)
     : "";
+  return {
+    sides: sided.map((annotation) => ` ca-${annotation.side}`),
+    heading: heading && `<div class="ca-heading">${heading}</div>`,
+    frame: `<div class="ca-frame"><img src="${attr(shot.src)}" alt="${attr(shot.alt)}" loading="lazy" decoding="async">${pins.join("")}${arrows.join("")}</div>`,
+    callouts,
+    notes: caption || notes ? `${caption}${notes ? `<ol class="ca-notes">${notes}</ol>` : ""}` : "",
+  };
+}
+
+// `top` reserves room for notes above the image, so every image in a comparison starts at the same height.
+async function figure(shot: Screenshot, state: State, id: string, top = false) {
+  const { sides, heading, frame, callouts, notes } = await parts(shot, state, id);
+  const classes = [...new Set([...sides, ...(top ? [" ca-top"] : [])])].join("");
   return (
-    `<figure class="ca-screenshot${sides}" data-zoom tabindex="0" data-zoom-title="${attr(shot.label || shot.alt)}">${heading && `<div class="ca-heading">${heading}</div>`}<div class="ca-stage"><div class="ca-frame"><img src="${attr(shot.src)}" alt="${attr(shot.alt)}" loading="lazy" decoding="async">${pins.join("")}${arrows.join("")}</div>${callouts}</div>` +
-    (caption || notes
-      ? `<figcaption>${caption}${notes ? `<ol class="ca-notes">${notes}</ol>` : ""}</figcaption>`
-      : "") +
+    `<figure class="ca-screenshot${classes}" data-zoom tabindex="0" data-zoom-title="${attr(shot.label || shot.alt)}">${heading}<div class="ca-stage">${frame}${callouts}</div>` +
+    (notes ? `<figcaption>${notes}</figcaption>` : "") +
     "</figure>"
+  );
+}
+
+const GRIP = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${[5, 12, 19].map((y) => `<circle cx="9" cy="${y}" r="1.5"/><circle cx="15" cy="${y}" r="1.5"/>`).join("")}</svg>`;
+
+// Without the script the two screenshots stack, each under its label. The script lays them over each other and lets
+// the reader drag the divider; the notes stay under the pair.
+async function slider(shots: Screenshot[], state: State, id: string) {
+  const labels = shots.map((shot) => shot.label || shot.alt);
+  const name = labels.join(" / ");
+  let sides = "";
+  let notes = "";
+  for (const [index, shot] of shots.entries()) {
+    const part = await parts(shot, state, id);
+    const which = index ? "after" : "before";
+    sides += `<div class="ca-side ca-side-${which}">${part.heading}<div class="ca-stage">${part.frame}</div></div>`;
+    if (part.notes)
+      notes += `<div class="ca-side-notes ca-notes-${which}">${shot.label ? `<div class="ca-heading"><span class="ca-label">${escapeHtml(shot.label)}</span></div>` : ""}${part.notes}</div>`;
+  }
+  const handle =
+    `<div class="ca-handle" role="slider" tabindex="0" aria-label="${attr(`Divider between ${labels.join(" and ")}`)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="${attr(`${labels[0]} 50%, ${labels[1]} 50%`)}">` +
+    `<span class="ca-grip">${GRIP}</span></div>`;
+  return (
+    `<div class="ca ca-compare ca-slider"><div class="ca-swipe" data-zoom tabindex="0" data-zoom-title="${attr(name)}">${sides}${shots.length === 2 ? handle : ""}</div>` +
+    `${notes && `<div class="ca-swipe-notes">${notes}</div>`}</div>${zoomRuntime(state)}${sliderRuntime(state)}`
   );
 }
 
@@ -159,8 +198,9 @@ const screenshot: NodeHandler = async (node, state) => {
 };
 
 const compare: NodeHandler = async (node, state) => {
-  const shots = readCompare(node, [], state.renderData);
+  const { mode, shots } = readCompare(node, [], state.renderData);
   const id = idFor(shots, state);
+  if (mode === "slider") return `${styles(state)}${await slider(shots, state, id)}`;
   const top = shots.some((shot) =>
     shot.annotations.some((annotation) => annotation.side === "top"),
   );
