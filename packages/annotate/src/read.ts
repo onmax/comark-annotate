@@ -573,11 +573,7 @@ const codeBlocks = (node: ElementNode) =>
   children(node).filter((child): child is ElementNode => isElement(child) && child[0] === "pre");
 // The `file` prop wins over the blocks' own names, and the first block's over the second's.
 const fileOf = (node: ElementNode, attrs: Record<string, unknown>) =>
-  text(attrs.file) ||
-  codeBlocks(node)
-    .map((block) => text(block[1].filename))
-    .find(Boolean) ||
-  "";
+  text(attrs.file) || text(codeBlocks(node)[0]?.[1].filename) || "";
 
 /** Reads a `::diff` node: two fenced code blocks, before and after, as the rows of a suggested change. */
 export function readDiff(
