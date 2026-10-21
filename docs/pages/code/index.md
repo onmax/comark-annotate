@@ -9,7 +9,7 @@ install: pnpm add comark @comark/html comark-code
 :::example{label="Copy and wrap"}
 ````md
 ```sh
-pnpm add comark @comark/html comark-code && pnpm exec lint-comark docs/**/*.md --max-warnings 0 --format text
+pnpm exec spurious correlate --x "rubber ducks bought" --y "bugs fixed" --office berlin --moon-phase waxing --min-r 0.9 > ducks.csv
 ```
 ````
 :::

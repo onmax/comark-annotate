@@ -123,6 +123,11 @@ describe("comark/unknown-component", () => {
       '::tabs\n:::tabs-item{label="A"}\nOne.\n:::\n::\n\n::code-group\n```sh [pnpm]\npnpm add x\n```\n::\n';
     expect(await lint(markdown, await resolveConfig())).toEqual([]);
   });
+
+  it("knows the embeds of an installed comark-embed", async () => {
+    const markdown = `::embed{url="https://www.youtube.com/watch?v=KCrXgy8qtjM" title="Vite in 100 Seconds"}\n::\n`;
+    expect(await lint(markdown, await resolveConfig())).toEqual([]);
+  });
 });
 
 describe("comark/malformed-attributes", () => {
