@@ -1,6 +1,6 @@
 ---
 title: Guides
-description: Groups, events, theming, and captions beside the zoom.
+description: Groups, events, and captions beside the zoom.
 ---
 
 ## Groups
@@ -32,13 +32,9 @@ document.addEventListener("comark-zoom:open", (event) => {
 });
 ```
 
-## Theming
-
-The zoomed view follows the shared tokens in [Theming](/guide/theming/). To theme only the zoomed view, set them on `.cz-dialog`. An item that needs styles from its ancestors names them with `data-zoom-context`, a selector, and the zoomed copy goes inside empty copies of every ancestor that matches.
-
 ## Captions beside the zoom
 
-`data-zoom-aside` names an element, by selector, that the zoomed view shows beside the item at its own size, so a caption stays readable however far the item zooms. It's the first match that neither holds the item nor sits in it, in its innermost `data-zoom-context` or else its parent. On a narrow screen it sits below. comark-annotate uses it for a screenshot's notes.
+`data-zoom-aside` names an element, by selector, that the zoomed view shows beside the item at its own size, so a caption stays readable however far the item zooms. It's the first match that neither holds the item nor sits in it, in its innermost [`data-zoom-context`](/zoom/theming/#styles-from-ancestors) or else its parent. On a narrow screen it sits below. comark-annotate uses it for a screenshot's notes.
 
 ```html
 <figure>
