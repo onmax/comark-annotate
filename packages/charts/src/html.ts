@@ -36,13 +36,15 @@ const chart: NodeHandler = async (node, state) => {
   }
   const label = read.title || `${read.type} chart of ${read.series.join(", ")} by ${read.x}`;
   const svg = drawn.svg.replace("<svg", `<svg role="img" aria-label="${attr(label)}"`);
+  const [, width, height] = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg) ?? [];
+  const aspect = width && height ? Number(height) / Number(width) : undefined;
   // Marks the chart couldn't place, such as one on an empty cell, are left out rather than drawn in a corner.
   const marks = read.marks.flatMap((mark) => {
     const box = drawn.boxes.get(mark.n);
     return box ? [{ ...mark, ...box }] : [];
   });
   const plot = marks.length
-    ? `<div class="cch-plot cch-marked">${await annotateHtml(svg, marks, label, state, ".cch-plot")}</div>`
+    ? `<div class="cch-plot cch-marked">${await annotateHtml(svg, marks, label, state, ".cch-plot", aspect)}</div>`
     : `<div class="cch-plot">${svg}</div>`;
   return (
     `${styles}<figure class="cch" data-type="${read.type}">${title}${plot}` +

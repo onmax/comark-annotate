@@ -2,6 +2,7 @@ import type { ElementNode, Node } from "comark";
 import { resolveAttributes } from "comark/render";
 import { textContent } from "comark/utils";
 import { type Mark, marks } from "./marks.ts";
+import { place } from "./place.ts";
 
 export interface Annotation {
   /** Links the mark to its note; unique within a screenshot or compare. */
@@ -24,6 +25,8 @@ export interface Screenshot {
   alt: string;
   title?: string;
   href?: string;
+  /** The image's height over its width, from `viewport`, which places the stamps. */
+  aspect?: number;
   annotations: Annotation[];
   caption: Node[];
 }
@@ -303,11 +306,17 @@ export function readScreenshot(
           `${where}: the ${side} notes for annotations ${centers[i - 1]!.index} and ${centers[i]!.index} would overlap. Move one to the other side or leave it under the image.`,
         );
   }
+  const aspect = size ? Number(size[2]) / Number(size[1]) : undefined;
+  for (const [a, b] of place(annotations, aspect).clashes)
+    issues.push(
+      `${where}: the numbers of annotations ${a} and ${b} overlap at every corner of their marks. Leave room between the marks, or merge them into one annotation.`,
+    );
   return {
     src,
     alt,
     title: text(attrs.title) || undefined,
     href: isHttp(href) ? href : undefined,
+    aspect,
     viewport: size ? { width: Number(size[1]), height: Number(size[2]) } : undefined,
     annotations,
     caption,
