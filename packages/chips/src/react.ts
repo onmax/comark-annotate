@@ -15,8 +15,8 @@ export function Chip(props: {
   useEffect(addStyles, []);
   return createElement(
     "a",
-    { className: "cch", href: props.href, "data-kind": props.kind, title: props.title },
-    props.src ? createElement("img", { className: "cch-img", src: props.src, alt: "" }) : null,
+    { className: "cp", href: props.href, "data-kind": props.kind, title: props.title },
+    props.src ? createElement("img", { className: "cp-img", src: props.src, alt: "" }) : null,
     props.children,
   );
 }

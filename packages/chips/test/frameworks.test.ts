@@ -35,7 +35,7 @@ describe("comark-chips renderers", () => {
     });
     const expected = normalize(await renderHtmlFromDocument(value, { components: htmlComponents }));
     expect(expected).toContain(
-      '<a class="cch" href="https://vite.dev" data-kind="favicon" title="Docs"><img class="cch-img" src="https://www.google.com/s2/favicons?domain=vite.dev&amp;sz=64" alt>Vite</a>',
+      '<a class="cp" href="https://vite.dev" data-kind="favicon" title="Docs"><img class="cp-img" src="https://www.google.com/s2/favicons?domain=vite.dev&amp;sz=64" alt>Vite</a>',
     );
     const vue = normalize(
       await renderVue(

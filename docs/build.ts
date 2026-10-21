@@ -206,10 +206,13 @@ const packages = (
 ).filter((pkg) => existsSync(new URL(`pages/${pkg.slug}/index.md`, root)));
 // npm refuses `comark-lint` as too close to `remark-lint`.
 const npmNames: Record<string, string> = { lint: "comark-linter" };
-const fileOf = (slug: string) =>
-  existsSync(new URL(`pages/${slug || "index"}.md`, root))
-    ? `${slug || "index"}.md`
-    : `${slug}/index.md`;
+const fileOf = (slug: string) => {
+  const flat = existsSync(new URL(`pages/${slug || "index"}.md`, root));
+  // A stale flat page left by a merge would hide the folder's index without a word.
+  if (flat && slug && existsSync(new URL(`pages/${slug}/index.md`, root)))
+    throw new Error(`docs/pages has both ${slug}.md and ${slug}/index.md; keep one.`);
+  return flat ? `${slug || "index"}.md` : `${slug}/index.md`;
+};
 type Section = {
   slug: string;
   label: string;

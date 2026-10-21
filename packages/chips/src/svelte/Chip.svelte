@@ -7,6 +7,6 @@
   onMount(addStyles);
 </script>
 
-<a class="cch" {href} data-kind={kind} {title}
-  >{#if src}<img class="cch-img" {src} alt="" />{/if}{@render children?.()}</a
+<a class="cp" {href} data-kind={kind} {title}
+  >{#if src}<img class="cp-img" {src} alt="" />{/if}{@render children?.()}</a
 >
