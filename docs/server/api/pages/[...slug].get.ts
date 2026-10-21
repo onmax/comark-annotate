@@ -99,7 +99,7 @@ async function read(slug: string) {
   const file = await content.get(`/${slug}`);
   if (!file) throw new HTTPError({ status: 404, message: `No page at /${slug}.` });
   const issues = (file.meta.issues as string[] | undefined) ?? [];
-  if (issues.length) throw new Error(`docs/pages/${slug || "index"}.md:\n${issues.join("\n")}`);
+  if (issues.length) throw new Error(`/${slug}:\n${issues.join("\n")}`);
   return file;
 }
 

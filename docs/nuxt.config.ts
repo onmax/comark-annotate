@@ -73,7 +73,10 @@ export default defineNuxtConfig({
     defaults: { nuxtLink: { prefetchOn: { visibility: false, interaction: true } } },
   },
   css: ["~~/style.css"],
-  runtimeConfig: { pagesDir: fileURLToPath(new URL("pages/", root)) },
+  runtimeConfig: {
+    pagesDir: fileURLToPath(new URL("pages/", root)),
+    packagesDir: fileURLToPath(new URL("../packages/", root)),
+  },
   app: {
     head: {
       htmlAttrs: { lang: "en" },

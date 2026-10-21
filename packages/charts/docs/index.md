@@ -3,6 +3,10 @@ title: comark-charts
 description: Charts from a Markdown table, drawn to SVG with no script.
 tagline: Write a table and get a chart drawn to SVG, with no script. The table stays under it, so people see the chart and agents read the numbers.
 install: pnpm add comark @comark/html comark-charts
+group: Review blocks
+icon: chart-column
+blurb: Charts from a Markdown table
+credits: 'Laid out by Microsoft Research''s <a href="https://github.com/microsoft/flint-chart">Flint</a> on its New York Times theme, and drawn by <a href="https://vega.github.io">Vega</a>.'
 ---
 
 ::examples

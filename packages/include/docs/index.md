@@ -3,6 +3,10 @@ title: comark-include
 description: Markdown partials and code snippets from files, written in Markdown.
 tagline: Paste a shared section, or a few lines of real source, into any page with one line, and keep a single copy of each.
 install: pnpm add comark comark-include
+group: Authoring tools
+icon: file-input
+blurb: Partials and snippets from files
+credits: 'Arguments from <a href="https://github.com/unjs/automd">automd</a>.'
 ---
 
 ::examples

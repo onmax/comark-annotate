@@ -12,8 +12,8 @@ export const Chip = defineComponent({
   setup(props, { slots }) {
     onMounted(addStyles);
     return () =>
-      h("a", { class: "cch", href: props.href, "data-kind": props.kind, title: props.title }, [
-        props.src ? h("img", { class: "cch-img", src: props.src, alt: "" }) : null,
+      h("a", { class: "cp", href: props.href, "data-kind": props.kind, title: props.title }, [
+        props.src ? h("img", { class: "cp-img", src: props.src, alt: "" }) : null,
         slots.default?.(),
       ]);
   },

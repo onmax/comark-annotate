@@ -3,6 +3,10 @@ title: comark-tabs
 description: Tabs and code groups, written in Markdown.
 tagline: Tabs of any content, and code blocks grouped by package manager or language, that switch together across the page.
 install: pnpm add comark @comark/html comark-tabs
+group: Page behavior
+icon: panels-top-left
+blurb: Tabs and code groups
+credits: 'Syntax from <a href="https://ui.nuxt.com">Nuxt UI</a>''s tabs and code groups.'
 ---
 
 ::examples

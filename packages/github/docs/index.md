@@ -3,6 +3,10 @@ title: comark-github
 description: GitHub's alerts, references, and raw HTML, rendered as on GitHub.
 tagline: Write > [!NOTE], @user, #123, and <sub> as on GitHub, and get the same page anywhere.
 install: pnpm add comark @comark/html comark-github
+group: Review blocks
+icon: github
+blurb: 'GitHub''s alerts, references, and HTML'
+credits: 'Syntax from <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax">GitHub''s Markdown</a>, and the allowed HTML from its <a href="https://github.com/gjtorikian/html-pipeline">html-pipeline</a>.'
 ---
 
 ::examples
