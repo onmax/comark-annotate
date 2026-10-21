@@ -1,6 +1,6 @@
 # comark-plugins
 
-Comark plugins for review documents: annotated screenshots, before/after comparisons, and suggested code changes. Agents write most of the documents they render, often as PR evidence. Because of that, the issue messages are as important as the HTML: every one names its block and says how to fix it.
+Comark plugins for review documents: annotated screenshots, before/after comparisons, suggested code changes, charts, and icons. Agents write most of the documents they render, often as PR evidence. Because of that, the issue messages are as important as the HTML: every one names its block and says how to fix it.
 
 ## Shape
 
@@ -16,6 +16,11 @@ A pnpm workspace. Every package in `packages/` is published to npm under its own
 - `packages/code` is `comark-code`. Its components replace `pre`: each wraps the block, rendered as it would be without them, in `.ck` with a bar of buttons, so Shiki's output and code groups work in any plugin order. The bar's markup is one string from `buttons()` in `src/client.ts` that every renderer inlines. Its parse plugin only writes the configured `actions` onto matching `pre` nodes; the script sends a `comark-code-action` event for them and does nothing else.
 - `packages/embed` is `comark-embed`. Its parse plugin reads the player's `src` from the `::embed` link alone, with no fetch, and replaces the node's attributes with `provider`, `src`, `label`, `size`, `href`, `title`, and `host`, so no renderer parses URLs. `src/providers.ts` holds one entry per provider. A link with no player becomes a card, and one that isn't https renders nothing. No script: the components add the styles on mount.
 - `packages/github-callouts` is `comark-github-callouts`. Its parse plugin is named `alert`, so Comark's dedupe swaps it in for the built-in alert plugin and it always sees the raw `[!TYPE]` marker. It turns those blockquotes into `github-callout` nodes with `type` and `title`; the renderers only draw them. No script: the components add the styles on mount.
+- `packages/icon` is `comark-icon`.
+  - `src/resolve.ts` is the resolver: `createIcons()` resolves `set:name` (or Nuxt UI's `i-set-name`) from `collections`, else the Iconify API, into a data URI with its ratio and whether it paints in `currentColor`. Downloads are cached per process across instances; a failed one isn't kept. `describeIconProblem()` words each problem, so every plugin that draws icons reports them alike.
+  - `src/index.ts` is the parse plugin. It resolves every `:icon` in one call and writes `src`, `ratio`, `mask`, and `label` on the node, and drops one it can't draw. `name` stays, so a renderer that maps `icon` to Nuxt UI's component still works.
+  - An icon is a `.ci` span with its image in `--ci`: a mask over `currentColor` when the SVG uses it, a background image otherwise. The renderers set the style as an object, because `@comark/react` splits a style string at every colon and would cut the data URI.
+  - Plugins that draw icons (tabs) take an `Icons` and draw with `iconHtml()`/`iconStyles()` from `/html` and the `Icon` component from `/vue`, `/react`, and `/svelte`.
 - `packages/lint` is `comark-lint`, a library, CLI, and Vite Doctor extension that lints Comark documents.
   - `src/index.ts` is `lint()`. Comark gives nodes no positions, so block components take their line from markdown-exit tokens (plus the stripped frontmatter's lines) and everything else is found by searching the source with fenced code blanked out.
   - `src/config.ts` loads the other packages in this repo through optional dynamic imports; they are optional peer dependencies. Add a new package there.
