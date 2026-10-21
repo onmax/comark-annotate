@@ -14,7 +14,7 @@ export const css = `@layer comark{${[
   ".ct-list,.ct[data-tabs-code]>.ct-panel>.ct-caption{background:color-mix(in srgb,var(--_comark-accent) 50%,transparent);box-shadow:inset 0 0 0 1px var(--_comark-border)}",
   "[data-tabs-ready] .ct-list{display:flex}",
   "[data-tabs-ready] .ct-caption,[data-tabs-ready] .ct-panel[data-inactive]{display:none}",
-  ".ct-tab{flex:none;padding:.25rem .625rem;border:0;border-radius:calc(var(--_comark-radius) - 2px);background:none;color:var(--_comark-muted);font:500 .8125rem/1.25rem var(--_comark-font);white-space:nowrap;cursor:pointer;touch-action:manipulation;transition:color .15s,background-color .15s,box-shadow .15s}",
+  ".ct-tab{display:inline-flex;flex:none;align-items:center;gap:.375rem;padding:.25rem .625rem;border:0;border-radius:calc(var(--_comark-radius) - 2px);background:none;color:var(--_comark-muted);font:500 .8125rem/1.25rem var(--_comark-font);white-space:nowrap;cursor:pointer;touch-action:manipulation;transition:color .15s,background-color .15s,box-shadow .15s}",
   ".ct-tab:hover{color:var(--_comark-foreground)}",
   // The open tab carries its own surface rather than a sliding indicator, so the server's markup already shows it and
   // nothing moves when the script starts. Forced colors drop the surface, and the transparent outline shows instead.
@@ -24,7 +24,7 @@ export const css = `@layer comark{${[
   ".ct-tab:focus-visible{outline-offset:-2px}",
   ".ct-panel{border-radius:var(--_comark-radius)}",
   "[data-tabs-ready] .ct-panel{margin-top:.75rem}",
-  ".ct-caption{margin:1.5rem 0 .5rem;color:var(--_comark-muted);font:500 .8125rem/1.25rem var(--_comark-font)}",
+  ".ct-caption{display:flex;align-items:center;gap:.375rem;margin:1.5rem 0 .5rem;color:var(--_comark-muted);font:500 .8125rem/1.25rem var(--_comark-font)}",
   ".ct-list+.ct-panel>.ct-caption{margin-top:0}",
   ".ct-caption+*{margin-top:0}",
   ".ct-panel>:last-child{margin-bottom:0}",

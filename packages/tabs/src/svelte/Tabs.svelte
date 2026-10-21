@@ -2,8 +2,9 @@
 <script>
   import { onMount, setContext } from "svelte";
   import { css, start } from "comark-tabs/client";
+  import { Icon } from "comark-icon/svelte";
 
-  let { labels = [], sync = undefined, code = undefined, children } = $props();
+  let { labels = [], icons = [], sync = undefined, code = undefined, children } = $props();
   const id = $props.id();
   setContext("comark-tabs", id);
 
@@ -20,7 +21,7 @@
         id="{id}-tab-{at + 1}"
         aria-controls="{id}-panel-{at + 1}"
         aria-selected={String(at === 0)}
-        tabindex={at === 0 ? 0 : -1}>{label}</button>
+        tabindex={at === 0 ? 0 : -1}>{#if icons[at]}<Icon {...icons[at]} />{/if}{label}</button>
     {/each}
   </div>
   {@render children?.()}
