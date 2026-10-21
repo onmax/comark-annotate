@@ -185,7 +185,6 @@ function pointNpmx(npm?: string) {
 
 let run = 0;
 let loadIssues: string[] = [];
-let configLinkInvalid = false;
 async function render() {
   const current = ++run;
   let html = "";
@@ -216,47 +215,49 @@ async function link() {
   return `#md=${await pack(editor.value)}${config}`;
 }
 
+let loadRun = 0;
 async function load() {
-  loadIssues = [];
-  configLinkInvalid = false;
+  const run = ++loadRun;
+  const navigationIssues: string[] = [];
   const hash = new URLSearchParams(location.hash.slice(1));
   const code = hash.get("md");
   const config = hash.get("config");
   // A preset keeps whatever config is in the tab, so one config can be tried across them.
   if (config !== null) {
-    configEditor.value = await unpack(config).catch(() => {
-      configLinkInvalid = true;
-      loadIssues.push("The link's config is cut off or changed; using the default config.");
+    const decodedConfig = await unpack(config).catch(() => {
+      navigationIssues.push("The link's config is cut off or changed; using the default config.");
       return defaultConfig;
     });
+    if (run !== loadRun) return;
+    configEditor.value = decodedConfig;
     repaint(configEditor);
   } else if (code !== null) configEditor.value = defaultConfig;
   const preset =
     presets.find((preset) => preset.id === hash.get("preset")) ??
     (code === null ? presets[0] : undefined);
-  if (preset) editor.value = preset.source;
-  else if (code !== null)
-    editor.value = await unpack(code).catch((error) => {
-      editor.value =
-        error instanceof Error && error.message === sharingUnsupported
-          ? sharingUnsupported
-          : "The link's Markdown is cut off or changed.";
-      return editor.value;
-    });
+  let markdown = preset?.source;
+  if (!preset && code !== null)
+    markdown = await unpack(code).catch((error) =>
+      error instanceof Error && error.message === sharingUnsupported
+        ? sharingUnsupported
+        : "The link's Markdown is cut off or changed.",
+    );
+  if (run !== loadRun) return;
+  loadIssues = navigationIssues;
+  if (markdown !== undefined) editor.value = markdown;
   base = preset;
   markPreset(preset?.id);
   reset.hidden = true;
   pointNpmx(preset?.npm);
   repaint(editor);
   repaint(configEditor);
-  await render();
+  if (run === loadRun) await render();
 }
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 for (const textarea of [editor, configEditor])
   textarea.addEventListener("input", () => {
     if (textarea === configEditor) {
-      configLinkInvalid = false;
       loadIssues = [];
     }
     repaint(textarea);
@@ -274,10 +275,7 @@ for (const textarea of [editor, configEditor])
   });
 share.addEventListener("click", async () => {
   try {
-    if (configLinkInvalid || !location.hash.startsWith("#md=")) {
-      history.replaceState(null, "", await link());
-      configLinkInvalid = false;
-    }
+    history.replaceState(null, "", await link());
     await navigator.clipboard.writeText(location.href);
     share.textContent = "Copied";
     setTimeout(() => (share.textContent = "Copy link"), 1500);
