@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parseMarkdown } from "comark";
 import { defineNuxtConfig } from "nuxt/config";
@@ -57,7 +58,8 @@ async function writeAssets() {
   // The playground is a standalone browser app. Keep its generated HTML and
   // script under Nitro's public root so `/play/` remains available alongside
   // the Nuxt-rendered documentation pages.
-  await cp(new URL("dist/play/", root), new URL("play/", generated), { recursive: true });
+  const playground = new URL("dist/play/", root);
+  if (existsSync(playground)) await cp(playground, new URL("play/", generated), { recursive: true });
 }
 
 export default defineNuxtConfig({

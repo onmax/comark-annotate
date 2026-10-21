@@ -9,39 +9,39 @@ install: pnpm add comark @comark/html comark-github-callouts
 :::example{label="Types"}
 ```md
 > [!NOTE]
-> Drafts save every few seconds, so closing the tab keeps your work.
+> Pigeon counts update every five minutes, from the camera on the roof.
 
 > [!TIP]
-> Press ⌘K to search every document.
+> Order pizza before you open a pull request. It merges 31% faster.
 
 > [!IMPORTANT]
-> Releases ship from `main` only.
+> Deploys ship only when fewer than 12 pigeons are on the roof.
 
 > [!WARNING]
-> Changing the slug breaks links people already shared.
+> Renaming the duck breaks its correlation with bugs fixed.
 
 > [!CAUTION]
-> Deleting a folder deletes every document in it.
+> Resetting the duck counter deletes three years of correlations.
 ```
 :::
 
 :::example{label="Custom title"}
 ```md
 > [!IMPORTANT] Decision
-> Keep the existing endpoint. Clients pin its response shape.
+> Keep the third rubber duck. Bugs fixed fell 40% the week it went missing.
 ```
 :::
 
 :::example{label="Any content"}
 ```md
 > [!WARNING] Breaking change in v2
-> The `render` option moved:
+> The `correlate` option moved:
 >
-> - `render(markdown)` is now `createHtmlRenderer()(markdown)`
-> - `components` keys are tag names
+> - `correlate(ducks, bugs)` is now `createSpurious()(ducks, bugs)`
+> - `weather` is in hours of rain
 >
 > ```ts
-> const render = createHtmlRenderer({ plugins, components });
+> const correlate = createSpurious({ office, moonPhase: "waxing" });
 > ```
 ```
 :::

@@ -12,6 +12,7 @@
   "scripts": {
     "build": "pnpm -r --filter \"./packages/*\" run build",
     "docs:build": "pnpm build && node docs/build.ts && pnpm --filter comark-plugins-docs generate",
+    "docs:images": "node docs/images.ts",
     "lint": "vp lint",
     "typecheck": "tsc --noEmit",
     "test": "vp test",
@@ -31,8 +32,8 @@
     "@playwright/test": "catalog:",
     "@types/node": "catalog:",
     "comark": "catalog:",
+    "comark-linter": "workspace:*",
     "geist": "catalog:",
-    "lint-comark": "workspace:*",
     "pkg-pr-new": "catalog:",
     "publint": "catalog:",
     "shiki": "catalog:",

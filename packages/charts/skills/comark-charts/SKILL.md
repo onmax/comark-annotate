@@ -10,11 +10,11 @@ You write a Markdown table inside `::chart`; comark-charts draws it as an SVG ch
 ## Write the table
 
 ```md
-::chart{title="Build time, before and after the cache (ms)"}
-| month | before | after |
+::chart{title="Coffee cups and commits, per month (r = 0.98)"}
+| month | coffee cups | commits |
 | --- | --: | --: |
 | 2026-04 | 820 | 610 |
-| 2026-05 | 890 | 622 |
+| 2026-05 | 890 | 640 |
 ::
 ```
 
@@ -46,8 +46,8 @@ For a before and after of one or two metrics, grouped `bar` reads best; past thr
 Point at the value the text talks about with an `::annotation` after the table, the way comark-annotate marks a screenshot. `at` is the row's x value copied from the table; `series` picks one column in that row.
 
 ```md
-:::annotation{at="2026-07" series="after" mark="circle" color="green"}
-The cache lands, and builds drop below 600 ms.
+:::annotation{at="2026-07" series="commits" mark="circle" color="green"}
+The new espresso machine arrives, and commits pass 700.
 :::
 ```
 
@@ -55,6 +55,6 @@ The cache lands, and builds drop below 600 ms.
 
 ## Check it
 
-In a project with comark-charts installed, run `npx lint-comark report.md`. It prints one line per problem, each naming the chart by its position (`` `::chart` 2 ``) and saying how to fix it, and exits with 1 if there are any. Fix every one. In code, the same sentences are in `meta.issues` after `parseMarkdown(markdown, { plugins: [charts()] })`.
+In a project with comark-charts installed, run `npx comark-linter report.md`. It prints one line per problem, each naming the chart by its position (`` `::chart` 2 ``) and saying how to fix it, and exits with 1 if there are any. Fix every one. In code, the same sentences are in `meta.issues` after `parseMarkdown(markdown, { plugins: [charts()] })`.
 
 When you can render the page, open it and confirm the chart says what your text says: the right type, every series named, and the numbers in the expected order.

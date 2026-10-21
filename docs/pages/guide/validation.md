@@ -29,8 +29,8 @@ Each issue names its block the way a reader finds it: by `src`, by title, or by 
 
 ```txt
 screenshot "after.png", annotation 2: the box runs past the image edge. Keep x + w and y + h within 100.
-carousel 2 ("Setup") drops the paragraph "Pass the plugin" because it sits outside every :::slide; move it into a :::slide.
-include "./x.md": file not found. It resolved to "guide/x.md" under the root; check the path or base.
+carousel 2 ("Pigeon census") drops the paragraph "Count the roof twice" because it sits outside every :::slide; move it into a :::slide.
+include "./ducks.md": file not found. It resolved to "guide/ducks.md" under the root; check the path or base.
 ```
 
 | Plugin | Reports |
@@ -48,7 +48,7 @@ code, github-callouts, and zoom have nothing to report: every code block gets it
 
 ## Line numbers
 
-`meta.issues` can't say where a problem is, because Comark gives nodes no source positions. [lint-comark](/lint/) finds the line of each issue and adds what Comark forgives silently: blocks never closed, misspelled components, broken anchors, and unsafe URLs. Run it in CI and in [Vite Doctor](/lint/vite-doctor/):
+`meta.issues` can't say where a problem is, because Comark gives nodes no source positions. [comark-linter](/lint/) finds the line of each issue and adds what Comark forgives silently: blocks never closed, misspelled components, broken anchors, and unsafe URLs. Run it in CI and in [Vite Doctor](/lint/getting-started/#vite-doctor):
 
 ```sh
 pnpm lint-comark "docs/**/*.md"

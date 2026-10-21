@@ -10,12 +10,12 @@ Each `:::tabs-item` inside `::tabs` is a tab, named by its `label`.
 ::example
 ```md
 ::tabs
-:::tabs-item{label="Preview"}
-The rendered page.
+:::tabs-item{label="This week"}
+14 rubber ducks bought, 14 bugs fixed.
 :::
 
-:::tabs-item{label="Source"}
-The Markdown behind it.
+:::tabs-item{label="Last week"}
+3 rubber ducks bought, 3 bugs fixed.
 :::
 ::
 ```

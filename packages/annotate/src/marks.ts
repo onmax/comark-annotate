@@ -1,37 +1,108 @@
-// Hand-drawn marks from AnnotationKit (https://annotationkit.vercel.app). Each one stretches over the annotated area.
+// Hand-drawn marks after AnnotationKit (https://annotationkit.vercel.app). Each one stretches over the annotated area
+// and wobbles its own way, seeded by the annotation, so no two marks match and a render always draws the same.
+
+interface Drawing {
+  viewBox: string;
+  paths: string[];
+}
+type Point = readonly [number, number];
+type Draw = (width: number, height: number, random: () => number) => Drawing;
+
+const round = (value: number) => Math.round(value * 10) / 10;
+const point = ([x, y]: Point) => `${round(x)} ${round(y)}`;
+
+// Four corners joined by slightly bowed strokes, in the box's own pixels so the line keeps the same distance from the
+// target at any size. A box's last stroke runs on past where the first began, the way a pen does. It starts and ends at
+// the bottom right, the last corner a number tries, so that tail stays clear of the number.
+function outline(
+  width: number,
+  height: number,
+  out: number,
+  random: () => number,
+  overshoot: number,
+) {
+  const corners: Point[] = [
+    [width + out, height + out],
+    [-out, height + out],
+    [-out, -out],
+    [width + out, -out],
+  ].map(([x, y]) => [x! + random() * 1.5, y! + random() * 1.5]);
+  return corners.map((from, index) => {
+    const next = corners[(index + 1) % 4]!;
+    const [dx, dy] = [next[0] - from[0], next[1] - from[1]];
+    const length = Math.hypot(dx, dy) || 1;
+    const run = index === 3 ? overshoot / length : 0;
+    const to: Point = [next[0] + dx * run, next[1] + dy * run];
+    const bow = Math.min(3, length * 0.04);
+    const [a, b] = [random() * bow, random() * bow];
+    const [nx, ny] = [-dy / length, dx / length];
+    return {
+      from,
+      curve: `C${point([from[0] + dx / 3 + nx * a, from[1] + dy / 3 + ny * a])} ${point([from[0] + (2 * dx) / 3 + nx * b, from[1] + (2 * dy) / 3 + ny * b])} ${point(to)}`,
+    };
+  });
+}
+
+// A drawing that stretches over any area, nudged a little. A point that appears twice moves the same way both times,
+// so strokes that meet still meet.
+function wobbly(viewBox: string, paths: string[], amount: number): Draw {
+  return (_width, _height, random) => {
+    const moved = new Map<string, number>();
+    const shift = (key: string) => {
+      if (!moved.has(key)) moved.set(key, random() * amount);
+      return moved.get(key)!;
+    };
+    return {
+      viewBox,
+      paths: paths.map((path) => {
+        let index = 0;
+        return path.replace(/\d+(?:\.\d+)?/g, (value) =>
+          String(round(Number(value) + shift(`${index++ % 2}:${value}`))),
+        );
+      }),
+    };
+  };
+}
+
 export const marks = {
   // Draws nothing: the arrow from a side note does the pointing.
-  none: { viewBox: "0 0 1 1", paths: [] },
-  box: {
-    viewBox: "0 0 200 100",
-    paths: [
-      "M10 14C70 8 140 10 192 12",
-      "M192 12C194 40 193 66 190 88",
-      "M190 88C130 92 60 90 12 86",
-      "M12 86C8 60 8 36 10 14",
-    ],
+  none: () => ({ viewBox: "0 0 1 1", paths: [] }),
+  // Its SVG reaches 5px past the area, and the line runs 3px outside it, so it frames the target without covering it.
+  box: (width, height, random) => ({
+    viewBox: `-5 -5 ${round(width + 10)} ${round(height + 10)}`,
+    paths: outline(width, height, 3, random, 4).map(({ from, curve }) => `M${point(from)}${curve}`),
+  }),
+  circle: wobbly(
+    "0 0 200 100",
+    ["M46 16C12 24 6 56 42 74C92 96 172 84 190 52C200 30 156 10 98 10C74 10 56 12 44 17"],
+    5,
+  ),
+  underline: wobbly("0 0 200 60", ["M8 32C58 22 142 40 192 26"], 6),
+  highlight: (width, height, random) => {
+    const sides = outline(width, height, 0, random, 0);
+    return {
+      viewBox: `0 0 ${round(width)} ${round(height)}`,
+      paths: [`M${point(sides[0]!.from)}${sides.map(({ curve }) => curve).join("")}Z`],
+    };
   },
-  circle: {
-    viewBox: "0 0 200 100",
-    paths: ["M46 16C12 24 6 56 42 74C92 96 172 84 190 52C200 30 156 10 98 10C74 10 56 12 44 17"],
-  },
-  underline: {
-    viewBox: "0 0 200 60",
-    paths: ["M8 32C58 22 142 40 192 26"],
-  },
-  highlight: {
-    viewBox: "0 0 200 100",
-    paths: ["M10 14C70 8 140 10 192 12C194 40 193 66 190 88C130 92 60 90 12 86C8 60 8 36 10 14Z"],
-    fill: true,
-  },
-  cross: {
-    viewBox: "0 0 100 100",
-    paths: ["M20 20C40 42 60 62 80 82", "M80 20C60 42 40 62 20 82"],
-  },
-  check: {
-    viewBox: "0 0 100 100",
-    paths: ["M14 54C26 60 34 70 42 82C54 54 68 30 88 14"],
-  },
-} satisfies Record<string, { viewBox: string; paths: string[]; fill?: boolean }>;
+  cross: wobbly("0 0 100 100", ["M20 20C40 42 60 62 80 82", "M80 20C60 42 40 62 20 82"], 4),
+  check: wobbly("0 0 100 100", ["M14 54C26 60 34 70 42 82C54 54 68 30 88 14"], 5),
+} satisfies Record<string, Draw>;
 
 export type Mark = keyof typeof marks;
+
+// mulberry32: small, fast, and the same in every runtime, from -1 to 1.
+function generator(seed: number) {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(state ^ (state >>> 15), state | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return (((t ^ (t >>> 14)) >>> 0) / 4294967296) * 2 - 1;
+  };
+}
+
+/** Draws `mark` over an area of `width` by `height` pixels, wobbling it by `seed`. */
+export function draw(mark: Mark, width: number, height: number, seed: number): Drawing {
+  return marks[mark](width, height, generator(seed));
+}

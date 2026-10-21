@@ -9,7 +9,7 @@ install: pnpm add comark @comark/html comark-code
 :::example{label="Copy and wrap"}
 ````md
 ```sh
-pnpm add comark @comark/html comark-code && pnpm exec lint-comark docs/**/*.md --max-warnings 0 --format text
+pnpm exec spurious correlate --x "rubber ducks bought" --y "bugs fixed" --office berlin --moon-phase waxing --min-r 0.9 > ducks.csv
 ```
 ````
 :::
@@ -28,7 +28,7 @@ import code, { components } from "comark-code/html";
 const render = createHtmlRenderer({ plugins: [code()], components });
 ```
 
-The components replace how `pre` renders. The block keeps its own markup, so Shiki's highlighting and your `pre` styles still apply, and it works in a [code group](/tabs/#components-code-group) whichever plugin comes first.
+The components replace how `pre` renders. The block keeps its own markup, so Shiki's highlighting and your `pre` styles still apply, and it works in a [code group](/tabs/components/#code-group) whichever plugin comes first.
 
 For Vue, React, or Svelte, import from `comark-code/vue`, `comark-code/react`, or `comark-code/svelte` (Svelte 5.20 or later). [Renderers](/guide/renderers/) covers server rendering and using it with other plugins.
 

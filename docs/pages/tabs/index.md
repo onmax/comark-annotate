@@ -10,11 +10,11 @@ install: pnpm add comark @comark/html comark-tabs
 ```md
 ::tabs{sync="os"}
 :::tabs-item{label="macOS"}
-Press **⌘K** to search.
+Press **⌘K** to find the pigeon data.
 :::
 
 :::tabs-item{label="Windows"}
-Press **Ctrl+K** to search.
+Press **Ctrl+K** to find the pigeon data.
 :::
 ::
 ```
@@ -58,7 +58,3 @@ bun add comark-tabs
 ::
 
 Without a script, every tab shows under its label, one after another. The script adds the tab strip, the arrow keys, and `sync`, which switches every block with the same key at once and remembers the choice.
-
-## Credits
-
-The syntax follows [Nuxt UI](https://ui.nuxt.com)'s tabs and code groups.

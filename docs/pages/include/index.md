@@ -14,13 +14,13 @@ install: pnpm add comark comark-include
 
 :::example{label="Region"}
 ```md
-:include{src="./partials/greet.ts" region="message"}
+:include{src="./partials/ducks.ts" region="estimate"}
 ```
 :::
 
 :::example{label="Lines"}
 ```md
-:include{src="./partials/greet.ts" lines="1:3"}
+:include{src="./partials/ducks.ts" lines="1:3"}
 ```
 :::
 
@@ -32,7 +32,3 @@ install: pnpm add comark comark-include
 ::
 
 These examples include real files from this site's source. A Markdown file is pasted into the page, and any other file becomes a code block in the language of its extension.
-
-## Credits
-
-The arguments follow [automd](https://github.com/unjs/automd).
