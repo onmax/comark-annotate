@@ -1,6 +1,6 @@
 ---
 title: Guides
-description: Side notes, placing marks, validation, and theming.
+description: Side notes, placing marks, and validation.
 ---
 
 ## Side notes
@@ -36,7 +36,3 @@ screenshot "after.png", annotation 2: the box runs past the image edge. Keep x +
 ```
 
 Unknown props are reported with the valid ones, and so is a `:bound` prop that points at missing frontmatter. Bindings to `data` or `props` are left to the renderer.
-
-## Theming
-
-Screenshots, comparisons, and diffs follow the shared tokens in [Theming](/guide/theming/). The mark colors are separate from the theme, because each one means something: a plain `.ca { --ca-color: #0070f3; --ca-solid: #0070f3; --ca-ink: #fff }` changes the default marks, arrows, and notes (`--ca-color`), stamps (`--ca-solid`), and stamp numbers (`--ca-ink`), and `--ca-red`, `--ca-amber`, `--ca-green`, `--ca-blue`, and `--ca-gray` change the named ones. Side notes and labels are handwritten in Caveat, which comes inlined with the styles, about 32 KB once per page. `--ca-note-font` sets another family, `--ca-note-font: inherit` uses the page font, and `--ca-note-size` and `--ca-label-size` set their sizes. A diff's code uses `--ca-code-font`, and its colors come from `--ca-red` and `--ca-green`.

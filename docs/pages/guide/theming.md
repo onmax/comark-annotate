@@ -12,7 +12,7 @@ shadcn/ui before Tailwind 4 stores colors as bare HSL numbers, so map those thro
 
 ## Tokens
 
-Set the `--comark-*` tokens to theme annotate, carousel, code, embed, github, tabs, and zoom at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
+Set the `--comark-*` tokens to theme annotate, carousel, charts, code, embed, github, tabs, and zoom at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
 
 | Token | Falls back to | Used for |
 | --- | --- | --- |
@@ -56,4 +56,4 @@ The rules sit in a `comark` CSS layer, so any plain rule of your own wins withou
 
 ## Each plugin's own
 
-Each package's own variables and class names are on its Theming page: [carousel](/carousel/theming/), [code](/code/theming/), [tabs](/tabs/theming/), and [zoom](/zoom/theming/).
+Each package's own variables and class names are on its Theming page: [annotate](/annotate/theming/), [carousel](/carousel/theming/), [charts](/charts/theming/), [chips](/chips/theming/), [code](/code/theming/), [embed](/embed/theming/), [github](/github/theming/), [icon](/icon/theming/), [tabs](/tabs/theming/), and [zoom](/zoom/theming/).
