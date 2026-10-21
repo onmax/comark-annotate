@@ -67,7 +67,7 @@ const r = document.querySelector("SELECTOR").getBoundingClientRect();
 ```
 
 For a full-page screenshot, add `scrollX`/`scrollY` and divide by `document.documentElement.scrollWidth` and `scrollHeight` instead.
-For a clipped capture, make sure the clip fully contains every marked element. Subtract the clip's `x` and `y` and divide by its `width` and `height`; if an element crosses the clip edge, intersect its measured rectangle with the clip before normalizing so every value stays between 0 and 100.
+For a clipped capture, `getBoundingClientRect()` and Playwright's main-frame `clip` use viewport-relative coordinates, so do not add `scrollX`/`scrollY` to this formula. Make sure the clip fully contains every marked element. Subtract the clip's `x` and `y` and divide by its `width` and `height`; if an element crosses the clip edge, intersect its measured rectangle with the clip before normalizing so every value stays between 0 and 100. If the clip is in document coordinates, convert it to viewport coordinates before subtracting.
 
 ## Check and preview
 
