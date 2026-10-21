@@ -12,6 +12,7 @@ import dark from "shiki/themes/vitesse-dark.mjs";
 import light from "shiki/themes/vitesse-light.mjs";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
+import code, { components as codeComponents } from "../packages/code/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
 import githubCallouts, {
   components as githubCalloutsComponents,
@@ -29,6 +30,7 @@ const contentPlugins = () => [
   include({ root: fileURLToPath(new URL("pages/", root)) }),
   annotate(),
   carousel(),
+  code(),
   embed(),
   githubCallouts(),
   tabs(),
@@ -38,6 +40,7 @@ const plugins = [...contentPlugins(), shiki({ themes: { light, dark } })];
 const components = {
   ...annotateComponents,
   ...carouselComponents,
+  ...codeComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
   ...tabsComponents,
@@ -58,6 +61,7 @@ const pages = [
   { slug: "zoom", file: "zoom.md", npm: "comark-zoom" },
   { slug: "carousel", file: "carousel.md", npm: "comark-carousel" },
   { slug: "tabs", file: "tabs.md", npm: "comark-tabs" },
+  { slug: "code", file: "code.md", npm: "comark-code" },
   { slug: "github-callouts", file: "github-callouts.md", npm: "comark-github-callouts" },
   { slug: "lint", file: "lint.md", npm: "comark-lint" },
   { slug: "include", file: "include.md", npm: "comark-include" },
@@ -72,7 +76,7 @@ const groups = [
   },
   { title: "Recipes", slugs: ["recipes/review", "recipes/zoom", "recipes/carousel"] },
   { title: "Review blocks", slugs: ["annotate", "charts", "embed", "github-callouts"] },
-  { title: "Page behavior", slugs: ["zoom", "carousel", "tabs"] },
+  { title: "Page behavior", slugs: ["zoom", "carousel", "tabs", "code"] },
   { title: "Authoring tools", slugs: ["include", "lint"] },
 ];
 
@@ -214,7 +218,7 @@ const npmx = `<svg viewBox="0 0 153 153" width="16" height="16" aria-hidden="tru
 const logo = `<span class="logo" aria-hidden="true">1</span>`;
 const menuIcon = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>`;
 
-// The example tabs, the Preview/Code switch, copy buttons, and the active sidebar link. Without it the page still reads top to bottom.
+// The example tabs, the Preview/Code switch, the install command's copy button, and the active sidebar link. Without it the page still reads top to bottom.
 const script = `
 for (const t of document.querySelectorAll(".examples")) t.querySelector(".tablist").addEventListener("click", e => {
   const b = e.target.closest("[role=tab]"); if (!b) return;
@@ -232,11 +236,6 @@ for (const box of document.querySelectorAll(".installer")) {
   const update = () => { const cmd = commands[audience === "agents" ? "agents" : pm]; field.dataset.copy = cmd; field.querySelector("code").textContent = cmd; box.querySelector(".installer-pm").hidden = audience === "agents"; for (const b of box.querySelectorAll("[data-audience]")) b.setAttribute("aria-pressed", b.dataset.audience === audience); for (const b of box.querySelectorAll("[data-pm]")) b.setAttribute("aria-pressed", b.dataset.pm === pm) };
   box.addEventListener("click", e => { const b = e.target.closest("[data-audience],[data-pm]"); if (!b) return; if (b.dataset.audience) audience = b.dataset.audience; if (b.dataset.pm) pm = b.dataset.pm; update() });
   field.addEventListener("click", async () => { await navigator.clipboard.writeText(field.dataset.copy); field.classList.add("copied"); setTimeout(() => field.classList.remove("copied"), 1200) });
-}
-for (const pre of document.querySelectorAll("pre")) {
-  const b = document.createElement("button"); b.className = "copy"; b.type = "button"; b.textContent = "Copy";
-  b.onclick = async () => { await navigator.clipboard.writeText(pre.querySelector("code").innerText.trimEnd()); b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1500) };
-  pre.append(b);
 }
 const links = [...document.querySelectorAll(".toc a")];
 const spy = new IntersectionObserver(entries => {

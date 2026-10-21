@@ -45,6 +45,7 @@
     "comark": "catalog:",
     "comark-annotate": "workspace:*",
     "comark-carousel": "workspace:*",
+    "comark-code": "workspace:*",
     "comark-github-callouts": "workspace:*",
     "comark-tabs": "workspace:*",
     "comark-zoom": "workspace:*",
@@ -54,6 +55,7 @@
     "comark": "^0.7.0",
     "comark-annotate": "workspace:^",
     "comark-carousel": "workspace:^",
+    "comark-code": "workspace:^",
     "comark-github-callouts": "workspace:^",
     "comark-tabs": "workspace:^",
     "comark-zoom": "workspace:^",
@@ -64,6 +66,9 @@
       "optional": true
     },
     "comark-carousel": {
+      "optional": true
+    },
+    "comark-code": {
       "optional": true
     },
     "comark-github-callouts": {
