@@ -239,7 +239,7 @@ const hero: NodeHandler = async ([, , ...children], state) => {
     `<div class="window" style="--typed:${Math.round(at)}ms"><div class="window-bar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span>` +
     `<div class="window-tabs" role="tablist" aria-label="The example"><button type="button" role="tab" id="window-source-tab" aria-controls="window-source" aria-selected="true">review.md</button>` +
     `<button type="button" role="tab" id="window-page-tab" aria-controls="window-page" aria-selected="false" tabindex="-1">Rendered</button></div>` +
-    `<a class="window-play" href="${escapeHtml(playLink(source))}">${icon("flask-conical", 13)}<span>Open in playground</span></a></div>` +
+    `<a class="window-play" href="${escapeHtml(playLink(source))}">${siteIcon("flask-conical", 13)}<span>Open in playground</span></a></div>` +
     `<div class="window-body"><div class="window-source" id="window-source" role="tabpanel" aria-labelledby="window-source-tab" data-active>${code}</div>` +
     `<div class="window-page" id="window-page" role="tabpanel" aria-labelledby="window-page-tab" inert>${await state.flow(["div", {}, ...page.nodes], state)}</div></div></div>`
   );
@@ -353,7 +353,7 @@ const cards: NodeHandler = ([, attrs]) => {
     return `<div class="rows">${pages
       .map(
         (page) =>
-          `<a class="row" href="${href(page.slug)}"><strong>${escapeHtml(page.title)}</strong><span>${escapeHtml(page.description)}</span>${icon("arrow-right", 14)}</a>`,
+          `<a class="row" href="${href(page.slug)}"><strong>${escapeHtml(page.title)}</strong><span>${escapeHtml(page.description)}</span>${siteIcon("arrow-right", 14)}</a>`,
       )
       .join("")}</div>`;
   }
@@ -361,7 +361,7 @@ const cards: NodeHandler = ([, attrs]) => {
     .map((page) => {
       const install = page.install.replace(/^pnpm add (comark @comark\/html )?/, "pnpm add ");
       return (
-        `<div class="card"><span class="card-icon">${icon(page.section.icon)}</span>` +
+        `<div class="card"><span class="card-icon">${siteIcon(page.section.icon as IconName)}</span>` +
         `<a class="card-link" href="${href(page.slug)}">${escapeHtml(page.title)}</a><p>${escapeHtml(page.description)}</p>` +
         `<div class="card-install"><code title="${escapeHtml(install)}">${escapeHtml(install)}</code>` +
         `<button type="button" class="card-copy" data-copy="${escapeHtml(install)}" aria-label="Copy ${escapeHtml(install)}">${copyIcon}${checkIcon}</button></div></div>`
@@ -754,7 +754,7 @@ for (const page of parsed) {
       body: `<div class="page">
 <div class="content">
 <div class="hero enter">${subpage ? `<p class="eyebrow mono">${npm}</p>` : ""}${page.headline ? `<h1 class="headline"><span class="hash" aria-hidden="true">#</span>${escapeHtml(page.headline)}</h1>` : `<h1>${escapeHtml(page.title)}</h1>`}<p>${escapeHtml(page.tagline)}</p>
-${page.install ? installerFor(page.install, page.skill) : ""}${page.slug ? "" : `<div class="actions"><a class="button primary" href="/play/">${icon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the guides${icon("arrow-right", 15)}</a></div>`}</div>
+${page.install ? installerFor(page.install, page.skill) : ""}${page.slug ? "" : `<div class="actions"><a class="button primary" href="/play/">${siteIcon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the guides${siteIcon("arrow-right", 15)}</a></div>`}</div>
 <main class="enter" style="--i:1">${(await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, cards, matrix, hero } })).replace(/<table>[\s\S]*?<\/table>/g, (table) => `<div class="table-scroll">${table}</div>`)}</main>
 ${pager(page)}
 <footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>. Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>

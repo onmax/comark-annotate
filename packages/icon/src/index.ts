@@ -44,7 +44,8 @@ function collect(nodes: Node[], found: { node: ElementNode; parent: Node[] }[]) 
  * problem added to `meta.issues`. Pass an `Icons` from `createIcons()` to share one with other plugins.
  */
 export default defineComarkPlugin<IconOptions | Icons, IconMeta>((options) => {
-  const icons = options && "resolve" in options ? options : createIcons(options);
+  const icons =
+    options && typeof options === "object" && "resolve" in options ? options : createIcons(options);
   return {
     name: "comark-icon",
     async post(state) {
