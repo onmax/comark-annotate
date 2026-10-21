@@ -1,0 +1,57 @@
+# comark-charts
+
+Charts from a Markdown table, drawn to SVG with no script. The table stays under the chart, so people see the chart and agents read the numbers. A [Comark](https://comark.dev) plugin for HTML.
+
+**[Docs](https://comark.onmax.me/charts/)**
+
+```sh
+pnpm add comark @comark/html comark-charts
+```
+
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import charts, { components } from "comark-charts/html";
+
+const render = createHtmlRenderer({ plugins: [charts()], components });
+```
+
+```md
+::chart{title="Build time, before and after the cache (ms)"}
+| month | before | after |
+| --- | --: | --: |
+| 2026-04 | 820 | 610 |
+| 2026-05 | 890 | 622 |
+| 2026-06 | 905 | 640 |
+::
+```
+
+Put one table between `::chart` and `::`: a header row, then one row per point. The first column is x, and every other column is a series of numbers, named by its header.
+
+| Prop | What it does |
+| --- | --- |
+| `type` | `bar`, `stacked`, `line`, `area`, `scatter`, `dumbbell`, `waterfall`, or `pie`. Without it, dates on x make a line and anything else makes bars. |
+| `x` | The column along the x axis. Default the first. |
+| `y` | The columns to draw, separated by commas. Default every column but `x`. |
+| `title` | The chart's caption, and its name for screen readers. |
+
+Mark a value with a [comark-annotate](https://comark.onmax.me/annotate/) annotation after the table: `at` names the row by its x value and `series` its column, and the renderer draws the mark around the bar, point, or slice.
+
+```md
+:::annotation{at="2026-05" series="after" mark="circle" color="green"}
+The cache lands.
+:::
+```
+
+Bars turn sideways when their labels are long, so file paths and test names stay whole. The [docs](https://comark.onmax.me/charts/) show the table each type expects.
+
+The plugin adds every problem to `meta.issues`, so a host can reject a document before publishing it. Each issue names its chart and says how to fix it.
+
+## How it renders
+
+[Flint](https://github.com/microsoft/flint-chart) turns the table into a Vega-Lite spec with a house theme, and [Vega](https://vega.github.io) draws it to SVG while rendering, on the server or at build time, so the browser runs no chart code. The parse plugin only checks the table, so parsing stays light.
+
+The page holds a `figure.cch` with the title, the SVG, and the table folded into **Data**. Text, axes, and grid follow shadcn/ui's variables and the shared `--comark-*` tokens, so charts switch with the page's dark mode. Series take `--comark-chart-1` to `-6`, then shadcn/ui's `--chart-1` to `-6`. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
+
+Only `@comark/html` has a renderer: Vega draws on the server, and a framework component would ship it to the browser.
+
+The package ships an agent skill in `skills/comark-charts`; install it with `npx skills add https://comark.onmax.me`.
