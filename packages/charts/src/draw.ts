@@ -412,7 +412,8 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
           labelSeparation: 6,
         };
     // Vega-Lite rounds a stack as a whole, which costs a clipped group per bar, so bars that stack nothing don't stack.
-    if (chart.type === "bar")
+    // Rows that repeat an `x`, which the plugin reports, still stack rather than hide one behind the other.
+    if (chart.type === "bar" && new Set(chart.rows.map((row) => row.x)).size === chart.rows.length)
       for (const channel of [x, y])
         if (channel && "field" in channel && channel.field === "y") channel.stack = null;
     if (waterfall && x && "field" in x && x.field === "x")
