@@ -8,6 +8,10 @@ catalogMode: prefer
 blockExoticSubdeps: false
 
 catalog:
+  "@fontsource-variable/caveat": ^5.3.0
+  "@iconify-json/lucide": ^1.2.100
+  "@iconify/types": ^2.0.0
+  "@iconify/utils": ^3.1.7
   "@playwright/test": ^1.64.1
   "@types/react": ^19.3.0
   "@types/react-dom": ^19.3.0

@@ -9,17 +9,28 @@ import embed, { components as embedComponents } from "../packages/embed/src/html
 import githubCallouts, {
   components as githubCalloutsComponents,
 } from "../packages/github-callouts/src/html.ts";
+import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
 import { previewDocument } from "./preview.ts";
 
-const plugins = () => [annotate(), carousel(), charts(), embed(), githubCallouts(), tabs(), zoom()];
+const plugins = () => [
+  annotate(),
+  carousel(),
+  charts(),
+  embed(),
+  githubCallouts(),
+  icon(),
+  tabs(),
+  zoom(),
+];
 const components = {
   ...annotateComponents,
   ...carouselComponents,
   ...chartsComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
+  ...iconComponents,
   ...tabsComponents,
   ...zoomComponents,
 };
@@ -92,10 +103,27 @@ function markPreset(id?: string) {
 
 // The header's npmx link follows the preset, and stays on its package while you edit it. A shared link's Markdown
 // could use any of them, so it gets the page with all of them.
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 function pointNpmx(npm?: string) {
   npmx.href = `https://npmx.dev/${npm ? `package/${npm}` : "~onmax_"}`;
   npmx.title = npm ? `${npm} on npmx` : "Every package on npmx";
-  npmxName.textContent = npm || "npmx";
+  const name = npm || "npmx";
+  if (npmxName.textContent === name) return;
+  const from = npmx.offsetWidth;
+  npmxName.textContent = name;
+  const to = npmx.offsetWidth;
+  // The pill resizes to the new name as the name rises into it, so the swap reads as one change of package.
+  const ease = "cubic-bezier(0.23, 1, 0.32, 1)";
+  if (reducedMotion.matches) {
+    npmxName.animate({ opacity: [0, 1] }, { duration: 150, easing: "ease-out" });
+    return;
+  }
+  if (from !== to)
+    npmx.animate({ width: [`${from}px`, `${to}px`] }, { duration: 250, easing: ease });
+  npmxName.animate(
+    { opacity: [0, 1], filter: ["blur(2px)", "blur(0)"], transform: ["translateY(6px)", "none"] },
+    { duration: 200, easing: ease },
+  );
 }
 
 let run = 0;
