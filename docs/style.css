@@ -658,6 +658,33 @@ kbd {
   border-top: 1px solid var(--line);
 }
 
+.rail .rail-drop {
+  height: 2.75rem;
+  margin-top: auto;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.rail-drop .rail-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  line-height: 1.2;
+}
+
+.rail-drop strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.rail-drop .rail-label span {
+  font-size: 0.6875rem;
+  font-weight: 400;
+}
+
+.menu-panel .rail .rail-drop {
+  grid-column: 1 / -1;
+}
+
 .rail-label {
   overflow: hidden;
   font-size: 0.8125rem;
@@ -1204,10 +1231,6 @@ a.window-play:hover {
 }
 
 @media (hover: none) {
-  .copy {
-    opacity: 1;
-  }
-
   .seg button {
     padding: 0.45rem 0.85rem;
   }
@@ -1352,40 +1375,8 @@ pre {
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
-pre[language="txt"] code {
-  white-space: pre-wrap;
-}
-
 pre .line {
   display: inline !important;
-}
-
-.copy {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  padding: 0.2rem 0.5rem;
-  border: 0;
-  border-radius: 4px;
-  background: var(--bg);
-  box-shadow: inset 0 0 0 1px var(--line);
-  color: var(--muted);
-  font: 500 0.75rem/1.4 var(--sans);
-  cursor: pointer;
-  opacity: 0;
-  transition:
-    opacity 150ms ease,
-    color 150ms ease,
-    scale 160ms var(--ease-out);
-}
-
-pre:hover .copy,
-.copy:focus-visible {
-  opacity: 1;
-}
-
-.copy:hover {
-  color: var(--fg);
 }
 
 table:not(.ca-code) {

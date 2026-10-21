@@ -10,6 +10,8 @@ tagline: Register every plugin you use in one renderer. The same markup comes ou
 | --- | --- | --- | --- | --- |
 | [annotate](/annotate/) | `comark-annotate/html` | | | |
 | [carousel](/carousel/) | `comark-carousel/html` | `comark-carousel/vue` | `comark-carousel/react` | `comark-carousel/svelte` |
+| [charts](/charts/) | `comark-charts/html` | | | |
+| [code](/code/) | `comark-code/html` | `comark-code/vue` | `comark-code/react` | `comark-code/svelte` |
 | [embed](/embed/) | `comark-embed/html` | `comark-embed/vue` | `comark-embed/react` | `comark-embed/svelte` |
 | [github-callouts](/github-callouts/) | `comark-github-callouts/html` | `comark-github-callouts/vue` | `comark-github-callouts/react` | `comark-github-callouts/svelte` |
 | [tabs](/tabs/) | `comark-tabs/html` | `comark-tabs/vue` | `comark-tabs/react` | `comark-tabs/svelte` |
@@ -46,7 +48,7 @@ Put `include` first: it pastes files into the Markdown before the others read it
 
 ## Scripts and styles
 
-Nothing needs a script to read. Zoom, carousel, tabs, and annotate add behavior on top: zooming, arrows and keys, switching tabs, hover and copy. Callouts and embeds need only styles.
+Nothing needs a script to read. Zoom, carousel, tabs, code, and annotate add behavior on top: zooming, arrows and keys, switching tabs, copying and wrapping code, hover and copy. Callouts and embeds need only styles.
 
 The HTML renderers inline each plugin's styles, and its script if it has one, once per document. The Vue, React, and Svelte components start the script when they mount and stop it when the last one unmounts, and add the styles the same way. Import each package's `style.css`, such as `comark-zoom/style.css`, with your styles when you render on a server, so the page doesn't shift when the components mount.
 
