@@ -73,6 +73,7 @@ const example: NodeHandler = async ([, attrs, ...children], state) => {
   return (
     `<div class="example"><div class="example-bar"><div class="seg" role="group" aria-label="View">` +
     `<button type="button" data-view="preview" aria-pressed="true">Preview</button><button type="button" data-view="code" aria-pressed="false">Code</button></div></div>` +
+    `<a class="example-play" href="/play/">Open in playground</a>` +
     `<div class="example-body"><div class="example-preview">${await state.flow(["div", {}, ...preview.nodes], state)}</div>` +
     `<div class="example-code" hidden>${await state.one(pre, state)}</div></div></div>`
   );
@@ -116,6 +117,23 @@ const pluginCards: NodeHandler = async () => {
   return `<div class="cards">${cards.join("")}</div>`;
 };
 
+// The homepage uses two small layout components that are part of the docs
+// content (rather than Comark plugins). Keep them in the server renderer so
+// the Nuxt build preserves the interactive Markdown window from the legacy
+// builder.
+const hero: NodeHandler = async ([, , ...children], state) => {
+  const pre = children.find(isPre);
+  if (!pre) throw new Error("The hero needs a fenced code block.");
+  const source = textContent(pre).trimEnd();
+  const rendered = await parseMarkdown(source, { plugins: plugins() });
+  if (rendered.meta.issues.length) throw new Error(rendered.meta.issues.join("\n"));
+  const intro = children.filter((child) => child !== pre);
+  return `<section class="showcase"><div class="split">${await state.flow(["div", {}, ...intro], state)}</div><div class="window"><div class="window-bar"><div class="window-tabs" role="tablist" aria-label="The example"><button type="button" role="tab" id="window-source-tab" aria-controls="window-source" aria-selected="true">review.md</button><button type="button" role="tab" id="window-page-tab" aria-controls="window-page" aria-selected="false" tabindex="-1">Rendered</button></div></div><div class="window-body"><div class="window-source" id="window-source" role="tabpanel" aria-labelledby="window-source-tab" data-active><pre>${escapeHtml(source)}</pre></div><div class="window-page" id="window-page" role="tabpanel" aria-labelledby="window-page-tab" inert>${await state.flow(["div", {}, ...rendered.nodes], state)}</div></div></div></section>`;
+};
+
+const drop: NodeHandler = async ([, , ...children], state) =>
+  `<section class="drop">${await state.flow(["div", {}, ...children], state)}</section>`;
+
 export default defineHandler(async (event): Promise<Page> => {
   const param = (getRouterParam(event, "slug") ?? "").replace(/\/$/, "");
   const slug = param === "index" ? "" : param;
@@ -129,7 +147,7 @@ export default defineHandler(async (event): Promise<Page> => {
     getQuery(event).body === "0"
       ? ""
       : await renderHtmlFromDocument(document, {
-          components: { ...components, example, examples, plugins: pluginCards },
+          components: { ...components, example, examples, plugins: pluginCards, hero, drop },
         });
   const nav = file.nodes
     .filter(isElement)

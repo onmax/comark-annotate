@@ -86,6 +86,7 @@ function follow(event: MouseEvent) {
       <aside class="sidebar">
         <nav aria-label="On this page">
           <a class="nav-h2" href="#">Introduction</a>
+          <a v-if="page.npm" href="/play/" class="play">Open in playground</a>
           <a
             v-for="item in page.nav"
             :key="item.id"

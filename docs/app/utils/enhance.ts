@@ -3,6 +3,31 @@
 export function enhance(root: HTMLElement): () => void {
   const listeners = new AbortController();
   const signal = listeners.signal;
+  for (const win of root.querySelectorAll<HTMLElement>(".window")) {
+    const tabs = [...win.querySelectorAll<HTMLElement>(".window-tabs [role=tab]")];
+    const panels = [...win.querySelectorAll<HTMLElement>(".window-body > [role=tabpanel]")];
+    const show = (index: number) => {
+      tabs.forEach((tab, i) => {
+        tab.setAttribute("aria-selected", String(i === index));
+        tab.tabIndex = i === index ? 0 : -1;
+      });
+      panels.forEach((panel, i) => {
+        panel.toggleAttribute("inert", i !== index);
+        panel.toggleAttribute("data-active", i === index);
+      });
+    };
+    win.querySelector(".window-tabs")?.addEventListener(
+      "click",
+      (event) => {
+        const tab = (event.target as Element).closest<HTMLElement>("[role=tab]");
+        if (tab) show(tabs.indexOf(tab));
+      },
+      { signal },
+    );
+    const delay = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 2200;
+    const timer = setTimeout(() => show(1), delay);
+    signal.addEventListener("abort", () => clearTimeout(timer), { once: true });
+  }
   for (const t of root.querySelectorAll<HTMLElement>(".examples"))
     t.querySelector(".tablist")?.addEventListener(
       "click",
