@@ -1,7 +1,11 @@
 packages:
   - "packages/*"
+  - "docs"
 
 catalogMode: prefer
+
+# @vite-hub/content comes from pkg.pr.new, whose packages depend on each other by URL, and pnpm has no per-package allowance.
+blockExoticSubdeps: false
 
 catalog:
   "@playwright/test": ^1.64.1
@@ -33,3 +37,12 @@ overrides:
 
 minimumReleaseAgeExclude:
   - vite-doctor@0.1.0
+  - "@nuxt/kit-nightly@5.0.0-2610192007-fe9ca5b"
+  - "@nuxt/nitro-server-nightly@5.0.0-2610192007-fe9ca5b"
+  - "@nuxt/schema-nightly@5.0.0-2610192007-fe9ca5b"
+  - "@nuxt/vite-builder-nightly@5.0.0-2610192007-fe9ca5b"
+  - "@nuxt/vite-server-nightly@5.0.0-2610192007-fe9ca5b"
+  - nuxt-nightly@5.0.0-2610192007-fe9ca5b
+
+allowBuilds:
+  esbuild: false

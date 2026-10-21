@@ -1,0 +1,33 @@
+{
+  "name": "comark-plugins-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxi dev --port 4317",
+    "generate": "nuxi generate",
+    "prepare": "nuxi prepare",
+    "typecheck": "vue-tsc -b --noEmit"
+  },
+  "dependencies": {
+    "@comark/html": "catalog:",
+    "@fontsource-variable/caveat": "catalog:",
+    "@vite-hub/content": "https://pkg.pr.new/vite-hub/vitehub/@vite-hub/content@f808e9c34ec61b602d4a645b30b2b6a372655058",
+    "comark": "catalog:",
+    "comark-annotate": "workspace:*",
+    "comark-carousel": "workspace:*",
+    "comark-content": "0.4.1",
+    "comark-embed": "workspace:*",
+    "comark-github-callouts": "workspace:*",
+    "comark-include": "workspace:*",
+    "comark-tabs": "workspace:*",
+    "comark-zoom": "workspace:*",
+    "geist": "catalog:",
+    "nuxt": "npm:nuxt-nightly@5.0.0-2610192007-fe9ca5b",
+    "shiki": "catalog:",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vue-tsc": "^3.2.0"
+  }
+}
