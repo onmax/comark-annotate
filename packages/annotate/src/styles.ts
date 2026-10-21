@@ -122,7 +122,7 @@ export const css = `@layer comark{${[
   ".ca figcaption{margin-top:.75rem;text-align:start}",
   // One line, so the two images of a compare stay level.
   ".ca-heading{display:flex;gap:.5rem;align-items:center;min-width:0;height:1.5em;margin-bottom:.5rem;text-align:start}",
-  ".ca-label{flex:none;font-family:var(--ca-note-font);font-size:var(--ca-label-size);font-weight:500}",
+  ".ca-label{flex:none;font-family:var(--ca-note-font);font-size:var(--ca-label-size);font-weight:500;line-height:1}",
   ".ca-heading a{font-size:.75em;opacity:.6}",
   ".ca-notes{list-style:none;margin:.5rem 0 0;padding:0;display:grid;gap:.125rem}",
   // `>` so a list written inside a note keeps its own bullets and spacing.
