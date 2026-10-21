@@ -41,8 +41,18 @@ const presets: { id: string; source: string; npm: string }[] = JSON.parse(
 );
 
 // A shared link carries its Markdown in the hash, deflated, so nothing is stored anywhere.
+const sharingUnsupported = "Sharing is unavailable in this browser (raw deflate is not supported).";
+function compressionStream(kind: "compress" | "decompress") {
+  const Stream = kind === "compress" ? CompressionStream : DecompressionStream;
+  if (typeof Stream !== "function") throw new Error(sharingUnsupported);
+  try {
+    return new Stream("deflate-raw");
+  } catch {
+    throw new Error(sharingUnsupported);
+  }
+}
 async function pack(text: string) {
-  const stream = new Blob([text]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+  const stream = new Blob([text]).stream().pipeThrough(compressionStream("compress"));
   const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
@@ -51,7 +61,7 @@ async function pack(text: string) {
 async function unpack(code: string) {
   const binary = atob(code.replaceAll("-", "+").replaceAll("_", "/"));
   const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
-  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  const stream = new Blob([bytes]).stream().pipeThrough(compressionStream("decompress"));
   return new Response(stream).text();
 }
 
@@ -116,7 +126,12 @@ async function load() {
     (code === null ? presets[0] : undefined);
   if (preset) editor.value = preset.source;
   else if (code !== null)
-    editor.value = await unpack(code).catch(() => "The link's Markdown is cut off or changed.");
+    editor.value = await unpack(code).catch((error) => {
+      editor.value = error instanceof Error && error.message === sharingUnsupported
+        ? sharingUnsupported
+        : "The link's Markdown is cut off or changed.";
+      return editor.value;
+    });
   markPreset(preset?.id);
   pointNpmx(preset?.npm);
   repaint();
@@ -130,16 +145,24 @@ editor.addEventListener("input", () => {
   timer = setTimeout(async () => {
     markPreset();
     // Replaced, not pushed: Back leaves the playground instead of stepping through keystrokes.
-    history.replaceState(null, "", `#md=${await pack(editor.value)}`);
+    try {
+      history.replaceState(null, "", `#md=${await pack(editor.value)}`);
+    } catch (error) {
+      showIssues([error instanceof Error ? error.message : String(error)]);
+    }
     await render();
   }, 200);
 });
 share.addEventListener("click", async () => {
-  if (!location.hash.startsWith("#md="))
-    history.replaceState(null, "", `#md=${await pack(editor.value)}`);
-  await navigator.clipboard.writeText(location.href);
-  share.textContent = "Copied";
-  setTimeout(() => (share.textContent = "Copy link"), 1500);
+  try {
+    if (!location.hash.startsWith("#md="))
+      history.replaceState(null, "", `#md=${await pack(editor.value)}`);
+    await navigator.clipboard.writeText(location.href);
+    share.textContent = "Copied";
+    setTimeout(() => (share.textContent = "Copy link"), 1500);
+  } catch (error) {
+    showIssues([error instanceof Error ? error.message : String(error)]);
+  }
 });
 addEventListener("hashchange", load);
 // The build already rendered the first preset, so only a link to something else needs a render now.
