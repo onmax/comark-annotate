@@ -1,4 +1,4 @@
-import { bodyKey, docsPath, slugOf } from "~/utils/body";
+import { bodyKey, docsPath, slugFromPath, slugOf } from "~/utils/body";
 
 // `<PageBody>` asks for its island JSON only once the next page's setup runs, after `_payload.json` has arrived, so a
 // navigation waited for two requests in a row. The body is fetched here instead: when a pointer rests on a link, on
@@ -31,7 +31,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     const link = target instanceof Element ? target.closest("a") : null;
     const path = link && docsPath(link);
     if (!path || path === router.currentRoute.value.path) return;
-    loadBody(slugOf(router.resolve(path))).catch(() => {});
+    loadBody(slugFromPath(path)).catch(() => {});
     // Links in the rendered Markdown aren't NuxtLinks, so nothing else prefetches their payload.
     void nuxtApp.callHook("link:prefetch", path);
   }

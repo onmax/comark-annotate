@@ -4,6 +4,8 @@ import type { RouteLocationNormalizedLoaded } from "vue-router";
 export const slugOf = (route: Pick<RouteLocationNormalizedLoaded, "params">) =>
   [route.params.slug ?? []].flat().filter(Boolean).join("/");
 
+export const slugFromPath = (path: string) => path.replace(/^\//, "").replace(/\/$/, "");
+
 // The key `<PageBody :slug>` stores its island under in the payload, and the name of its prerendered JSON.
 export const bodyKey = (slug: string) =>
   `PageBody_${getIslandHash({ name: "PageBody", props: { slug } })}`;
