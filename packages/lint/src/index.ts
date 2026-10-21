@@ -95,7 +95,7 @@ async function parse(
 ): Promise<{ document: MarkdownDocument; tokens: Token[]; offset: number } | undefined> {
   let tokens: Token[] = [];
   const probe: ComarkPlugin = {
-    name: "comark-lint",
+    name: "lint-comark",
     post(state) {
       // SAFETY: Comark parses with markdown-exit, whose tokens have this shape; it types them as unknown.
       tokens = state.tokens as Token[];
@@ -150,7 +150,7 @@ const couldNotParse = (error: unknown): Diagnostic => ({
 const crashed = (rule: Rule, error: unknown): Diagnostic => ({
   rule,
   line: 1,
-  message: `comark-lint crashed while checking \`${rule}\`: ${error instanceof Error ? error.message : String(error)}.`,
+  message: `lint-comark crashed while checking \`${rule}\`: ${error instanceof Error ? error.message : String(error)}.`,
   fix: "The other rules still ran. Report this with the document at https://github.com/onmax/comark-plugins/issues.",
 });
 
@@ -328,7 +328,7 @@ function unknownComponents(
         message: `\`${component.written}\` on line ${component.line} is not a known component.`,
         fix: guess
           ? `Did you mean \`${guess}\`? ${list}`.trim()
-          : `${list} If it is yours, add it to the components you give comark-lint.`.trim(),
+          : `${list} If it is yours, add it to the components you give lint-comark.`.trim(),
       },
     ];
   });
