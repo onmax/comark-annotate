@@ -343,6 +343,18 @@ function readAnnotation(node: ElementNode, problems: string[], data: Data): Omit
   if (known && (box.x + box.w > EDGE || box.y + box.h > EDGE))
     problems.push("the box runs past the image edge. Keep x + w and y + h within 100.");
 
+  return { ...box, ...readMark(node, attrs, problems) };
+}
+
+/**
+ * Reads what an annotation draws and says: its mark, color, side, and note, but not where it sits. comark-charts
+ * places the annotations in a chart itself and reads the rest here, so marks are checked the same everywhere.
+ */
+export function readMark(
+  node: ElementNode,
+  attrs: Record<string, unknown>,
+  problems: string[],
+): Pick<Annotation, "mark" | "color" | "side" | "note"> {
   const mark = text(attrs.mark) || "box";
   if (!isMark(mark))
     problems.push(`\`mark\` must be one of ${Object.keys(marks).join(", ")} (got ${quote(mark)}).`);
@@ -364,7 +376,6 @@ function readAnnotation(node: ElementNode, problems: string[], data: Data): Omit
   nested(note, problems);
 
   return {
-    ...box,
     mark: isMark(mark) ? mark : "box",
     color: isColor(color) ? color : undefined,
     side: knownSide,
@@ -777,6 +788,8 @@ export function check(nodes: Node[], data: Data): string[] {
       if (node[0] === "compare") readCompare(node, issues, data, names);
       else if (node[0] === "screenshot") readScreenshot(node, issues, data, names);
       else if (node[0] === "diff") readDiff(node, issues, data, names);
+      // comark-charts checks the annotations in a chart, which point at data rather than at a box.
+      else if (node[0] === "chart") continue;
       else if (node[0] === "annotation") {
         const note = textContent(["div", {}, ...children(node)])
           .trim()
