@@ -39,16 +39,18 @@ test("the zoom maps its copies to the page and back", async ({ page }) => {
   await page.evaluate(() => {
     document.addEventListener("comark-zoom:open", (event) => {
       const { content, aside, copyOf, originalOf } = event.detail;
+      const copy = (node: Element) => copyOf(node);
+      const original = (node: Element) => originalOf(node);
       const image = content.querySelector(".ca-frame img")!;
       const note = aside!.querySelector(".ca-notes li")!;
       const figure = event.detail.item.closest(".ca-screenshot")!;
       Object.assign(window, {
         mapped: {
           content: content.matches(".ca-stage"),
-          image: originalOf(image) === event.detail.item.querySelector(".ca-frame img"),
-          back: copyOf(originalOf(image)!) === image,
-          note: originalOf(note) === figure.querySelector(".ca-notes li"),
-          outside: originalOf(document.body),
+          image: original(image) === event.detail.item.querySelector(".ca-frame img"),
+          back: copy(original(image)!) === image,
+          note: original(note) === figure.querySelector(".ca-notes li"),
+          outside: original(document.body),
         },
       });
     });

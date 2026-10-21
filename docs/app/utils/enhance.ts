@@ -97,7 +97,9 @@ export function enhance(root: HTMLElement): () => void {
     b.type = "button";
     b.textContent = "Copy";
     b.onclick = async () => {
-      await navigator.clipboard.writeText(pre.querySelector("code")!.innerText.trimEnd());
+      const code = pre.querySelector("code");
+      if (!code) return;
+      await navigator.clipboard.writeText(code.innerText.trimEnd());
       b.textContent = "Copied";
       setTimeout(() => (b.textContent = "Copy"), 1500);
     };
