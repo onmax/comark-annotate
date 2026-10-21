@@ -12,6 +12,7 @@ import dark from "shiki/themes/vitesse-dark.mjs";
 import light from "shiki/themes/vitesse-light.mjs";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
+import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
 import githubCallouts, {
   components as githubCalloutsComponents,
@@ -29,6 +30,7 @@ const contentPlugins = () => [
   include({ root: fileURLToPath(new URL("pages/", root)) }),
   annotate(),
   carousel(),
+  charts(),
   embed(),
   githubCallouts(),
   tabs(),
@@ -38,6 +40,7 @@ const plugins = [...contentPlugins(), shiki({ themes: { light, dark } })];
 const components = {
   ...annotateComponents,
   ...carouselComponents,
+  ...chartsComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
   ...tabsComponents,
@@ -62,6 +65,7 @@ const pages = [
   { slug: "lint", file: "lint.md", npm: "comark-lint" },
   { slug: "include", file: "include.md", npm: "comark-include" },
   { slug: "embed", file: "embed.md", npm: "comark-embed" },
+  { slug: "charts", file: "charts.md", npm: "comark-charts" },
 ];
 
 // The sidebar, in order. A slug with no page yet, such as one whose package is still on a branch, is left out.
@@ -255,36 +259,40 @@ await cp(
   new URL("fonts/Caveat-Variable.woff2", dist),
 );
 
-// The package's agent skill, served for Agent Skills Discovery: v0.2 with a digest, and v0.1, which `npx skills add` reads.
-const skill = await readFile(
-  new URL("../packages/annotate/skills/comark-annotate/SKILL.md", root),
-  "utf8",
+// The packages' agent skills, served for Agent Skills Discovery: v0.2 with a digest, and v0.1, which `npx skills add` reads.
+const skills = await Promise.all(
+  ["annotate/skills/comark-annotate", "charts/skills/comark-charts"].map(async (folder) => {
+    const text = await readFile(new URL(`../packages/${folder}/SKILL.md`, root), "utf8");
+    const meta = (await parseMarkdown(text)).frontmatter;
+    return { text, name: str(meta.name), description: str(meta.description) };
+  }),
 );
-const skillMeta = (await parseMarkdown(skill)).frontmatter;
-const [skillName, skillDescription] = [str(skillMeta.name), str(skillMeta.description)];
-for (const base of ["agent-skills", "skills"]) {
-  await mkdir(new URL(`.well-known/${base}/${skillName}/`, dist), { recursive: true });
-  await writeFile(new URL(`.well-known/${base}/${skillName}/SKILL.md`, dist), skill);
-}
+for (const skill of skills)
+  for (const base of ["agent-skills", "skills"]) {
+    await mkdir(new URL(`.well-known/${base}/${skill.name}/`, dist), { recursive: true });
+    await writeFile(new URL(`.well-known/${base}/${skill.name}/SKILL.md`, dist), skill.text);
+  }
 await writeFile(
   new URL(".well-known/agent-skills/index.json", dist),
   JSON.stringify({
     $schema: "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
-    skills: [
-      {
-        name: skillName,
-        type: "skill-md",
-        description: skillDescription,
-        url: `/.well-known/agent-skills/${skillName}/SKILL.md`,
-        digest: `sha256:${createHash("sha256").update(skill).digest("hex")}`,
-      },
-    ],
+    skills: skills.map((skill) => ({
+      name: skill.name,
+      type: "skill-md",
+      description: skill.description,
+      url: `/.well-known/agent-skills/${skill.name}/SKILL.md`,
+      digest: `sha256:${createHash("sha256").update(skill.text).digest("hex")}`,
+    })),
   }),
 );
 await writeFile(
   new URL(".well-known/skills/index.json", dist),
   JSON.stringify({
-    skills: [{ name: skillName, description: skillDescription, files: ["SKILL.md"] }],
+    skills: skills.map((skill) => ({
+      name: skill.name,
+      description: skill.description,
+      files: ["SKILL.md"],
+    })),
   }),
 );
 

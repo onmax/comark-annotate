@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import annotate, { components } from "comark-annotate/html";
+import charts, { components as chartComponents } from "comark-charts/html";
 import { describe, expect, it } from "vite-plus/test";
 import { runProjectFixture } from "vite-doctor/testkit";
 import { lint } from "../src/index.ts";
@@ -231,6 +232,16 @@ describe("comark/plugin-issue", () => {
         message:
           "compare 1: needs exactly two screenshots, before and after (got 0). Add the missing one.",
       },
+    ]);
+  });
+
+  it("places an issue that names its block as `::name` and a number", async () => {
+    const diagnostics = await lint(
+      `# Sizes\n\n::chart\n| a | b |\n| --- | --- |\n| x | 1 |\n::\n\n::chart{type="pie"}\n| a | b | c |\n| --- | --- | --- |\n| x | 1 | 2 |\n::`,
+      { plugins: [charts()], components: chartComponents },
+    );
+    expect(diagnostics.map(({ rule, line }) => ({ rule, line }))).toEqual([
+      { rule: "comark/plugin-issue", line: 9 },
     ]);
   });
 });
