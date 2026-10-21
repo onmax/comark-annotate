@@ -87,6 +87,7 @@ export default defineNuxtConfig({
     },
   ],
   nitro: {
+    output: { dir: fileURLToPath(new URL("dist/", root)) },
     prerender: { crawlLinks: true, failOnError: true, routes: ["/"] },
   },
 });

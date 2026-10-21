@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { github, installerFor, npmx } from "#shared/chrome";
-import { pages } from "#shared/pages";
 import { enhance } from "~/utils/enhance";
 import { runScripts } from "~/utils/scripts";
 
@@ -59,7 +58,7 @@ function follow(event: MouseEvent) {
       >
       <nav>
         <NuxtLink
-          v-for="link in pages.filter((p) => p.npm)"
+          v-for="link in page.pages.filter((p) => p.npm)"
           :key="link.slug"
           class="link"
           :to="`/${link.slug}/`"

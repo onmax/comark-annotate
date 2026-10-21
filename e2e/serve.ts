@@ -6,6 +6,9 @@ import { extname, join, normalize } from "node:path";
 const root = new URL("../docs/dist/", import.meta.url).pathname;
 const types: Record<string, string> = {
   ".html": "text/html",
+  ".js": "text/javascript",
+  ".css": "text/css",
+  ".json": "application/json",
   ".png": "image/png",
   ".svg": "image/svg+xml",
   ".woff2": "font/woff2",

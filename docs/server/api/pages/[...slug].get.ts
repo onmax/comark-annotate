@@ -9,8 +9,32 @@ import type { ElementNode, Node, NodeHandler } from "comark";
 import { parseMarkdown } from "comark";
 import { escapeHtml, textContent } from "comark/utils";
 import { defineHandler, getQuery, getRouterParam, HTTPError } from "nitro/h3";
-import { pages, type Page } from "#shared/pages";
+import type { Page } from "#shared/pages";
 import { content, plugins } from "../../content";
+
+type PageLink = { slug: string; npm: string };
+
+async function listPages(): Promise<PageLink[]> {
+  const listed = (await content.list()) as unknown;
+  const items = Array.isArray(listed)
+    ? listed
+    : listed && typeof listed === "object" && "items" in listed && Array.isArray(listed.items)
+      ? listed.items
+      : [];
+  return items
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const value = item as { id?: unknown; path?: unknown; data?: { install?: unknown } };
+      const raw = typeof value.id === "string" ? value.id : typeof value.path === "string" ? value.path : "";
+      const normalized = raw.replace(/^\//, "").replace(/\.md$/, "").replace(/\/index$/, "");
+      const slug = normalized === "index" ? "" : normalized;
+      const install = typeof value.data?.install === "string" ? value.data.install : "";
+      const match = install.match(/(?:^|\s)(comark-[\w-]+)/);
+      return { slug, npm: match?.[1] ?? "" };
+    })
+    .filter((page): page is PageLink => page !== null)
+    .sort((a, b) => (a.slug === "" ? -1 : b.slug === "" ? 1 : a.slug.localeCompare(b.slug)));
+}
 
 const components = {
   ...annotateComponents,
@@ -84,6 +108,7 @@ const pluginCards: NodeHandler = async () => {
 export default defineHandler(async (event): Promise<Page> => {
   const param = (getRouterParam(event, "slug") ?? "").replace(/\/$/, "");
   const slug = param === "index" ? "" : param;
+  const pages = await listPages();
   const page = pages.find((candidate) => candidate.slug === slug);
   if (!page) throw new HTTPError({ status: 404, message: `No page at /${slug}.` });
   const file = await read(slug);
@@ -114,5 +139,6 @@ export default defineHandler(async (event): Promise<Page> => {
     install: install!,
     html,
     nav,
+    pages,
   };
 });
