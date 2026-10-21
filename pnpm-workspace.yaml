@@ -58,3 +58,4 @@ minimumReleaseAgeExclude:
 
 allowBuilds:
   esbuild: false
+  msgpackr-extract: true
