@@ -1,6 +1,6 @@
 {
   "name": "comark-github-callouts",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "GitHub's alerts, > [!NOTE] through > [!CAUTION], as shadcn-style callouts with an icon and a title. A Comark plugin.",
   "keywords": [
     "admonition",
