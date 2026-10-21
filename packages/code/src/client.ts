@@ -97,7 +97,7 @@ export function start(css: string): () => void {
         const detail: CodeActionDetail = {
           action: button.getAttribute("data-code-action") ?? "",
           code: code.textContent ?? "",
-          language: pre.getAttribute("language") ?? "",
+          language: pre.getAttribute("data-language") ?? pre.getAttribute("language") ?? "",
         };
         root.dispatchEvent(new CustomEvent("comark-code-action", { bubbles: true, detail }));
       }

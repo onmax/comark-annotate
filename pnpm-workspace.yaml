@@ -40,7 +40,7 @@ overrides:
 
 minimumReleaseAgeExclude:
   - vite-doctor@0.1.0
-  - '@comark/html@0.8.1'
-  - '@comark/react@0.8.1'
-  - '@comark/vue@0.8.1'
+  - "@comark/html@0.8.1"
+  - "@comark/react@0.8.1"
+  - "@comark/vue@0.8.1"
   - comark@0.8.1
