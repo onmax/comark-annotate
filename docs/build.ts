@@ -332,12 +332,15 @@ const column = (section: Section, current: string) => {
       ? [...new Set(presets.map((preset) => preset.group))].map((group) => ({
           title: group,
           icon: sections.find((section) => section.label === group)?.icon,
-          links: presets
-            .filter((preset) => preset.group === group)
-            .map(
-              (preset) =>
-                `<div class="preset"><div class="preset-thumb" aria-hidden="true" inert><div class="preset-page">${thumbnails.get(preset.id) ?? ""}</div></div><a data-preset="${preset.id}" href="#preset=${preset.id}">${escapeHtml(preset.label)}</a></div>`,
-            ),
+          links: [
+            `<div class="presets">${presets
+              .filter((preset) => preset.group === group)
+              .map(
+                (preset) =>
+                  `<div class="preset"><div class="preset-thumb" aria-hidden="true" inert><div class="preset-page">${thumbnails.get(preset.id) ?? ""}</div></div><a data-preset="${preset.id}" href="#preset=${preset.id}">${escapeHtml(preset.label)}</a></div>`,
+              )
+              .join("")}</div>`,
+          ],
         }))
       : pagesOf(section).map((list) => ({
           title: list.title,
