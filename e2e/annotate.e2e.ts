@@ -176,8 +176,9 @@ test("Copy puts a screenshot on the clipboard with its marks, and a right-click 
     frame.addEventListener(
       "contextmenu",
       (event) => {
-        (window as typeof window & { __annotateContextTarget?: string }).__annotateContextTarget =
-          (event.target as Element).className;
+        (window as typeof window & { __annotateContextTarget?: string }).__annotateContextTarget = (
+          event.target as Element
+        ).className;
         (event.target as HTMLElement).click();
       },
       { once: true },
@@ -186,9 +187,14 @@ test("Copy puts a screenshot on the clipboard with its marks, and a right-click 
   const frame = figure.locator(".ca-frame");
   await frame.click({ button: "right" });
   await expect(figure.locator(".ca-overlay[data-menu]")).toHaveCount(1);
-  await expect.poll(() =>
-    page.evaluate(() => (window as typeof window & { __annotateContextTarget?: string }).__annotateContextTarget),
-  ).toBe("ca-overlay");
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as typeof window & { __annotateContextTarget?: string }).__annotateContextTarget,
+      ),
+    )
+    .toBe("ca-overlay");
   await expect(page.locator(".cz-dialog")).toBeVisible();
   await page.keyboard.press("ControlOrMeta+c");
   await expect(page.locator(".cz-item .ca-copy-status")).toHaveText("Copied");
