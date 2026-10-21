@@ -65,6 +65,14 @@ describe("comark-icon renderers", () => {
     expect(react).toContain(expected);
   });
 
+  it("keeps a src given to a component inside its CSS url()", async () => {
+    const value = await parseMarkdown(':icon{name="./a.svg"}', { plugins: [icon()] });
+    const [node] = value.nodes;
+    if (Array.isArray(node) && node[0] === "icon") node[1].src = 'x");background:red;--y:("';
+    const html = renderReact(createElement(ReactDocument, { value, components: reactComponents }));
+    expect(html).toContain("--ci:url(&quot;x%22);background:red;--y:(%22&quot;)");
+  });
+
   it("ships a Svelte component that compiles", async () => {
     const source = await readFile(new URL("../src/svelte/Icon.svelte", import.meta.url), "utf8");
     expect(() => compile(source, { filename: "Icon.svelte", generate: "server" })).not.toThrow();
