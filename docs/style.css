@@ -599,6 +599,101 @@ td:first-child code {
   box-shadow: none;
 }
 
+/* A comparison: short cells under named columns, rows in groups, and the first column naming each row with a line
+   that describes it. The first package column is ours, so it is tinted. */
+.matrix {
+  margin: 1.25rem 0;
+  overflow-x: auto;
+}
+
+.matrix table {
+  min-width: 40rem;
+  margin: 0;
+  table-layout: fixed;
+}
+
+.matrix th {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  vertical-align: bottom;
+}
+
+.matrix th a {
+  color: var(--fg);
+  text-decoration: none;
+}
+
+/* tbody matches the specificity of the prop table rules above, so these win. */
+.matrix tbody td {
+  padding: 0.75rem;
+  color: var(--muted);
+  vertical-align: top;
+}
+
+.matrix tbody td:first-child {
+  width: 14rem;
+  padding-left: 0;
+  color: var(--fg);
+  font-weight: 500;
+  white-space: normal;
+}
+
+.matrix th:first-child {
+  width: 14rem;
+}
+
+.matrix td:first-child em {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--faint);
+  font-size: 0.8125rem;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.matrix th:nth-child(2),
+.matrix td:nth-child(2) {
+  background: var(--soft);
+  color: var(--fg);
+}
+
+.matrix tr:has(> td:nth-child(2):empty) td {
+  padding-top: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-top: none;
+}
+
+.matrix tr:has(> td:nth-child(2):empty) td:first-child {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.matrix tr:has(> td:nth-child(2):empty) strong {
+  font-weight: 500;
+}
+
+@media (max-width: 40rem) {
+  .matrix table {
+    min-width: 32rem;
+  }
+
+  /* Row names stay in view while the packages scroll sideways. */
+  .matrix th:first-child,
+  .matrix tbody td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    width: 8.5rem;
+    padding-right: 0.75rem;
+    background: var(--bg);
+  }
+}
+
 blockquote {
   margin: 1.25rem 0;
   padding-left: 1rem;

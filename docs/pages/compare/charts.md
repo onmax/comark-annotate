@@ -68,19 +68,25 @@ The other two plugins draw the same chart from a JSON spec, and the page holds o
 
 ## At a glance
 
-| | comark-charts | comark-vega | comark-flint-chart |
+::matrix
+| | [comark-charts](/charts/) | [comark-vega](https://github.com/miguelrk/comark-packages/tree/main/packages/comark-vega) | [comark-flint-chart](https://github.com/miguelrk/comark-packages/tree/main/packages/comark-flint-chart) |
 | --- | --- | --- | --- |
-| You write | A Markdown table | A Vega or Vega-Lite spec | A Flint spec |
-| Data in the page | The table, under the chart | Only inside the drawing | Only inside the drawing |
-| Layout | [Flint](https://github.com/microsoft/flint-chart) | Yours: every mark, encoding, and axis | Flint |
-| Chart types | Bars, stacked bars, lines, areas, scatter plots, dumbbells, waterfalls, and pies | Anything Vega draws | Flint's templates |
-| Drawn by | Vega | Vega | Vega or ECharts |
-| Output | SVG, with no script | SVG, an image, or a Vue component | A Vue component, SVG, or an image |
-| Renderers | `@comark/html` | Any for SVG, `@comark/vue` for the component | Any for SVG, `@comark/vue` for the component |
-| Marks on data | [comark-annotate](/annotate/)'s marks and notes | Drawn into the spec | No |
-| Data from frontmatter | No | `:spec` bindings | `:spec` bindings |
-| Problems | One sentence each in `meta.issues`, saying how to fix it | A `<pre>` with the error in place of the chart | A `<pre>` with the error in place of the chart |
-| Cloudflare Workers | Yes | Its SVG lets Vega compile expressions with `new Function`, which Workers block | The same, for its Vega SVG |
+| **Writing** | | | |
+| Source *What goes in the Markdown* | A table | Vega-Lite JSON | Flint JSON |
+| Numbers in the page *What an agent reads back* | ✓ The table | — | — |
+| Marks *A note pointing at a bar or a point* | ✓ comark-annotate | In the spec | — |
+| Frontmatter data *A spec bound with `:spec`* | — | ✓ | ✓ |
+| **Drawing** | | | |
+| Layout *Who picks the axes, scales, and labels* | Flint | You | Flint |
+| Chart types | Eight common ones | Any Vega chart | Flint's templates |
+| Engine | Vega | Vega | Vega or ECharts |
+| **Output** | | | |
+| Format | SVG | SVG, image, or Vue component | SVG, image, or Vue component |
+| Renderers *SVG renders in any of them* | `@comark/html` | Any, or `@comark/vue` | Any, or `@comark/vue` |
+| **Checks** | | | |
+| Errors *What a broken block does* | ✓ An issue that says how to fix it | A `<pre>` in its place | A `<pre>` in its place |
+| Cloudflare Workers *Vega needs `vega-interpreter` there* | ✓ | — | — |
+::
 
 ## Which to use
 
