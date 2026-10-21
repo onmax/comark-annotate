@@ -37,7 +37,7 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
-    "prepack": "pnpm --filter comark-diff build"
+    "prepack": "pnpm --filter comark-zoom build && pnpm --filter comark-diff build"
   },
   "devDependencies": {
     "@comark/html": "catalog:",
