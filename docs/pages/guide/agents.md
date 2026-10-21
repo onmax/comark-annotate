@@ -37,10 +37,10 @@ The text then always matches the renderer the app installed: an app on an older 
 
 ## Check the result
 
-An agent should check a document before it hands it over. lint-comark lists every problem, each with its line:
+An agent should check a document before it hands it over. comark-linter lists every problem, each with its line:
 
 ```sh
-npx lint-comark report.md
+npx comark-linter report.md
 ```
 
 Marks need a look as well as a check: a box can sit inside the image and still miss its target. `comark-annotate render` writes a standalone page next to the file, which the agent opens in a browser and screenshots to confirm each mark sits on its target:
