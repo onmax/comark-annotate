@@ -1,8 +1,26 @@
 ---
 title: Comark plugins
 description: Plugins for Comark that make review documents easier to read.
-tagline: Annotated screenshots, zoom, carousels, tabs, callouts, and embeds for Comark documents. Each plugin is its own package, and they all share one version.
+headline: Review documents, written in Markdown.
+tagline: Annotated screenshots, code changes, charts, callouts, embeds, zoom, carousels, and tabs for Comark, plus partials and a linter. Each plugin is its own package, and they all share one version.
 ---
+
+::hero
+````md
+> [!TIP] Decision
+> Extra filters collapse into **+2 filters**.
+
+::screenshot{src="/after.png" alt="Filter toolbar on one row"}
+:::annotation{x=67.9 y=34.8 w=13 h=14.2 mark="highlight"}
+Five filters now fit on one row.
+:::
+
+:::annotation{x=82.5 y=34.8 w=10.5 h=14.2 mark="check" color="green"}
+**Apply** lines up with the chips.
+:::
+::
+````
+::
 
 ## Review blocks
 
@@ -20,7 +38,7 @@ Scripts that add to plain HTML. Without them a page still reads top to bottom, c
 
 ## Authoring tools
 
-For writing the documents: shared partials, and a linter that catches what Comark forgives.
+For writing the documents: shared partials, and a linter that catches what Comark forgives, from the command line or [Vite Doctor](/lint/vite-doctor/).
 
 ::cards{group="Authoring tools"}
 ::

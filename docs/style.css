@@ -23,6 +23,7 @@
   --max: 82rem;
   --sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -120,7 +121,9 @@ body {
   padding: 0 0.625rem;
   border-radius: 999px;
   box-shadow: inset 0 0 0 1px var(--line);
+  overflow: hidden;
   font: 500 0.75rem/1 var(--mono);
+  white-space: nowrap;
   transition:
     color 150ms ease,
     box-shadow 150ms ease;
@@ -318,71 +321,236 @@ kbd {
   color: var(--fg);
 }
 
-/* Inside the header, so it undoes the header nav's row. */
+/* Inside the header, so it undoes the header nav's row. On a phone the sections are labeled tiles above the current
+   section's pages, so both fit one scrolling panel. */
 .menu-panel {
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
-  display: grid;
-  grid-template-columns: 3.25rem 15rem;
+  display: flex;
+  flex-direction: column;
+  width: min(20rem, 100vw - 2rem);
   max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--bg);
   box-shadow: 0 12px 32px -12px rgb(0 0 0 / 0.25);
-  overflow: hidden;
+  transform-origin: top right;
+  transition:
+    opacity 200ms var(--ease-out),
+    scale 200ms var(--ease-out);
+}
+
+@starting-style {
+  .menu[open] .menu-panel {
+    opacity: 0;
+    scale: 0.97;
+  }
+}
+
+.menu-panel .rail {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-right: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.menu-panel .rail hr {
+  display: none;
+}
+
+.menu-panel .rail a {
+  height: 2.75rem;
 }
 
 .menu-panel .rail-label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+  opacity: 1;
 }
 
-/* The index: one card per package. */
+.menu-panel .pages {
+  flex: none;
+  overflow: visible;
+}
+
+/* The index: a card per package, its name a link that covers it, and its install command in a dashed footer whose
+   copy button sits above the link. */
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 0.75rem;
   margin: 1.5rem 0;
 }
 
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 1.25rem;
+  padding: 1.125rem 1.125rem 0;
   border: 1px solid var(--line);
   border-radius: 10px;
-  color: var(--muted);
-  text-decoration: none;
   transition:
     border-color 150ms ease,
     background-color 150ms ease;
 }
 
-.card:hover {
-  border-color: var(--faint);
+.card-icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: 0.875rem;
+  border-radius: 8px;
   background: var(--soft);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--muted);
+  transition: color 150ms ease;
 }
 
-.card strong {
+.card-link {
   color: var(--fg);
+  font: 500 0.875rem/1.4 var(--mono);
+  text-decoration: none;
+}
+
+.card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.card-link:focus-visible {
+  outline: none;
+}
+
+.card:has(.card-link:focus-visible) {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.card p {
+  margin: 0.375rem 0 1rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.card-install {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: auto -1.125rem 0;
+  padding: 0.375rem 0.375rem 0.375rem 1.125rem;
+  border-top: 1px dashed var(--line);
+}
+
+.card-install code {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-copy {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    scale 160ms var(--ease-out);
+}
+
+.card-copy:active {
+  scale: 0.94;
+}
+
+@media (hover: hover) {
+  .card:hover {
+    border-color: var(--faint);
+  }
+
+  .card:hover .card-icon {
+    color: var(--fg);
+  }
+
+  .card-copy:hover {
+    background: var(--soft);
+    color: var(--fg);
+  }
+}
+
+/* The docs' own pages on the index: one row each, its name, what it covers, and an arrow. */
+.rows {
+  display: flex;
+  flex-direction: column;
+  margin: 1.25rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr) auto;
+  gap: 0.125rem 1.5rem;
+  align-items: baseline;
+  padding: 0.75rem 0.25rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  text-decoration: none;
+}
+
+.row strong {
   font-weight: 500;
 }
 
-.mono {
-  font-family: var(--mono);
+.row svg {
+  align-self: center;
+  color: var(--faint);
+  transition:
+    color 150ms ease,
+    transform 150ms var(--ease-out);
 }
 
-.card code {
-  margin-top: auto;
-  padding-top: 0.5rem;
-  font-size: 0.75rem;
-  overflow-wrap: anywhere;
+@media (hover: hover) {
+  .row:hover svg {
+    color: var(--fg);
+    transform: translateX(2px);
+  }
+}
+
+@media (max-width: 40rem) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .row span {
+    grid-row: 2;
+  }
+
+  .row svg {
+    grid-row: 1 / 3;
+    grid-column: 2;
+  }
 }
 
 .logo {
@@ -402,7 +570,8 @@ kbd {
   grid-template-columns: auto minmax(0, 1fr);
 }
 
-/* Two columns, as on vitehub.dev: a rail with one icon per section, and the current section's pages. */
+/* Two columns, as on vitehub.dev: a rail with one icon per section, and the current section's pages. The rail sits
+   over the first column, so widening it covers the second instead of moving it. */
 .sidebar {
   position: sticky;
   top: 3.5rem;
@@ -412,29 +581,64 @@ kbd {
   border-right: 1px solid var(--line);
 }
 
+.sidebar .pages {
+  grid-column: 2;
+}
+
 .rail {
-  position: relative;
-  z-index: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 0.25rem;
-  padding: 0.75rem 0;
+  padding: 0.75rem 0.5rem;
+}
+
+.sidebar .rail {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 5;
+  width: 3.25rem;
+  overflow: hidden;
   border-right: 1px solid var(--line);
+  background: var(--bg);
+  transition:
+    width 150ms cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 150ms ease;
+}
+
+.sidebar .rail:has(:focus-visible),
+.sidebar .rail:hover {
+  width: 13.5rem;
+  box-shadow: 12px 0 32px -16px rgb(0 0 0 / 0.2);
+}
+
+/* Opening waits a beat, so a pointer crossing to the pages doesn't flash the rail; closing doesn't. */
+.sidebar .rail:hover {
+  transition-delay: 150ms;
+}
+
+.sidebar .rail[data-dismissed] {
+  width: 3.25rem;
+  box-shadow: none;
+  transition: none;
 }
 
 .rail a {
-  position: relative;
-  display: grid;
+  display: flex;
   flex: none;
-  place-items: center;
-  width: 2.25rem;
+  align-items: center;
+  gap: 0.75rem;
   height: 2.25rem;
+  padding: 0 0.5625rem;
   border-radius: 8px;
   color: var(--faint);
+  text-decoration: none;
   transition:
     color 150ms ease,
     background-color 150ms ease;
+}
+
+.rail a svg {
+  flex: none;
 }
 
 .rail a:hover,
@@ -449,32 +653,34 @@ kbd {
 
 .rail hr {
   flex: none;
-  width: 1.25rem;
-  margin: 0.25rem 0;
+  margin: 0.25rem 0.5rem;
   border: 0;
   border-top: 1px solid var(--line);
 }
 
 .rail-label {
-  position: absolute;
-  top: 50%;
-  left: calc(100% + 0.5rem);
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
-  background: var(--fg);
-  color: var(--bg);
-  font-size: 0.75rem;
-  line-height: 1.4;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
   white-space: nowrap;
   opacity: 0;
-  pointer-events: none;
-  translate: 0 -50%;
   transition: opacity 150ms ease;
 }
 
-.rail a:hover .rail-label,
-.rail a:focus-visible .rail-label {
+.sidebar .rail:is(:hover, :has(:focus-visible)):not([data-dismissed]) .rail-label {
   opacity: 1;
+}
+
+@media (hover: none) {
+  .sidebar .rail:hover {
+    width: 3.25rem;
+    box-shadow: none;
+  }
+
+  .sidebar .rail:hover:not(:has(:focus-visible)) .rail-label {
+    opacity: 0;
+  }
 }
 
 .pages {
@@ -486,34 +692,13 @@ kbd {
   font-size: 0.8125rem;
 }
 
-.section-head {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin: 0 -1rem 0.75rem;
-  padding: 0.125rem 1rem 0.875rem;
-  border-bottom: 1px solid var(--line);
-  color: var(--muted);
-}
-
-.section-head small {
-  display: block;
-  color: var(--faint);
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  line-height: 1.5;
-  text-transform: uppercase;
-}
-
-.section-head strong {
-  display: block;
+/* The section's name over its pages; the rail already shows its icon and group. */
+.pages-title {
+  margin: 0.25rem 0 0.75rem;
+  color: var(--fg);
   font-size: 0.875rem;
+  font-weight: 600;
   line-height: 1.4;
-}
-
-.section-head strong.mono {
-  font-size: 0.8125rem;
 }
 
 .nav-group {
@@ -702,7 +887,15 @@ nav > .nav-group:first-child {
   font: 0.875rem/1 var(--mono);
   text-align: left;
   cursor: pointer;
-  transition: box-shadow 150ms ease;
+  transition:
+    box-shadow 150ms ease,
+    scale 160ms var(--ease-out);
+}
+
+.install:active,
+.play-share:active,
+.copy:active {
+  scale: 0.97;
 }
 
 .install:hover {
@@ -739,7 +932,30 @@ nav > .nav-group:first-child {
   color: var(--fg);
 }
 
-.install.copied .install-hint {
+/* The copy icon gives way to a check while the command is on the clipboard. */
+.install-hint svg,
+.card-copy svg {
+  grid-area: 1 / 1;
+  transition:
+    opacity 200ms var(--ease-out),
+    scale 200ms var(--ease-out),
+    filter 200ms var(--ease-out);
+}
+
+.install-hint .check,
+.card-copy .check,
+.install.copied .install-hint svg:not(.check),
+.card-copy.copied svg:not(.check) {
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(2px);
+}
+
+.install.copied .install-hint .check,
+.card-copy.copied .check {
+  opacity: 1;
+  scale: 1;
+  filter: none;
   color: #16a34a;
 }
 
@@ -750,6 +966,241 @@ nav > .nav-group:first-child {
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: -0.025em;
+}
+
+/* The index's headline keeps the Markdown that makes it one. */
+.hero h1.headline {
+  max-width: 20ch;
+  font-size: clamp(2.125rem, 1.5rem + 2.5vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.hash {
+  margin-right: 0.3em;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-weight: 400;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.75rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.5rem;
+  padding: 0 1rem;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--fg);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    box-shadow 150ms ease,
+    background-color 150ms ease,
+    scale 160ms var(--ease-out);
+}
+
+.button.primary {
+  background: var(--fg);
+  box-shadow: none;
+  color: var(--bg);
+}
+
+.button:active {
+  scale: 0.97;
+}
+
+@media (hover: hover) {
+  .button:hover {
+    box-shadow: inset 0 0 0 1px var(--faint);
+  }
+
+  .button.primary:hover {
+    background: color-mix(in oklch, var(--fg) 86%, var(--bg));
+    box-shadow: none;
+  }
+}
+
+/* The index's window: the Markdown and the page rendered from it share one cell, so switching never changes its
+   height, and the incoming one wipes in over the other. */
+.window {
+  margin-bottom: 1rem;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 24px 48px -24px rgb(0 0 0 / 0.22);
+}
+
+.window-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  height: 2.75rem;
+  padding: 0 0.375rem 0 1rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--soft);
+}
+
+.window-dots {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.window-dots i {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.window-tabs {
+  position: relative;
+  display: flex;
+  gap: 0.125rem;
+}
+
+.window-tabs button {
+  height: 1.875rem;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--faint);
+  font: 500 0.75rem/1 var(--mono);
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.window-tabs [aria-selected="true"] {
+  color: var(--fg);
+}
+
+.window-tabs .indicator,
+.window-tabs:not([data-indicator]) [aria-selected="true"] {
+  top: 0;
+  bottom: 0;
+  border-radius: 6px;
+  background: var(--bg);
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 1px 2px rgb(0 0 0 / 0.06);
+}
+
+.window-tabs button {
+  position: relative;
+  z-index: 1;
+}
+
+a.window-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-left: auto;
+  padding: 0.5rem 0.625rem;
+  color: var(--faint);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+a.window-play:hover {
+  color: var(--fg);
+}
+
+.window-body {
+  display: grid;
+}
+
+.window-body > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+  visibility: hidden;
+}
+
+.window-body > [data-active] {
+  visibility: visible;
+}
+
+.window-body > [inert] {
+  z-index: 0;
+}
+
+.window-body > :not([inert]) {
+  z-index: 1;
+}
+
+.window-source {
+  background: var(--soft);
+}
+
+.window-page {
+  padding: 1.5rem;
+  background: var(--bg);
+}
+
+/* At a reading width, like a page, rather than the window's. */
+.window-page > div {
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+.window-page > div > :first-child {
+  margin-top: 0;
+}
+
+.window-page > div > :last-child {
+  margin-bottom: 0;
+}
+
+.window-source pre {
+  margin: 0;
+  padding: 1.25rem 1.25rem 1.5rem;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* A line a block of its own width, so its reveal steps one character at a time. */
+.window-source pre .line {
+  display: block !important;
+  width: fit-content;
+  min-height: 1lh;
+}
+
+.window[data-typing] .window-source .line {
+  animation: type var(--t) steps(var(--n), end) var(--at) both;
+}
+
+@keyframes type {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+@media (max-width: 30rem) {
+  .window-dots,
+  .window-play span {
+    display: none;
+  }
+
+  .window-bar {
+    padding-left: 0.375rem;
+  }
+
+  .window-page {
+    padding: 1rem;
+  }
 }
 
 @media (hover: none) {
@@ -872,7 +1323,19 @@ code {
   border-radius: 4px;
   background: var(--soft);
   box-shadow: inset 0 0 0 1px var(--line);
-  white-space: nowrap;
+  overflow-wrap: break-word;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* A table wider than the column scrolls inside it instead of widening the page. */
+.table-scroll {
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.table-scroll > table:not(.ca-code) {
+  margin: 0;
 }
 
 pre {
@@ -888,6 +1351,7 @@ pre {
 pre .line {
   display: inline !important;
 }
+
 
 table:not(.ca-code) {
   width: 100%;
@@ -1069,6 +1533,55 @@ blockquote {
   border-bottom-color: var(--fg);
 }
 
+/* With the script, one indicator slides to the chosen tab or switch button, and they drop their own. */
+.tablist,
+.seg {
+  position: relative;
+}
+
+.indicator {
+  position: absolute;
+  left: 0;
+  pointer-events: none;
+  transition:
+    transform 200ms var(--ease-out),
+    width 200ms var(--ease-out);
+}
+
+.indicator[data-still] {
+  transition: none;
+}
+
+.tablist .indicator {
+  bottom: 0;
+  height: 1px;
+  background: var(--fg);
+}
+
+.tablist[data-indicator] [aria-selected="true"] {
+  border-bottom-color: transparent;
+}
+
+.seg .indicator {
+  top: 2px;
+  bottom: 2px;
+  border-radius: 6px;
+  background: var(--bg);
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 1px 2px rgb(0 0 0 / 0.06);
+}
+
+.seg button {
+  position: relative;
+  z-index: 1;
+}
+
+.seg[data-indicator] [aria-pressed="true"] {
+  background: none;
+  box-shadow: none;
+}
+
 .example {
   margin: 1.25rem 0;
 }
@@ -1162,6 +1675,8 @@ blockquote {
 .ca-label {
   color: var(--fg);
   font-weight: 500;
+  /* Caveat at the label size is taller than its one-line heading; at 1 it fits instead of being cut off. */
+  line-height: 1;
 }
 
 footer {
@@ -1203,8 +1718,28 @@ footer a {
     animation: none;
   }
 
-  .search {
+  .search,
+  .indicator,
+  .install-hint svg,
+  .card-copy svg,
+  .sidebar .rail {
     transition: none;
+  }
+
+  .menu-panel {
+    transition: opacity 150ms ease-out;
+  }
+
+  @starting-style {
+    .menu[open] .menu-panel {
+      scale: 1;
+    }
+  }
+
+  .install:active,
+  .play-share:active,
+  .copy:active {
+    scale: 1;
   }
 }
 
@@ -1287,7 +1822,9 @@ main img {
   color: var(--muted);
   font: 500 0.75rem/1.5 var(--sans);
   cursor: pointer;
-  transition: color 150ms ease;
+  transition:
+    color 150ms ease,
+    scale 160ms var(--ease-out);
 }
 
 .play-share:hover {
@@ -1392,13 +1929,8 @@ main img {
 }
 
 /* Two to a row, so the playground's column is wider than a section's. */
-.sidebar:has(.presets),
-.menu-panel:has(.presets) {
+.sidebar:has(.presets) {
   grid-template-columns: 3.25rem 21rem;
-}
-
-.menu-panel:has(.presets) {
-  max-width: calc(100vw - 2rem);
 }
 
 .presets {
@@ -1484,4 +2016,35 @@ main img {
 .preset:has(a:focus-visible) {
   outline: 2px solid var(--fg);
   outline-offset: 2px;
+}
+
+/* Touch: every control at least 40px tall, and the editor at 16px so iOS doesn't zoom into it. */
+@media (pointer: coarse) {
+  .seg button,
+  .window-tabs button {
+    min-height: 2.5rem;
+  }
+
+  .example-play,
+  .play-share {
+    min-height: 2.5rem;
+  }
+
+  .copy {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .top-end .npmx {
+    height: 2.5rem;
+  }
+
+  .play-paint pre,
+  .play-code textarea {
+    font-size: 1rem;
+  }
+}
+
+/* A tab row that scrolls fades at its end, so the tabs past it read as more. */
+.tablist[data-overflow] {
+  mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
 }

@@ -48,7 +48,7 @@ code, github-callouts, and zoom have nothing to report: every code block gets it
 
 ## Line numbers
 
-`meta.issues` can't say where a problem is, because Comark gives nodes no source positions. [comark-lint](/lint/) finds the line of each issue and adds what Comark forgives silently: blocks never closed, misspelled components, broken anchors, and unsafe URLs. Run it in CI and in [Vite Doctor](/lint/getting-started/#vite-doctor):
+`meta.issues` can't say where a problem is, because Comark gives nodes no source positions. [comark-lint](/lint/) finds the line of each issue and adds what Comark forgives silently: blocks never closed, misspelled components, broken anchors, and unsafe URLs. Run it in CI and in [Vite Doctor](/lint/vite-doctor/):
 
 ```sh
 pnpm comark-lint "docs/**/*.md"
