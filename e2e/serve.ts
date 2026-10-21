@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { extname, join, normalize } from "node:path";
 
-const root = new URL("../docs/dist/", import.meta.url).pathname;
+const root = new URL("../docs/dist/public/", import.meta.url).pathname;
 const types: Record<string, string> = {
   ".html": "text/html",
   ".js": "text/javascript",
