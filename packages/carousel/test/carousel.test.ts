@@ -33,6 +33,19 @@ describe("comark-carousel", () => {
     expect(html.match(/<script>/g)).toHaveLength(2);
   });
 
+  it("inlines styles a site can theme with --cc-* variables, with today's look as the fallback", async () => {
+    const style = /<style data-comark-carousel>(.*?)<\/style>/s.exec(
+      await render("::carousel\nOne\n\nTwo\n::"),
+    )?.[1];
+    for (const variable of [
+      "gap:var(--cc-gap,1rem)",
+      "padding:var(--cc-padding,1rem)",
+      "background:var(--cc-surface,color-mix(",
+      "width:var(--cc-button-size,2rem)",
+    ])
+      expect(style).toContain(variable);
+  });
+
   it("keeps explicit slides and their titles", async () => {
     const html = await render(
       '::carousel\n:::slide{title="First"}\nOne\n\nStill one\n:::\n\n:::slide\nTwo\n:::\n::',

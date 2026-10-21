@@ -76,6 +76,24 @@ describe.each(withRenderer)("the renderer of packages/%s", (folder) => {
   });
 
   it("renders the docs and the playground", () => {
-    expect(read("docs/plugins.ts")).toContain(`from "../packages/${folder}/src/html.ts"`);
+    const plugins = read("docs/plugins.ts");
+    expect(plugins).toContain(`from "../packages/${folder}/src/html.ts"`);
+
+    // Keep the import and both runtime registries in sync. The import alone can
+    // remain present after a plugin is accidentally removed from the site.
+    const imported =
+      folder === "github"
+        ? { plugin: "githubHtml", components: "githubComponents" }
+        : {
+            plugin: folder,
+            components: `${folder}Components`,
+          };
+    const browser = plugins.slice(
+      plugins.indexOf("export const browserPlugins"),
+      plugins.indexOf("export const components"),
+    );
+    const componentMap = plugins.slice(plugins.indexOf("export const components"));
+    expect(browser).toMatch(new RegExp(`${imported.plugin}\\s*\\(`));
+    expect(componentMap).toContain(`...${imported.components}`);
   });
 });

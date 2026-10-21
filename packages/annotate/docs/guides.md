@@ -1,6 +1,6 @@
 ---
 title: Guides
-description: Side notes, placing marks, validation, and theming.
+description: Side notes, placing marks, and validation.
 ---
 
 ## Side notes

@@ -1,6 +1,6 @@
 ---
 title: Guides
-description: Keys, tabs that sync across a page, icons, validation, zoom, and theming.
+description: Keys, tabs that sync across a page, icons, validation, and zoom.
 ---
 
 ## Keys
@@ -43,7 +43,7 @@ const plugins = [
 ];
 ```
 
-Size them with `--comark-icon-size`, and style them as [comark-icon's syntax](/icon/syntax/#styling) describes.
+Size them with `--comark-icon-size`, and style them as [comark-icon's Theming page](/icon/theming/) describes.
 
 ## Validation
 
@@ -58,7 +58,3 @@ It reports a tab without a label, two tabs with the same label, an icon it can't
 ## Zoom
 
 Images in tabs zoom with [comark-zoom](/zoom) like any other image. A gallery or zoom group only pages through what's shown, so images in closed tabs stay out of it.
-
-## Theming
-
-The tab strip is a segmented control in the style of shadcn/ui, on the shared tokens in [Theming](/guide/theming/): `--comark-border` frames it, `--comark-accent` tints it, the open tab sits on `--comark-background`, and the others use `--comark-muted`. One rule sits outside the `comark` layer: pages style code blocks with plain rules, so the rule that drops a code group's block margin and top corners, to join it to its header, has to beat them.

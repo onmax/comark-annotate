@@ -1,6 +1,6 @@
 ---
 title: Guides
-description: Actions of your own, Copy, Wrap, and theming.
+description: Actions of your own, Copy, and Wrap.
 ---
 
 ## Actions
@@ -32,7 +32,3 @@ Copy takes the code's text as written, without the highlighting. A check confirm
 ## Wrap
 
 Wrap breaks long lines in its own block and stays on until it's pressed again, and it isn't saved for the next visit.
-
-## Theming
-
-The buttons follow the shared tokens in [Theming](/guide/theming/): they sit on `--comark-background` with a `--comark-border` frame, and turn `--comark-accent` on hover and while Wrap is on. Wrap's rule is the one outside the `comark` layer, so it beats a page's own `white-space`; move the bar with a plain rule, such as `.ck-bar { top: 0.75rem }`.

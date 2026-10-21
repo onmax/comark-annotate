@@ -12,7 +12,7 @@ shadcn/ui before Tailwind 4 stores colors as bare HSL numbers, so map those thro
 
 ## Tokens
 
-Set the `--comark-*` tokens to theme annotate, carousel, code, embed, github, tabs, and zoom at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
+Set the `--comark-*` tokens to theme annotate, carousel, charts, chips, code, embed, github, tabs, and zoom at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
 
 | Token | Falls back to | Used for |
 | --- | --- | --- |
@@ -32,7 +32,7 @@ Set the `--comark-*` tokens to theme annotate, carousel, code, embed, github, ta
 }
 ```
 
-To theme one part only, set the tokens on its root instead: `.ca` for annotate, `.cc` for a carousel, `.ck` for code buttons, `.ce` and `.ce-card` for embeds, `.cgc` for callouts, `.ct` for tabs, and `.cz-dialog` for the zoomed view.
+To theme one part only, set the tokens on its root instead: `.ca` for annotate, `.cc` for a carousel, `.cp` for chips, `.ck` for code buttons, `.ce` and `.ce-card` for embeds, `.cgc` for callouts, `.ct` for tabs, and `.cz-dialog` for the zoomed view.
 
 ## Your own rules
 
@@ -56,12 +56,4 @@ The rules sit in a `comark` CSS layer, so any plain rule of your own wins withou
 
 ## Each plugin's own
 
-Some things belong to one plugin, so they have their own variables:
-
-| Plugin | Variables |
-| --- | --- |
-| [annotate](/annotate/guides/#theming) | `--ca-color`, `--ca-solid`, and `--ca-ink` for the default marks, stamps, and stamp numbers; `--ca-red`, `--ca-amber`, `--ca-green`, `--ca-blue`, and `--ca-gray` for the named colors; `--ca-note-font` and `--ca-code-font` |
-| [carousel](/carousel/guides/#theming) | `--cc-gap` between slides, `--cc-surface` behind them |
-| [embed](/embed/syntax/#theming) | `--ce-app-height` for CodePen, StackBlitz, and Figma |
-| [github](/github/syntax/#theming) | `--cgc-note`, `--cgc-tip`, `--cgc-important`, `--cgc-warning`, and `--cgc-caution` |
-| [zoom](/zoom/guides/#theming) | `data-zoom-context`, for items that need styles from their ancestors |
+Each package's own variables and class names are on its Theming page: [annotate](/annotate/theming/), [carousel](/carousel/theming/), [charts](/charts/theming/), [chips](/chips/theming/), [code](/code/theming/), [embed](/embed/theming/), [github](/github/theming/), [icon](/icon/theming/), [tabs](/tabs/theming/), and [zoom](/zoom/theming/).
