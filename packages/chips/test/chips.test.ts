@@ -28,7 +28,7 @@ describe("comark-chips", () => {
   it("turns a link into a chip with the site's favicon inlined, and the styles once", async () => {
     const html = await render("Built with [Vite](https://vite.dev) and [Vue](https://vuejs.org).");
     expect(html).toContain(
-      `<a class="cch" href="https://vite.dev" data-kind="favicon"><img class="cch-img" src="${DATA}" alt="">Vite</a>`,
+      `<a class="cp" href="https://vite.dev" data-kind="favicon"><img class="cp-img" src="${DATA}" alt="">Vite</a>`,
     );
     expect(html).toContain('href="https://vuejs.org"');
     expect(html.match(/<style data-comark-chips>/g)).toHaveLength(1);
@@ -40,10 +40,10 @@ describe("comark-chips", () => {
       "Thanks @onmax, see [the repo](https://github.com/onmax/comark-plugins) and [issues](https://github.com/issues).",
     );
     expect(html).toContain(
-      `<a class="cch" href="https://github.com/onmax" data-kind="avatar"><img class="cch-img" src="${DATA}" alt="">onmax</a>,`,
+      `<a class="cp" href="https://github.com/onmax" data-kind="avatar"><img class="cp-img" src="${DATA}" alt="">onmax</a>,`,
     );
     expect(html).toContain(
-      `<a class="cch" href="https://github.com/onmax/comark-plugins" data-kind="avatar">`,
+      `<a class="cp" href="https://github.com/onmax/comark-plugins" data-kind="avatar">`,
     );
     expect(html).toMatch(/href="https:\/\/github.com\/issues" data-kind="favicon"/);
     expect(requests).toContain("https://github.com/onmax.png?size=64");
@@ -53,7 +53,7 @@ describe("comark-chips", () => {
     const html = await render(
       "Mail me@onmax.dev about `@onmax` and @comark/html, read the [guide](/guide/), see [![logo](https://x.dev/a.png)](https://x.dev).",
     );
-    expect(html).not.toContain("cch");
+    expect(html).not.toContain('class="cp"');
     expect(requests).toEqual([]);
   });
 
@@ -68,7 +68,7 @@ describe("comark-chips", () => {
       '[Anthony](https://antfu.me "His site"){avatar="@antfu"}, [logo](https://nuxt.com){avatar="https://x.dev/n.png"}, and [plain](https://vite.dev){chip=false}',
     );
     expect(html).toContain(
-      '<a class="cch" href="https://antfu.me" data-kind="avatar" title="His site">',
+      '<a class="cp" href="https://antfu.me" data-kind="avatar" title="His site">',
     );
     expect(html).toContain('href="https://nuxt.com" data-kind="avatar"');
     expect(html).toMatch(/<a href="https:\/\/vite.dev">plain<\/a>/);
@@ -80,7 +80,7 @@ describe("comark-chips", () => {
   it("preserves malformed web destinations instead of throwing", async () => {
     const html = await render("[broken](https://)");
     expect(html).toContain('<a href="https://">broken</a>');
-    expect(html).not.toContain('class="cch"');
+    expect(html).not.toContain('class="cp"');
     expect(await issues("[broken](https://)")).toEqual([
       "[broken](https://): `href` must be a valid web address.",
     ]);
@@ -96,12 +96,12 @@ describe("comark-chips", () => {
   it("leaves raw HTML subtrees unchanged", async () => {
     const html = await render("<span>@onmax</span> and @onmax");
     expect(html).toContain("<span>@onmax</span>");
-    expect(html.match(/<a class="cch"[^>]*data-kind="avatar"/g)).toHaveLength(1);
+    expect(html.match(/<a class="cp"[^>]*data-kind="avatar"/g)).toHaveLength(1);
   });
 
   it("draws an inline :chip like a link", async () => {
     const html = await render(':chip[Nuxt]{href="https://nuxt.com"}');
-    expect(html).toContain('<a class="cch" href="https://nuxt.com" data-kind="favicon"><img');
+    expect(html).toContain('<a class="cp" href="https://nuxt.com" data-kind="favicon"><img');
     expect(await issues(":chip[Nuxt]")).toEqual([
       '`:chip` [Nuxt](): `href` must be a web address, such as `href="https://vite.dev"`.',
     ]);

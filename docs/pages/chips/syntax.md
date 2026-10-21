@@ -30,10 +30,10 @@ Any link to an `http` or `https` address becomes a chip. A link's text stays as 
 
 ## Theming
 
-Chips follow shadcn/ui's Badge and the shared tokens in [Theming](/guide/theming/). A chip is an `a.cch` with `data-kind="favicon"` or `data-kind="avatar"`, holding an `img.cch-img` and its text. Favicons are square with rounded corners and avatars round.
+Chips follow shadcn/ui's Badge and the shared tokens in [Theming](/guide/theming/). A chip is an `a.cp` with `data-kind="favicon"` or `data-kind="avatar"`, holding an `img.cp-img` and its text. Favicons are square with rounded corners and avatars round.
 
 ```css
-.cch {
+.cp {
   border-radius: 0.375rem;
 }
 ```
