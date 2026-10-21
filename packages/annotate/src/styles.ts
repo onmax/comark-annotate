@@ -80,7 +80,7 @@ export const css = `@layer comark{${[
   ".ca-copy-status:empty{display:none}",
   // The copy behind the browser's menu: invisible, and in the way only for a right-click.
   ".ca-frame .ca-overlay{position:absolute;inset:0;width:100%;height:100%;opacity:0;outline:none;pointer-events:none}",
-  ".ca-frame .ca-overlay[data-menu]{pointer-events:auto}",
+  ".ca-frame .ca-overlay[data-menu]{pointer-events:auto;opacity:1}",
   // A copy paints the marks at rest, and nothing animates while it reads them.
   "[data-ca-capture] *{transition:none!important}",
   "[data-ca-capture=still] *{--ca-on:0!important}",

@@ -1,5 +1,5 @@
 import { defineComponent, h, onBeforeUnmount, onMounted } from "vue";
-import { buttons, css, start } from "./client.ts";
+import { buttons, css, preAttributes, start } from "./client.ts";
 
 export { default } from "./index.ts";
 
@@ -17,7 +17,7 @@ export const Pre = defineComponent({
     onBeforeUnmount(() => stop());
     return () =>
       h("div", { class: "ck" }, [
-        h("pre", attrs, slots.default?.()),
+        h("pre", preAttributes(attrs), slots.default?.()),
         h("div", { class: "ck-bar", innerHTML: buttons(props.actions) }),
       ]);
   },

@@ -20,7 +20,7 @@ describe("comark-code", () => {
   it("wraps a code block with Wrap and Copy buttons, and leaves the block as it was", async () => {
     const html = await markup(sh);
     expect(html).toMatch(
-      /^<div class="ck"><pre language="sh"><code class="language-sh">pnpm add comark-code<\/code><\/pre><div class="ck-bar">/,
+      /^<div class="ck"><pre data-language="sh"><code class="language-sh">pnpm add comark-code<\/code><\/pre><div class="ck-bar">/,
     );
     expect(html).toContain(
       '<button type="button" class="ck-wrap" aria-label="Wrap lines" aria-pressed="false" title="Wrap lines">',
@@ -42,7 +42,9 @@ describe("comark-code", () => {
     const html = await createHtmlRenderer({ plugins: [code(), shiki()], components })(
       "```ts [config.ts]\nconst a = 1\n```",
     );
-    expect(html).toMatch(/<div class="ck"><pre language="ts" filename="config.ts" class="shiki /);
+    expect(html).toMatch(
+      /<div class="ck"><pre data-language="ts" data-filename="config.ts" class="shiki /,
+    );
     expect(html).toContain("--shiki-dark:");
   });
 
@@ -74,7 +76,7 @@ describe("comark-code", () => {
         components: { ...tabsComponents, ...components },
       })(group);
       expect(html).toContain('<div class="ct" data-tabs-code>');
-      expect(html.match(/<div class="ck"><pre language="sh">/g)).toHaveLength(2);
+      expect(html.match(/<div class="ck"><pre data-language="sh">/g)).toHaveLength(2);
       expect(html.match(/data-code-action="run"/g)).toHaveLength(2);
     }
   });

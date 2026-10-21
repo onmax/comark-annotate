@@ -40,7 +40,7 @@ describe("comark-code renderers", () => {
     );
     const expected = normalize(await renderers.html(value));
     expect(expected).toContain(
-      '<div class="ck"><pre language="sh" filename="install.sh"><code class="language-sh">pnpm add comark-code</code></pre><div class="ck-bar"><button type="button" class="ck-action" data-code-action="run">Run</button>',
+      '<div class="ck"><pre data-language="sh" data-filename="install.sh"><code class="language-sh">pnpm add comark-code</code></pre><div class="ck-bar"><button type="button" class="ck-action" data-code-action="run">Run</button>',
     );
     expect(expected.match(/class="ck-copy"/g)).toHaveLength(2);
     for (const name of ["vue", "react"] as const) {
