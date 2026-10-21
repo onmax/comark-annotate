@@ -519,6 +519,7 @@ export function start(): () => void {
     return overlay;
   }
   let armed: HTMLImageElement | null = null;
+  let forwarded = false;
   let disarming = 0;
   const disarm = () => {
     clearTimeout(disarming);
@@ -548,22 +549,48 @@ export function start(): () => void {
       const ready = figure && made.get(figure);
       if (!frame || !ready || target?.closest(SKIP) || ready.key !== keyOf(figure)) return;
       armed = overlayOf(frame);
+      forwarded = false;
       if (armed.getAttribute("src") !== ready.url) armed.src = ready.url;
       armed.setAttribute("data-menu", "");
-      // Hit testing for a context menu is tied to the original pointer-down target. Notify
-      // listeners on the replacement image as soon as it is armed so keyboard/headless
-      // contexts observe the same target as a native menu.
-      // Dispatch immediately as well as arming the replacement. This makes the target
-      // deterministic in headless browsers, where the native context-menu event may
-      // be delayed or omitted after a synthetic right click.
-      if (armed.hasAttribute("data-menu"))
-        armed.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, button: 2 }));
       // The menu opens on press on some systems and on release on others; either way it has its target by then.
       disarming = window.setTimeout(disarm, 1500);
     },
     { capture: true, signal },
   );
-  document.addEventListener("contextmenu", () => setTimeout(disarm), { signal });
+  document.addEventListener(
+    "contextmenu",
+    (event) => {
+      // Chromium can resolve the native menu target before the armed overlay starts
+      // receiving pointer events. Hand the event to the prepared copy as well, so
+      // browser image actions and listeners see the marked screenshot consistently.
+      if (armed && event.target !== armed && !forwarded) {
+        forwarded = true;
+        // Keep the browser's native default action (Copy Image, Save Image, etc.)
+        // on the original image while replacing the JavaScript notification.
+        event.stopImmediatePropagation();
+        armed.dispatchEvent(
+          new MouseEvent("contextmenu", {
+            bubbles: true,
+            cancelable: true,
+            view: event.view,
+            detail: event.detail,
+            screenX: event.screenX,
+            screenY: event.screenY,
+            clientX: event.clientX,
+            clientY: event.clientY,
+            ctrlKey: event.ctrlKey,
+            shiftKey: event.shiftKey,
+            altKey: event.altKey,
+            metaKey: event.metaKey,
+            button: event.button,
+            buttons: event.buttons,
+          }),
+        );
+      }
+      setTimeout(disarm);
+    },
+    { capture: true, signal },
+  );
 
   const say = (frame: Element | null, message: string, state: "done" | "failed") => {
     const button = frame?.querySelector(".ca-copy");
