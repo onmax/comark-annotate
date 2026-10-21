@@ -1,6 +1,6 @@
 ---
 title: Guides
-description: Keys, validation, zoom, and theming.
+description: Keys, validation, and zoom.
 ---
 
 ## Keys
@@ -20,7 +20,3 @@ It reports content outside every `:::slide`, a carousel with no slides, `columns
 ## Zoom
 
 A click zooms a slide, with the others in a strip at the bottom. Paging in the zoomed view moves the carousel, so closing it lands on the slide you were looking at. Zoom comes from [comark-zoom](/zoom/), which comes with the package. For annotated screenshots in a carousel, see the [recipe](/recipes/carousel/).
-
-## Theming
-
-The arrows, counter, and slide panels follow the shared tokens in [Theming](/guide/theming/). Override `--cc-gap` to change the space between slides. Each slide sits on a soft panel as tall as the tallest one, so slides of different heights line up; set `--cc-surface` to change its color, or to `transparent` with `.cc-slide { padding: 0 }` to drop it.
