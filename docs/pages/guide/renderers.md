@@ -10,6 +10,7 @@ tagline: Register every plugin you use in one renderer. The same markup comes ou
 | --- | --- | --- | --- | --- |
 | [annotate](/annotate/) | `comark-annotate/html` | | | |
 | [carousel](/carousel/) | `comark-carousel/html` | `comark-carousel/vue` | `comark-carousel/react` | `comark-carousel/svelte` |
+| [charts](/charts/) | `comark-charts/html` | | | |
 | [code](/code/) | `comark-code/html` | `comark-code/vue` | `comark-code/react` | `comark-code/svelte` |
 | [embed](/embed/) | `comark-embed/html` | `comark-embed/vue` | `comark-embed/react` | `comark-embed/svelte` |
 | [github-callouts](/github-callouts/) | `comark-github-callouts/html` | `comark-github-callouts/vue` | `comark-github-callouts/react` | `comark-github-callouts/svelte` |

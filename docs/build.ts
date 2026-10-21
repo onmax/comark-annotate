@@ -13,6 +13,7 @@ import light from "shiki/themes/vitesse-light.mjs";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
 import code, { components as codeComponents } from "../packages/code/src/html.ts";
+import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
 import githubCallouts, {
   components as githubCalloutsComponents,
@@ -31,6 +32,7 @@ const contentPlugins = () => [
   annotate(),
   carousel(),
   code(),
+  charts(),
   embed(),
   githubCallouts(),
   tabs(),
@@ -41,6 +43,7 @@ const components = {
   ...annotateComponents,
   ...carouselComponents,
   ...codeComponents,
+  ...chartsComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
   ...tabsComponents,
@@ -66,6 +69,8 @@ const pages = [
   { slug: "lint", file: "lint.md", npm: "comark-lint" },
   { slug: "include", file: "include.md", npm: "comark-include" },
   { slug: "embed", file: "embed.md", npm: "comark-embed" },
+  { slug: "charts", file: "charts.md", npm: "comark-charts" },
+  { slug: "compare/charts", file: "compare/charts.md" },
 ];
 
 // The sidebar, in order. A slug with no page yet, such as one whose package is still on a branch, is left out.
@@ -78,6 +83,7 @@ const groups = [
   { title: "Review blocks", slugs: ["annotate", "charts", "embed", "github-callouts"] },
   { title: "Page behavior", slugs: ["zoom", "carousel", "tabs", "code"] },
   { title: "Authoring tools", slugs: ["include", "lint"] },
+  { title: "Compared", slugs: ["compare/charts"] },
 ];
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
@@ -122,6 +128,9 @@ const examples: NodeHandler = async ([, , ...children], state) => {
   );
   return `<div class="examples"><div class="tablist" role="tablist">${labels.join("")}</div>${bodies.join("")}</div>`;
 };
+
+const matrix: NodeHandler = async ([, , ...children], state) =>
+  `<div class="matrix">${(await Promise.all(children.map((child) => state.one(child, state)))).join("")}</div>`;
 
 const toc = (document: { nodes: Node[] }) =>
   document.nodes
@@ -316,7 +325,7 @@ for (const page of parsed) {
 <div class="content">
 <div class="hero enter"><h1>${page.title}</h1><p>${escapeHtml(page.tagline)}</p>
 ${page.install ? installerFor(page.install, page.skill) : ""}</div>
-<main class="enter" style="--i:1">${await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, cards } })}</main>
+<main class="enter" style="--i:1">${await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, cards, matrix } })}</main>
 <footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>. Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>
 </div>
 ${page.toc ? `<aside class="toc"><nav aria-label="On this page"><p class="nav-group">On this page</p>${page.toc}</nav></aside>` : ""}

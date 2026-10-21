@@ -15,7 +15,7 @@ import {
 import { css } from "./styles.ts";
 
 export { default } from "./index.ts";
-export type { AnnotateMeta, Mark } from "./index.ts";
+export type { AnnotateMeta, Annotation, Mark } from "./index.ts";
 
 // Each render gets a fresh `state.context`: the first figure in a document carries the styles, and ids are
 // counted per render.
@@ -109,7 +109,7 @@ function markSvg({ mark }: Annotation) {
 }
 
 // The pieces of a screenshot, which a figure stacks and a slider lays over each other.
-async function parts(shot: Screenshot, state: State, id: string, copy = false) {
+async function parts(shot: Screenshot, state: State, id: string, copy = false, body?: string) {
   const color = (annotation: Annotation) => paint(annotation.color);
   const style = (annotation: Annotation) =>
     annotation.color ? ` style="${color(annotation)}"` : "";
@@ -187,18 +187,26 @@ async function parts(shot: Screenshot, state: State, id: string, copy = false) {
   return {
     sides: sided.map((annotation) => ` ca-${annotation.side}`),
     heading: heading && `<div class="ca-heading">${heading}</div>`,
-    frame: `<div class="ca-frame"><img src="${attr(shot.src)}" alt="${attr(shot.alt)}" loading="lazy" decoding="async">${pins.join("")}${arrows.join("")}${copy ? COPY : ""}</div>`,
+    frame: `<div class="ca-frame">${body ?? `<img src="${attr(shot.src)}" alt="${attr(shot.alt)}" loading="lazy" decoding="async">`}${pins.join("")}${arrows.join("")}${copy ? COPY : ""}</div>`,
     callouts,
     notes: caption || notes ? `${caption}${notes ? `<ol class="ca-notes">${notes}</ol>` : ""}` : "",
   };
 }
 
 // `top` reserves room for notes above the image, so every image in a comparison starts at the same height.
-async function figure(shot: Screenshot, state: State, id: string, top = false) {
-  const { sides, heading, frame, callouts, notes } = await parts(shot, state, id, true);
+async function figure(
+  shot: Screenshot,
+  state: State,
+  id: string,
+  top = false,
+  body?: string,
+  zoomContext?: string,
+) {
+  // Copying draws the image and its marks to a canvas, which only works for an image.
+  const { sides, heading, frame, callouts, notes } = await parts(shot, state, id, !body, body);
   const classes = [...new Set([...sides, ...(top ? [" ca-top"] : [])])].join("");
   return (
-    `<figure class="ca-screenshot${classes}">${heading}<div class="ca-stage" data-zoom tabindex="0" data-zoom-context=".ca,.ca-screenshot" data-zoom-aside="figcaption" data-zoom-title="${attr(shot.title || shot.alt)}">${frame}${callouts}</div>` +
+    `<figure class="ca-screenshot${classes}">${heading}<div class="ca-stage" data-zoom tabindex="0" data-zoom-context=".ca,.ca-screenshot${zoomContext ? `,${zoomContext}` : ""}" data-zoom-aside="figcaption" data-zoom-title="${attr(shot.title || shot.alt)}">${frame}${callouts}</div>` +
     (notes ? `<figcaption>${notes}</figcaption>` : "") +
     "</figure>"
   );
@@ -226,6 +234,22 @@ async function slider(title: string | undefined, shots: Screenshot[], state: Sta
     `<div class="ca ca-compare ca-slider"><div class="ca-swipe" data-zoom tabindex="0" data-zoom-context=".ca"${notes ? ' data-zoom-aside=".ca-swipe-notes"' : ""} data-zoom-title="${attr(title ?? names.join(" / "))}">${sides}${shots.length === 2 ? handle : ""}</div>` +
     `${notes && `<div class="ca-swipe-notes">${notes}</div>`}</div>${zoomRuntime(state)}${runtime(state)}`
   );
+}
+
+/**
+ * Draws annotations over any HTML the way a screenshot draws them over its image: hand-drawn marks, numbered notes
+ * under it, side notes with arrows, and zoom. Each annotation's box is a percentage of `body`'s box, and `label` names
+ * the figure for screen readers and the zoomed view. comark-charts draws its marks with it.
+ */
+export async function annotateHtml(
+  body: string,
+  annotations: Annotation[],
+  label: string,
+  state: State,
+  zoomContext?: string,
+): Promise<string> {
+  const shot: Screenshot = { src: label, alt: label, annotations, caption: [] };
+  return `${styles(state)}<div class="ca">${await figure(shot, state, idFor([shot], state), false, body, zoomContext)}</div>${zoomRuntime(state)}${runtime(state)}`;
 }
 
 const screenshot: NodeHandler = async (node, state) => {

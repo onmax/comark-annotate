@@ -2,6 +2,8 @@ import { defineComarkPlugin } from "comark";
 import { check } from "./read.ts";
 
 export type { Mark } from "./marks.ts";
+export { readMark } from "./read.ts";
+export type { Annotation } from "./read.ts";
 
 export type AnnotateMeta = {
   /** One readable sentence per problem, naming its block and the fix. Empty when the document is valid. Other plugins add theirs too. */

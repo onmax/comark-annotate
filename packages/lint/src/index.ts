@@ -510,13 +510,14 @@ function pluginIssues(
   });
 }
 
-// Plugins name their block in prose, such as `compare 2` or `screenshot "before.png"`, so that is what gets searched for.
+// Plugins name their block in prose, such as `compare 2`, `` `::chart` 2 ``, or `screenshot "before.png"`, so that is what
+// gets searched for.
 function place(
   issue: string,
   blocks: Block[],
   locate: ReturnType<typeof locator>,
 ): { line: number; column?: number } {
-  const numbered = /^([a-z][\w-]*) (\d+)\b/.exec(issue);
+  const numbered = /^`?(?:::)?([a-z][\w-]*)`? (\d+)\b/.exec(issue);
   const block =
     numbered &&
     blocks.filter((candidate) => candidate.name === numbered[1])[Number(numbered[2]) - 1];

@@ -36,6 +36,7 @@ include "./x.md": file not found. It resolved to "guide/x.md" under the root; ch
 | Plugin | Reports |
 | --- | --- |
 | [annotate](/annotate/#guides-validation) | Missing or unknown props, marks outside the image, side notes that would overlap, compares whose viewports differ, and diffs that are too long, mix files, or change nothing |
+| [charts](/charts/#guides-validation) | Invalid chart tables and marks |
 | [carousel](/carousel/#guides-validation) | Content outside every `:::slide`, empty carousels, bad `columns`, stray slides, and props bound to render-time data |
 | [embed](/embed/) | Missing or non-https links, links it can't read, cards without a `title`, and a bad `start` |
 | [tabs](/tabs/#guides-validation) | Tabs without a label or with the same label, content outside every tab, anything but code blocks in a code group, empty blocks, and stray `:::tabs-item` |
