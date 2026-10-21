@@ -6,13 +6,6 @@
 }
 
 @font-face {
-  font-family: "Caveat";
-  src: url("/fonts/Caveat-Variable.woff2") format("woff2");
-  font-weight: 400 700;
-  font-display: swap;
-}
-
-@font-face {
   font-family: "Geist Mono";
   src: url("/fonts/GeistMono-Variable.woff2") format("woff2");
   font-weight: 100 900;
@@ -1196,7 +1189,6 @@ blockquote {
 }
 
 .ca {
-  --ca-note-font: "Caveat", cursive;
   --ca-note-size: 1.2rem;
   --ca-label-size: 1.6rem;
   font-size: 0.875rem;
