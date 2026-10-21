@@ -232,13 +232,13 @@ importers:
     devDependencies:
       '@comark/html':
         specifier: 'catalog:'
-        version: 0.7.0(shiki@4.5.0)
+        version: 0.8.1(shiki@4.5.0)
       '@comark/react':
         specifier: 'catalog:'
-        version: 0.7.0(react@19.3.1)(shiki@4.5.0)
+        version: 0.8.1(react@19.3.1)(shiki@4.5.0)
       '@comark/vue':
         specifier: 'catalog:'
-        version: 0.7.0(shiki@4.5.0)(vue@3.5.44(typescript@6.0.3))
+        version: 0.8.1(shiki@4.5.0)(vue@3.5.44(typescript@6.0.3))
       '@types/react':
         specifier: 'catalog:'
         version: 19.3.0
@@ -247,7 +247,7 @@ importers:
         version: 19.3.0(@types/react@19.3.0)
       comark:
         specifier: 'catalog:'
-        version: 0.7.0(shiki@4.5.0)
+        version: 0.8.1(shiki@4.5.0)
       comark-zoom:
         specifier: workspace:*
         version: link:../zoom
