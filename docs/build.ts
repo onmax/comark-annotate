@@ -115,7 +115,10 @@ const sections: Section[] = [
         title: "Guides",
         slugs: ["guide/renderers", "guide/theming", "guide/validation", "guide/agents"],
       },
-      { title: "Recipes", slugs: ["recipes/review", "recipes/zoom", "recipes/carousel"] },
+      {
+        title: "Recipes",
+        slugs: ["recipes/review", "recipes/share", "recipes/zoom", "recipes/carousel"],
+      },
       { title: "Compared", slugs: ["compare/charts"] },
     ],
   },

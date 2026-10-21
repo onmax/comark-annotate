@@ -40,4 +40,4 @@ npx comark-annotate render report.md -o report.html
 
 ## Writing for reviewers
 
-Agents often write these documents as evidence on a pull request. [A review document](/recipes/review/) shows one put together from several plugins.
+Agents often write these documents as evidence on a pull request. [A review document](/recipes/review/) shows one put together from several plugins. [Sharing a review](/recipes/share/) shows how the agent publishes it to Drop, where reviewers comment on the exact spot and the agent reads their comments.
