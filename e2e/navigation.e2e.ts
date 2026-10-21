@@ -15,6 +15,8 @@ test("client navigation preserves the app and reinitializes page scripts", async
   await page.goBack();
   await expect(page).toHaveURL(/\/tabs\/$/);
   expect(
-    await page.evaluate(() => (window as typeof window & { __comarkNavigation?: number }).__comarkNavigation),
+    await page.evaluate(
+      () => (window as typeof window & { __comarkNavigation?: number }).__comarkNavigation,
+    ),
   ).toBe(marker);
 });

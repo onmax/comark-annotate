@@ -25,8 +25,12 @@ async function listPages(): Promise<PageLink[]> {
     .map((item) => {
       if (!item || typeof item !== "object") return null;
       const value = item as { id?: unknown; path?: unknown; data?: { install?: unknown } };
-      const raw = typeof value.id === "string" ? value.id : typeof value.path === "string" ? value.path : "";
-      const normalized = raw.replace(/^\//, "").replace(/\.md$/, "").replace(/\/index$/, "");
+      const raw =
+        typeof value.id === "string" ? value.id : typeof value.path === "string" ? value.path : "";
+      const normalized = raw
+        .replace(/^\//, "")
+        .replace(/\.md$/, "")
+        .replace(/\/index$/, "");
       const slug = normalized === "index" ? "" : normalized;
       const install = typeof value.data?.install === "string" ? value.data.install : "";
       const match = install.match(/(?:^|\s)(comark-[\w-]+)/);
@@ -94,6 +98,7 @@ async function read(slug: string) {
 
 // The index lists every package from its own page's front matter.
 const pluginCards: NodeHandler = async () => {
+  const pages = await listPages();
   const cards = await Promise.all(
     pages
       .filter((page) => page.npm)
