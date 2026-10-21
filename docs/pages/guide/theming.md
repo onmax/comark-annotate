@@ -60,8 +60,8 @@ Some things belong to one plugin, so they have their own variables:
 
 | Plugin | Variables |
 | --- | --- |
-| [annotate](/annotate/#guides-theming) | `--ca-color`, `--ca-solid`, and `--ca-ink` for the default marks, stamps, and stamp numbers; `--ca-red`, `--ca-amber`, `--ca-green`, `--ca-blue`, and `--ca-gray` for the named colors; `--ca-note-font` and `--ca-code-font` |
-| [carousel](/carousel/#guides-theming) | `--cc-gap` between slides, `--cc-surface` behind them |
-| [embed](/embed/#guides-theming) | `--ce-app-height` for CodePen, StackBlitz, and Figma |
-| [github-callouts](/github-callouts/#guides-theming) | `--cgc-note`, `--cgc-tip`, `--cgc-important`, `--cgc-warning`, and `--cgc-caution` |
-| [zoom](/zoom/#guides-theming) | `data-zoom-context`, for items that need styles from their ancestors |
+| [annotate](/annotate/guides/#theming) | `--ca-color`, `--ca-solid`, and `--ca-ink` for the default marks, stamps, and stamp numbers; `--ca-red`, `--ca-amber`, `--ca-green`, `--ca-blue`, and `--ca-gray` for the named colors; `--ca-note-font` and `--ca-code-font` |
+| [carousel](/carousel/guides/#theming) | `--cc-gap` between slides, `--cc-surface` behind them |
+| [embed](/embed/syntax/#theming) | `--ce-app-height` for CodePen, StackBlitz, and Figma |
+| [github-callouts](/github-callouts/syntax/#theming) | `--cgc-note`, `--cgc-tip`, `--cgc-important`, `--cgc-warning`, and `--cgc-caution` |
+| [zoom](/zoom/guides/#theming) | `data-zoom-context`, for items that need styles from their ancestors |
