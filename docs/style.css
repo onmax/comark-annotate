@@ -504,6 +504,7 @@ kbd {
 
 .grid li {
   display: flex;
+  position: relative;
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
@@ -536,6 +537,35 @@ kbd {
 .grid a:focus-visible {
   outline: 2px solid var(--fg);
   outline-offset: -2px;
+}
+
+.grid-copy {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.grid-copy:hover {
+  background: var(--soft);
+  color: var(--fg);
+}
+
+.grid-copy:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: -2px;
+}
+
+.grid-copy.copied {
+  color: #16a34a;
 }
 
 @media (hover: hover) {

@@ -397,7 +397,7 @@ const packageGrid: NodeHandler = () =>
     .filter((section) => section.npm)
     .map(
       (section) =>
-        `<li><a href="${href(section.slug)}">${icon(section.icon, 24)}<strong>${escapeHtml(section.label)}</strong><span>${escapeHtml(section.blurb ?? "")}</span></a></li>`,
+        `<li><a href="${href(section.slug)}">${icon(section.icon, 24)}<strong>${escapeHtml(section.label)}</strong><span>${escapeHtml(section.blurb ?? "")}</span></a><button type="button" class="grid-copy" data-copy="pnpm add ${escapeHtml(section.npm!)}" aria-label="Copy pnpm add ${escapeHtml(section.npm!)}">${copyIcon}</button></li>`,
     )
     .join("")}</ul>`;
 
@@ -561,6 +561,11 @@ for (const box of document.querySelectorAll(".installer")) {
   box.addEventListener("click", e => { const b = e.target.closest("[data-audience],[data-pm]"); if (!b) return; if (b.dataset.audience) audience = b.dataset.audience; if (b.dataset.pm) pm = b.dataset.pm; update() });
   field.addEventListener("click", async () => { await navigator.clipboard.writeText(field.dataset.copy); field.classList.add("copied"); setTimeout(() => field.classList.remove("copied"), 1200) });
 }
+for (const button of document.querySelectorAll(".grid-copy")) button.addEventListener("click", async () => {
+  await navigator.clipboard.writeText(button.dataset.copy);
+  button.classList.add("copied");
+  setTimeout(() => button.classList.remove("copied"), 1200);
+});
 // The index's window types its Markdown once it's half in view, then wipes to the rendered page. A tab chosen first
 // stops it.
 for (const win of document.querySelectorAll(".window")) {
@@ -591,7 +596,7 @@ for (const win of document.querySelectorAll(".window")) {
     if (!win.hasAttribute("data-waiting")) return;
     delete win.dataset.waiting; win.dataset.typing = "";
     timer = setTimeout(() => show(1, true), parseFloat(getComputedStyle(win).getPropertyValue("--typed")) + 900);
-  }, { threshold: 0.5 });
+  }, { rootMargin: "0px 0px 100% 0px", threshold: 0 });
   seen.observe(win);
 }
 
