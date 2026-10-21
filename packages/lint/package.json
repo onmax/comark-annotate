@@ -102,6 +102,9 @@
     },
     "vite-doctor": {
       "optional": true
+    },
+    "comark-embed": {
+      "optional": true
     }
   },
   "engines": {
