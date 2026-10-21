@@ -221,7 +221,7 @@ test("a chart beside a link keeps its own card, light and dark", async ({ page }
   );
   await page.goto("/fixture/", { waitUntil: "domcontentloaded" });
   const figure = page.locator("figure.cch");
-  await expect(page.locator("main a").first()).toHaveCSS("border-top-left-radius", "999px");
+  await expect(page.locator("main a").first()).toHaveCSS("border-top-left-radius", "6px");
   for (const [scheme, background] of [
     ["light", "rgb(255, 255, 255)"],
     ["dark", "rgb(10, 10, 10)"],
