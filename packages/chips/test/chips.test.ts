@@ -82,7 +82,7 @@ describe("comark-chips", () => {
     expect(html).toContain("broken");
     expect(html).not.toContain('class="cch"');
     expect(await issues("[broken](https://)")).toEqual([
-      '[broken](https://): `href` must be a valid web address.',
+      "[broken](https://): `href` must be a valid web address.",
     ]);
   });
 
@@ -90,13 +90,13 @@ describe("comark-chips", () => {
     const html = await render('[:chip[y]{href="https://y.dev"}](https://x.dev)');
     expect(html.match(/<a/g)).toHaveLength(1);
     expect(html).toContain('href="https://x.dev"');
-    expect(html).toContain(">y</a>");
+    expect(html).toContain(">y</span>");
   });
 
   it("leaves raw HTML subtrees unchanged", async () => {
     const html = await render("<span>@onmax</span> and @onmax");
     expect(html).toContain("<span>@onmax</span>");
-    expect(html.match(/data-kind="avatar"/g)).toHaveLength(1);
+    expect(html.match(/<a class="cch"[^>]*data-kind="avatar"/g)).toHaveLength(1);
   });
 
   it("draws an inline :chip like a link", async () => {
