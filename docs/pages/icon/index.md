@@ -27,4 +27,4 @@ Built with :icon{name="logos:vue" label="Vue"} and :icon{name="logos:vitejs" lab
 
 An icon in one color takes the color of the text around it and follows its theme; one with colors of its own, such as a logo, keeps them. Icons are resolved while parsing and written into the page as CSS images, so the page asks no server for them and they show without a script.
 
-The resolver is public, so other plugins take the same options and draw their icons with it.
+The resolver is public, so other plugins take the same options and draw their icons with it. [comark-tabs](/tabs/guides/#icons) uses it for tab icons.
