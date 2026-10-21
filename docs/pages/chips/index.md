@@ -14,7 +14,7 @@ Built with [Vite](https://vite.dev), [Vue](https://vuejs.org), and [Nuxt](https:
 
 :::example{label="Mentions"}
 ```md
-Thanks @antfu for the idea, and @onmax for [the plugins](https://github.com/onmax/comark-plugins).
+@posva maintains [Vue Router](https://github.com/vuejs/router), and @danielroe leads [Nuxt](https://github.com/nuxt/nuxt).
 ```
 :::
 
