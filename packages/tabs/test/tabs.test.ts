@@ -38,6 +38,18 @@ describe("comark-tabs", () => {
     expect(html.match(/<script>/g)).toHaveLength(1);
   });
 
+  it("inlines styles a site can theme with --ct-* variables, with today's look as the fallback", async () => {
+    const style = /<style data-comark-tabs>(.*?)<\/style>/s.exec(await render(os))?.[1];
+    for (const variable of [
+      "background:var(--ct-surface,color-mix(",
+      "background:var(--ct-active,var(--_comark-background))",
+      "color:var(--ct-active-text,var(--_comark-foreground))",
+      "margin-top:var(--ct-gap,.75rem)",
+      "font:500 var(--ct-font-size,.8125rem)/",
+    ])
+      expect(style).toContain(variable);
+  });
+
   it("numbers the ids of every block in a document, the same on every render, and inlines the script once", async () => {
     const html = await markup(`${os}\n\n${os}`);
     expect(html).toMatch(/id="ct-[a-z0-9]+-1-tab-1"/);

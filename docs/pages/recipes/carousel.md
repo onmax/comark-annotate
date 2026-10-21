@@ -49,4 +49,4 @@ Use a carousel for a sequence: the steps of a flow, or one view at several sizes
 ::
 ```
 
-Each slide sits on a soft panel as tall as the tallest one, so screenshots of different heights line up. Set `--cc-surface: transparent` to drop the panel, as [Theming](/guide/theming/#each-plugins-own) shows.
+Each slide sits on a soft panel as tall as the tallest one, so screenshots of different heights line up. Set `--cc-surface: transparent` and `--cc-padding: 0` to drop the panel, as the carousel's [Theming](/carousel/theming/) page shows.

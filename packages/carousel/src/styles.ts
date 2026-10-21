@@ -2,22 +2,22 @@ import { theme } from "comark-zoom/client";
 
 /**
  * The carousel styles. The script adds them to the page once. Theme the controls with the shared `--comark-*` tokens,
- * override `--cc-gap` for the space between slides and `--cc-surface` for the panel behind each one. The rules sit in
+ * and set `--cc-gap`, `--cc-surface`, `--cc-padding`, and `--cc-button-size` on `.cc` or any ancestor. The rules sit in
  * the `comark` layer, so any unlayered rule of the host's wins.
  */
 export const css = `@layer comark{${[
   theme(".cc"),
-  ":where(.cc){--cc-columns:1;--cc-gap:1rem;--cc-surface:color-mix(in srgb,var(--_comark-foreground) 4%,transparent)}",
+  ":where(.cc){--cc-columns:1}",
   ".cc{position:relative;margin:1.5rem 0;container-type:inline-size}",
   ".cc[data-carousel-columns='2']{--cc-columns:2}",
   ".cc[data-carousel-columns='3']{--cc-columns:3}",
-  ".cc-track{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - (var(--cc-columns) - 1) * var(--cc-gap)) / var(--cc-columns));gap:var(--cc-gap);overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory}",
+  ".cc-track{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - (var(--cc-columns) - 1) * var(--cc-gap,1rem)) / var(--cc-columns));gap:var(--cc-gap,1rem);overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory}",
   // Without the script there are no arrows, so the scrollbar is how a mouse reaches the other slides.
   "[data-carousel-ready] .cc-track{scrollbar-width:none}",
   "[data-carousel-ready] .cc-track::-webkit-scrollbar{display:none}",
   // Every slide is a panel as tall as the tallest one, with its content in the middle, so a short screenshot next to
   // a tall one sits on a stage rather than above a gap. Only slides in a track: the zoomed copy stays bare.
-  ".cc-track>.cc-slide{min-width:0;scroll-snap-align:start;align-content:center;padding:1rem;border-radius:var(--_comark-radius);background:var(--cc-surface)}",
+  ".cc-track>.cc-slide{min-width:0;scroll-snap-align:start;align-content:center;padding:var(--cc-padding,1rem);border-radius:var(--_comark-radius);background:var(--cc-surface,color-mix(in srgb,var(--_comark-foreground) 4%,transparent))}",
   ".cc-slide>:first-child{margin-top:0}",
   ".cc-slide>:last-child{margin-bottom:0}",
   ".cc-slide img{max-width:100%;height:auto}",
@@ -27,7 +27,7 @@ export const css = `@layer comark{${[
   // The track clips anything drawn outside a slide, so the focus ring of a zoomable item sits inside its edge.
   ".cc-track [data-zoom]:focus-visible{outline-offset:-2px}",
   // Several columns need room; a narrow page shows one slide at a time, with less padding to spare its width.
-  "@container (max-width:36rem){.cc-track{grid-auto-columns:100%}.cc-track>.cc-slide{padding:.5rem}}",
+  "@container (max-width:36rem){.cc-track{grid-auto-columns:100%}.cc-track>.cc-slide{padding:calc(var(--cc-padding,1rem) / 2)}}",
   // One quiet row under the slides, as in Embla's examples: where you are on the left, shadcn's outline icon buttons
   // on the right. It needs no gutter beside the slides, so it stays the same on a phone.
   ".cc-controls{display:none;align-items:center;justify-content:space-between;gap:.5rem;margin-top:.75rem}",
@@ -36,7 +36,7 @@ export const css = `@layer comark{${[
   "@container (min-width:36.01rem){.cc[data-carousel-fits] .cc-controls{display:none!important}}",
   ".cc-count{color:var(--_comark-muted);font-size:.875rem;line-height:1.25rem;font-variant-numeric:tabular-nums}",
   ".cc-steps{display:flex;gap:.5rem}",
-  ".cc-step{display:inline-grid;place-items:center;width:2rem;height:2rem;padding:0;border:1px solid var(--_comark-border);border-radius:999px;background:var(--_comark-background);color:var(--_comark-foreground);box-shadow:0 1px 2px rgb(0 0 0/.05);cursor:pointer;touch-action:manipulation;transition:background .15s,opacity .15s}",
+  ".cc-step{display:inline-grid;place-items:center;width:var(--cc-button-size,2rem);height:var(--cc-button-size,2rem);padding:0;border:1px solid var(--_comark-border);border-radius:999px;background:var(--_comark-background);color:var(--_comark-foreground);box-shadow:0 1px 2px rgb(0 0 0/.05);cursor:pointer;touch-action:manipulation;transition:background .15s,opacity .15s}",
   ".cc-step:hover:not([aria-disabled='true']){background:var(--_comark-accent)}",
   ".cc-step:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--_comark-ring) 50%,transparent)}",
   // Not `disabled`: a button that disables under focus drops focus to the page, and the arrow keys with it.
@@ -44,5 +44,5 @@ export const css = `@layer comark{${[
   ".cc-step svg{width:1rem;height:1rem}",
   ".cc:dir(rtl) .cc-step svg{scale:-1 1}",
   // A finger needs a bigger target than a pointer.
-  "@media (pointer:coarse){.cc-step{width:2.5rem;height:2.5rem}}",
+  "@media (pointer:coarse){.cc-step{width:max(var(--cc-button-size,2rem),2.5rem);height:max(var(--cc-button-size,2rem),2.5rem)}}",
 ].join("")}}`;
