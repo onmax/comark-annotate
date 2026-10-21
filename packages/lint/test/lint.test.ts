@@ -7,7 +7,7 @@ import annotate, { components } from "comark-annotate/html";
 import charts, { components as chartComponents } from "comark-charts/html";
 import { describe, expect, it } from "vite-plus/test";
 import { runProjectFixture } from "vite-doctor/testkit";
-import { lint } from "../src/index.ts";
+import { lint, resolveConfig } from "../src/index.ts";
 import comark from "../src/doctor.ts";
 
 const options = { plugins: [annotate()], components };
@@ -104,6 +104,12 @@ describe("comark/unknown-component", () => {
 
   it("takes a list of names as well as a map", async () => {
     expect(await lint("::tabs\n::", { components: ["tabs"] })).toEqual([]);
+  });
+
+  it("knows the tabs and code groups of an installed comark-tabs", async () => {
+    const markdown =
+      '::tabs\n:::tabs-item{label="A"}\nOne.\n:::\n::\n\n::code-group\n```sh [pnpm]\npnpm add x\n```\n::\n';
+    expect(await lint(markdown, await resolveConfig())).toEqual([]);
   });
 });
 
