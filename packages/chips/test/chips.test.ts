@@ -79,7 +79,7 @@ describe("comark-chips", () => {
 
   it("preserves malformed web destinations instead of throwing", async () => {
     const html = await render("[broken](https://)");
-    expect(html).toContain("broken");
+    expect(html).toContain('<a href="https://">broken</a>');
     expect(html).not.toContain('class="cch"');
     expect(await issues("[broken](https://)")).toEqual([
       "[broken](https://): `href` must be a valid web address.",

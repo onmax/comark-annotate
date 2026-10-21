@@ -155,7 +155,6 @@ export default defineComarkPlugin<ChipsOptions | undefined, ChipsMeta>((options)
           host = new URL(href).host;
         } catch {
           issues.push(`${where}: \`href\` must be a valid web address.`);
-          node.splice(0, 2, "span", {});
           return [];
         }
         const image = account ? accountImage(account) : custom || siteImage(host);
