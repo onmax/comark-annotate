@@ -87,7 +87,3 @@ The slowest build without it.
 ::
 
 The chart's source is a plain Markdown table, so anyone reading the Markdown, a person or an agent, reads the numbers rather than a chart spec. The page shows the chart with the same table under it, folded into **Data**, so a tool that turns the page into text keeps the numbers too. Without the plugin, the table still renders as a table.
-
-## Credits
-
-[Flint](https://github.com/microsoft/flint-chart), by Microsoft Research, chooses the axes, scales, labels, and layout from what the data means, and its New York Times theme is the base of the look. [Vega](https://vega.github.io) draws the SVG. [Comark](https://comark.dev), by the [Comark team](https://github.com/comarkdown), parses the Markdown and renders the HTML.

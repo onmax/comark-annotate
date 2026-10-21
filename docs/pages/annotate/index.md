@@ -122,7 +122,3 @@ Notes without a `side` stay in the list. **Apply** waits until every filter is s
 ::
 
 Hover a mark or a note to highlight the other, and click a screenshot to zoom it. To share one, use its Copy button or press Ctrl+C (⌘C on a Mac) while it's focused; you get a PNG of the screenshot with its marks and notes. The browser's own Copy Image on the screenshot copies the same PNG once the pointer has been over it. If the image comes from another origin, its server has to send CORS headers. In an iframe, the frame needs `allow="clipboard-write"`. A comparison shows its screenshots side by side, or one at a time on a narrow page, and they zoom as one gallery; a slider lays one over the other, and you drag the divider between them. The page reads the same without a script; [zoom](/zoom/) and [carousel](/carousel/) come with the package. To page through screenshots spread across a page, or show a flow one step at a time, see the [recipes](/recipes/zoom/).
-
-## Credits
-
-The hand-drawn marks come from [AnnotationKit](https://annotationkit.vercel.app).

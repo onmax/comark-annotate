@@ -78,6 +78,7 @@ const ownIcons = {
 const lucideNames = [
   "arrow-left",
   "arrow-right",
+  "arrow-up-right",
   "book-open",
   "chart-column",
   "file-diff",
@@ -109,19 +110,88 @@ const siteIcon = (name: IconName, size = 18) => {
 // pages/ yet, such as one still on a branch, is left out.
 const packages = (
   [
-    { slug: "annotate", group: "Review blocks", icon: "scribble-loop" },
-    { slug: "charts", group: "Review blocks", icon: "chart-column" },
-    { slug: "diff", group: "Review blocks", icon: "file-diff" },
-    { slug: "embed", group: "Review blocks", icon: "tv-minimal-play" },
-    { slug: "github-callouts", group: "Review blocks", icon: "message-square-warning" },
-    { slug: "icon", group: "Review blocks", icon: "shapes" },
-    { slug: "zoom", group: "Page behavior", icon: "zoom-in" },
-    { slug: "carousel", group: "Page behavior", icon: "gallery-horizontal-end" },
-    { slug: "tabs", group: "Page behavior", icon: "panels-top-left" },
-    { slug: "code", group: "Page behavior", icon: "square-code" },
-    { slug: "include", group: "Authoring tools", icon: "file-input" },
-    { slug: "lint", group: "Authoring tools", icon: "list-checks" },
-  ] satisfies { slug: string; group: string; icon: IconName }[]
+    {
+      slug: "annotate",
+      group: "Review blocks",
+      icon: "scribble-loop",
+      blurb: "Marks and notes on screenshots",
+      credits: 'Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.',
+    },
+    {
+      slug: "charts",
+      group: "Review blocks",
+      icon: "chart-column",
+      blurb: "Charts from a Markdown table",
+      credits:
+        'Laid out by Microsoft Research\'s <a href="https://github.com/microsoft/flint-chart">Flint</a> on its New York Times theme, and drawn by <a href="https://vega.github.io">Vega</a>.',
+    },
+    {
+      slug: "diff",
+      group: "Review blocks",
+      icon: "file-diff",
+      blurb: "Compare two code fences",
+    },
+    {
+      slug: "embed",
+      group: "Review blocks",
+      icon: "tv-minimal-play",
+      blurb: "Videos, audio, and live code",
+    },
+    {
+      slug: "github-callouts",
+      group: "Review blocks",
+      icon: "message-square-warning",
+      blurb: "GitHub's alerts as callouts",
+      credits:
+        'Syntax from <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts">GitHub\'s alerts</a>.',
+    },
+    {
+      slug: "icon",
+      group: "Review blocks",
+      icon: "shapes",
+      blurb: "Iconify icons in Markdown",
+    },
+    {
+      slug: "zoom",
+      group: "Page behavior",
+      icon: "zoom-in",
+      blurb: "Zoom images and any block",
+      credits:
+        'Modeled on <a href="https://github.com/francoischalifour/medium-zoom">medium-zoom</a>.',
+    },
+    {
+      slug: "carousel",
+      group: "Page behavior",
+      icon: "gallery-horizontal-end",
+      blurb: "Slides of any content",
+    },
+    {
+      slug: "tabs",
+      group: "Page behavior",
+      icon: "panels-top-left",
+      blurb: "Tabs and code groups",
+      credits: 'Syntax from <a href="https://ui.nuxt.com">Nuxt UI</a>\'s tabs and code groups.',
+    },
+    {
+      slug: "code",
+      group: "Page behavior",
+      icon: "panels-top-left",
+      blurb: "Copy and wrap buttons on code",
+    },
+    {
+      slug: "include",
+      group: "Authoring tools",
+      icon: "file-input",
+      blurb: "Partials and snippets from files",
+      credits: 'Arguments from <a href="https://github.com/unjs/automd">automd</a>.',
+    },
+    {
+      slug: "lint",
+      group: "Authoring tools",
+      icon: "list-checks",
+      blurb: "Catches what Comark forgives",
+    },
+  ] satisfies { slug: string; group: string; icon: IconName; blurb: string; credits?: string }[]
 ).filter((pkg) => existsSync(new URL(`pages/${pkg.slug}/index.md`, root)));
 const fileOf = (slug: string) =>
   existsSync(new URL(`pages/${slug || "index"}.md`, root))
@@ -133,6 +203,10 @@ type Section = {
   group: string;
   icon: IconName;
   npm?: string;
+  // What the index's grid says under the package's name.
+  blurb?: string;
+  // What the footer credits besides Comark, as HTML.
+  credits?: string;
   lists: { title?: string; slugs: string[] }[];
 };
 const sections: Section[] = [
@@ -141,8 +215,8 @@ const sections: Section[] = [
     label: "Docs",
     group: "Comark plugins",
     icon: "book-open",
+    // The index is the landing page, outside every section's column.
     lists: [
-      { slugs: [""] },
       {
         title: "Guides",
         slugs: ["guide/renderers", "guide/theming", "guide/validation", "guide/agents"],
@@ -224,11 +298,13 @@ const examples: NodeHandler = async ([, , ...children], state) => {
 const matrix: NodeHandler = async ([, , ...children], state) =>
   `<div class="matrix">${(await Promise.all(children.map((child) => state.one(child, state)))).join("")}</div>`;
 
-// The index's window: its Markdown, typed out a line at a time, then the page the plugins render from it. Each line
-// is revealed in as many steps as it has characters, all in about two seconds; the script plays it and switches tabs.
+// The index's window, under the heading and text before it: its Markdown, typed out a line at a time, then the page
+// the plugins render from it. Each line is revealed in as many steps as it has characters, all in about two seconds;
+// the script plays it once the window scrolls into view, and switches tabs.
 const hero: NodeHandler = async ([, , ...children], state) => {
   const pre = children.find(isPre);
   if (!pre) throw new Error("The hero needs a fenced code block.");
+  const intro = children.filter((child) => child !== pre);
   const source = textContent(pre).trimEnd();
   const page = await parseMarkdown(source, { plugins: contentPlugins() });
   if (page.meta.issues.length) throw new Error(`The hero:\n${page.meta.issues.join("\n")}`);
@@ -245,12 +321,13 @@ const hero: NodeHandler = async ([, , ...children], state) => {
       return `<span class="line" style="${style}">`;
     });
   return (
-    `<div class="window" style="--typed:${Math.round(at)}ms"><div class="window-bar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span>` +
+    `<section class="showcase"><div class="split">${await state.flow(["div", {}, ...intro], state)}</div>` +
+    `<div class="window" style="--typed:${Math.round(at)}ms"><div class="window-bar">` +
     `<div class="window-tabs" role="tablist" aria-label="The example"><button type="button" role="tab" id="window-source-tab" aria-controls="window-source" aria-selected="true">review.md</button>` +
     `<button type="button" role="tab" id="window-page-tab" aria-controls="window-page" aria-selected="false" tabindex="-1">Rendered</button></div>` +
     `<a class="window-play" href="${escapeHtml(playLink(source))}">${siteIcon("flask-conical", 13)}<span>Open in playground</span></a></div>` +
     `<div class="window-body"><div class="window-source" id="window-source" role="tabpanel" aria-labelledby="window-source-tab" data-active>${code}</div>` +
-    `<div class="window-page" id="window-page" role="tabpanel" aria-labelledby="window-page-tab" inert>${await state.flow(["div", {}, ...page.nodes], state)}</div></div></div>`
+    `<div class="window-page" id="window-page" role="tabpanel" aria-labelledby="window-page-tab" inert>${await state.flow(["div", {}, ...page.nodes], state)}</div></div></div></section>`
   );
 };
 
@@ -264,46 +341,45 @@ const toc = (document: { nodes: Node[] }) =>
     )
     .join("");
 
+async function parsePage(slug: string, section: Section) {
+  const file = fileOf(slug);
+  const document = await parseMarkdown(await readFile(new URL(`pages/${file}`, root), "utf8"), {
+    plugins,
+  });
+  if (document.meta.issues.length)
+    throw new Error(`docs/pages/${file}:\n${document.meta.issues.join("\n")}`);
+  const [title, description, tagline, install, headline] = [
+    "title",
+    "description",
+    "tagline",
+    "install",
+    "headline",
+  ].map((key) => str(document.frontmatter[key]));
+  const skill =
+    section.npm &&
+    existsSync(new URL(`../packages/${section.slug}/skills/${section.npm}/SKILL.md`, root))
+      ? section.npm
+      : "";
+  return {
+    slug,
+    section,
+    document,
+    title,
+    description,
+    tagline: tagline || description,
+    install,
+    headline,
+    skill,
+    label: slug === section.slug ? "Overview" : title,
+    toc: toc(document),
+  };
+}
 const parsed = await Promise.all(
   sections.flatMap((section) =>
-    section.lists.flatMap((list) =>
-      list.slugs.map(async (slug) => {
-        const file = fileOf(slug);
-        const document = await parseMarkdown(
-          await readFile(new URL(`pages/${file}`, root), "utf8"),
-          { plugins },
-        );
-        if (document.meta.issues.length)
-          throw new Error(`docs/pages/${file}:\n${document.meta.issues.join("\n")}`);
-        const [title, description, tagline, install, headline] = [
-          "title",
-          "description",
-          "tagline",
-          "install",
-          "headline",
-        ].map((key) => str(document.frontmatter[key]));
-        const skill =
-          section.npm &&
-          existsSync(new URL(`../packages/${section.slug}/skills/${section.npm}/SKILL.md`, root))
-            ? section.npm
-            : "";
-        return {
-          slug,
-          section,
-          document,
-          title,
-          description,
-          tagline: tagline || description,
-          install,
-          headline,
-          skill,
-          label: slug === section.slug ? "Overview" : title,
-          toc: toc(document),
-        };
-      }),
-    ),
+    section.lists.flatMap((list) => list.slugs.map((slug) => parsePage(slug, section))),
   ),
 );
+const landing = await parsePage("", sections[0]);
 type Page = (typeof parsed)[number];
 const pagesOf = (section: Section) =>
   section.lists.map((list) => ({
@@ -352,36 +428,44 @@ const thumbnails = new Map(
   ),
 );
 
-// The index lists a group's packages as cards, or a list of the docs' pages as rows, from their own front matter. A
-// card's link covers it, and its copy button sits above the link.
-const cards: NodeHandler = ([, attrs]) => {
-  const group = str(attrs.group);
-  const found = sections
-    .filter((section) => section.group === group)
-    .flatMap((section) => parsed.filter((page) => page.slug === section.slug));
-  if (!found.length) {
-    const pages = pagesOf(sections[0]).find((list) => list.title === group)?.pages ?? [];
-    return `<div class="rows">${pages
-      .map(
-        (page) =>
-          `<a class="row" href="${href(page.slug)}"><strong>${escapeHtml(page.title)}</strong><span>${escapeHtml(page.description)}</span>${siteIcon("arrow-right", 14)}</a>`,
-      )
-      .join("")}</div>`;
-  }
-  return `<div class="cards">${found
-    .map((page) => {
-      const install = page.install.replace(/^pnpm add (comark @comark\/html )?/, "pnpm add ");
-      return (
-        `<div class="card"><span class="card-icon">${siteIcon(page.section.icon as IconName)}</span>` +
-        `<a class="card-link" href="${href(page.slug)}">${escapeHtml(page.title)}</a><p>${escapeHtml(page.description)}</p>` +
-        `<div class="card-install"><code title="${escapeHtml(install)}">${escapeHtml(install)}</code>` +
-        `<button type="button" class="card-copy" data-copy="${escapeHtml(install)}" aria-label="Copy ${escapeHtml(install)}">${copyIcon}${checkIcon}</button></div></div>`
-      );
-    })
-    .join("")}</div>`;
+// The index's grid: one tile per package, its icon, name, and what it does.
+const packageGrid: NodeHandler = () =>
+  `<ul class="grid" aria-label="Packages">${sections
+    .filter((section) => section.npm)
+    .map(
+      (section) =>
+        `<li><a href="${href(section.slug)}">${siteIcon(section.icon, 24)}<strong>${escapeHtml(section.label)}</strong><span>${escapeHtml(section.blurb ?? "")}</span></a><button type="button" class="grid-copy" data-copy="pnpm add ${escapeHtml(section.npm!)}" aria-label="Copy pnpm add ${escapeHtml(section.npm!)}">${copyIcon}</button></li>`,
+    )
+    .join("")}</ul>`;
+
+// The index's band for Drop: its pitch, and the list in it as numbered steps beside it.
+const drop: NodeHandler = async ([, , ...children], state) => {
+  const steps = children.filter((child) => isElement(child) && child[0] === "ol");
+  const pitch = children.filter((child) => !steps.includes(child));
+  return (
+    `<section class="drop"><div class="drop-pitch"><img src="/drop.svg" alt="" width="36" height="36">${await state.flow(["div", {}, ...pitch], state)}` +
+    `<div class="actions"><a class="button primary" href="https://drop.vitehub.dev">Try Drop${siteIcon("arrow-up-right", 15)}</a><a class="button" href="/recipes/share/">Read the recipe</a></div></div>` +
+    `${(await Promise.all(steps.map((step) => state.one(step, state)))).join("")}</section>`
+  );
 };
 
 const github = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>`;
+const starIcon = `<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>`;
+// The repository's stars, read once per build. Offline or rate-limited, the button just says GitHub.
+const stars = await fetch("https://api.github.com/repos/onmax/comark-plugins", {
+  headers: { accept: "application/vnd.github+json" },
+  signal: AbortSignal.timeout(5000),
+})
+  .then((response) =>
+    response.ok
+      ? // SAFETY: GitHub's repository endpoint answers with an object that has stargazers_count.
+        (response.json() as Promise<{ stargazers_count?: number }>)
+      : undefined,
+  )
+  .then((repo) => repo?.stargazers_count)
+  .catch(() => undefined);
+// GitHub, as on drop.vitehub.dev, with the stars after a divider.
+const githubLink = `<a class="github" href="https://github.com/onmax/comark-plugins" aria-label="comark-plugins on GitHub${stars === undefined ? "" : `, ${stars} stars`}">${github}<span class="github-label">GitHub</span>${stars === undefined ? "" : `<span class="github-stars">${starIcon}${new Intl.NumberFormat("en", { notation: "compact" }).format(stars)}</span>`}</a>`;
 const userIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg>`;
 const botIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 8V4H8M4 8h16v12H4zM2 14h2M20 14h2M15 13v2M9 13v2"/></svg>`;
 const copyIcon = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 8h12v12H8zM16 8V4H4v12h4"/></svg>`;
@@ -411,7 +495,7 @@ const rail = (current: Section) =>
   `<nav class="rail" aria-label="Sections">${sections
     .map(
       (section, i) =>
-        `${i && section.group !== sections[i - 1].group ? "<hr>" : ""}<a href="${href(section.slug)}"${section === current ? ' aria-current="true"' : ""}>${siteIcon(section.icon)}<span class="rail-label">${escapeHtml(section.label)}</span></a>`,
+        `${i && section.group !== sections[i - 1].group ? "<hr>" : ""}<a href="${href(section.lists[0]?.slugs[0] ?? section.slug)}"${section === current ? ' aria-current="true"' : ""}>${siteIcon(section.icon)}<span class="rail-label">${escapeHtml(section.label)}</span></a>`,
     )
     .join(
       "",
@@ -443,7 +527,7 @@ const column = (section: Section, current: string) => {
         }));
   // A package with examples opens its first one in the playground.
   const preset = presets.find((preset) => preset.group === section.label);
-  return `<nav class="pages" aria-label="${escapeHtml(section.label)}"><div class="section-head">${siteIcon(section.icon)}<span><small>${escapeHtml(section.group)}</small><strong${section.npm ? ' class="mono"' : ""}>${escapeHtml(section.label)}</strong></span></div>${lists
+  return `<nav class="pages" aria-label="${escapeHtml(section.label)}"><p class="pages-title">${escapeHtml(section.npm ?? section.label)}</p>${lists
     .map(
       (list) =>
         `${list.title ? `<p class="nav-group">${list.icon ? siteIcon(list.icon, 14) : ""}${escapeHtml(list.title)}</p>` : ""}${list.links.join("")}`,
@@ -469,7 +553,8 @@ const npmx = `<svg viewBox="0 0 153 153" width="16" height="16" aria-hidden="tru
 // npmx shows a page's package, or every package of the project on a page about all of them.
 const npmxLink = (npm?: string) =>
   `<a class="npmx" href="https://npmx.dev/${npm ? `package/${npm}` : "~onmax_"}" title="${npm ? `${npm} on npmx` : "Every package on npmx"}">${npmx}<span>${npm || "npmx"}</span></a>`;
-const logo = `<span class="logo" aria-hidden="true">1</span>`;
+// Markdown's # in a hand-drawn loop, the mark comark-annotate draws around what a reviewer should look at.
+const logo = `<svg class="logo" viewBox="0 0 32 32" width="24" height="24" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="currentColor" stroke-width="2.6" d="M13.6 9.5 11.8 22.5M20.2 9.5 18.4 22.5M9.6 13.6H23.2M8.8 18.4H22.4"/><path stroke="#e5484d" stroke-width="2.2" d="M9.3 7.3C15.3 3.7 27.1 4.5 28.7 11.5 30.4 19.1 22 26.7 12.8 27.2 5.9 27.6 2 23.5 3.5 18.1 4.8 13.3 11.1 9.7 18.1 9.6"/></g></svg>`;
 const menuIcon = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>`;
 
 // The example tabs, the Preview/Code switch, the install command's copy button, and the active sidebar link. Without it the page still reads top to bottom.
@@ -513,15 +598,19 @@ for (const box of document.querySelectorAll(".installer")) {
   box.addEventListener("click", e => { const b = e.target.closest("[data-audience],[data-pm]"); if (!b) return; if (b.dataset.audience) audience = b.dataset.audience; if (b.dataset.pm) pm = b.dataset.pm; update() });
   field.addEventListener("click", async () => { await navigator.clipboard.writeText(field.dataset.copy); field.classList.add("copied"); setTimeout(() => field.classList.remove("copied"), 1200) });
 }
-for (const b of document.querySelectorAll(".card-copy")) b.addEventListener("click", async () => {
-  await navigator.clipboard.writeText(b.dataset.copy); b.classList.add("copied"); setTimeout(() => b.classList.remove("copied"), 1200);
+for (const button of document.querySelectorAll(".grid-copy")) button.addEventListener("click", async () => {
+  await navigator.clipboard.writeText(button.dataset.copy);
+  button.classList.add("copied");
+  setTimeout(() => button.classList.remove("copied"), 1200);
 });
+// The index's window types its Markdown once it's half in view, then wipes to the rendered page. A tab chosen first
+// stops it.
 for (const win of document.querySelectorAll(".window")) {
   const tabs = [...win.querySelectorAll("[role=tab]")], panels = [...win.querySelectorAll("[role=tabpanel]")];
   const place = indicate(win.querySelector(".window-tabs"), "[aria-selected=true]");
   let timer, transition = 0;
   const show = (i, wipe) => {
-    clearTimeout(timer); delete win.dataset.typing;
+    clearTimeout(timer); delete win.dataset.typing; delete win.dataset.waiting;
     if (tabs[i].getAttribute("aria-selected") === "true") return;
     const currentTransition = ++transition;
     for (const [j, t] of tabs.entries()) { t.setAttribute("aria-selected", j === i); t.tabIndex = j === i ? 0 : -1 }
@@ -532,8 +621,20 @@ for (const win of document.querySelectorAll(".window")) {
     place();
   };
   win.querySelector(".window-tabs").addEventListener("click", e => { const t = e.target.closest("[role=tab]"); if (t) show(tabs.indexOf(t), true) });
-  win.querySelector(".window-tabs").addEventListener("keydown", e => { if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return; const i = tabs.indexOf(e.target) === 0 ? 1 : 0; show(i, true); tabs[i].focus() });
-  if (reduce.matches) show(1); else { win.dataset.typing = ""; timer = setTimeout(() => show(1, true), parseFloat(getComputedStyle(win).getPropertyValue("--typed")) + 900) }
+  win.querySelector(".window-tabs").addEventListener("keydown", e => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    const i = tabs.indexOf(e.target) === 0 ? 1 : 0; show(i, true); tabs[i].focus();
+  });
+  if (reduce.matches) { show(1); continue }
+  win.dataset.waiting = "";
+  const seen = new IntersectionObserver(([e]) => {
+    if (!e.isIntersecting) return;
+    seen.disconnect();
+    if (!win.hasAttribute("data-waiting")) return;
+    delete win.dataset.waiting; win.dataset.typing = "";
+    timer = setTimeout(() => show(1, true), parseFloat(getComputedStyle(win).getPropertyValue("--typed")) + 900);
+  }, { rootMargin: "0px 0px 100% 0px", threshold: 0 });
+  seen.observe(win);
 }
 
 const links = [...document.querySelectorAll(".toc a")];
@@ -552,12 +653,13 @@ for (const rail of document.querySelectorAll(".sidebar .rail")) {
   rail.addEventListener("focusout", e => { if (!rail.contains(e.relatedTarget)) delete rail.dataset.dismissed });
   rail.addEventListener("pointerleave", () => delete rail.dataset.dismissed);
 }
-const open = document.querySelector(".search-open"), dialog = document.querySelector("dialog.search");
+// The header's field on wide pages, and the menu's on narrow ones.
+const opens = document.querySelectorAll(".search-open"), menu = document.querySelector(".menu"), dialog = document.querySelector("dialog.search");
 const input = dialog.querySelector("input"), list = dialog.querySelector("[role=listbox]"), empty = dialog.querySelector(".search-empty");
 let entries, results = [], active = 0;
 const load = () => entries ??= fetch("/search.json").then(r => r.json());
-open.hidden = false;
-if (/Mac|iP(hone|ad)/.test(navigator.platform)) open.querySelector("kbd").textContent = "⌘K";
+for (const open of opens) open.hidden = false;
+if (/Mac|iP(hone|ad)/.test(navigator.platform)) document.querySelector(".search-open kbd").textContent = "⌘K";
 const select = i => {
   active = i;
   for (const [j, a] of [...list.children].entries()) a.setAttribute("aria-selected", j === i);
@@ -581,10 +683,17 @@ const update = async () => {
   // Keep the combobox state synchronized when the dialog closes without another search.
   select(0);
 };
-const show = () => { dialog.showModal(); input.select(); update() };
-open.addEventListener("click", show);
-dialog.addEventListener("close", () => input.setAttribute("aria-expanded", "false"));
-open.addEventListener("pointerenter", load, { once: true });
+let restoreMenuFocus = false;
+const show = trigger => {
+  restoreMenuFocus = trigger?.classList.contains("menu-search") ?? false;
+  menu.open = false; dialog.showModal(); input.select(); update()
+};
+for (const open of opens) { open.addEventListener("click", () => show(open)); open.addEventListener("pointerenter", load, { once: true }) }
+dialog.addEventListener("close", () => {
+  input.setAttribute("aria-expanded", "false");
+  if (restoreMenuFocus) { menu.querySelector("summary")?.focus(); restoreMenuFocus = false }
+});
+dialog.querySelector(".search-close").addEventListener("click", () => dialog.close());
 addEventListener("keydown", e => {
   const typing = e.target.closest("input, textarea, select, [contenteditable]");
   if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing)) { e.preventDefault(); if (dialog.open) dialog.close(); else show() }
@@ -600,7 +709,7 @@ dialog.addEventListener("click", e => { if (e.target === dialog) dialog.close() 
 `;
 // One entry per page and per heading: its title, where it sits, and its link.
 const searchIndex = [
-  ...parsed.flatMap((page) => {
+  ...[landing, ...parsed].flatMap((page) => {
     const where =
       page.section.slug === page.slug
         ? page.section.label
@@ -691,7 +800,8 @@ await writeFile(
   }),
 );
 
-// The page around the content: header, rail, the section's column, and a menu that holds both on narrow screens.
+// The page around the content: header, rail, the section's column, and a menu that holds both on narrow screens. The
+// landing page has no sidebar, so its header links to the docs and the playground instead.
 function shell(options: {
   slug: string;
   section: Section;
@@ -701,6 +811,7 @@ function shell(options: {
   body: string;
   // The package the npmx link opens; the section's by default.
   npm?: string;
+  landing?: boolean;
 }) {
   const { slug, section } = options;
   const npm = options.npm ?? section.npm;
@@ -721,30 +832,50 @@ function shell(options: {
 </head>
 <body>
 <header class="top">
-<a class="name" href="/">${logo}comark plugins</a>
+<div class="top-start"><a class="name" href="/">${logo}comark plugins</a>${options.landing ? `<nav class="top-links" aria-label="Site"><a href="/guide/renderers/">Docs</a><a href="/play/">Playground</a><a href="https://drop.vitehub.dev">Drop</a></nav>` : ""}</div>
 <button type="button" class="search-open" aria-haspopup="dialog" hidden>${siteIcon("search", 15)}<span>Search docs</span><kbd>Ctrl K</kbd></button>
 <div class="top-end">
-<nav>${npmxLink(npm)}<a class="icon" href="https://github.com/onmax/comark-plugins" aria-label="comark-plugins on GitHub" title="GitHub">${github}</a></nav>
-<details class="menu"><summary aria-label="Menu" title="Menu">${menuIcon}</summary><div class="menu-panel">${nav}</div></details>
+<nav>${npmxLink(npm)}${githubLink}</nav>
+<details class="menu"><summary aria-label="Menu" title="Menu">${menuIcon}</summary><div class="menu-panel"><button type="button" class="search-open menu-search" aria-haspopup="dialog" hidden>${siteIcon("search", 15)}<span>Search docs</span></button>${nav}</div></details>
 </div>
 </header>
 <dialog class="search" aria-label="Search the docs">
-<div class="search-field">${siteIcon("search", 16)}<input type="text" enterkeyhint="search" role="combobox" aria-label="Search the docs" aria-controls="search-results" aria-expanded="false" aria-autocomplete="list" placeholder="Search the docs" autocomplete="off" spellcheck="false"><kbd>Esc</kbd></div>
+<div class="search-field">${siteIcon("search", 16)}<input type="text" enterkeyhint="search" role="combobox" aria-label="Search the docs" aria-controls="search-results" aria-expanded="false" aria-autocomplete="list" placeholder="Search the docs" autocomplete="off" spellcheck="false"><kbd>Esc</kbd><button type="button" class="search-close">Cancel</button></div>
 <div id="search-results" class="search-results" role="listbox" aria-label="Results"></div>
 <p class="search-empty" role="status" hidden>No page or heading matches.</p>
 </dialog>
-<div class="layout">
-<aside class="sidebar">${nav}</aside>
-${options.body}
-</div>
+${options.landing ? options.body : `<div class="layout">\n<aside class="sidebar">${nav}</aside>\n${options.body}\n</div>`}
 <script>${searchScript.trim()}</script>
 </body>
 </html>
 `;
 }
 
+const footer = (credits?: string) =>
+  `<footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>.${credits ? ` ${credits}` : ""}</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>`;
+
+// The landing page, as on vitehub.dev: the headline beside the install command, the packages, the example, and Drop.
+await writeFile(
+  new URL("index.html", dist),
+  shell({
+    slug: "",
+    section: sections[0],
+    landing: true,
+    title: `${landing.title} · ${landing.description}`,
+    description: landing.tagline,
+    body: `<div class="landing">
+<div class="landing-hero enter"><div><h1>${escapeHtml(landing.headline)}</h1><p>${escapeHtml(landing.tagline)}</p></div>
+<div>${installerFor(landing.install, "")}<div class="actions"><a class="button primary" href="/play/">${siteIcon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the docs${siteIcon("arrow-right", 15)}</a></div></div></div>
+<main class="enter" style="--i:1">${await renderHtmlFromDocument(landing.document, { components: { ...components, packages: packageGrid, drop, hero } })}</main>
+${footer()}
+</div>
+<script>${script.trim()}</script>`,
+  }),
+);
+console.log("docs/dist/index.html written");
+
 for (const page of parsed) {
-  const out = new URL(page.slug ? `${page.slug}/` : "", dist);
+  const out = new URL(`${page.slug}/`, dist);
   const { npm } = page.section;
   const subpage = npm && page.slug !== page.section.slug;
   await mkdir(out, { recursive: true });
@@ -757,18 +888,18 @@ for (const page of parsed) {
       description: page.tagline,
       body: `<div class="page">
 <div class="content">
-<div class="hero enter">${subpage ? `<p class="eyebrow mono">${npm}</p>` : ""}${page.headline ? `<h1 class="headline"><span class="hash" aria-hidden="true">#</span>${escapeHtml(page.headline)}</h1>` : `<h1>${escapeHtml(page.title)}</h1>`}<p>${escapeHtml(page.tagline)}</p>
-${page.install ? installerFor(page.install, page.skill) : ""}${page.slug ? "" : `<div class="actions"><a class="button primary" href="/play/">${siteIcon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the guides${siteIcon("arrow-right", 15)}</a></div>`}</div>
-<main class="enter" style="--i:1">${(await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, cards, matrix, hero } })).replace(/<table>[\s\S]*?<\/table>/g, (table) => `<div class="table-scroll">${table}</div>`)}</main>
+<div class="hero enter">${subpage ? `<p class="eyebrow mono">${npm}</p>` : ""}<h1>${escapeHtml(page.title)}</h1><p>${escapeHtml(page.tagline)}</p>
+${page.install ? installerFor(page.install, page.skill) : ""}</div>
+<main class="enter" style="--i:1">${(await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, matrix } })).replace(/<table>[\s\S]*?<\/table>/g, (table) => `<div class="table-scroll">${table}</div>`)}</main>
 ${pager(page)}
-<footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>. Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>
+${footer(page.section.credits)}
 </div>
 ${page.toc ? `<aside class="toc"><nav aria-label="On this page"><p class="nav-group">On this page</p>${page.toc}</nav></aside>` : ""}
 </div>
 <script>${script.trim()}</script>`,
     }),
   );
-  console.log(`docs/dist/${page.slug ? `${page.slug}/` : ""}index.html written`);
+  console.log(`docs/dist/${page.slug}/index.html written`);
 }
 
 // The playground opens on the first preset, rendered here so it shows before the script loads.
