@@ -1,13 +1,15 @@
-# comark-lint
+# comark-linter
 
 Finds unclosed blocks, unknown components, broken anchors, and plugin issues in [Comark](https://comark.dev) documents. A library, a CLI, and a [Vite Doctor](https://github.com/onmax/vite-doctor) extension. Every message names the block and says how to fix it.
 
 **[Docs](https://comark.onmax.me/lint/)**
 
 ```sh
-pnpm add -D comark-lint
+pnpm add -D comark-linter
 pnpm comark-lint "docs/**/*.md"
 ```
+
+The package is `comark-linter`, since npm refuses `comark-lint` as too close to `remark-lint`. Its command, config file, and messages are `comark-lint`.
 
 ```txt
 docs/review.md:8:1 comark/unclosed-block `::compare` opened on line 8 is never closed. Add a line with `::` after its last child.
@@ -16,7 +18,7 @@ docs/review.md:8:1 comark/unclosed-block `::compare` opened on line 8 is never c
 The CLI checks each file with every comark-plugins package installed (annotate, carousel, charts, github-callouts, zoom), prints `file:line:column rule message`, or JSON with `--format json`, and exits with 1 on any problem. Add your own plugins and component names with `--config comark-lint.config.ts`, which exports `defineConfig({ plugins, components })`.
 
 ```ts
-import { lint } from "comark-lint";
+import { lint } from "comark-linter";
 import annotate, { components } from "comark-annotate/html";
 
 const diagnostics = await lint(markdown, { plugins: [annotate()], components });
@@ -27,7 +29,7 @@ const diagnostics = await lint(markdown, { plugins: [annotate()], components });
 For Vite Doctor 0.1 or later, register the extension in `doctor.config.ts` and run `vite-doctor . --config doctor.config.ts`:
 
 ```ts
-import comark from "comark-lint/doctor";
+import comark from "comark-linter/doctor";
 import { defineDoctorConfig } from "vite-doctor/config";
 
 export default defineDoctorConfig({ extends: ["auto"], extensions: [comark()] });

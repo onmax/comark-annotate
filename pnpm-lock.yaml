@@ -116,7 +116,7 @@ importers:
       comark:
         specifier: 'catalog:'
         version: 0.7.0(shiki@4.5.0)
-      comark-lint:
+      comark-linter:
         specifier: workspace:*
         version: link:packages/lint
       geist:

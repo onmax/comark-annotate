@@ -62,4 +62,4 @@ Register the plugins in one renderer, as [Renderers](/guide/renderers/#several-p
 
 ## Check it
 
-Run [comark-lint](/lint/) on the file before you post it, and open the rendered page to see that each mark sits on its target. [Agents](/guide/agents/#check-the-result) shows both commands.
+Run [comark-linter](/lint/) on the file before you post it, and open the rendered page to see that each mark sits on its target. [Agents](/guide/agents/#check-the-result) shows both commands.
