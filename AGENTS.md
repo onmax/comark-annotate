@@ -4,14 +4,14 @@ Comark plugins for review documents: annotated screenshots, before/after compari
 
 ## Shape
 
-A pnpm workspace. Every package in `packages/` is published to npm under its own name, and all of them share one version.
+A pnpm workspace. Every package in `packages/` is published to npm under its own name, and all of them share one version. Each `tsdown.config.ts` is one call to `definePackage()` or, for a package with a renderer per framework, `defineComponentsPackage()` from the root `tsdown.shared.ts`, so the packages build alike.
 
 - `packages/annotate` is `comark-annotate`.
   - `src/read.ts` reads `::screenshot`, `::compare`, `::diff`, and `::annotation` nodes and reports their issues. The plugin and the renderer both go through it, so they can't disagree.
   - `src/index.ts` is the parse plugin. It appends its problems to `meta.issues`.
   - `src/html.ts` is the `@comark/html` renderer. The output reads without a script; the zoom and carousel scripts and all styles are inlined once per document. A screenshot zooms with `comark-zoom`, and `::compare` is a two-column `comark-carousel`. Marks are not links, so a click anywhere on a screenshot zooms it. `::diff` is a table of before and after lines with no script, and doesn't zoom: its code scrolls in place.
   - Only the HTML renderer exists: notes are Markdown, and Vue, React, and Svelte versions would each copy the whole figure template.
-  - `src/marks.ts` holds the hand-drawn marks, taken from AnnotationKit.
+  - `src/marks.ts` holds the hand-drawn marks, taken from AnnotationKit, and `src/script.ts` is the browser script the HTML renderer inlines.
 - `packages/carousel` is `comark-carousel`. Its parse plugin turns `::carousel` content into explicit `slide` nodes with their position, so no renderer splits children. Its script is built like zoom's, and a carousel is a zoom gallery.
 - `packages/chips` is `comark-chips`. Its parse plugin turns every web link, `@user`, and `:chip` into a `chip` node with `href`, `kind` (`favicon` or `avatar`), `src`, and `title`, so no renderer reads URLs. `src/images.ts` downloads each image while parsing and inlines it as a data URI, cached per process; an HTTP error maps to its status, and any other failure keeps the URL for the reader's browser. No script: the components add the styles on mount.
 - `packages/code` is `comark-code`. Its components replace `pre`: each wraps the block, rendered as it would be without them, in `.ck` with a bar of buttons, so Shiki's output and code groups work in any plugin order. The bar's markup is one string from `buttons()` in `src/client.ts` that every renderer inlines. Its parse plugin only writes the configured `actions` onto matching `pre` nodes; the script sends a `comark-code-action` event for them and does nothing else.
