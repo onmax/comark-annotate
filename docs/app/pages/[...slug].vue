@@ -38,8 +38,7 @@ onMounted(() => {
   // Enhance it once its HTML is present so generated controls work on both
   // the initial render and client navigations.
   const apply = () => {
-    if (!body.value || !layout.value || !body.value.querySelector(".window, .cards, .installer"))
-      return false;
+    if (!body.value || !layout.value || !body.value.innerHTML.trim()) return false;
     undo = [runScripts(body.value, !hydrating), enhance(layout.value)];
     return true;
   };

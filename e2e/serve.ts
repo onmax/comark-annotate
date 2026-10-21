@@ -8,9 +8,7 @@ const output = new URL("../docs/dist/", import.meta.url).pathname;
 // Nitro writes static assets below `public/`; older Nuxt output placed them
 // directly in the configured directory. Supporting both keeps the test server
 // aligned with the generated output used by each supported Nuxt version.
-const root = existsSync(join(output, "public"))
-  ? join(output, "public")
-  : output;
+const root = existsSync(join(output, "public")) ? join(output, "public") : output;
 const types: Record<string, string> = {
   ".html": "text/html",
   ".js": "text/javascript",
