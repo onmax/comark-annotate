@@ -1,7 +1,8 @@
 import { createHtmlRenderer } from "@comark/html";
 import { defineComarkPlugin, parseMarkdown } from "comark";
-import { describe, expect, it } from "vite-plus/test";
-import tabs, { components } from "../src/html.ts";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { createIcons, type IconCollection } from "comark-icon";
+import tabs, { components, type TabsOptions } from "../src/html.ts";
 
 const render = (markdown: string) =>
   createHtmlRenderer({ plugins: [tabs()], components })(markdown);
@@ -140,5 +141,104 @@ describe("comark-tabs", () => {
     const document = await parseMarkdown("::tabs\n::", { plugins: [before(), tabs()] });
     expect(document.meta.issues).toHaveLength(2);
     expect(document.meta.issues[0]).toBe("An earlier plugin's issue.");
+  });
+
+  describe("icons", () => {
+    const logos: IconCollection = {
+      prefix: "logos",
+      width: 32,
+      height: 32,
+      icons: { pnpm: { body: '<path fill="#f9ad00" d="M0 0h8v8H0z"/>' } },
+      aliases: { "pnpm-alias": { parent: "pnpm" } },
+    };
+    const lucide: IconCollection = {
+      prefix: "lucide",
+      width: 24,
+      height: 24,
+      icons: { apple: { body: '<path stroke="currentColor" d="M1 1h2"/>' } },
+    };
+    const iconResolver = createIcons({ collections: { logos, lucide } });
+    const parse = (markdown: string, options: TabsOptions = { iconResolver }) =>
+      parseMarkdown(markdown, { plugins: [tabs(options)] });
+    const html = async (markdown: string, options?: TabsOptions) =>
+      (
+        await createHtmlRenderer({ plugins: [tabs(options ?? { iconResolver })], components })(
+          markdown,
+        )
+      ).replace(/<style[^>]*>.*?<\/style>|<script>.*?<\/script>/gs, "");
+
+    afterEach(() => vi.unstubAllGlobals());
+
+    it("draws a tab's icon with comark-icon, in the strip and its caption, a monochrome one as a mask", async () => {
+      const page = await createHtmlRenderer({ plugins: [tabs({ iconResolver })], components })(
+        '::tabs\n:::tabs-item{label="macOS" icon="lucide:apple"}\nA\n:::\n\n:::tabs-item{label="pnpm" icon="logos:pnpm-alias"}\nB\n:::\n\n:::tabs-item{label="Plain"}\nC\n:::\n::',
+      );
+      expect(page.match(/<style data-comark-icon>/g)).toHaveLength(1);
+      const out = page.replace(/<style[^>]*>.*?<\/style>|<script>.*?<\/script>/gs, "");
+      const mask =
+        /<span class="ci" data-mask aria-hidden="true" style="--ci:url\(&quot;data:image\/svg\+xml,[^"]*currentColor[^"]*&quot;\)"><\/span>macOS/;
+      expect(out).toMatch(new RegExp(`tabindex="0">${mask.source}</button>`));
+      expect(out).toMatch(new RegExp(`<div class="ct-caption">${mask.source}</div>`));
+      expect(out).toMatch(
+        /tabindex="-1"><span class="ci" aria-hidden="true" style="--ci:url\(&quot;data:image\/svg\+xml,[^"]*viewBox='0 0 32 32'[^"]*%23f9ad00[^"]*&quot;\)"><\/span>pnpm<\/button>/,
+      );
+      expect(out).toContain('tabindex="-1">Plain</button>');
+      expect(out).toContain('<div class="ct-caption">Plain</div>');
+    });
+
+    it("reads a code block's icon after its label, and keeps the rest of its meta", async () => {
+      const { nodes } = await parse(
+        '::code-group\n```sh [pnpm] icon=logos:pnpm {1}\na\n```\n\n```sh [npm] title="x" icon="https://example.com/n m.svg"\nb\n```\n::',
+      );
+      const out = JSON.stringify(nodes);
+      expect(out).not.toContain("icon=");
+      expect(out).toContain('"meta":"title=\\"x\\""');
+      expect(
+        await html('::code-group\n```sh [npm] icon="https://example.com/n m.svg"\nb\n```\n::'),
+      ).toContain(
+        '<span class="ci" aria-hidden="true" style="--ci:url(&quot;https://example.com/n%20m.svg&quot;)"></span>npm</button>',
+      );
+    });
+
+    it("gives tabs without one an icon by label, set once for every block", async () => {
+      const out = await html(pm, { iconResolver, icons: { PNPM: "logos:pnpm", "./npm.svg": "x" } });
+      expect(out).toMatch(/<span class="ci"[^>]*><\/span>pnpm<\/button>/);
+      expect(out).toContain('tabindex="-1">npm</button>');
+    });
+
+    it("fetches icons from the Iconify API by default, once per icon", async () => {
+      const fetch = vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({ prefix: "mdi", icons: { a: { body: "<g/>" }, b: { body: "<g/>" } } }),
+          ),
+      );
+      vi.stubGlobal("fetch", fetch);
+      const markdown =
+        '::tabs\n:::tabs-item{label="A" icon="mdi:a"}\nA\n:::\n\n:::tabs-item{label="B" icon="mdi:b"}\nB\n:::\n::';
+      expect((await parse(markdown, {})).meta.issues).toEqual([]);
+      expect((await parse(markdown, {})).meta.issues).toEqual([]);
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        "https://api.iconify.design/mdi.json?icons=a,b",
+        expect.anything(),
+      );
+      expect(await html(markdown, {})).toMatch(/<span class="ci"[^>]*><\/span>B<\/button>/);
+    });
+
+    it("reports icons it can't draw in comark-icon's words, and renders their tabs without one", async () => {
+      vi.stubGlobal("fetch", async (url: string) =>
+        url.includes("/down.") ? new Response("", { status: 503 }) : new Response("404"),
+      );
+      const markdown =
+        '::tabs\n:::tabs-item{label="A" icon="logos:nope"}\nA\n:::\n\n:::tabs-item{label="B" icon="pnpm"}\nB\n:::\n\n:::tabs-item{label="C" icon="gone:x"}\nC\n:::\n\n:::tabs-item{label="D" icon="down:x"}\nD\n:::\n::';
+      expect((await parse(markdown)).meta.issues).toEqual([
+        '`::tabs` 1, tab 1, icon "logos:nope": The `logos` set has no icon `nope`. Find its name at https://icones.js.org/collection/logos.',
+        '`::tabs` 1, tab 2, icon "pnpm": "pnpm" isn\'t an icon name. Write it as `set:name`, such as `lucide:apple`, or give an image URL.',
+        '`::tabs` 1, tab 3, icon "gone:x": There\'s no icon set `gone` to draw `gone:x` from. Find a set at https://icones.js.org, or pass `gone` in `collections`.',
+        '`::tabs` 1, tab 4, icon "down:x": Couldn\'t load `down:x` from Iconify (HTTP 503). Install `@iconify-json/down` and pass it in `collections`, or try again.',
+      ]);
+      expect(await html(markdown)).not.toContain('class="ci"');
+    });
   });
 });
