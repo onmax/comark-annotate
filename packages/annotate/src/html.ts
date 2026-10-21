@@ -3,7 +3,8 @@ import { escapeHtml, textContent } from "comark/utils";
 import { carouselHtml } from "comark-carousel/html";
 import { runtime as zoomRuntime } from "comark-zoom/html";
 import { start } from "./client.ts";
-import { marks } from "./marks.ts";
+import { draw } from "./marks.ts";
+import { pixels, place } from "./place.ts";
 import {
   type Annotation,
   PALETTE,
@@ -102,10 +103,19 @@ const noteText = (annotation: Annotation) =>
 const label = (annotation: Annotation) =>
   annotation.number ? `Annotation ${annotation.number}` : `Side note: ${noteText(annotation)}`;
 
-function markSvg({ mark }: Annotation) {
-  const { viewBox, paths } = marks[mark];
-  const aspect = mark === "check" || mark === "cross" ? "" : ' preserveAspectRatio="none"';
-  return `<svg viewBox="${viewBox}"${aspect} aria-hidden="true">${paths.map((d) => `<path d="${d}" vector-effect="non-scaling-stroke"/>`).join("")}</svg>`;
+// Each mark wobbles by its own number and box, so marks differ from each other but not between renders.
+function seed({ n, x, y, w, h, mark }: Annotation) {
+  let hash = 2166136261;
+  for (const char of `${mark}|${n}|${x}|${y}|${w}|${h}`)
+    hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
+  return hash;
+}
+
+function markSvg(annotation: Annotation, aspect?: number) {
+  const { w, h } = pixels(annotation, aspect);
+  const { viewBox, paths } = draw(annotation.mark, w, h, seed(annotation));
+  const keep = annotation.mark === "check" || annotation.mark === "cross";
+  return `<svg viewBox="${viewBox}"${keep ? "" : ' preserveAspectRatio="none"'} aria-hidden="true">${paths.map((d) => `<path d="${d}" vector-effect="non-scaling-stroke"/>`).join("")}</svg>`;
 }
 
 // The pieces of a screenshot, which a figure stacks and a slider lays over each other.
@@ -127,16 +137,19 @@ async function parts(shot: Screenshot, state: State, id: string, copy = false, b
       : annotation.side
         ? letter(annotation)
         : "";
-  // The number sits outside the mark's top-left corner so it never covers what the mark points at. Against the image's
-  // left or top edge there's no room there, so it slides along that edge.
-  const edges = ({ x, y }: Annotation) =>
-    `${x < 4.5 ? " ca-at-left" : ""}${y < 7 ? " ca-at-top" : ""}`;
+  // The number sits outside a corner of its mark so it never covers what the mark points at, and picks a corner that
+  // keeps it off the other numbers and marks.
+  const corners = place(shot.annotations, shot.aspect).css;
+  const pinned = (annotation: Annotation) => {
+    const css = corners.get(annotation.n);
+    return css ? stamp(annotation).replace('">', `" style="${css}">`) : stamp(annotation);
+  };
   // Marks aren't links: a click anywhere on the screenshot zooms it, notes included. Hovering a mark still lights up its note.
   const pins = shot.annotations.map(
     (annotation) =>
-      `<span class="ca-mark ca-${annotation.mark}${edges(annotation)}" data-n="${annotation.n}" role="img" aria-label="${attr(annotation.number ? `${label(annotation)}: ${noteText(annotation)}` : label(annotation))}" title="${attr(noteText(annotation))}" ` +
+      `<span class="ca-mark ca-${annotation.mark}" data-n="${annotation.n}" role="img" aria-label="${attr(annotation.number ? `${label(annotation)}: ${noteText(annotation)}` : label(annotation))}" title="${attr(noteText(annotation))}" ` +
       `style="${color(annotation)}left:${annotation.x}%;top:${annotation.y}%;width:${annotation.w}%;height:${annotation.h}%">` +
-      `${markSvg(annotation)}${stamp(annotation)}</span>`,
+      `${markSvg(annotation, shot.aspect)}${pinned(annotation)}</span>`,
   );
   const listed = shot.annotations.filter((annotation) => !annotation.side);
   const notes = await each(
