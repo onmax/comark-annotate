@@ -1,9 +1,3 @@
-import { defineConfig } from "tsdown";
+import { definePackage } from "../../tsdown.shared.ts";
 
-export default defineConfig({
-  entry: ["src/index.ts"],
-  format: ["esm"],
-  dts: true,
-  clean: true,
-  publint: true,
-});
+export default definePackage({ entry: ["src/index.ts"] });

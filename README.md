@@ -31,3 +31,5 @@ pnpm install
 pnpm ready      # format, lint, typecheck, build, test, and Vite Doctor
 pnpm docs:build # the docs site in docs/dist
 ```
+
+Each package keeps its docs pages next to its code, in `packages/<name>/docs/`, and `docs/build.ts` renders them into the site with the pages in `docs/pages/`. `test/workspace.test.ts` lists everywhere a new package has to be registered.

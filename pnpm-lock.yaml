@@ -307,10 +307,10 @@ importers:
     devDependencies:
       '@comark/html':
         specifier: 'catalog:'
-        version: 0.7.0(shiki@4.5.0)
+        version: 0.8.1(shiki@4.5.0)
       comark:
         specifier: 'catalog:'
-        version: 0.7.0(shiki@4.5.0)
+        version: 0.8.1(shiki@4.5.0)
       comark-zoom:
         specifier: workspace:*
         version: link:../zoom
@@ -459,6 +459,9 @@ importers:
       comark-diff:
         specifier: workspace:*
         version: link:../diff
+      comark-embed:
+        specifier: workspace:*
+        version: link:../embed
       comark-github:
         specifier: workspace:*
         version: link:../github

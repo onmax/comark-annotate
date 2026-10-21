@@ -3,6 +3,9 @@ title: comark-diff
 description: A code change in Markdown, shown like a suggested change in a pull request review.
 tagline: Write a file's lines before and after as two code blocks and get a suggested change, the way a review shows one, with no script.
 install: pnpm add comark @comark/html comark-diff
+group: Review blocks
+icon: file-diff
+blurb: Compare two code fences
 ---
 
 ::examples

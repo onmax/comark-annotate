@@ -2,7 +2,7 @@ import type { ElementNode, Node, NodeHandler, State } from "comark";
 import { escapeHtml, textContent } from "comark/utils";
 import { carouselHtml } from "comark-carousel/html";
 import { runtime as zoomRuntime } from "comark-zoom/html";
-import { start } from "./client.ts";
+import { start } from "./script.ts";
 import { draw } from "./marks.ts";
 import { pixels, place } from "./place.ts";
 import { type Annotation, PALETTE, readCompare, readScreenshot, type Screenshot } from "./read.ts";

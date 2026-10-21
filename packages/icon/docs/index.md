@@ -3,6 +3,9 @@ title: comark-icon
 description: Iconify icons in Markdown, drawn as CSS in every renderer.
 tagline: Write :icon{name="lucide:apple"} with any of Iconify's 200,000 icons, and get it on the page with no script.
 install: pnpm add comark @comark/html comark-icon
+group: Review blocks
+icon: shapes
+blurb: Iconify icons in Markdown
 ---
 
 ::examples
