@@ -207,7 +207,7 @@ body {
   scale: 0.99;
 }
 
-.search-open span {
+.search-label {
   flex: 1;
   text-align: left;
 }
@@ -1061,6 +1061,8 @@ nav > .nav-group:first-child {
 
 .install:active,
 .play-share:active,
+.play-reset:active,
+.play-copy:active,
 .copy:active {
   scale: 0.97;
 }
@@ -1100,7 +1102,9 @@ nav > .nav-group:first-child {
 }
 
 /* The copy icon gives way to a check while the command is on the clipboard. */
-.install-hint svg {
+.install-hint svg,
+.card-copy svg,
+.play-copy svg {
   grid-area: 1 / 1;
   transition:
     opacity 200ms var(--ease-out),
@@ -1109,13 +1113,19 @@ nav > .nav-group:first-child {
 }
 
 .install-hint .check,
-.install.copied .install-hint svg:not(.check) {
+.card-copy .check,
+.play-copy .check,
+.install.copied .install-hint svg:not(.check),
+.card-copy.copied svg:not(.check),
+.play-copy.copied svg:not(.check) {
   opacity: 0;
   scale: 0.25;
   filter: blur(2px);
 }
 
-.install.copied .install-hint .check {
+.install.copied .install-hint .check,
+.card-copy.copied .check,
+.play-copy.copied .check {
   opacity: 1;
   scale: 1;
   filter: none;
@@ -1364,7 +1374,16 @@ a.window-play:hover {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .top > .search-open,
+  .search-open {
+    width: 2.5rem;
+    height: 2.5rem;
+    justify-content: center;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .search-open :is(.search-label, kbd),
   .top-end .npmx span,
   .github-label,
   .top-links {
@@ -1418,8 +1437,8 @@ li {
   text-wrap: pretty;
 }
 
-/* Unlayered, these would beat the embed's own link styles, which the page shows off. */
-a:where(:not(.ce-card, .ce a)) {
+/* Unlayered, these would beat the embed's and the chips' own link styles, which the page shows off. */
+a:where(:not(.ce-card, .ce a, .cch)) {
   color: var(--fg);
   text-decoration: underline;
   text-decoration-color: var(--line);
@@ -1428,7 +1447,7 @@ a:where(:not(.ce-card, .ce a)) {
   transition: text-decoration-color 150ms ease;
 }
 
-a:where(:not(.ce-card, .ce a)):hover {
+a:where(:not(.ce-card, .ce a, .cch)):hover {
   text-decoration-color: var(--fg);
 }
 
@@ -1861,8 +1880,11 @@ footer a {
   }
 
   .search,
+  .play-confirm,
   .indicator,
   .install-hint svg,
+  .card-copy svg,
+  .play-copy svg,
   .sidebar .rail {
     transition: none;
   }
@@ -1879,6 +1901,9 @@ footer a {
 
   .install:active,
   .play-share:active,
+  .play-reset:active,
+  .play-copy:active,
+  .play-confirm button:active,
   .copy:active {
     scale: 1;
   }
@@ -1936,6 +1961,7 @@ main img {
 }
 
 .play-editor {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -1972,31 +1998,138 @@ main img {
   color: var(--fg);
 }
 
+/* Reset and Copy float in the code's corner, as comark-code's buttons do, and leave the bar to the panes and the
+   link. Their backdrop is the pane's, so code scrolling under them doesn't show through. */
+.play-tools {
+  position: absolute;
+  top: 3.25rem;
+  right: 1rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--soft);
+}
+
+/* Square twins of Copy link: the same outline, height, and press. */
+.play-reset,
+.play-copy {
+  display: grid;
+  place-items: center;
+  width: 1.625rem;
+  height: 1.625rem;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    scale 160ms var(--ease-out);
+}
+
+.play-reset svg,
+.play-copy svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.play-reset:hover,
+.play-copy:hover {
+  color: var(--fg);
+}
+
+.play-reset[hidden] {
+  display: none;
+}
+
+.play-confirm {
+  width: min(22rem, 100% - 2rem);
+  padding: 1.25rem;
+  border: 0;
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 24px 48px -16px rgb(0 0 0 / 0.3);
+  color: var(--muted);
+  transition:
+    opacity 150ms ease-out,
+    scale 150ms ease-out,
+    display 150ms allow-discrete,
+    overlay 150ms allow-discrete;
+}
+
+@starting-style {
+  .play-confirm[open] {
+    opacity: 0;
+    scale: 0.97;
+  }
+}
+
+.play-confirm::backdrop {
+  background: rgb(0 0 0 / 0.3);
+}
+
+.play-confirm h2 {
+  margin: 0 0 0.25rem;
+  padding: 0;
+  border: 0;
+  letter-spacing: normal;
+  color: var(--fg);
+  font: 600 0.9375rem/1.4 var(--sans);
+}
+
+.play-confirm p {
+  margin: 0 0 1rem;
+  font-size: 0.8125rem;
+  text-wrap: pretty;
+}
+
+.play-confirm div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.play-confirm button {
+  padding: 0.375rem 0.75rem;
+  border: 0;
+  border-radius: 6px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--fg);
+  font: 500 0.8125rem/1.5 var(--sans);
+  cursor: pointer;
+  transition: scale 160ms var(--ease-out);
+}
+
+.play-confirm button[value="reset"] {
+  background: var(--fg);
+  box-shadow: none;
+  color: var(--bg);
+}
+
+.play-confirm button:active {
+  scale: 0.97;
+}
+
 /* The textarea sits over a colored copy of its text in one grid cell; the copy sets the height and the box scrolls. */
 .play-code {
   display: grid;
-  grid-template-rows: auto 1fr;
   flex: 1;
   min-height: 0;
   overflow: auto;
   background: var(--soft);
 }
 
-.play-code > * {
-  grid-area: 2 / 1;
-}
-
+.play-code > *,
 .play-paint pre {
   grid-area: 1 / 1;
-}
-
-/* The Config pane names its JSON like a file, so it reads as the plugins' options rather than more Markdown. */
-.play-code > .play-file {
-  grid-area: 1 / 1;
-  padding: 0.75rem 1rem 0;
-  color: var(--faint);
-  font: 0.75rem/1.5 var(--mono);
-  user-select: none;
 }
 
 .play-paint {
@@ -2182,8 +2315,15 @@ main img {
   }
 
   .example-play,
-  .play-share {
+  .play-share,
+  .play-confirm button {
     min-height: 2.5rem;
+  }
+
+  .play-reset,
+  .play-copy {
+    width: 2.5rem;
+    height: 2.5rem;
   }
 
   .copy {

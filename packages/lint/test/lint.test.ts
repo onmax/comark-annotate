@@ -55,8 +55,20 @@ describe("comark/unclosed-block", () => {
     expect(await check("```md\n::compare\n```\n\n~~~\n::screnshot{src=\n~~~\n")).toEqual([]);
   });
 
-  it("ignores `::` inside HTML blocks, which Comark reads as text", async () => {
-    expect(await lint("<pre>\n::code\n</pre>\n\n<div>\n::note{a=1 a=2}\n</div>")).toEqual([]);
+  it("ignores `::` inside comments and raw HTML blocks, which Comark reads as text", async () => {
+    expect(
+      await lint(
+        "<pre>\n::code\n</pre>\n\n<script>\n::note{a=1 a=2}\n</script>\n\n<!--\n::note\n-->",
+      ),
+    ).toEqual([]);
+  });
+
+  it("checks `::` inside other HTML blocks, which hold Markdown", async () => {
+    const found = await lint("<div>\n::note{a=1 a=2}\n</div>");
+    expect(found.map(({ rule, line }) => [rule, line])).toEqual([
+      ["comark/unclosed-block", 2],
+      ["comark/malformed-attributes", 2],
+    ]);
   });
 });
 

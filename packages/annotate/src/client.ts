@@ -540,7 +540,6 @@ export function start(): () => void {
     "pointerdown",
     (event) => {
       disarm();
-      // A right-click, or a Control-click on a Mac.
       if (event.button !== 2 && !(event.button === 0 && event.ctrlKey)) return;
       const target = event.target instanceof Element ? event.target : null;
       const frame = target?.closest(".ca-frame");
@@ -550,15 +549,6 @@ export function start(): () => void {
       armed = overlayOf(frame);
       if (armed.getAttribute("src") !== ready.url) armed.src = ready.url;
       armed.setAttribute("data-menu", "");
-      // Hit testing for a context menu is tied to the original pointer-down target. Notify
-      // listeners on the replacement image as soon as it is armed so keyboard/headless
-      // contexts observe the same target as a native menu.
-      // Dispatch immediately as well as arming the replacement. This makes the target
-      // deterministic in headless browsers, where the native context-menu event may
-      // be delayed or omitted after a synthetic right click.
-      if (armed.hasAttribute("data-menu"))
-        armed.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, button: 2 }));
-      // The menu opens on press on some systems and on release on others; either way it has its target by then.
       disarming = window.setTimeout(disarm, 1500);
     },
     { capture: true, signal },

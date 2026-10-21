@@ -125,15 +125,24 @@ describe("comark-annotate", () => {
     expect(html).toMatch(/\.ca-label\{[^}]*font-family:var\(--ca-note-font\);/);
   });
 
-  it("lets Comark's security plugin clean notes", async () => {
+  const cleaned = async () => {
     const source = `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10}\nNote <img src="x" onerror="alert(1)"> <script>alert(2)</script>\n:::\n::`;
     const document = await parseMarkdown(source, {
       plugins: [annotate(), security({ blockedTags: ["script"] })],
     });
-    const html = await renderHtmlFromDocument(document, { components });
+    return renderHtmlFromDocument(document, { components });
+  };
+
+  it("lets Comark's security plugin clean notes", async () => {
+    const html = await cleaned();
     expect(html).toContain('<img src="x">');
     expect(html).not.toContain("onerror");
-    expect(html).not.toContain("alert(2)");
+  });
+
+  // Comark 0.8 moves inline HTML's text out of the element inside a block, so the blocked script's code is left as
+  // escaped text: https://github.com/comarkdown/comark/issues/505. This starts passing, and so failing, once it's fixed.
+  it.fails("removes a blocked script's code with it", async () => {
+    expect(await cleaned()).not.toContain("alert(2)");
   });
 
   it("moves side notes beside the image with an arrow and keeps the rest in the list", async () => {

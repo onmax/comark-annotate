@@ -82,6 +82,7 @@ test("a side note lines up with its arrow when the screenshot also has a note ab
   await page.goto("/annotate/");
   await page.getByRole("tab", { name: "Pointers" }).click();
   const figure = page.locator(".ca-screenshot.ca-top.ca-left:visible").first();
+  await figure.locator(".ca-frame > img").evaluate((image) => (image as HTMLImageElement).decode());
   const middle = (selector: string) =>
     figure.locator(selector).evaluate((node) => {
       const { top, height } = node.getBoundingClientRect();

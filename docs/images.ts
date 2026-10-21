@@ -7,9 +7,7 @@ import { renderHtmlFromDocument } from "@comark/html";
 import { chromium, type Browser } from "@playwright/test";
 import { parseMarkdown } from "comark";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
-import githubCallouts, {
-  components as githubCalloutsComponents,
-} from "../packages/github-callouts/src/html.ts";
+import { callouts, components as githubComponents } from "../packages/github/src/html.ts";
 import { draw } from "../packages/annotate/src/marks.ts";
 
 const root = new URL("./", import.meta.url);
@@ -207,11 +205,11 @@ The pigeons ate week 15.
 }
 
 async function render(markdown: string, images: Map<string, string>) {
-  const parsed = await parseMarkdown(markdown, { plugins: [annotate(), githubCallouts()] });
+  const parsed = await parseMarkdown(markdown, { plugins: [annotate(), callouts()] });
   if (parsed.meta.issues.length) throw new Error(parsed.meta.issues.join("\n"));
   return (
     await renderHtmlFromDocument(parsed, {
-      components: { ...annotateComponents, ...githubCalloutsComponents },
+      components: { ...annotateComponents, ...githubComponents },
     })
   ).replace(/src="\/([\w.-]+\.png)"/g, (_, file: string) => `src="${images.get(file)}"`);
 }

@@ -17,10 +17,14 @@ import annotate, { components as annotateComponents } from "../packages/annotate
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
 import code, { components as codeComponents } from "../packages/code/src/html.ts";
 import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
+import chips, { components as chipsComponents } from "../packages/chips/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
-import githubCallouts, {
-  components as githubCalloutsComponents,
-} from "../packages/github-callouts/src/html.ts";
+import {
+  callouts,
+  components as githubComponents,
+  html as githubHtml,
+  references,
+} from "../packages/github/src/html.ts";
 import icon, {
   components as iconComponents,
   createIcons,
@@ -44,8 +48,11 @@ const browserPlugins = () => [
   carousel(),
   code(),
   charts(),
+  chips(),
   embed(),
-  githubCallouts(),
+  callouts(),
+  references({ repo: "onmax/comark-plugins" }),
+  githubHtml(),
   icon(),
   tabs(),
   zoom(),
@@ -55,14 +62,19 @@ const contentPlugins = () => [
   include({ root: fileURLToPath(new URL("pages/", root)) }),
   ...browserPlugins(),
 ];
-const plugins = [...contentPlugins(), shiki({ themes: { light, dark } })];
+// The site's own links stay plain; chips show in the examples and the playground.
+const plugins = [
+  ...contentPlugins().filter((plugin) => plugin.name !== "comark-chips"),
+  shiki({ themes: { light, dark } }),
+];
 const components = {
   ...annotateComponents,
   ...carouselComponents,
   ...codeComponents,
   ...chartsComponents,
+  ...chipsComponents,
   ...embedComponents,
-  ...githubCalloutsComponents,
+  ...githubComponents,
   ...iconComponents,
   ...tabsComponents,
   ...zoomComponents,
@@ -76,13 +88,14 @@ const lucideNames = [
   "arrow-left",
   "arrow-right",
   "arrow-up-right",
+  "at-sign",
   "book-open",
   "chart-column",
   "file-input",
   "flask-conical",
   "gallery-horizontal-end",
+  "github",
   "list-checks",
-  "message-square-warning",
   "panels-top-left",
   "search",
   "shapes",
@@ -122,18 +135,26 @@ const packages = (
         'Laid out by Microsoft Research\'s <a href="https://github.com/microsoft/flint-chart">Flint</a> on its New York Times theme, and drawn by <a href="https://vega.github.io">Vega</a>.',
     },
     {
+      slug: "chips",
+      group: "Review blocks",
+      icon: "at-sign",
+      blurb: "Links and @mentions as chips",
+      credits:
+        'After <a href="https://antfu.me">Anthony Fu</a>\'s <a href="https://github.com/antfu/markdown-it-magic-link">markdown-it-magic-link</a>. Favicons from Google, avatars from GitHub.',
+    },
+    {
       slug: "embed",
       group: "Review blocks",
       icon: "tv-minimal-play",
       blurb: "Videos, audio, and live code",
     },
     {
-      slug: "github-callouts",
+      slug: "github",
       group: "Review blocks",
-      icon: "message-square-warning",
-      blurb: "GitHub's alerts as callouts",
+      icon: "github",
+      blurb: "GitHub's alerts, references, and HTML",
       credits:
-        'Syntax from <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts">GitHub\'s alerts</a>.',
+        'Syntax from <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax">GitHub\'s Markdown</a>, and the allowed HTML from its <a href="https://github.com/gjtorikian/html-pipeline">html-pipeline</a>.',
     },
     {
       slug: "icon",
@@ -463,7 +484,8 @@ const stars = await fetch("https://api.github.com/repos/onmax/comark-plugins", {
 const githubLink = `<a class="github" href="https://github.com/onmax/comark-plugins" aria-label="comark-plugins on GitHub${stars === undefined ? "" : `, ${stars} stars`}">${github}<span class="github-label">GitHub</span>${stars === undefined ? "" : `<span class="github-stars">${starIcon}${new Intl.NumberFormat("en", { notation: "compact" }).format(stars)}</span>`}</a>`;
 const userIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg>`;
 const botIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 8V4H8M4 8h16v12H4zM2 14h2M20 14h2M15 13v2M9 13v2"/></svg>`;
-const copyIcon = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 8h12v12H8zM16 8V4H4v12h4"/></svg>`;
+const copyIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
+const resetIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`;
 const checkIcon = `<svg class="check" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5"/></svg>`;
 // Humans install the package with their package manager; agents install the skill from this site, the package's
 // own when it has one.
@@ -837,7 +859,7 @@ function shell(options: {
 <body>
 <header class="top">
 <div class="top-start"><a class="name" href="/">${logo}comark plugins</a>${options.landing ? `<nav class="top-links" aria-label="Site"><a href="/guide/renderers/">Docs</a><a href="/play/">Playground</a><a href="https://drop.vitehub.dev">Drop</a></nav>` : ""}</div>
-<button type="button" class="search-open" aria-haspopup="dialog" hidden>${siteIcon("search", 15)}<span>Search docs</span><kbd>Ctrl K</kbd></button>
+<button type="button" class="search-open" aria-haspopup="dialog" hidden>${siteIcon("search", 15)}<span class="search-label">Search docs</span><kbd>Ctrl K</kbd></button>
 <div class="top-end">
 <nav>${npmxLink(npm)}${githubLink}</nav>
 <details class="menu"><summary aria-label="Menu" title="Menu">${menuIcon}</summary><div class="menu-panel"><button type="button" class="search-open menu-search" aria-haspopup="dialog" hidden>${siteIcon("search", 15)}<span>Search docs</span></button>${nav}</div></details>
@@ -925,8 +947,10 @@ if (playSection && first) {
       body: `<div class="play">
 <div class="play-editor">
 <div class="play-bar"><div class="seg play-panes" role="group" aria-label="Editor"><button type="button" data-pane="markdown" aria-pressed="true">Markdown</button><button type="button" data-pane="config" aria-pressed="false">Config</button></div><button type="button" class="play-share">Copy link</button></div>
+<div class="play-tools"><button type="button" class="play-reset" aria-label="Reset to the example" title="Reset to the example" hidden>${resetIcon}</button><button type="button" class="play-copy" aria-label="Copy the Markdown" title="Copy">${copyIcon}${checkIcon}</button></div>
+<dialog class="play-confirm" aria-labelledby="play-confirm-title"><form method="dialog"><h2 id="play-confirm-title">Reset to the example?</h2><p>Your changes to the Markdown will be lost.</p><div><button value="cancel" autofocus>Cancel</button><button value="reset">Reset</button></div></form></dialog>
 <div class="play-code" data-pane="markdown"><div class="play-paint" aria-hidden="true">${highlight(`${first.source}\n `)}</div><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Markdown">${escapeHtml(first.source)}</textarea></div>
-<div class="play-code" data-pane="config" hidden><div class="play-file">playground.config.json</div><div class="play-paint" aria-hidden="true">${highlight(`${defaultConfig}\n `, "json")}</div><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Config">${escapeHtml(defaultConfig)}</textarea></div>
+<div class="play-code" data-pane="config" hidden><div class="play-paint" aria-hidden="true">${highlight(`${defaultConfig}\n `, "json")}</div><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Config">${escapeHtml(defaultConfig)}</textarea></div>
 <ul class="play-issues" aria-label="Issues" aria-live="polite" hidden></ul>
 </div>
 <iframe class="play-preview" title="Preview" srcdoc="${escapeHtml(previewDocument(await renderHtmlFromDocument(document, { components })))}"></iframe>

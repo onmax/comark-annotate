@@ -1,25 +1,26 @@
 {
-  "name": "comark-github-callouts",
+  "name": "comark-chips",
   "version": "0.2.0",
-  "description": "GitHub's alerts, > [!NOTE] through > [!CAUTION], as shadcn-style callouts with an icon and a title. A Comark plugin.",
+  "description": "Links as chips with the site's favicon, and @user as a chip with their avatar, downloaded while parsing so readers ask no one. A Comark plugin.",
   "keywords": [
-    "admonition",
-    "alert",
-    "callout",
+    "avatar",
+    "chip",
     "comark",
-    "github",
+    "favicon",
+    "link",
     "markdown",
     "mdc",
+    "mention",
     "plugin"
   ],
-  "homepage": "https://comark.onmax.me/github-callouts",
+  "homepage": "https://comark.onmax.me/chips",
   "bugs": "https://github.com/onmax/comark-plugins/issues",
   "license": "MIT",
   "author": "onmax",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/onmax/comark-plugins.git",
-    "directory": "packages/github-callouts"
+    "directory": "packages/chips"
   },
   "files": [
     "dist"
@@ -50,7 +51,7 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
-    "prepack": "pnpm --filter comark-github-callouts... build"
+    "prepack": "pnpm --filter comark-chips... build"
   },
   "devDependencies": {
     "@comark/html": "catalog:",
@@ -66,8 +67,8 @@
     "vue": "catalog:"
   },
   "peerDependencies": {
-    "@comark/html": "^0.7.0",
-    "comark": "^0.7.0",
+    "@comark/html": "^0.8.0",
+    "comark": "^0.8.0",
     "react": ">=18",
     "svelte": ">=5",
     "vue": ">=3.5"
