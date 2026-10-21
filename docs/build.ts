@@ -131,7 +131,7 @@ const sections: Section[] = [
     // A package's pages, in this order when it has them.
     lists: [
       {
-        slugs: ["", "getting-started", "components", "syntax", "guides"]
+        slugs: ["", "getting-started", "components", "syntax", "guides", "vite-doctor"]
           .map((page) => (page ? `${pkg.slug}/${page}` : pkg.slug))
           .filter((slug) => existsSync(new URL(`pages/${fileOf(slug)}`, root))),
       },
@@ -194,6 +194,36 @@ const examples: NodeHandler = async ([, , ...children], state) => {
 const matrix: NodeHandler = async ([, , ...children], state) =>
   `<div class="matrix">${(await Promise.all(children.map((child) => state.one(child, state)))).join("")}</div>`;
 
+// The index's window: its Markdown, typed out a line at a time, then the page the plugins render from it. Each line
+// is revealed in as many steps as it has characters, all in about two seconds; the script plays it and switches tabs.
+const hero: NodeHandler = async ([, , ...children], state) => {
+  const pre = children.find(isPre);
+  if (!pre) throw new Error("The hero needs a fenced code block.");
+  const source = textContent(pre).trimEnd();
+  const page = await parseMarkdown(source, { plugins: contentPlugins() });
+  if (page.meta.issues.length) throw new Error(`The hero:\n${page.meta.issues.join("\n")}`);
+  const lines = source.split("\n");
+  const perChar = Math.min(16, 2200 / lines.join("").length);
+  let at = 0;
+  let line = 0;
+  const code = highlight(source)
+    .replace(/<\/span>\n<span class="line">/g, '</span><span class="line">')
+    .replace(/<span class="line">/g, () => {
+      const length = lines[line++]?.length ?? 0;
+      const style = `--n:${Math.max(length, 1)};--t:${Math.round(length * perChar)}ms;--at:${Math.round(at)}ms`;
+      at += length * perChar + 40;
+      return `<span class="line" style="${style}">`;
+    });
+  return (
+    `<div class="window" style="--typed:${Math.round(at)}ms"><div class="window-bar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span>` +
+    `<div class="window-tabs" role="tablist" aria-label="The example"><button type="button" role="tab" id="window-source-tab" aria-controls="window-source" aria-selected="true">review.md</button>` +
+    `<button type="button" role="tab" id="window-page-tab" aria-controls="window-page" aria-selected="false" tabindex="-1">Rendered</button></div>` +
+    `<a class="window-play" href="${escapeHtml(playLink(source))}">${icon("flask-conical", 13)}<span>Open in playground</span></a></div>` +
+    `<div class="window-body"><div class="window-source" id="window-source" role="tabpanel" aria-labelledby="window-source-tab" data-active>${code}</div>` +
+    `<div class="window-page" id="window-page" role="tabpanel" aria-labelledby="window-page-tab" inert>${await state.flow(["div", {}, ...page.nodes], state)}</div></div></div>`
+  );
+};
+
 const toc = (document: { nodes: Node[] }) =>
   document.nodes
     .filter(isElement)
@@ -215,11 +245,12 @@ const parsed = await Promise.all(
         );
         if (document.meta.issues.length)
           throw new Error(`docs/pages/${file}:\n${document.meta.issues.join("\n")}`);
-        const [title, description, tagline, install] = [
+        const [title, description, tagline, install, headline] = [
           "title",
           "description",
           "tagline",
           "install",
+          "headline",
         ].map((key) => str(document.frontmatter[key]));
         const skill =
           section.npm &&
@@ -234,6 +265,7 @@ const parsed = await Promise.all(
           description,
           tagline: tagline || description,
           install,
+          headline,
           skill,
           label: slug === section.slug ? "Overview" : title,
           toc: toc(document),
@@ -288,20 +320,32 @@ const thumbnails = new Map(
   ),
 );
 
-// The index lists a group's packages, or a list of the docs' pages, from their own front matter.
+// The index lists a group's packages as cards, or a list of the docs' pages as rows, from their own front matter. A
+// card's link covers it, and its copy button sits above the link.
 const cards: NodeHandler = ([, attrs]) => {
   const group = str(attrs.group);
   const found = sections
     .filter((section) => section.group === group)
     .flatMap((section) => parsed.filter((page) => page.slug === section.slug));
-  const pages = found.length
-    ? found
-    : (pagesOf(sections[0]).find((list) => list.title === group)?.pages ?? []);
-  return `<div class="cards">${pages
-    .map(
-      (page) =>
-        `<a class="card" href="${href(page.slug)}"><strong${page.section.npm ? ' class="mono"' : ""}>${escapeHtml(page.title)}</strong><span>${escapeHtml(page.description)}</span>${page.section.npm ? `<code>${escapeHtml(page.install.replace(/^pnpm add (comark @comark\/html )?/, "pnpm add "))}</code>` : ""}</a>`,
-    )
+  if (!found.length) {
+    const pages = pagesOf(sections[0]).find((list) => list.title === group)?.pages ?? [];
+    return `<div class="rows">${pages
+      .map(
+        (page) =>
+          `<a class="row" href="${href(page.slug)}"><strong>${escapeHtml(page.title)}</strong><span>${escapeHtml(page.description)}</span>${icon("arrow-right", 14)}</a>`,
+      )
+      .join("")}</div>`;
+  }
+  return `<div class="cards">${found
+    .map((page) => {
+      const install = page.install.replace(/^pnpm add (comark @comark\/html )?/, "pnpm add ");
+      return (
+        `<div class="card"><span class="card-icon">${icon(page.section.icon)}</span>` +
+        `<a class="card-link" href="${href(page.slug)}">${escapeHtml(page.title)}</a><p>${escapeHtml(page.description)}</p>` +
+        `<div class="card-install"><code title="${escapeHtml(install)}">${escapeHtml(install)}</code>` +
+        `<button type="button" class="card-copy" data-copy="${escapeHtml(install)}" aria-label="Copy ${escapeHtml(install)}">${copyIcon}${checkIcon}</button></div></div>`
+      );
+    })
     .join("")}</div>`;
 };
 
@@ -309,6 +353,7 @@ const github = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="tru
 const userIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg>`;
 const botIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 8V4H8M4 8h16v12H4zM2 14h2M20 14h2M15 13v2M9 13v2"/></svg>`;
 const copyIcon = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 8h12v12H8zM16 8V4H4v12h4"/></svg>`;
+const checkIcon = `<svg class="check" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5"/></svg>`;
 // Humans install the package with their package manager; agents install the skill from this site, the package's
 // own when it has one.
 function installerFor(install: string, skill: string) {
@@ -323,11 +368,12 @@ function installerFor(install: string, skill: string) {
   return `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
 <div class="installer-bar"><div class="seg" role="group" aria-label="Audience"><button type="button" data-audience="humans" aria-pressed="true">${userIcon}For humans</button><button type="button" data-audience="agents" aria-pressed="false">${botIcon}For agents</button></div>
 <div class="seg installer-pm" role="group" aria-label="Package manager">${["pnpm", "npm", "yarn", "bun"].map((pm, i) => `<button type="button" data-pm="${pm}" aria-pressed="${i === 0}">${pm}</button>`).join("")}</div></div>
-<button type="button" class="install" data-copy="${escapeHtml(commands.pnpm)}" aria-label="Copy the install command"><span aria-hidden="true">$</span><code>${escapeHtml(commands.pnpm)}</code><span class="install-hint">${copyIcon}</span></button>
+<button type="button" class="install" data-copy="${escapeHtml(commands.pnpm)}" aria-label="Copy the install command"><span aria-hidden="true">$</span><code>${escapeHtml(commands.pnpm)}</code><span class="install-hint">${copyIcon}${checkIcon}</span></button>
 </div>`;
 }
 
-// The first column: one icon per section, its name on hover. The current section's is marked.
+// The first column: one icon per section. Hovering or focusing it widens it over the second column to show every
+// section's name, as on vitehub.dev. The current section's is marked.
 const rail = (current: Section) =>
   `<nav class="rail" aria-label="Sections">${sections
     .map(
@@ -362,7 +408,7 @@ const column = (section: Section, current: string) => {
         }));
   // A package with examples opens its first one in the playground.
   const preset = presets.find((preset) => preset.group === section.label);
-  return `<nav class="pages" aria-label="${escapeHtml(section.label)}"><div class="section-head">${icon(section.icon)}<span><small>${escapeHtml(section.group)}</small><strong${section.npm ? ' class="mono"' : ""}>${escapeHtml(section.label)}</strong></span></div>${lists
+  return `<nav class="pages" aria-label="${escapeHtml(section.label)}"><p class="pages-title">${escapeHtml(section.npm ?? section.label)}</p>${lists
     .map(
       (list) =>
         `${list.title ? `<p class="nav-group">${list.icon ? icon(list.icon, 14) : ""}${escapeHtml(list.title)}</p>` : ""}${list.links.join("")}`,
@@ -393,16 +439,38 @@ const menuIcon = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="t
 
 // The example tabs, the Preview/Code switch, copy buttons, and the active sidebar link. Without it the page still reads top to bottom.
 const script = `
-for (const t of document.querySelectorAll(".examples")) t.querySelector(".tablist").addEventListener("click", e => {
-  const b = e.target.closest("[role=tab]"); if (!b) return;
-  for (const x of t.querySelectorAll(":scope > .tablist > [role=tab]")) x.setAttribute("aria-selected", x === b);
-  for (const p of t.querySelectorAll(":scope > [role=tabpanel]")) p.hidden = p.dataset.tab !== b.dataset.tab;
-});
+const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+// One indicator per tab row or switch slides to the chosen item. A hidden row measures zero, so it's placed again,
+// without sliding, whenever its size changes.
+const indicate = (group, selector) => {
+  const bar = group.appendChild(Object.assign(document.createElement("span"), { className: "indicator" }));
+  bar.setAttribute("aria-hidden", "true");
+  const place = () => { const b = group.querySelector(selector); if (b) { bar.style.width = b.offsetWidth + "px"; bar.style.transform = "translateX(" + b.offsetLeft + "px)" } };
+  new ResizeObserver(() => {
+    bar.dataset.still = ""; place(); requestAnimationFrame(() => delete bar.dataset.still);
+    group.toggleAttribute("data-overflow", group.scrollWidth > group.clientWidth + 1);
+  }).observe(group);
+  group.dataset.indicator = "";
+  return place;
+};
+const reveal = el => { if (!reduce.matches) el.animate({ opacity: [0, 1] }, { duration: 200, easing: "ease-out" }) };
+for (const t of document.querySelectorAll(".examples")) {
+  const row = t.querySelector(".tablist"), place = indicate(row, "[aria-selected=true]");
+  row.addEventListener("click", e => {
+    const b = e.target.closest("[role=tab]"); if (!b || b.getAttribute("aria-selected") === "true") return;
+    for (const x of t.querySelectorAll(":scope > .tablist > [role=tab]")) x.setAttribute("aria-selected", x === b);
+    for (const p of t.querySelectorAll(":scope > [role=tabpanel]")) { p.hidden = p.dataset.tab !== b.dataset.tab; if (!p.hidden) reveal(p) }
+    place();
+  });
+}
+for (const seg of document.querySelectorAll(".seg")) {
+  const place = indicate(seg, "[aria-pressed=true]");
+  seg.addEventListener("click", () => requestAnimationFrame(place));
+}
 for (const ex of document.querySelectorAll(".example")) ex.querySelector(".seg").addEventListener("click", e => {
-  const b = e.target.closest("button"); if (!b) return;
+  const b = e.target.closest("button"); if (!b || b.getAttribute("aria-pressed") === "true") return;
   for (const x of ex.querySelectorAll(".seg button")) x.setAttribute("aria-pressed", x === b);
-  ex.querySelector(".example-preview").hidden = b.dataset.view !== "preview";
-  ex.querySelector(".example-code").hidden = b.dataset.view !== "code";
+  for (const view of ["preview", "code"]) { const p = ex.querySelector(".example-" + view); p.hidden = b.dataset.view !== view; if (!p.hidden) reveal(p) }
 });
 for (const box of document.querySelectorAll(".installer")) {
   const commands = JSON.parse(box.dataset.commands); const field = box.querySelector(".install"); let audience = "humans", pm = "pnpm";
@@ -410,7 +478,35 @@ for (const box of document.querySelectorAll(".installer")) {
   box.addEventListener("click", e => { const b = e.target.closest("[data-audience],[data-pm]"); if (!b) return; if (b.dataset.audience) audience = b.dataset.audience; if (b.dataset.pm) pm = b.dataset.pm; update() });
   field.addEventListener("click", async () => { await navigator.clipboard.writeText(field.dataset.copy); field.classList.add("copied"); setTimeout(() => field.classList.remove("copied"), 1200) });
 }
-for (const pre of document.querySelectorAll("main pre")) {
+for (const b of document.querySelectorAll(".card-copy")) b.addEventListener("click", async () => {
+  await navigator.clipboard.writeText(b.dataset.copy); b.classList.add("copied"); setTimeout(() => b.classList.remove("copied"), 1200);
+});
+// The index's window types its Markdown once, then wipes to the rendered page. A tab chosen first stops it.
+for (const win of document.querySelectorAll(".window")) {
+  const tabs = [...win.querySelectorAll("[role=tab]")], panels = [...win.querySelectorAll("[role=tabpanel]")];
+  const place = indicate(win.querySelector(".window-tabs"), "[aria-selected=true]");
+  let timer, transition = 0;
+  const show = (i, wipe) => {
+    clearTimeout(timer); delete win.dataset.typing;
+    if (tabs[i].getAttribute("aria-selected") === "true") return;
+    const currentTransition = ++transition;
+    for (const [j, t] of tabs.entries()) { t.setAttribute("aria-selected", j === i); t.tabIndex = j === i ? 0 : -1 }
+    const [from, to] = [panels[1 - i], panels[i]];
+    to.toggleAttribute("data-active", true); to.inert = false; from.inert = true;
+    const done = () => { if (currentTransition === transition) from.removeAttribute("data-active") };
+    if (wipe && !reduce.matches) to.animate({ clipPath: ["inset(0 100% 0 0)", "inset(0)"] }, { duration: 700, easing: "cubic-bezier(0.77, 0, 0.175, 1)" }).finished.then(done);
+    else done();
+    place();
+  };
+  win.querySelector(".window-tabs").addEventListener("click", e => { const t = e.target.closest("[role=tab]"); if (t) show(tabs.indexOf(t), true) });
+  win.querySelector(".window-tabs").addEventListener("keydown", e => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    const i = tabs.indexOf(e.target) === 0 ? 1 : 0; show(i, true); tabs[i].focus();
+  });
+  if (reduce.matches) show(1);
+  else { win.dataset.typing = ""; timer = setTimeout(() => show(1, true), parseFloat(getComputedStyle(win).getPropertyValue("--typed")) + 900) }
+}
+for (const pre of document.querySelectorAll("main pre:not(.window pre)")) {
   const b = document.createElement("button"); b.className = "copy"; b.type = "button"; b.textContent = "Copy";
   b.onclick = async () => { await navigator.clipboard.writeText(pre.querySelector("code").innerText.trimEnd()); b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1500) };
   pre.append(b);
@@ -425,6 +521,12 @@ for (const h of document.querySelectorAll("main h2[id], main h3[id]")) spy.obser
 // Search over every page and its headings, from /search.json, fetched the first time it's needed. Without the
 // script the button stays hidden.
 const searchScript = `
+// Escape folds the widened rail back without moving focus; it widens again once the pointer or focus leaves it.
+for (const rail of document.querySelectorAll(".sidebar .rail")) {
+  rail.addEventListener("keydown", e => { if (e.key === "Escape") rail.dataset.dismissed = "" });
+  rail.addEventListener("focusout", e => { if (!rail.contains(e.relatedTarget)) delete rail.dataset.dismissed });
+  rail.addEventListener("pointerleave", () => delete rail.dataset.dismissed);
+}
 const open = document.querySelector(".search-open"), dialog = document.querySelector("dialog.search");
 const input = dialog.querySelector("input"), list = dialog.querySelector("[role=listbox]"), empty = dialog.querySelector(".search-empty");
 let entries, results = [], active = 0;
@@ -589,6 +691,7 @@ function shell(options: {
 <meta property="og:description" content="${escapeHtml(options.description)}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <style>${style}</style>${options.head ?? ""}
 </head>
 <body>
@@ -629,9 +732,9 @@ for (const page of parsed) {
       description: page.tagline,
       body: `<div class="page">
 <div class="content">
-<div class="hero enter">${subpage ? `<p class="eyebrow mono">${npm}</p>` : ""}<h1>${escapeHtml(page.title)}</h1><p>${escapeHtml(page.tagline)}</p>
-${page.install ? installerFor(page.install, page.skill) : ""}</div>
-<main class="enter" style="--i:1">${await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, cards, matrix } })}</main>
+<div class="hero enter">${subpage ? `<p class="eyebrow mono">${npm}</p>` : ""}${page.headline ? `<h1 class="headline"><span class="hash" aria-hidden="true">#</span>${escapeHtml(page.headline)}</h1>` : `<h1>${escapeHtml(page.title)}</h1>`}<p>${escapeHtml(page.tagline)}</p>
+${page.install ? installerFor(page.install, page.skill) : ""}${page.slug ? "" : `<div class="actions"><a class="button primary" href="/play/">${icon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the guides${icon("arrow-right", 15)}</a></div>`}</div>
+<main class="enter" style="--i:1">${(await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, cards, matrix, hero } })).replace(/<table>[\s\S]*?<\/table>/g, (table) => `<div class="table-scroll">${table}</div>`)}</main>
 ${pager(page)}
 <footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>. Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>
 </div>

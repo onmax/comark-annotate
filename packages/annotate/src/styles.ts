@@ -26,9 +26,11 @@ export const css = `@layer comark{${[
   ":where(.ca){--ca-note-font:comark-caveat,cursive;--ca-note-size:1.25em;--ca-label-size:1.5em;--ca-gutter:10rem;--ca-top-gutter:5rem;--ca-gap:1.25rem;--ca-red:#ee3533;--ca-amber:#f5a524;--ca-green:#259f56;--ca-blue:#0581e6;--ca-gray:#71717a;--ca-red-solid:#d01d21;--ca-amber-solid:#f59e0b;--ca-green-solid:#037e3f;--ca-blue-solid:#0267c7;--ca-gray-solid:#52525b;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-solid:var(--ca-blue-solid);--ca-ink:var(--ca-blue-ink)}",
   ":where(.ca){margin:1.5rem 0}",
   "@media (prefers-color-scheme:dark){:where(.ca){--ca-red:#fd736d;--ca-amber:#ffb224;--ca-green:#59d38c;--ca-blue:#67b0f9;--ca-gray:#a1a1aa}}",
-  // Before and after are bare and line up at the top, even when one screenshot is taller.
-  ".ca-compare .cc{margin:0;--cc-gap:1.5rem}",
-  ".ca-compare .cc-track>.cc-slide{align-content:start;padding:0;background:none}",
+  // Before and after are bare and line up at the top, even when one screenshot is taller. The track clips what a slide
+  // overflows, so each slide keeps room at its sides for a stamp on an edge mark, and the gap shrinks to keep the
+  // screenshots 1.5rem apart.
+  ".ca-compare .cc{margin:0;--cc-gap:.5rem}",
+  ".ca-compare .cc-track>.cc-slide{align-content:start;padding:0 .5rem;background:none}",
   // A slider without its script stacks the pair, each under its title.
   ".ca-slider{container-type:inline-size}",
   ".ca-swipe{display:grid;gap:1.5rem}",
