@@ -440,15 +440,22 @@ kbd {
   padding-bottom: 0.75rem;
 }
 
-/* The landing page, as on vitehub.dev: one wide column, no sidebar or outline. */
+/* The landing page, as on vitehub.dev: one column, no sidebar or outline. The canvas runs nearly edge to edge, so the
+   column holds each part of the page rather than the page. */
 .landing {
-  max-width: 74rem;
-  margin: 0 auto;
-  padding: 0 2rem 3rem;
+  --column: min(100% - 4rem, 70rem);
+  padding-bottom: 3rem;
 }
 
 .landing main {
   margin-top: 0;
+}
+
+.landing-hero,
+.landing main > :not(.canvas),
+.landing > footer {
+  width: var(--column);
+  margin-inline: auto;
 }
 
 .landing h2 {
@@ -491,7 +498,1176 @@ kbd {
   margin: 0;
 }
 
-/* The packages: tiles sharing their borders, each one link. */
+/* The packages: a canvas of cards that drifts and drags, as on uselayouts.com, or the list it replaces. */
+.canvas {
+  --canvas: oklch(0.965 0 0);
+  --card: #fff;
+  --dot: oklch(0.86 0 0);
+  position: relative;
+  margin: 0 0.75rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .canvas {
+    --canvas: oklch(0.175 0 0);
+    --card: oklch(0.215 0 0);
+    --dot: oklch(0.3 0 0);
+  }
+}
+
+.canvas-viewport {
+  position: relative;
+  height: clamp(34rem, 80vh, 54rem);
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--canvas);
+  box-shadow: inset 0 0 0 1px var(--line);
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.canvas-viewport[data-dragging] {
+  cursor: grabbing;
+}
+
+/* The edges fade into the page, so the canvas reads as going on. Above the cards, under the bar. */
+.canvas-viewport::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background:
+    linear-gradient(var(--canvas), transparent 4.5rem calc(100% - 7rem), var(--canvas)),
+    linear-gradient(90deg, var(--canvas), transparent 4rem calc(100% - 4rem), var(--canvas));
+  pointer-events: none;
+}
+
+.canvas-dots {
+  position: absolute;
+  inset: -24px;
+  background: radial-gradient(circle, var(--dot) 1px, transparent 1.5px) 0 0 / 24px 24px;
+  will-change: transform;
+}
+
+.canvas-stage {
+  position: absolute;
+  inset: 0 auto auto 0;
+  will-change: transform;
+}
+
+.canvas-hint {
+  position: absolute;
+  left: 50%;
+  top: 1.25rem;
+  z-index: 2;
+  margin: 0;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--bg) 80%, transparent);
+  box-shadow: 0 0 0 1px var(--line);
+  color: var(--muted);
+  font: 500 0.75rem/1.5 var(--mono);
+  translate: -50% 0;
+  pointer-events: none;
+  transition:
+    opacity 300ms ease,
+    translate 300ms var(--ease-out);
+}
+
+.canvas[data-dragged] .canvas-hint {
+  opacity: 0;
+  translate: -50% -0.5rem;
+}
+
+.canvas-bar {
+  position: absolute;
+  left: 50%;
+  bottom: 1rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.3125rem;
+  border-radius: 14px;
+  background: color-mix(in oklch, var(--bg) 82%, transparent);
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 8px 24px -8px rgb(0 0 0 / 0.25);
+  backdrop-filter: blur(12px);
+  translate: -50% 0;
+}
+
+.canvas-bar .seg {
+  padding: 0;
+  box-shadow: none;
+  background: none;
+}
+
+.canvas-bar .seg button,
+.canvas-pause {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border-radius: 9px;
+}
+
+.canvas-bar .seg .indicator {
+  border-radius: 9px;
+}
+
+.canvas-pause {
+  position: relative;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    scale 160ms var(--ease-out);
+}
+
+.canvas-pause::before {
+  content: "";
+  position: absolute;
+  left: -0.25rem;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 1px;
+  background: var(--line);
+}
+
+.canvas-pause:hover {
+  background: var(--soft);
+  color: var(--fg);
+}
+
+.canvas-pause:active {
+  scale: 0.96;
+}
+
+.canvas-pause:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: -2px;
+}
+
+/* The pause and play icons swap with a blur, in one place. */
+.canvas-pause svg {
+  grid-area: 1 / 1;
+  transition:
+    opacity 200ms cubic-bezier(0.2, 0, 0, 1),
+    scale 200ms cubic-bezier(0.2, 0, 0, 1),
+    filter 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.canvas-pause svg:last-child,
+.canvas-pause[aria-pressed="true"] svg:first-child {
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
+}
+
+.canvas-pause[aria-pressed="true"] svg:last-child {
+  opacity: 1;
+  scale: 1;
+  filter: none;
+}
+
+.canvas-pause svg:last-child {
+  width: 15px;
+  height: 15px;
+}
+
+.canvas[data-view="list"] :is(.canvas-viewport, .canvas-pause) {
+  display: none;
+}
+
+.canvas[data-view="list"] .grid {
+  width: var(--column);
+  margin-inline: auto;
+}
+
+/* In the canvas, the list stays for screen readers and keyboards; reaching it switches to it. */
+.canvas[data-view="canvas"] .grid {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The list's bar sits under it, in the page rather than over the canvas. */
+.canvas[data-view="list"] .canvas-bar {
+  display: flex;
+  position: static;
+  width: fit-content;
+  margin: 1rem auto 0;
+  translate: none;
+  box-shadow: 0 0 0 1px var(--line);
+  backdrop-filter: none;
+}
+
+/* A card: its package over a screen the plugins drew, concentric with the card at 6px in. The link covers it. */
+.demo {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  padding: 0 6px 6px;
+  border-radius: 18px;
+  background: var(--card);
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 1px 2px rgb(0 0 0 / 0.05),
+    0 16px 32px -16px rgb(0 0 0 / 0.18);
+  transition: box-shadow 200ms ease;
+}
+
+.demo-link {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.5rem;
+  padding: 0 2.5rem 0 0.5rem;
+  color: var(--fg);
+  font: 500 0.8125rem/1 var(--mono);
+  text-decoration: none;
+  -webkit-user-drag: none;
+}
+
+.demo-link .ci {
+  color: var(--faint);
+}
+
+.demo-link span {
+  color: var(--faint);
+}
+
+.demo-link .ci:last-child {
+  opacity: 0;
+  translate: -0.25rem 0.25rem;
+  transition:
+    opacity 200ms ease,
+    translate 200ms var(--ease-out);
+}
+
+.demo-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.demo-copy {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.375rem;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 150ms ease,
+    color 150ms ease,
+    background-color 150ms ease,
+    scale 160ms var(--ease-out);
+}
+
+.demo-copy svg {
+  grid-area: 1 / 1;
+  transition:
+    opacity 200ms cubic-bezier(0.2, 0, 0, 1),
+    scale 200ms cubic-bezier(0.2, 0, 0, 1),
+    filter 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.demo-copy .check,
+.demo-copy.copied svg:first-child {
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
+}
+
+.demo-copy.copied .check {
+  opacity: 1;
+  scale: 1;
+  filter: none;
+  color: #16a34a;
+}
+
+.demo-copy:hover {
+  background: var(--soft);
+  color: var(--fg);
+}
+
+.demo-copy:active {
+  scale: 0.96;
+}
+
+@media (hover: hover) {
+  .demo:hover {
+    box-shadow:
+      0 0 0 1px var(--faint),
+      0 1px 2px rgb(0 0 0 / 0.05),
+      0 24px 40px -16px rgb(0 0 0 / 0.26);
+  }
+
+  .demo:hover .demo-copy,
+  .demo:hover .demo-link .ci:last-child {
+    opacity: 1;
+    translate: 0;
+  }
+}
+
+@media (hover: none) {
+  .demo-copy {
+    opacity: 1;
+  }
+}
+
+.demo-screen {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line);
+  pointer-events: none;
+}
+
+/* The plugins' output at a page's type, zoomed to the card, so it wraps as it would at that size. */
+.demo-page {
+  padding: 1.125rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  zoom: var(--z, 0.82);
+}
+
+.demo-page > :first-child,
+.demo-page > :first-child > :first-child {
+  margin-top: 0;
+}
+
+.demo-page > :last-child {
+  margin-bottom: 0;
+}
+
+.demo-page img {
+  -webkit-user-drag: none;
+}
+
+/* The page's own buttons do nothing on a card. */
+.demo-page :is(.ca-copy, .ca-copy-status) {
+  display: none;
+}
+
+/* A chart's plot is drawn at a page's width; the card's is narrower. */
+.demo-page svg.marks {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Paused by the bar, and whenever no one can see them. */
+.canvas:is([data-paused], [data-offscreen]) .demo *,
+.canvas:is([data-paused], [data-offscreen]) .demo *::before,
+.canvas:is([data-paused], [data-offscreen]) .demo *::after {
+  animation-play-state: paused !important;
+}
+
+/* The Markdown a card was drawn from, over its screen while the pointer is on the card. */
+.demo-source {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--soft);
+  opacity: 0;
+  filter: blur(4px);
+  transition:
+    opacity 200ms ease,
+    filter 200ms ease;
+}
+
+.demo-source pre {
+  margin: 0;
+  padding: 0.875rem 1rem;
+  border-radius: 0;
+  background: none !important;
+  box-shadow: none;
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (hover: hover) {
+  .demo:hover .demo-source {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+/* What each card does on a loop, built from the plugins' own markup. Each loop starts and ends on the page as it
+   renders, so a still frame never hides anything. */
+.demo-annotate .ca-mark,
+.demo-carousel .cc-track,
+.demo-chips .cch,
+.demo-icon .ci,
+.demo-github .cgc,
+.demo-lint .term-line,
+.demo-zoom img,
+.demo-embed .demo-progress,
+.demo-embed .demo-play,
+.demo-code .ck-copy svg,
+.demo-code .ck-copy,
+.demo-tabs .ct-tab,
+.demo-tabs .ct-panel,
+.demo-include .ck,
+.demo-include .ck ~ *,
+.demo-include .demo-directive + p,
+.demo-annotate-diff tr,
+.demo-annotate-diff ins,
+.demo-charts .mark-rect path,
+.demo-charts .layer_1_marks text,
+.demo-charts-line .mark-line path,
+.demo-github-references a {
+  animation-duration: 7s;
+  animation-timing-function: var(--ease-out);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+
+/* annotate: the marks draw themselves in, one after the other, and the notes follow. */
+.demo-annotate .ca-mark {
+  animation-name: demo-draw;
+  animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.demo-annotate .ca-mark[data-n="2"] {
+  animation-delay: 300ms;
+}
+
+.demo-annotate .ca-notes li {
+  animation: demo-rise 7s var(--ease-out) infinite both;
+}
+
+.demo-annotate .ca-notes li[data-n="2"] {
+  animation-delay: 300ms;
+}
+
+@keyframes demo-draw {
+  0%,
+  6% {
+    clip-path: inset(-150% -150% -150% -150%);
+  }
+
+  10% {
+    clip-path: inset(-150% -150% -150% 100%);
+  }
+
+  11% {
+    clip-path: inset(-150% 100% -150% -150%);
+  }
+
+  22%,
+  100% {
+    clip-path: inset(-150% -150% -150% -150%);
+  }
+}
+
+@keyframes demo-rise {
+  0%,
+  6% {
+    opacity: 1;
+    translate: 0;
+    filter: none;
+  }
+
+  10% {
+    opacity: 0;
+    translate: 0 6px;
+    filter: blur(4px);
+  }
+
+  18% {
+    opacity: 0;
+    translate: 0 6px;
+    filter: blur(4px);
+  }
+
+  26%,
+  100% {
+    opacity: 1;
+    translate: 0;
+    filter: none;
+  }
+}
+
+/* annotate's diff: the old line fades, and the new one slides in with its change lit. */
+.demo-annotate-diff {
+  --z: 0.72;
+}
+
+.demo-annotate-diff tr.ca-del {
+  animation-name: demo-strike;
+}
+
+.demo-annotate-diff tr.ca-add {
+  animation-name: demo-slide;
+}
+
+.demo-annotate-diff ins {
+  background-size: 200% 100%;
+  animation-name: demo-light;
+}
+
+@keyframes demo-strike {
+  0%,
+  12%,
+  100% {
+    opacity: 1;
+  }
+
+  22%,
+  30% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes demo-slide {
+  0%,
+  20% {
+    opacity: 1;
+    translate: 0;
+  }
+
+  24% {
+    opacity: 0;
+    translate: -12px 0;
+  }
+
+  34%,
+  100% {
+    opacity: 1;
+    translate: 0;
+  }
+}
+
+@keyframes demo-light {
+  0%,
+  30%,
+  60%,
+  100% {
+    filter: none;
+  }
+
+  40% {
+    filter: brightness(1.35) saturate(1.3);
+  }
+}
+
+/* charts: the bars grow from the axis in turn, then their labels; the line draws itself. */
+.demo-charts {
+  --z: 0.62;
+}
+
+.demo-charts .mark-rect path {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation-name: demo-grow;
+}
+
+.demo-charts .layer_1_marks text {
+  animation-name: demo-fade;
+}
+
+.demo-charts .mark-rect path:nth-child(2),
+.demo-charts .layer_1_marks text:nth-child(2) {
+  animation-delay: 90ms;
+}
+
+.demo-charts .mark-rect path:nth-child(3),
+.demo-charts .layer_1_marks text:nth-child(3) {
+  animation-delay: 180ms;
+}
+
+.demo-charts .mark-rect path:nth-child(4),
+.demo-charts .layer_1_marks text:nth-child(4) {
+  animation-delay: 270ms;
+}
+
+.demo-charts .mark-rect path:nth-child(5),
+.demo-charts .layer_1_marks text:nth-child(5) {
+  animation-delay: 360ms;
+}
+
+@keyframes demo-grow {
+  0%,
+  6% {
+    scale: 1 1;
+  }
+
+  10%,
+  12% {
+    scale: 1 0;
+  }
+
+  24%,
+  100% {
+    scale: 1 1;
+  }
+}
+
+@keyframes demo-fade {
+  0%,
+  6% {
+    opacity: 1;
+  }
+
+  9%,
+  20% {
+    opacity: 0;
+  }
+
+  28%,
+  100% {
+    opacity: 1;
+  }
+}
+
+.demo-charts-line .mark-line path {
+  stroke-dasharray: 1200;
+  animation-name: demo-line;
+  animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.demo-charts-line .mark-line + .mark-line path,
+.demo-charts-line .mark-line:nth-of-type(2) path {
+  animation-delay: 250ms;
+}
+
+@keyframes demo-line {
+  0%,
+  6% {
+    stroke-dashoffset: 0;
+  }
+
+  9%,
+  12% {
+    stroke-dashoffset: 1200;
+  }
+
+  40%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* comark-charts styles its figure as .cch too, so on this page its box would land on the chips. */
+.demo a.cch {
+  margin: 0;
+  padding: 0.0625em 0.5em 0.0625em 0.3125em;
+  border-radius: 999px;
+  background: var(--_comark-accent);
+  color: inherit;
+  font-family: inherit;
+}
+
+/* chips: each link turns into its chip in turn. */
+.demo-chips .cch,
+.demo-icon .ci {
+  animation-name: demo-pop;
+}
+
+.demo-chips .cch:nth-of-type(2),
+.demo-icon .ci:nth-of-type(2) {
+  animation-delay: 120ms;
+}
+
+.demo-chips .cch:nth-of-type(3),
+.demo-icon .ci:nth-of-type(3) {
+  animation-delay: 240ms;
+}
+
+.demo-chips .cch:nth-of-type(4),
+.demo-icon .ci:nth-of-type(4) {
+  animation-delay: 360ms;
+}
+
+.demo-icon .ci:nth-of-type(5) {
+  animation-delay: 480ms;
+}
+
+@keyframes demo-pop {
+  0%,
+  6% {
+    opacity: 1;
+    scale: 1;
+    filter: none;
+  }
+
+  9%,
+  12% {
+    opacity: 0;
+    scale: 0.6;
+    filter: blur(4px);
+  }
+
+  20%,
+  100% {
+    opacity: 1;
+    scale: 1;
+    filter: none;
+  }
+}
+
+/* icon: a row of logos, large enough to read as icons. */
+.demo-icon {
+  --z: 1;
+}
+
+.demo-icon p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.875rem 1rem;
+  margin: 0;
+  font-size: 0;
+}
+
+.demo-icon .ci {
+  --comark-icon-size: 2.25rem;
+  font-size: 1rem;
+}
+
+/* github: the callouts land one after the other; the references light up in turn. */
+.demo-github .cgc {
+  animation-name: demo-rise;
+}
+
+.demo-github .cgc + .cgc {
+  animation-delay: 160ms;
+}
+
+.demo-github-references a {
+  animation-name: demo-pop;
+}
+
+.demo-github-references a:nth-of-type(2) {
+  animation-delay: 140ms;
+}
+
+.demo-github-references a:nth-of-type(3) {
+  animation-delay: 280ms;
+}
+
+/* tabs: the code group steps through its tabs. */
+.demo-tabs .ct .ct-panel[data-inactive] {
+  display: block;
+}
+
+.demo-tabs .ct {
+  display: grid;
+}
+
+.demo-tabs .ct-list {
+  grid-area: 1 / 1;
+}
+
+.demo-tabs .ct-panel {
+  grid-area: 2 / 1;
+  animation-name: demo-panel;
+  animation-duration: 6s;
+  animation-timing-function: ease;
+}
+
+.demo-tabs .ct-tab {
+  animation-name: demo-tab;
+  animation-duration: 6s;
+  animation-timing-function: ease;
+}
+
+/* Started part of the way through, so each tab waits its turn off. The list is the group's first child, so the
+   second tab's panel is its third. */
+.demo-tabs .ct-tab:nth-child(2),
+.demo-tabs .ct-panel:nth-child(3) {
+  animation-delay: -4s;
+}
+
+.demo-tabs .ct-tab:nth-child(3),
+.demo-tabs .ct-panel:nth-child(4) {
+  animation-delay: -2s;
+}
+
+@keyframes demo-tab {
+  0%,
+  31% {
+    background: var(--_comark-background);
+    color: var(--_comark-foreground);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, var(--_comark-border), var(--_comark-foreground) 8%);
+  }
+
+  35%,
+  100% {
+    background: transparent;
+    color: var(--_comark-muted);
+    box-shadow: inset 0 0 0 1px transparent;
+  }
+}
+
+@keyframes demo-panel {
+  0%,
+  31% {
+    opacity: 1;
+    translate: 0;
+    filter: none;
+  }
+
+  35%,
+  97% {
+    opacity: 0;
+    translate: 0 4px;
+    filter: blur(2px);
+  }
+
+  100% {
+    opacity: 1;
+    translate: 0;
+    filter: none;
+  }
+}
+
+/* zoom: the image lifts out of the page and settles back. */
+.demo-zoom .demo-page {
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+
+.demo-zoom p {
+  width: 100%;
+  margin: 0;
+}
+
+.demo-zoom img {
+  display: block;
+  max-width: 100%;
+}
+
+.demo-zoom img {
+  border-radius: 6px;
+  animation-name: demo-zoom;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes demo-zoom {
+  0%,
+  14%,
+  58%,
+  100% {
+    scale: 1;
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 0);
+  }
+
+  24%,
+  46% {
+    scale: 1.28;
+    box-shadow: 0 18px 40px -12px rgb(0 0 0 / 0.45);
+  }
+}
+
+/* carousel: the track steps through its slides. */
+.demo-carousel .cc-track {
+  animation-name: demo-slides;
+  animation-duration: 9s;
+  animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.demo-carousel .cc-count {
+  visibility: hidden;
+}
+
+@keyframes demo-slides {
+  0%,
+  28% {
+    translate: 0;
+  }
+
+  33%,
+  61% {
+    translate: -100% 0;
+  }
+
+  66%,
+  94% {
+    translate: -200% 0;
+  }
+
+  100% {
+    translate: 0;
+  }
+}
+
+/* code: the copy button is pressed and turns into its check. */
+.demo-code .ck-bar,
+.demo-include .ck-bar {
+  opacity: 1;
+}
+
+.demo-code .ck-copy {
+  animation-name: demo-press;
+}
+
+.demo-code .ck-copy svg:first-child {
+  animation-name: demo-icon-out;
+}
+
+.demo-code .ck-copy svg:last-child {
+  animation-name: demo-icon-in;
+}
+
+@keyframes demo-press {
+  0%,
+  20%,
+  26%,
+  100% {
+    scale: 1;
+  }
+
+  23% {
+    scale: 0.9;
+  }
+}
+
+@keyframes demo-icon-out {
+  0%,
+  23%,
+  60%,
+  100% {
+    opacity: 1;
+    scale: 1;
+    filter: none;
+  }
+
+  27%,
+  56% {
+    opacity: 0;
+    scale: 0.25;
+    filter: blur(4px);
+  }
+}
+
+@keyframes demo-icon-in {
+  0%,
+  23%,
+  60%,
+  100% {
+    opacity: 0;
+    scale: 0.25;
+    filter: blur(4px);
+  }
+
+  27%,
+  56% {
+    opacity: 1;
+    scale: 1;
+    filter: none;
+  }
+}
+
+/* include: the directive, then what it reads unfolding under it. */
+.demo-directive {
+  margin: 0 0 0.875rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  background: var(--soft);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: 0.8125rem;
+}
+
+.demo-directive code {
+  padding: 0;
+  background: none;
+  white-space: nowrap;
+}
+
+.demo-include .demo-directive + p,
+.demo-include .ck {
+  animation-name: demo-unfold;
+}
+
+.demo-include .ck {
+  animation-delay: 150ms;
+}
+
+@keyframes demo-unfold {
+  0%,
+  6% {
+    opacity: 1;
+    clip-path: inset(0);
+  }
+
+  10%,
+  14% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+
+  26%,
+  100% {
+    opacity: 1;
+    clip-path: inset(0);
+  }
+}
+
+/* embed: a still of the player, playing. */
+.demo-player {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 30% 20%, oklch(0.62 0.19 25 / 0.55), transparent 60%),
+    radial-gradient(circle at 80% 90%, oklch(0.55 0.15 280 / 0.5), transparent 55%),
+    oklch(0.22 0.02 280);
+}
+
+.demo-play {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 2.25rem;
+  padding-left: 2px;
+  border-radius: 10px;
+  background: #e5484d;
+  color: #fff;
+  animation-name: demo-pulse;
+  animation-timing-function: ease-in-out;
+}
+
+.demo-progress {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3px;
+  background: #e5484d;
+  transform-origin: 0 50%;
+  animation-name: demo-progress;
+  animation-timing-function: linear;
+}
+
+@keyframes demo-pulse {
+  0%,
+  100% {
+    scale: 1;
+  }
+
+  50% {
+    scale: 1.08;
+  }
+}
+
+@keyframes demo-progress {
+  from {
+    scale: 0 1;
+  }
+}
+
+/* lint: lint-comark's report, a line at a time, as a terminal prints it. */
+.demo-lint {
+  --z: 0.78;
+}
+
+.demo-lint .demo-screen {
+  background: oklch(0.17 0 0);
+}
+
+.term {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  color: oklch(0.82 0 0);
+  font: 0.8125rem/1.55 var(--mono);
+}
+
+.term-line {
+  display: block;
+  animation-name: demo-print;
+  animation-delay: calc(var(--i) * 140ms);
+}
+
+.term-cmd {
+  color: oklch(0.96 0 0);
+}
+
+.term-cmd span {
+  color: #16a34a;
+}
+
+.term-where {
+  margin-top: 0.5rem;
+  color: oklch(0.65 0 0);
+}
+
+.term-where span {
+  color: #f5a524;
+}
+
+.term-message code {
+  padding: 0;
+  background: none;
+  color: oklch(0.96 0 0);
+}
+
+.term-sum {
+  display: block;
+  margin-top: 0.5rem;
+  color: #e5484d;
+  font-weight: 600;
+}
+
+@keyframes demo-print {
+  0%,
+  4% {
+    opacity: 1;
+  }
+
+  6%,
+  10% {
+    opacity: 0;
+  }
+
+  11%,
+  100% {
+    opacity: 1;
+  }
+}
+
+/* With reduced motion the cards hold still, as rendered. */
+@media (prefers-reduced-motion: reduce) {
+  .demo *,
+  .demo *::before,
+  .demo *::after {
+    animation: none !important;
+  }
+}
+
+/* The packages as a list: tiles sharing their borders, each one link. */
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -596,11 +1772,6 @@ kbd {
   font-size: 1.0625rem;
 }
 
-.showcase .window {
-  max-width: 60rem;
-  margin-inline: auto;
-}
-
 .drop {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
@@ -667,7 +1838,7 @@ kbd {
 
 @media (max-width: 60rem) {
   .landing {
-    padding-inline: 1.5rem;
+    --column: calc(100% - 3rem);
   }
 
   .landing-hero,
@@ -692,11 +1863,27 @@ kbd {
   .drop {
     padding: 2rem 1.5rem;
   }
+
+  .canvas {
+    margin: 0;
+  }
+
+  .canvas-viewport {
+    height: clamp(30rem, 72vh, 40rem);
+    border-radius: 0;
+    box-shadow:
+      inset 0 1px 0 var(--line),
+      inset 0 -1px 0 var(--line);
+  }
 }
 
 @media (max-width: 36rem) {
   .grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .demo {
+    width: 300px;
   }
 }
 
@@ -1187,71 +2374,152 @@ nav > .nav-group:first-child {
   }
 }
 
-/* The index's window: the Markdown and the page rendered from it share one cell, so switching never changes its
-   height, and the incoming one wipes in over the other. */
-.window {
-  margin-bottom: 1rem;
+/* The index's studio: the Markdown beside the page rendered from it, under a bar with the steps between them. */
+.studio {
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 16px;
   background: var(--bg);
   box-shadow:
     0 0 0 1px var(--line),
     0 24px 48px -24px rgb(0 0 0 / 0.22);
 }
 
-.window-bar {
-  display: flex;
+.studio-bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 0.875rem;
-  height: 2.75rem;
+  gap: 0.75rem;
+  height: 2.875rem;
   padding: 0 0.375rem 0 1rem;
   border-bottom: 1px solid var(--line);
   background: var(--soft);
 }
 
-.window-tabs {
-  position: relative;
-  display: flex;
-  gap: 0.125rem;
-}
-
-.window-tabs button {
-  height: 1.875rem;
-  padding: 0 0.75rem;
-  border: 0;
-  border-radius: 6px;
-  background: none;
-  color: var(--faint);
+.studio-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--fg);
   font: 500 0.75rem/1 var(--mono);
-  cursor: pointer;
-  transition: color 150ms ease;
 }
 
-.window-tabs [aria-selected="true"] {
+.studio-file .ci {
+  color: var(--faint);
+}
+
+.studio-steps {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.studio-steps li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 1.75rem;
+  padding: 0 0.625rem 0 0.375rem;
+  border-radius: 999px;
+  color: var(--faint);
+  font-size: 0.75rem;
+  font-weight: 500;
+  counter-increment: step;
+  transition:
+    color 200ms ease,
+    background-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.studio-steps li::before {
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--line);
+  font: 600 0.625rem/1 var(--mono);
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.studio-steps [aria-current] {
+  background: var(--bg);
+  box-shadow: 0 0 0 1px var(--line);
   color: var(--fg);
 }
 
-.window-tabs .indicator,
-.window-tabs:not([data-indicator]) [aria-selected="true"] {
-  top: 0;
-  bottom: 0;
-  border-radius: 6px;
-  background: var(--bg);
-  box-shadow:
-    0 0 0 1px var(--line),
-    0 1px 2px rgb(0 0 0 / 0.06);
+.studio-steps [aria-current]::before,
+.studio-steps [data-done]::before,
+.studio:not([data-phase]) .studio-steps li::before {
+  background: var(--fg);
+  box-shadow: none;
+  color: var(--bg);
 }
 
-.window-tabs button {
-  position: relative;
-  z-index: 1;
+.studio-steps [data-done],
+.studio:not([data-phase]) .studio-steps li {
+  color: var(--muted);
+}
+
+.studio[data-phase="check"] .studio-steps [aria-current]::before {
+  background: #e5484d;
+}
+
+.studio-bar > :last-child {
+  display: flex;
+  justify-self: end;
+  align-items: center;
+}
+
+.studio-replay {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.625rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--faint);
+  font: 500 0.75rem/1 var(--sans);
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    scale 160ms var(--ease-out);
+}
+
+.studio-replay svg {
+  width: 13px;
+  height: 13px;
+}
+
+.studio-replay:hover {
+  color: var(--fg);
+}
+
+.studio-replay:active {
+  scale: 0.96;
+}
+
+/* The replay and playground links share the bar's last cell. */
+.studio-bar {
+  grid-template-columns: 1fr auto auto auto;
+}
+
+.studio-steps {
+  justify-self: center;
 }
 
 a.window-play {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  margin-left: auto;
   padding: 0.5rem 0.625rem;
   color: var(--faint);
   font-size: 0.75rem;
@@ -1264,72 +2532,273 @@ a.window-play:hover {
   color: var(--fg);
 }
 
-.window-body {
+.studio-body {
   display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
 }
 
-.window-body > * {
-  grid-area: 1 / 1;
+.studio-source {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  visibility: hidden;
-}
-
-.window-body > [data-active] {
-  visibility: visible;
-}
-
-.window-body > [inert] {
-  z-index: 0;
-}
-
-.window-body > :not([inert]) {
-  z-index: 1;
-}
-
-.window-source {
+  border-right: 1px solid var(--line);
   background: var(--soft);
 }
 
-.window-page {
-  padding: 1.5rem;
-  background: var(--bg);
+.studio-code {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 1.25rem 0 1.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.7;
 }
 
-/* At a reading width, like a page, rather than the window's. */
-.window-page > div {
-  max-width: 34rem;
-  margin-inline: auto;
+.studio-gutter {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  padding: 0 0.75rem 0 1rem;
+  color: var(--faint);
+  font: 0.8125rem/1.7 var(--mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  user-select: none;
+  opacity: 0.6;
+  transition: color 200ms ease;
 }
 
-.window-page > div > :first-child {
-  margin-top: 0;
-}
-
-.window-page > div > :last-child {
-  margin-bottom: 0;
-}
-
-.window-source pre {
+.studio-code pre {
+  flex: 1;
   margin: 0;
-  padding: 1.25rem 1.25rem 1.5rem;
+  padding: 0 1.25rem 0 0;
   border-radius: 0;
+  background: none !important;
   box-shadow: none;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.studio-code pre code {
+  font-size: inherit;
+  line-height: inherit;
 }
 
 /* A line a block of its own width, so its reveal steps one character at a time. */
-.window-source pre .line {
+.studio-code pre .line {
   display: block !important;
   width: fit-content;
   min-height: 1lh;
 }
 
-/* Hidden until the window scrolls into view and starts typing; without the script, the Markdown just shows. */
-.window[data-waiting] .window-source .line {
-  clip-path: inset(0 100% 0 0);
+.studio-fix {
+  border-radius: 3px;
 }
 
-.window[data-typing] .window-source .line {
+.studio-fix del {
+  display: none;
+  text-decoration: none;
+}
+
+.studio-fix ins {
+  text-decoration: none;
+}
+
+.studio-problems {
+  display: grid;
+  min-height: 4.25rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.studio-problems p {
+  display: flex;
+  grid-area: 1 / 1;
+  gap: 0.625rem;
+  align-items: start;
+  margin: 0;
+  transition:
+    opacity 250ms ease,
+    translate 350ms var(--ease-out),
+    filter 250ms ease;
+}
+
+.studio-issue {
+  color: var(--fg);
+}
+
+.studio-issue strong {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.studio-dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-top: 0.45rem;
+  border-radius: 50%;
+  background: #e5484d;
+  box-shadow: 0 0 0 3px color-mix(in oklch, #e5484d 22%, transparent);
+}
+
+.studio-ok {
+  align-items: center !important;
+  color: #16a34a;
+  font-weight: 500;
+}
+
+/* Out of view until its step; the page shows the fixed state, so it's the one without the script. */
+.studio-issue,
+.studio[data-phase]:is([data-phase="fix"], [data-phase="render"]) .studio-issue,
+.studio:is([data-phase="waiting"], [data-phase="write"], [data-phase="check"]) .studio-ok {
+  opacity: 0;
+  translate: 0 0.5rem;
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.studio[data-phase="check"] .studio-issue {
+  opacity: 1;
+  translate: 0;
+  filter: none;
+  pointer-events: auto;
+}
+
+.studio-page {
+  min-width: 0;
+  padding: 1.75rem;
+  background: var(--bg);
+}
+
+/* At a reading width, like a page, rather than the studio's. */
+.studio-page > div {
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+.studio-block > :first-child {
+  margin-top: 0;
+}
+
+.studio-block + .studio-block {
+  margin-top: 1.5rem;
+}
+
+.studio-block > :last-child {
+  margin-bottom: 0;
+}
+
+.studio-ghost {
+  display: none;
+}
+
+/* Waiting to scroll into view: nothing typed, nothing drawn. */
+.studio[data-phase="waiting"] :is(.studio-code .line, .studio-block, .studio-gutter span) {
+  visibility: hidden;
+}
+
+/* Writing: the draft types out, and each block and mark arrives once its lines are typed. */
+.studio[data-phase]:not([data-phase="waiting"]) .studio-code .line {
   animation: type var(--t) steps(var(--n), end) var(--at) both;
+}
+
+.studio[data-phase]:not([data-phase="waiting"]) .studio-block {
+  animation: block-in 600ms var(--ease-out) var(--at) both;
+}
+
+.studio[data-phase]:not([data-phase="waiting"]) :is(.ca-mark, .ca-arrow) {
+  animation: draw 700ms cubic-bezier(0.77, 0, 0.175, 1) var(--at, 0ms) both;
+}
+
+.studio[data-phase]:not([data-phase="waiting"]) .ca-notes li {
+  animation: block-in 500ms var(--ease-out) var(--at, 0ms) both;
+}
+
+.studio:is([data-phase="waiting"], [data-phase="write"], [data-phase="check"], [data-phase="fix"])
+  [data-fixed] {
+  visibility: hidden;
+  animation: none !important;
+}
+
+.studio:is([data-phase="write"], [data-phase="check"], [data-phase="fix"]) .studio-fix del {
+  display: inline;
+}
+
+.studio:is([data-phase="waiting"], [data-phase="write"], [data-phase="check"]) .studio-fix ins {
+  display: none;
+}
+
+/* The draft's box, dashed where the agent put it, past the image's edge. */
+.studio[data-phase]:not([data-phase="waiting"]) .studio-ghost {
+  display: block;
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  height: var(--h);
+  z-index: 2;
+  border: 2px dashed #e5484d;
+  border-radius: 6px;
+  background: color-mix(in oklch, #e5484d 10%, transparent);
+  animation: block-in 400ms var(--ease-out) var(--at, 0ms) both;
+  transition:
+    left 700ms cubic-bezier(0.77, 0, 0.175, 1),
+    border-color 300ms ease,
+    background-color 300ms ease,
+    opacity 300ms ease;
+}
+
+/* Checking: the plugin's issue, under the line and on the box it names. */
+.studio[data-phase="check"] .studio-fix del {
+  text-decoration: wavy underline #e5484d;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 3px;
+}
+
+.studio[data-phase="check"] .studio-gutter [data-fix] {
+  color: #e5484d;
+  opacity: 1;
+}
+
+.studio[data-phase="check"] .studio-ghost {
+  animation: nudge 600ms ease-in-out 2;
+}
+
+/* Fixing: the one value retyped, and the box moved into place. */
+.studio:is([data-phase="fix"], [data-phase="render"]) .studio-fix ins {
+  display: inline-block;
+  background: color-mix(in oklch, #16a34a 18%, transparent);
+  animation:
+    type 360ms steps(var(--n), end) both,
+    settle 1600ms ease 600ms both;
+}
+
+.studio:is([data-phase="fix"], [data-phase="render"]) .studio-ghost {
+  left: var(--to-x);
+  border-color: #16a34a;
+  background: color-mix(in oklch, #16a34a 10%, transparent);
+}
+
+/* Rendering: the fixed mark draws where the box landed, and the box goes. */
+.studio[data-phase="render"] .studio-ghost {
+  opacity: 0;
+}
+
+.studio[data-phase="render"] [data-fixed] {
+  visibility: visible;
+}
+
+.studio[data-phase="render"] .ca-mark[data-fixed] {
+  animation: draw 700ms cubic-bezier(0.77, 0, 0.175, 1) both;
+}
+
+.studio[data-phase="render"] .ca-notes li[data-fixed] {
+  animation: block-in 500ms var(--ease-out) 250ms both;
 }
 
 @keyframes type {
@@ -1338,17 +2807,79 @@ a.window-play:hover {
   }
 }
 
-@media (max-width: 30rem) {
-  .window-play span {
+@keyframes block-in {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+    filter: blur(4px);
+  }
+}
+
+/* Wide of the box, since a mark's number and strokes run past it. */
+@keyframes draw {
+  from {
+    clip-path: inset(-150% 100% -150% -150%);
+  }
+
+  to {
+    clip-path: inset(-150% -150% -150% -150%);
+  }
+}
+
+@keyframes nudge {
+  25% {
+    translate: -3px 0;
+  }
+
+  75% {
+    translate: 3px 0;
+  }
+}
+
+@keyframes settle {
+  to {
+    background: transparent;
+  }
+}
+
+@media (max-width: 60rem) {
+  .studio-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .studio-source {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .studio-steps li {
+    padding-right: 0.375rem;
+  }
+
+  .studio-steps li:not([aria-current]) {
+    font-size: 0;
+    gap: 0;
+  }
+}
+
+@media (max-width: 36rem) {
+  .studio-bar {
+    grid-template-columns: auto 1fr auto;
+    padding-left: 0.75rem;
+  }
+
+  .studio-file,
+  .window-play span,
+  .studio-replay span {
     display: none;
   }
 
-  .window-bar {
-    padding-left: 0.375rem;
+  .studio-steps {
+    justify-self: start;
   }
 
-  .window-page {
-    padding: 1rem;
+  .studio-page {
+    padding: 1.25rem;
   }
 }
 
@@ -2310,7 +3841,7 @@ main img {
 /* Touch: every control at least 40px tall, and the editor at 16px so iOS doesn't zoom into it. */
 @media (pointer: coarse) {
   .seg button,
-  .window-tabs button {
+  .studio-replay {
     min-height: 2.5rem;
   }
 

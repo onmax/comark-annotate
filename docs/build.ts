@@ -32,6 +32,7 @@ import icon, {
   iconHtml,
 } from "../packages/icon/src/html.ts";
 import include from "../packages/include/src/index.ts";
+import { lint } from "../packages/lint/src/index.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
 import { defaultConfig } from "./config.ts";
@@ -311,36 +312,134 @@ const examples: NodeHandler = async ([, , ...children], state) => {
 const matrix: NodeHandler = async ([, , ...children], state) =>
   `<div class="matrix">${(await Promise.all(children.map((child) => state.one(child, state)))).join("")}</div>`;
 
-// The index's window, under the heading and text before it: its Markdown, typed out a line at a time, then the page
-// the plugins render from it. Each line is revealed in as many steps as it has characters, all in about two seconds;
-// the script plays it once the window scrolls into view, and switches tabs.
+// The index's studio: the agent's draft of the Markdown typed out a line at a time beside the page the plugins render,
+// each block appearing once its lines are typed. Then the plugins' first issue on the draft, the one value the fixed
+// Markdown changes, and the fixed block drawn. The script plays it once the studio scrolls into view; without it, or
+// with reduced motion, the studio shows the fixed Markdown and page.
 const hero: NodeHandler = async ([, , ...children], state) => {
-  const pre = children.find(isPre);
-  if (!pre) throw new Error("The hero needs a fenced code block.");
-  const intro = children.filter((child) => child !== pre);
-  const source = textContent(pre).trimEnd();
+  const [draftPre, pre] = children.filter(isPre);
+  if (!draftPre || !pre)
+    throw new Error(
+      "The hero needs two fenced code blocks: the agent's draft, then the fixed Markdown.",
+    );
+  const intro = children.filter((child) => !isPre(child));
+  const [draft, source] = [draftPre, pre].map((block) => textContent(block).trimEnd());
   const page = await parseMarkdown(source, { plugins: contentPlugins() });
   if (page.meta.issues.length) throw new Error(`The hero:\n${page.meta.issues.join("\n")}`);
+  const [issue] = (await parseMarkdown(draft, { plugins: contentPlugins() })).meta.issues;
+  if (!issue) throw new Error("The hero's draft needs a problem for the plugins to report.");
   const lines = source.split("\n");
-  const perChar = Math.min(16, 2200 / lines.join("").length);
-  let at = 0;
+  const draftLines = draft.split("\n");
+  const changed = lines.flatMap((line, i) => (line === draftLines[i] ? [] : [i]));
+  if (lines.length !== draftLines.length || changed.length !== 1)
+    throw new Error("The hero's draft and fixed Markdown must differ in exactly one line.");
+  // The value the fix changes, widened to the whole word, number, or quoted string around it.
+  const at = changed[0];
+  const [wrong, right] = [draftLines[at], lines[at]];
+  let start = 0;
+  while (wrong[start] === right[start]) start++;
+  let end = 0;
+  while (
+    end < Math.min(wrong.length, right.length) - start &&
+    wrong.at(-1 - end) === right.at(-1 - end)
+  )
+    end++;
+  while (start > 0 && /[\w.-]/.test(right[start - 1])) start--;
+  while (end > 0 && /[\w.-]/.test(right.at(-end)!)) end--;
+  const was = wrong.slice(start, wrong.length - end);
+  const is = right.slice(start, right.length - end);
+  // The annotation the fix is in, so its mark waits for it.
+  const fixed = lines.slice(0, at + 1).filter((line) => /^:+annotation\b/.test(line)).length;
+  // Each top-level block ends where the Markdown at the top level next has a blank line, or closes its `::`.
+  const ends: number[] = [];
+  let depth = 0;
+  let open = false;
+  for (const [i, line] of lines.entries()) {
+    if (depth === 0 && line.trim() && !open) open = true;
+    const fence = /^(:{2,})([\w-]*)/.exec(line);
+    if (fence?.[2]) depth++;
+    else if (fence) depth--;
+    if (depth === 0 && open && (!lines[i + 1]?.trim() || (fence && !fence[2]))) {
+      ends.push(i);
+      open = false;
+    }
+  }
+  const nodes = page.nodes.filter(isElement);
+  if (nodes.length !== ends.length)
+    throw new Error(`The hero renders ${nodes.length} blocks from ${ends.length} in its Markdown.`);
+  // When each line starts typing and how long it takes, as many steps as it has characters, all in about two seconds.
+  const perChar = Math.min(16, 2200 / draft.length);
+  const timing: { at: number; t: number }[] = [];
+  let clock = 0;
+  for (const line of draftLines) {
+    timing.push({ at: Math.round(clock), t: Math.round(line.length * perChar) });
+    clock += line.length * perChar + 40;
+  }
+  const typed = Math.round(clock);
+  const done = (line: number) => timing[line].at + timing[line].t;
   let line = 0;
   const code = highlight(source)
     .replace(/<\/span>\n<span class="line">/g, '</span><span class="line">')
     .replace(/<span class="line">/g, () => {
-      const length = lines[line++]?.length ?? 0;
-      const style = `--n:${Math.max(length, 1)};--t:${Math.round(length * perChar)}ms;--at:${Math.round(at)}ms`;
-      at += length * perChar + 40;
-      return `<span class="line" style="${style}">`;
+      const i = line++;
+      const flag = i === at ? " data-fix" : "";
+      return `<span class="line"${flag} style="--n:${Math.max(draftLines[i].length, 1)};--t:${timing[i].t}ms;--at:${timing[i].at}ms">`;
     });
+  const lineHtml = code.split('<span class="line"')[at + 1];
+  const swap = lineHtml.replace(
+    escapeHtml(is),
+    `<span class="studio-fix"><del>${escapeHtml(was)}</del><ins style="--n:${is.length}">${escapeHtml(is)}</ins></span>`,
+  );
+  if (swap === lineHtml)
+    throw new Error(`The hero's fix, "${is}", isn't one token in its highlighted line.`);
+  const highlighted = code.replace(lineHtml, swap);
+  // The draft's box for the fixed annotation, dashed where the draft put it, so the fix moves it into place.
+  const box = Object.fromEntries(
+    [...wrong.matchAll(/\b([xywh])=([\d.]+)/g)].map(([, key, value]) => [key, Number(value)]),
+  );
+  const fixedBox = Object.fromEntries(
+    [...right.matchAll(/\b([xywh])=([\d.]+)/g)].map(([, key, value]) => [key, Number(value)]),
+  );
+  const ghost = ["x", "y", "w", "h"].every((key) => key in box && key in fixedBox)
+    ? `<span class="studio-ghost" aria-hidden="true" style="--x:${box.x}%;--y:${box.y}%;--w:${box.w}%;--h:${box.h}%;--to-x:${fixedBox.x}%;--to-y:${fixedBox.y}%;--to-w:${fixedBox.w}%;--to-h:${fixedBox.h}%"></span>`
+    : "";
+  // Annotation n's mark and note show once its lines are typed: the line that opens the next block or closes this one.
+  const annotationEnds = lines.flatMap((text, i) => {
+    if (!/^:+annotation\b/.test(text)) return [];
+    let close = i + 1;
+    while (close < lines.length && !/^:+$/.test(lines[close])) close++;
+    return [done(Math.min(close, lines.length - 1))];
+  });
+  const blocks = await Promise.all(
+    nodes.map(async (node, i) => {
+      let html = await state.one(node, state);
+      html = html.replace(
+        /(<(?:span|li)\b[^>]*?) data-n="(\d+)"/g,
+        (match, tag: string, n: string) => {
+          const shown = annotationEnds[Number(n) - 1] ?? 0;
+          return `${tag} data-n="${n}"${Number(n) === fixed ? " data-fixed" : ""} data-at="${Math.round(shown)}"`;
+        },
+      );
+      if (ghost && html.includes('<span class="ca-mark'))
+        html = html.replace('<span class="ca-mark', `${ghost}<span class="ca-mark`);
+      return `<div class="studio-block" style="--at:${done(ends[i])}ms">${html}</div>`;
+    }),
+  );
+  const gutter = lines
+    .map((_, i) => `<span${i === at ? " data-fix" : ""}>${i + 1}</span>`)
+    .join("");
+  const steps = ["Write", "Check", "Fix", "Render"];
   return (
     `<section class="showcase"><div class="split">${await state.flow(["div", {}, ...intro], state)}</div>` +
-    `<div class="window" style="--typed:${Math.round(at)}ms"><div class="window-bar">` +
-    `<div class="window-tabs" role="tablist" aria-label="The example"><button type="button" role="tab" id="window-source-tab" aria-controls="window-source" aria-selected="true">review.md</button>` +
-    `<button type="button" role="tab" id="window-page-tab" aria-controls="window-page" aria-selected="false" tabindex="-1">Rendered</button></div>` +
+    `<div class="studio" style="--typed:${typed}ms"><div class="studio-bar">` +
+    `<span class="studio-file">${siteIcon("file-input", 13)}review.md</span>` +
+    `<ol class="studio-steps" aria-label="Steps">${steps.map((step) => `<li data-step="${step.toLowerCase()}">${step}</li>`).join("")}</ol>` +
+    `<button type="button" class="studio-replay" hidden>${resetIcon}<span>Replay</span></button>` +
     `<a class="window-play" href="${escapeHtml(playLink(source))}">${siteIcon("flask-conical", 13)}<span>Open in playground</span></a></div>` +
-    `<div class="window-body"><div class="window-source" id="window-source" role="tabpanel" aria-labelledby="window-source-tab" data-active>${code}</div>` +
-    `<div class="window-page" id="window-page" role="tabpanel" aria-labelledby="window-page-tab" inert>${await state.flow(["div", {}, ...page.nodes], state)}</div></div></div></section>`
+    `<div class="studio-body"><div class="studio-source"><div class="studio-code"><div class="studio-gutter" aria-hidden="true">${gutter}</div>${highlighted}</div>` +
+    `<div class="studio-problems"><p class="studio-issue" aria-hidden="true"><span class="studio-dot" aria-hidden="true"></span><span><strong>${escapeHtml(issue.slice(0, issue.indexOf(": ") + 1))}</strong>${escapeHtml(issue.slice(issue.indexOf(": ") + 1))}</span></p>` +
+    `<p class="studio-ok">${checkIcon}No problems</p></div></div>` +
+    `<div class="studio-page"><div>${blocks.join("")}</div></div></div></div></section>`
   );
 };
 
@@ -418,38 +517,109 @@ const presets = parsed.flatMap((page) =>
     }))
     .filter((preset) => playable(preset.source)),
 );
-// A small still of each preset for the playground's column: no scripts, and a gray box for each embedded player,
-// so the column loads nothing but the pages' own images. A chart drops its data table, so the still is all plot. The
-// plugins' styles go in the page once, and the playground scales each still to its card.
+// A still of a rendered document: no scripts, its plugins' styles collected into `styles` to go in the page once,
+// no ids, since a page holds many, and a chart without its data table, so the still is all plot.
+const stillOf = (html: string, styles: Set<string>) =>
+  html
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, (style) => (styles.add(style), ""))
+    .replace(/<script>[\s\S]*?<\/script>/g, "")
+    .replace(/<details class="cch-data">[\s\S]*?<\/details>/g, "")
+    .replace(/\s(id|for|aria-controls|aria-labelledby)="[^"]*"/g, "")
+    .replace(/<img\b/g, '<img loading="lazy" draggable="false"');
+// A small still of each preset for the playground's column, with a gray box for each embedded player, so the column
+// loads nothing but the pages' own images. The playground scales each still to its card.
 const thumbnailStyles = new Set<string>();
 const thumbnails = new Map(
   await Promise.all(
     presets.map(async (preset) => {
       const document = await parseMarkdown(preset.source, { plugins: browserPlugins() });
-      const html = (await renderHtmlFromDocument(document, { components }))
-        .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, (style) => (thumbnailStyles.add(style), ""))
-        .replace(/<script>[\s\S]*?<\/script>/g, "")
-        .replace(/<details class="cch-data">[\s\S]*?<\/details>/g, "")
-        .replace(
-          /<iframe\b[^>]*><\/iframe>/g,
-          `<span class="preset-player">${siteIcon("tv-minimal-play", 128)}</span>`,
-        )
-        .replace(/\s(id|for|aria-controls|aria-labelledby)="[^"]*"/g, "")
-        .replace(/<img\b/g, '<img loading="lazy"');
-      return [preset.id, html] as const;
+      const html = (await renderHtmlFromDocument(document, { components })).replace(
+        /<iframe\b[^>]*><\/iframe>/g,
+        `<span class="preset-player">${siteIcon("tv-minimal-play", 128)}</span>`,
+      );
+      return [preset.id, stillOf(html, thumbnailStyles)] as const;
     }),
   ),
 );
 
-// The index's grid: one tile per package, its icon, name, and what it does.
-const packageGrid: NodeHandler = () =>
-  `<ul class="grid" aria-label="Packages">${sections
+const playIcon = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86A1 1 0 0 0 8 5.14"/></svg>`;
+const pauseIcon = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M7 4h3.5v16H7zM13.5 4H17v16h-3.5z"/></svg>`;
+const canvasIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>`;
+const listIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/></svg>`;
+
+// What lint-comark prints for a demo's Markdown, a line at a time, as its command line would.
+async function lintReport(source: string) {
+  const found = await lint(source, { plugins: browserPlugins(), components });
+  if (!found.length) throw new Error("The lint demo's Markdown needs a problem to report.");
+  const lines = [
+    `<span class="term-cmd"><span aria-hidden="true">$</span> lint-comark review.md</span>`,
+    ...found.flatMap((d) => [
+      `<span class="term-where">review.md:${d.line}:${d.column ?? 1} <span>${escapeHtml(d.rule)}</span></span>`,
+      `<span class="term-message">${escapeHtml(d.message).replace(/`([^`]+)`/g, "<code>$1</code>")}</span>`,
+    ]),
+    `<span class="term-sum">✖ ${found.length} problem${found.length === 1 ? "" : "s"}</span>`,
+  ];
+  return `<div class="term">${lines.map((line, i) => `<span class="term-line" style="--i:${i}">${line}</span>`).join("")}</div>`;
+}
+
+// The index's packages, twice over: a canvas of cards, each drawn live by the plugins from the Markdown in its `demo`
+// and animated by the stylesheet, and the list it replaces without the script, for keyboards, and on request.
+const demoStyles = new Set<string>();
+const packageGrid: NodeHandler = async ([, , ...children]) => {
+  const demos = await Promise.all(
+    children.filter(isElement).map(async ([, attrs, ...content]) => {
+      const pkg = sections.find((section) => section.npm && section.slug === str(attrs.package));
+      if (!pkg?.npm) throw new Error(`A demo names no package: "${str(attrs.package)}".`);
+      const pre = content.find(isPre);
+      if (!pre) throw new Error(`The ${pkg.slug} demo needs a fenced code block.`);
+      const source = textContent(pre);
+      let html: string;
+      if (pkg.slug === "lint") html = await lintReport(source);
+      else {
+        const document = await parseMarkdown(source, { plugins: contentPlugins() });
+        if (document.meta.issues.length)
+          throw new Error(`The ${pkg.slug} demo:\n${document.meta.issues.join("\n")}`);
+        html = (await renderHtmlFromDocument(document, { components })).replace(
+          /<iframe\b[^>]*><\/iframe>/g,
+          `<span class="demo-player"><span class="demo-play">${playIcon}</span><span class="demo-progress"></span></span>`,
+        );
+      }
+      // The canvas stacks cards in columns from their heights, so it never measures one.
+      const height = Number(attrs.height);
+      if (!height) throw new Error(`The ${pkg.slug} demo needs a \`height\` in pixels.`);
+      const label = str(attrs.label);
+      // An include shows what it reads, since the page alone doesn't say.
+      // Tabs show their strip once their script runs, which a card doesn't have.
+      html = html.replaceAll('<div class="ct"', '<div class="ct" data-tabs-ready');
+      if (pkg.slug === "include")
+        html = `<p class="demo-directive"><code>${escapeHtml(source.trim())}</code></p>${html}`;
+      return (
+        `<article class="demo demo-${pkg.slug}${label ? ` demo-${pkg.slug}-${label}` : ""}" data-h="${height}" style="height:${height}px">` +
+        `<a class="demo-link" href="${href(pkg.slug)}" draggable="false" tabindex="-1">${siteIcon(pkg.icon, 15)}<strong>${escapeHtml(pkg.label)}</strong>${label ? `<span>${escapeHtml(label)}</span>` : ""}${siteIcon("arrow-up-right", 14)}</a>` +
+        `<button type="button" class="demo-copy" data-copy="pnpm add ${escapeHtml(pkg.npm)}" tabindex="-1" title="Copy pnpm add ${escapeHtml(pkg.npm)}">${copyIcon}${checkIcon}</button>` +
+        // Hovering a card shows the Markdown it was drawn from.
+        `<div class="demo-screen" inert><div class="demo-page">${stillOf(html, demoStyles)}</div><div class="demo-source">${highlight(source.trimEnd())}</div></div></article>`
+      );
+    }),
+  );
+  const list = sections
     .filter((section) => section.npm)
     .map(
       (section) =>
         `<li><a href="${href(section.slug)}">${siteIcon(section.icon, 24)}<strong>${escapeHtml(section.label)}</strong><span>${escapeHtml(section.blurb ?? "")}</span></a><button type="button" class="grid-copy" data-copy="pnpm add ${escapeHtml(section.npm!)}" aria-label="Copy pnpm add ${escapeHtml(section.npm!)}">${copyIcon}</button></li>`,
     )
-    .join("")}</ul>`;
+    .join("");
+  return (
+    `<section class="canvas" data-view="list" aria-label="Packages">${[...demoStyles].join("")}` +
+    `<div class="canvas-viewport" aria-hidden="true"><div class="canvas-dots"></div><div class="canvas-stage"></div><p class="canvas-hint">Drag to explore</p></div>` +
+    `<template class="canvas-cards">${demos.join("")}</template>` +
+    `<ul class="grid">${list}</ul>` +
+    `<div class="canvas-bar" hidden><div class="seg" role="group" aria-label="View"><button type="button" data-view="canvas" aria-pressed="false" aria-label="Canvas" title="Canvas">${canvasIcon}</button><button type="button" data-view="list" aria-pressed="true" aria-label="List" title="List">${listIcon}</button></div>` +
+    `<button type="button" class="canvas-pause" aria-pressed="false" aria-label="Pause the animations" title="Pause">${pauseIcon}${playIcon}</button></div>` +
+    // Before the first paint, so the list doesn't flash before the canvas.
+    `<script>{const c=document.currentScript.parentElement;let v;try{v=localStorage.getItem("comark-view")}catch{}c.dataset.view=v==="list"?"list":"canvas"}</script></section>`
+  );
+};
 
 // The index's band for Drop: its pitch, and the list in it as numbered steps beside it.
 const drop: NodeHandler = async ([, , ...children], state) => {
@@ -612,43 +782,158 @@ for (const box of document.querySelectorAll(".installer")) {
   box.addEventListener("click", e => { const b = e.target.closest("[data-audience],[data-pm]"); if (!b) return; if (b.dataset.audience) audience = b.dataset.audience; if (b.dataset.pm) pm = b.dataset.pm; update() });
   field.addEventListener("click", async () => { await navigator.clipboard.writeText(field.dataset.copy); field.classList.add("copied"); setTimeout(() => field.classList.remove("copied"), 1200) });
 }
-for (const button of document.querySelectorAll(".grid-copy")) button.addEventListener("click", async () => {
+const copied = async button => {
   await navigator.clipboard.writeText(button.dataset.copy);
   button.classList.add("copied");
   setTimeout(() => button.classList.remove("copied"), 1200);
-});
-// The index's window types its Markdown once it's half in view, then wipes to the rendered page. A tab chosen first
-// stops it.
-for (const win of document.querySelectorAll(".window")) {
-  const tabs = [...win.querySelectorAll("[role=tab]")], panels = [...win.querySelectorAll("[role=tabpanel]")];
-  const place = indicate(win.querySelector(".window-tabs"), "[aria-selected=true]");
-  let timer, transition = 0;
-  const show = (i, wipe) => {
-    clearTimeout(timer); delete win.dataset.typing; delete win.dataset.waiting;
-    if (tabs[i].getAttribute("aria-selected") === "true") return;
-    const currentTransition = ++transition;
-    for (const [j, t] of tabs.entries()) { t.setAttribute("aria-selected", j === i); t.tabIndex = j === i ? 0 : -1 }
-    const [from, to] = [panels[1 - i], panels[i]];
-    to.toggleAttribute("data-active", true); to.inert = false; from.inert = true;
-    const done = () => { if (currentTransition === transition) from.removeAttribute("data-active") };
-    if (wipe && !reduce.matches) to.animate({ clipPath: ["inset(0 100% 0 0)", "inset(0)"] }, { duration: 700, easing: "cubic-bezier(0.77, 0, 0.175, 1)" }).finished.then(done); else done();
-    place();
+};
+for (const button of document.querySelectorAll(".grid-copy")) button.addEventListener("click", () => copied(button));
+// The index's canvas: columns of package cards without end, each running through every card from its own start, so
+// neighbours differ from column to column. Only the cards in view are in the page, cloned from the template as they
+// come in, and each card's height is in its markup, so nothing is measured. It drifts, follows a drag and coasts
+// after it, pans sideways with a trackpad, and stops while the pointer is on a card or it's out of view.
+const mod = (a, n) => ((a % n) + n) % n;
+for (const canvas of document.querySelectorAll(".canvas")) {
+  const viewport = canvas.querySelector(".canvas-viewport"), stage = canvas.querySelector(".canvas-stage"), dots = canvas.querySelector(".canvas-dots");
+  const pause = canvas.querySelector(".canvas-pause"), list = canvas.querySelector(".grid");
+  const cards = [...canvas.querySelector(".canvas-cards").content.children];
+  const n = cards.length, heights = cards.map(c => Number(c.dataset.h)), gap = 20, pitch = 300 + gap, pad = 160;
+  const period = heights.reduce((sum, h) => sum + h + gap, 0);
+  const gcd = (a, b) => b ? gcd(b, a % b) : a;
+  let step = Math.max(1, Math.round(n * 0.4));
+  while (gcd(step, n) !== 1) step++;
+  const live = new Map(), pools = cards.map(() => []);
+  let x = 0, y = -48, vw = 0, vh = 0, vx = 0, vy = 0, last = 0, frame = 0, hovering = false, visible = false, down, dragging = false, moved = false, samples = [];
+  let placed = false;
+  const draw = () => {
+    // Centered on the first column, once there's a width to center in.
+    if (!placed && vw) { x = -mod(vw - 300, pitch) / 2; placed = true }
+    stage.style.transform = "translate3d(" + -x + "px," + -y + "px,0)";
+    dots.style.transform = "translate3d(" + -mod(x, 24) + "px," + -mod(y, 24) + "px,0)";
+    const seen = new Set();
+    for (let c = Math.floor((x - pad) / pitch); c * pitch < x + vw + pad; c++) {
+      const start = mod(c * step, n), shift = mod(c, 2) * 140 + mod(c, 3) * 36;
+      let top = shift;
+      const ys = cards.map((_, j) => { const at = top; top += heights[(start + j) % n] + gap; return at });
+      for (let p = Math.floor((y - pad - shift) / period); p * period + shift < y + vh + pad; p++)
+        for (let j = 0; j < n; j++) {
+          const i = (start + j) % n, at = p * period + ys[j];
+          if (at >= y + vh + pad || at + heights[i] <= y - pad) continue;
+          const key = c + ":" + (p * n + j);
+          seen.add(key);
+          if (live.has(key)) continue;
+          const el = pools[i].pop() ?? cards[i].cloneNode(true);
+          el.style.left = c * pitch + "px"; el.style.top = at + "px";
+          stage.append(el); live.set(key, { el, i });
+        }
+    }
+    for (const [key, slot] of live) if (!seen.has(key)) { slot.el.remove(); pools[slot.i].push(slot.el); live.delete(key) }
   };
-  win.querySelector(".window-tabs").addEventListener("click", e => { const t = e.target.closest("[role=tab]"); if (t) show(tabs.indexOf(t), true) });
-  win.querySelector(".window-tabs").addEventListener("keydown", e => {
-    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-    const i = tabs.indexOf(e.target) === 0 ? 1 : 0; show(i, true); tabs[i].focus();
+  // The velocity eases toward the drift, or toward rest, so a fling coasts into it. The loop stops once at rest.
+  const tick = now => {
+    const dt = Math.min(64, now - (last || now)); last = now;
+    const still = canvas.hasAttribute("data-paused") || hovering || !visible, k = 1 - Math.exp(-dt / 450);
+    vx += ((still ? 0 : 0.016) - vx) * k; vy += ((still ? 0 : 0.011) - vy) * k;
+    x += vx * dt; y += vy * dt; draw();
+    if (still && Math.abs(vx) + Math.abs(vy) < 0.003) { vx = vy = 0; frame = last = 0; return }
+    frame = requestAnimationFrame(tick);
+  };
+  const run = () => { if (!frame && !dragging && canvas.dataset.view === "canvas") frame = requestAnimationFrame(tick) };
+  const halt = () => { cancelAnimationFrame(frame); frame = last = 0 };
+  const view = (name, keep) => {
+    canvas.dataset.view = name;
+    for (const b of canvas.querySelectorAll(".canvas-bar [data-view]")) b.setAttribute("aria-pressed", b.dataset.view === name);
+    if (keep) try { localStorage.setItem("comark-view", name) } catch {}
+    if (name === "canvas") { draw(); run() } else halt();
+  };
+  const paused = on => {
+    canvas.toggleAttribute("data-paused", on);
+    pause.setAttribute("aria-pressed", on);
+    pause.title = on ? "Play" : "Pause";
+    run();
+  };
+  new ResizeObserver(([e]) => { vw = e.contentRect.width; vh = e.contentRect.height; draw() }).observe(viewport);
+  new IntersectionObserver(([e]) => {
+    visible = e.isIntersecting;
+    canvas.toggleAttribute("data-offscreen", !visible);
+    run();
+  }).observe(viewport);
+  viewport.addEventListener("pointerdown", e => {
+    if (e.button !== 0 || e.target.closest(".demo-copy")) return;
+    down = { id: e.pointerId, px: e.clientX, py: e.clientY, x, y }; moved = false;
+    samples = [[e.timeStamp, e.clientX, e.clientY]];
   });
-  if (reduce.matches) { show(1); continue }
-  win.dataset.waiting = "";
-  const seen = new IntersectionObserver(([e]) => {
-    if (!e.isIntersecting) return;
-    seen.disconnect();
-    if (!win.hasAttribute("data-waiting")) return;
-    delete win.dataset.waiting; win.dataset.typing = "";
-    timer = setTimeout(() => show(1, true), parseFloat(getComputedStyle(win).getPropertyValue("--typed")) + 900);
-  }, { rootMargin: "0px 0px 100% 0px", threshold: 0 });
-  seen.observe(win);
+  viewport.addEventListener("pointermove", e => {
+    if (e.pointerType === "mouse") { const over = !!e.target.closest(".demo"); if (over !== hovering) { hovering = over; run() } }
+    if (!down || e.pointerId !== down.id) return;
+    const dx = e.clientX - down.px, dy = e.clientY - down.py;
+    if (!dragging) {
+      if (Math.hypot(dx, dy) < 5) return;
+      dragging = moved = true; halt(); vx = vy = 0;
+      viewport.setPointerCapture(e.pointerId); viewport.dataset.dragging = ""; canvas.dataset.dragged = "";
+    }
+    x = down.x - dx; y = down.y - dy; draw();
+    samples.push([e.timeStamp, e.clientX, e.clientY]);
+    if (samples.length > 8) samples.shift();
+  });
+  const release = e => {
+    if (!down || e.pointerId !== down.id) return;
+    if (dragging) {
+      const [t, sx, sy] = samples.find(s => e.timeStamp - s[0] < 100) ?? samples.at(-1), dt = e.timeStamp - t;
+      const fling = v => Math.max(-3, Math.min(3, v));
+      if (e.type === "pointerup" && dt > 0 && !reduce.matches) { vx = fling((sx - e.clientX) / dt); vy = fling((sy - e.clientY) / dt) }
+      dragging = false; delete viewport.dataset.dragging; run();
+    }
+    down = undefined;
+  };
+  viewport.addEventListener("pointerup", release);
+  viewport.addEventListener("pointercancel", release);
+  viewport.addEventListener("pointerleave", e => { if (e.pointerType === "mouse" && hovering) { hovering = false; run() } });
+  // A drag that ends on a card isn't a click on it.
+  viewport.addEventListener("click", e => {
+    if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; return }
+    const copy = e.target.closest(".demo-copy");
+    if (copy) copied(copy);
+  }, true);
+  viewport.addEventListener("dragstart", e => e.preventDefault());
+  viewport.addEventListener("wheel", e => {
+    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    e.preventDefault(); x += e.deltaX * (e.deltaMode ? 16 : 1); canvas.dataset.dragged = ""; draw();
+  }, { passive: false });
+  canvas.querySelector(".canvas-bar").hidden = false;
+  canvas.querySelector(".canvas-bar .seg").addEventListener("click", e => { const b = e.target.closest("[data-view]"); if (b) view(b.dataset.view, true) });
+  pause.addEventListener("click", () => paused(!canvas.hasAttribute("data-paused")));
+  // The canvas is for pointers; a keyboard reaching the list shows it.
+  list.addEventListener("focusin", () => { if (canvas.dataset.view === "canvas") view("list") });
+  paused(reduce.matches);
+  view(canvas.dataset.view);
+}
+// The index's studio plays once it's in view: data-phase steps through writing, checking, fixing, and rendering, and
+// the stylesheet animates each. Replay plays it again.
+for (const studio of document.querySelectorAll(".studio")) {
+  if (reduce.matches) continue;
+  const typed = parseFloat(getComputedStyle(studio).getPropertyValue("--typed")), replay = studio.querySelector(".studio-replay");
+  const steps = [...studio.querySelectorAll(".studio-steps li")], issue = studio.querySelector(".studio-issue"), ok = studio.querySelector(".studio-ok");
+  for (const el of studio.querySelectorAll("[data-at]:not([data-fixed])")) el.style.setProperty("--at", el.dataset.at + "ms");
+  let timers = [];
+  const phase = name => {
+    studio.dataset.phase = name;
+    // Only the line that shows is read out.
+    issue.setAttribute("aria-hidden", name !== "check"); ok.setAttribute("aria-hidden", !["fix", "render"].includes(name));
+    const i = steps.findIndex(li => li.dataset.step === name);
+    for (const [j, li] of steps.entries()) { li.toggleAttribute("data-done", j < i); if (j === i) li.setAttribute("aria-current", "step"); else li.removeAttribute("aria-current") }
+  };
+  const play = () => {
+    for (const t of timers) clearTimeout(t);
+    studio.dataset.phase = "waiting"; void studio.offsetWidth;
+    phase("write");
+    timers = [[typed + 500, "check"], [typed + 2900, "fix"], [typed + 3700, "render"]].map(([ms, name]) => setTimeout(() => phase(name), ms));
+  };
+  studio.dataset.phase = "waiting";
+  replay.hidden = false;
+  replay.addEventListener("click", play);
+  const seen = new IntersectionObserver(([e]) => { if (e.isIntersecting) { seen.disconnect(); play() } }, { threshold: 0.35 });
+  seen.observe(studio);
 }
 
 const links = [...document.querySelectorAll(".toc a")];
