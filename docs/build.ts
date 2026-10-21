@@ -480,6 +480,28 @@ for (const box of document.querySelectorAll(".installer")) {
   box.addEventListener("click", e => { const b = e.target.closest("[data-audience],[data-pm]"); if (!b) return; if (b.dataset.audience) audience = b.dataset.audience; if (b.dataset.pm) pm = b.dataset.pm; update() });
   field.addEventListener("click", async () => { await navigator.clipboard.writeText(field.dataset.copy); field.classList.add("copied"); setTimeout(() => field.classList.remove("copied"), 1200) });
 }
+for (const b of document.querySelectorAll(".card-copy")) b.addEventListener("click", async () => {
+  await navigator.clipboard.writeText(b.dataset.copy); b.classList.add("copied"); setTimeout(() => b.classList.remove("copied"), 1200);
+});
+for (const win of document.querySelectorAll(".window")) {
+  const tabs = [...win.querySelectorAll("[role=tab]")], panels = [...win.querySelectorAll("[role=tabpanel]")];
+  const place = indicate(win.querySelector(".window-tabs"), "[aria-selected=true]");
+  let timer, transition = 0;
+  const show = (i, wipe) => {
+    clearTimeout(timer); delete win.dataset.typing;
+    if (tabs[i].getAttribute("aria-selected") === "true") return;
+    const currentTransition = ++transition;
+    for (const [j, t] of tabs.entries()) { t.setAttribute("aria-selected", j === i); t.tabIndex = j === i ? 0 : -1 }
+    const [from, to] = [panels[1 - i], panels[i]];
+    to.toggleAttribute("data-active", true); to.inert = false; from.inert = true;
+    const done = () => { if (currentTransition === transition) from.removeAttribute("data-active") };
+    if (wipe && !reduce.matches) to.animate({ clipPath: ["inset(0 100% 0 0)", "inset(0)"] }, { duration: 700, easing: "cubic-bezier(0.77, 0, 0.175, 1)" }).finished.then(done); else done();
+    place();
+  };
+  win.querySelector(".window-tabs").addEventListener("click", e => { const t = e.target.closest("[role=tab]"); if (t) show(tabs.indexOf(t), true) });
+  win.querySelector(".window-tabs").addEventListener("keydown", e => { if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return; const i = tabs.indexOf(e.target) === 0 ? 1 : 0; show(i, true); tabs[i].focus() });
+  if (reduce.matches) show(1); else { win.dataset.typing = ""; timer = setTimeout(() => show(1, true), parseFloat(getComputedStyle(win).getPropertyValue("--typed")) + 900) }
+}
 
 const links = [...document.querySelectorAll(".toc a")];
 const spy = new IntersectionObserver(entries => {
