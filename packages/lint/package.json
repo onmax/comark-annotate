@@ -48,12 +48,12 @@
     "comark-charts": "workspace:*",
     "comark-chips": "workspace:*",
     "comark-code": "workspace:*",
+    "comark-embed": "workspace:*",
     "comark-github": "workspace:*",
     "comark-icon": "workspace:*",
     "comark-tabs": "workspace:*",
     "comark-zoom": "workspace:*",
-    "vite-doctor": "catalog:",
-    "comark-embed": "workspace:*"
+    "vite-doctor": "catalog:"
   },
   "peerDependencies": {
     "comark": "^0.8.0",
@@ -62,12 +62,12 @@
     "comark-charts": "workspace:^",
     "comark-chips": "workspace:^",
     "comark-code": "workspace:^",
+    "comark-embed": "workspace:^",
     "comark-github": "workspace:^",
     "comark-icon": "workspace:^",
     "comark-tabs": "workspace:^",
     "comark-zoom": "workspace:^",
-    "vite-doctor": "^0.1.0",
-    "comark-embed": "workspace:^"
+    "vite-doctor": "^0.1.0"
   },
   "peerDependenciesMeta": {
     "comark-annotate": {
