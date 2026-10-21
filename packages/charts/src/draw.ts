@@ -1,6 +1,6 @@
 import type { ChartAssemblyInput, ThemeSpec } from "flint-chart";
 import { assembleVegaLite } from "flint-chart";
-import { logger, None, parse, View } from "vega";
+import * as vega from "vega";
 import { expressionInterpreter } from "vega-interpreter";
 import type { TopLevelSpec } from "vega-lite";
 import type { Field } from "vega-lite/types_unstable/channeldef.js";
@@ -8,6 +8,46 @@ import type { LayerSpec, UnitSpec } from "vega-lite/types_unstable/spec/index.js
 import { compile } from "vega-lite";
 import { INK, SERIES } from "./colors.ts";
 import type { Chart, XKind } from "./read.ts";
+
+const { logger, None, parse, View } = vega;
+
+// Shares of an em in a sans-serif, a little wide so that text guessed to fit does.
+const EM = [
+  [/\p{Extended_Pictographic}/u, 1.3],
+  [
+    /[\u1100-\u115f\u2e80-\ua4cf\uac00-\ud7a3\uf900-\ufaff\ufe30-\ufe4f\uff00-\uff60\uffe0-\uffe6]/u,
+    1.05,
+  ],
+  [/[ijlI|!.,:;'`()[\]{}]/u, 0.32],
+  [/[frt ]/u, 0.4],
+  [/[mwMW@%]/u, 0.9],
+  [/[A-Z]/u, 0.7],
+  [/\d/u, 0.6],
+] as const;
+// Graphemes, so a family or a flag emoji counts as the one glyph it draws.
+const graphemes = new Intl.Segmenter();
+const guess = (text: string, size: number) => {
+  let width = 0;
+  for (const { segment } of graphemes.segment(text))
+    width += EM.find(([kind]) => kind.test(segment))?.[1] ?? 0.58;
+  return width * size;
+};
+
+// Without a canvas Vega guesses every character at 0.8em, wider than most letters, so greedy overlap hides labels that
+// fit and limits cut others short. Vega takes a better guess through `textMetrics.width`, the hook vl-convert uses,
+// though vega-typings leaves it out. Clamped at the item's limit, it serves both Vega's truncation and its bounds.
+interface TextItem {
+  fontSize?: number;
+  limit?: number;
+}
+const metrics: unknown = Reflect.get(vega, "textMetrics");
+if (
+  metrics &&
+  Reflect.get(Object(metrics), "width") === Reflect.get(Object(metrics), "estimateWidth")
+)
+  Reflect.set(Object(metrics), "width", (item: TextItem, text: string | number | undefined) =>
+    Math.min(item.limit || Infinity, guess(String(text ?? "").trim(), item.fontSize ?? 11)),
+  );
 
 const theme: ThemeSpec = {
   extends: "nyt",
@@ -187,6 +227,10 @@ function input(chart: Chart): ChartAssemblyInput {
       // Flint grows a crowded chart, but only downward: the width is already what the labels leave. Past the canvas
       // Flint drops rows and says "items omitted", so a sideways chart grows as tall as its bars need.
       canvasSize: { width, height: flip ? Math.max(640, bars * 20 + 200) : 640 },
+      // Flint packs a band's bars together when some rows lack a series, but it finds the band from the column's
+      // type, so over dates it sorts bars into lanes by their value, and some draw zero wide. Every band gets a lane per
+      // series instead, as in most grouped bar charts.
+      chartProperties: { dodge: "global" },
     },
     options: { maxColorValues: SERIES.length },
     theme_spec: {
@@ -232,7 +276,7 @@ interface SceneItem {
   items?: SceneItem[];
 }
 
-function boxes(chart: Chart, view: View, width: number, height: number): Map<number, Box> {
+function boxes(chart: Chart, view: vega.View, width: number, height: number): Map<number, Box> {
   const found = new Map<number, Box>();
   const [left, top] = view.origin();
   // Vega types its scenegraph as a bare Scene, but at runtime it holds the root group, whose items carry the fields
@@ -308,6 +352,9 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
     Number(Reflect.get(Object(planned), "step")) ||
     (Number(planned) || layout(chart).width) / chart.rows.length;
   const flat = longest(chart) * 7 + 12 <= step;
+  // Flint scales its type with the plot, from 13.5px down to 8px when long labels leave the plot narrow, and ignores
+  // the theme's sizes, so text is set to shadcn/ui's 12px here. Labels that don't fit are thinned or cut instead.
+  const TYPE = { labelFontSize: 12, titleFontSize: 12 };
   spec.config = {
     ...spec.config,
     // The SVG is one `role="img"` labeled by its caption, and the table under it is what screen readers and agents
@@ -316,6 +363,7 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
     // shadcn/ui's tick margin: with no axis lines, labels need the room to stay apart where the axes meet.
     axisX: {
       ...spec.config?.axisX,
+      ...TYPE,
       grid: false,
       labelPadding: 8,
       titlePadding: 10,
@@ -330,12 +378,14 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
     },
     axisY: {
       ...spec.config?.axisY,
+      ...TYPE,
       labelPadding: 8,
       ...(waterfall && { labels: true, grid: true, gridColor: INK.border }),
     },
     // Vega guesses text widths without a font, short for CJK and emoji, so legend entries get room to spare.
     legend: {
       ...spec.config?.legend,
+      ...TYPE,
       columns: legendColumns(chart, layout(chart).width),
       columnPadding: 20,
       rowPadding: 10,
@@ -347,6 +397,8 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
   // Flint also sets axes and legends on the encodings, which win over the config, so the same rules go there. A
   // waterfall's first step gets room from the axis corner, where its label would meet the value axis's 0.
   for (const unit of units(spec)) {
+    if ("mark" in unit && unit.mark instanceof Object && unit.mark.type === "text")
+      unit.mark = { ...unit.mark, fontSize: TYPE.labelFontSize };
     if (!("encoding" in unit) || !unit.encoding) continue;
     const { color, x, y } = unit.encoding;
     if (color && "legend" in color && color.legend)

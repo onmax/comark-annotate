@@ -227,6 +227,22 @@ No such column.
     expect((await render(markdown)).match(/data-type="bar"/g)).toHaveLength(2);
   });
 
+  it("gives every grouped bar over dates its own lane", async () => {
+    const html = await render(
+      chart(
+        `
+| year | before | after | p95 | p99 | mobile | desktop |
+| --- | --: | --: | --: | --: | --: | --: |
+| 2015 | 20 | 10 | 7 | 9 | 4 | 12,000 |
+| 2016 | 10 | 12 | 18 | 19 | 9 | 19 |`,
+        '{type="bar"}',
+      ),
+    );
+    const bars = [...html.matchAll(/<path d="(M[^"]*)" fill="#[0-9a-f]{6}"/g)].map(([, d]) => d);
+    expect(bars).toHaveLength(12);
+    expect(bars.filter((d) => /^M[\d.]+,[\d.]+h0v/.test(d))).toEqual([]);
+  });
+
   it("renders the content as it is when there's nothing to draw", async () => {
     const html = await render(chart(months, '{x="day"}'));
     expect(html).not.toContain("cch");
