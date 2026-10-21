@@ -6,7 +6,7 @@ test("the playground renders a preset, reports issues as you type, and opens a s
   await page.goto("/play/#preset=github-callouts");
   const preview = page.frameLocator(".play-preview");
   await expect(preview.locator(".cgc").first()).toBeVisible();
-  await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("GitHub");
+  await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("Callouts");
   const npmx = page.locator(".top a.npmx");
   await expect(npmx).toHaveAttribute("href", "https://npmx.dev/package/comark-github");
 
