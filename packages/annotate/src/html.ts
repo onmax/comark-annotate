@@ -194,12 +194,19 @@ async function parts(shot: Screenshot, state: State, id: string, copy = false, b
 }
 
 // `top` reserves room for notes above the image, so every image in a comparison starts at the same height.
-async function figure(shot: Screenshot, state: State, id: string, top = false, body?: string) {
+async function figure(
+  shot: Screenshot,
+  state: State,
+  id: string,
+  top = false,
+  body?: string,
+  zoomContext?: string,
+) {
   // Copying draws the image and its marks to a canvas, which only works for an image.
   const { sides, heading, frame, callouts, notes } = await parts(shot, state, id, !body, body);
   const classes = [...new Set([...sides, ...(top ? [" ca-top"] : [])])].join("");
   return (
-    `<figure class="ca-screenshot${classes}">${heading}<div class="ca-stage" data-zoom tabindex="0" data-zoom-context=".ca,.ca-screenshot" data-zoom-aside="figcaption" data-zoom-title="${attr(shot.title || shot.alt)}">${frame}${callouts}</div>` +
+    `<figure class="ca-screenshot${classes}">${heading}<div class="ca-stage" data-zoom tabindex="0" data-zoom-context=".ca,.ca-screenshot${zoomContext ? `,${zoomContext}` : ""}" data-zoom-aside="figcaption" data-zoom-title="${attr(shot.title || shot.alt)}">${frame}${callouts}</div>` +
     (notes ? `<figcaption>${notes}</figcaption>` : "") +
     "</figure>"
   );
@@ -239,9 +246,10 @@ export async function annotateHtml(
   annotations: Annotation[],
   label: string,
   state: State,
+  zoomContext?: string,
 ): Promise<string> {
   const shot: Screenshot = { src: label, alt: label, annotations, caption: [] };
-  return `${styles(state)}<div class="ca">${await figure(shot, state, idFor([shot], state), false, body)}</div>${zoomRuntime(state)}${runtime(state)}`;
+  return `${styles(state)}<div class="ca">${await figure(shot, state, idFor([shot], state), false, body, zoomContext)}</div>${zoomRuntime(state)}${runtime(state)}`;
 }
 
 const screenshot: NodeHandler = async (node, state) => {

@@ -42,7 +42,7 @@ const chart: NodeHandler = async (node, state) => {
     return box ? [{ ...mark, ...box }] : [];
   });
   const plot = marks.length
-    ? `<div class="cch-plot cch-marked">${await annotateHtml(svg, marks, label, state)}</div>`
+    ? `<div class="cch-plot cch-marked">${await annotateHtml(svg, marks, label, state, ".cch-plot")}</div>`
     : `<div class="cch-plot">${svg}</div>`;
   return (
     `${styles}<figure class="cch" data-type="${read.type}">${title}${plot}` +
