@@ -1,11 +1,7 @@
-import { defineConfig } from "tsdown";
+import { definePackage } from "../../tsdown.shared.ts";
 
-export default defineConfig({
+export default definePackage({
   entry: ["src/index.ts", "src/html.ts", "src/cli.ts"],
-  format: ["esm"],
-  dts: true,
-  clean: true,
-  publint: true,
   exports: {
     exclude: ["cli"],
     bin: { "comark-annotate": "src/cli.ts" },

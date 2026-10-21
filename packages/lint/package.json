@@ -85,6 +85,9 @@
     "comark-code": {
       "optional": true
     },
+    "comark-embed": {
+      "optional": true
+    },
     "comark-github": {
       "optional": true
     },
@@ -98,9 +101,6 @@
       "optional": true
     },
     "vite-doctor": {
-      "optional": true
-    },
-    "comark-embed": {
       "optional": true
     }
   },
