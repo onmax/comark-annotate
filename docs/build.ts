@@ -385,7 +385,7 @@ const rail = (current: Section) =>
     )
     .join(
       "",
-    )}<a class="rail-drop" href="https://drop.vitehub.dev"><img src="/drop.svg" alt="" width="18" height="18"><span class="rail-label"><strong>Review on Drop</strong><span>Comment on the exact spot</span></span></a></nav>`;
+    )}<a class="rail-drop" href="https://drop.vitehub.dev/?utm_source=comark-plugins&amp;utm_medium=sidebar"><img src="/drop.svg" alt="" width="18" height="18"><span class="rail-label"><strong>Review on Drop</strong><span>Comment on the exact spot</span></span></a></nav>`;
 // The second column: the current section's pages, or the playground's presets.
 const column = (section: Section, current: string) => {
   const lists =
