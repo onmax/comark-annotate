@@ -131,20 +131,23 @@ describe("comark-icon", () => {
     vi.stubGlobal("fetch", async (url: string) =>
       url.includes("/down.") ? new Response("", { status: 503 }) : new Response("404"),
     );
-    const markdown =
-      '`:icon` 1 ("lucide:aple"): The `lucide` set has no icon `aple`. Find its name at https://icones.js.org/collection/lucide.',
-      '`:icon` 2 ("apple"): "apple" isn't an icon name. Write it as `set:name`, such as `lucide:apple`, or give an image URL.',
-      '`:icon` 3 ("gone:x"): There's no icon set `gone` to draw `gone:x` from. Find a set at https://icones.js.org, or pass `gone` in `collections`.',
-      '`:icon` 4 ("down:x"): Couldn't load `down:x` from Iconify (HTTP 503). Install `@iconify-json/down` and pass it in `collections`, or try again.',
-      '`:icon` 5 ("lucide:apple:extra"): "lucide:apple:extra" isn't an icon name. Write it as `set:name`, such as `lucide:apple`, or give an image URL.',
-      '`:icon` 6: `name` is required. Write `:icon{name="lucide:apple"}`.',
-    ]);
+    const markdown = [
+      ':icon{name="lucide:aple"}',
+      ':icon{name="apple"}',
+      ':icon{name="gone:x"}',
+      ':icon{name="down:x"}',
+      ':icon{name="lucide:apple:extra"}',
+      ':icon',
+    ].join(" ");
     expect(stripStyles(await render(markdown))).toBe("<p>A B C D E F</p>");
     expect(await issues(markdown)).toEqual([
       '`:icon` 1 ("lucide:aple"): The `lucide` set has no icon `aple`. Find its name at https://icones.js.org/collection/lucide.',
       '`:icon` 2 ("apple"): "apple" isn\'t an icon name. Write it as `set:name`, such as `lucide:apple`, or give an image URL.',
       '`:icon` 3 ("gone:x"): There\'s no icon set `gone` to draw `gone:x` from. Find a set at https://icones.js.org, or pass `gone` in `collections`.',
       '`:icon` 4 ("down:x"): Couldn\'t load `down:x` from Iconify (HTTP 503). Install `@iconify-json/down` and pass it in `collections`, or try again.',
+      '`:icon` 5 (\"lucide:apple:extra\"): \"lucide:apple:extra\" isn\'t an icon name. Write it as `set:name`, such as `lucide:apple`, or give an image URL.',
+      '`:icon` 6: `name` is required. Write `:icon{name=\"lucide:apple\"}`.',
+    ]);
 
   });
 

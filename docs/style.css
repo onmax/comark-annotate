@@ -1833,7 +1833,7 @@ main img {
   align-items: center;
   justify-content: space-between;
   height: 2.75rem;
-  padding: 0 0.5rem 0 1rem;
+  padding: 0 0.5rem;
   border-bottom: 1px solid var(--line);
   color: var(--faint);
   font-size: 0.8125rem;
@@ -1860,15 +1860,28 @@ main img {
 /* The textarea sits over a colored copy of its text in one grid cell; the copy sets the height and the box scrolls. */
 .play-code {
   display: grid;
+  grid-template-rows: auto 1fr;
   flex: 1;
   min-height: 0;
   overflow: auto;
   background: var(--soft);
 }
 
-.play-code > *,
+.play-code > * {
+  grid-area: 2 / 1;
+}
+
 .play-paint pre {
   grid-area: 1 / 1;
+}
+
+/* The Config pane names its JSON like a file, so it reads as the plugins' options rather than more Markdown. */
+.play-code > .play-file {
+  grid-area: 1 / 1;
+  padding: 0.75rem 1rem 0;
+  color: var(--faint);
+  font: 0.75rem/1.5 var(--mono);
+  user-select: none;
 }
 
 .play-paint {
@@ -1987,7 +2000,7 @@ main img {
 }
 
 .preset-thumb {
-  height: 4.75rem;
+  height: 6rem;
   margin: 1px 1px 0;
   overflow: hidden;
   border-radius: 9px 9px 0 0;
@@ -1995,11 +2008,13 @@ main img {
   pointer-events: none;
 }
 
-/* Laid out at a page's width, then zoomed to the column's. */
+/* Laid out at a page's width, then scaled to its card: the playground fits each one, and until it runs, they fill
+   the card's width. */
 .preset-page {
   width: 40rem;
   padding: 1.5rem;
-  zoom: 0.23;
+  transform: scale(0.23);
+  transform-origin: 0 0;
 }
 
 .preset-page > :first-child {

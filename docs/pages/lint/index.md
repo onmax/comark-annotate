@@ -5,7 +5,7 @@ tagline: Check Comark documents before they publish, from a script, the command 
 install: pnpm add -D comark-linter
 ---
 
-Comark forgives a lot: it closes a `::` block you forgot to close, reads a missing `}` as the end of the line, and renders a misspelled component as an empty element. comark-lint reports each of these, with its line, so whoever wrote the document, often an agent, can fix it.
+Comark forgives a lot: it closes a `::` block you forgot to close, reads a missing `}` as the end of the line, and renders a misspelled component as an empty element. lint-comark reports each of these, with its line, so whoever wrote the document, often an agent, can fix it.
 
 ```txt
 docs/review.md:8:1 comark/unclosed-block `::compare` opened on line 8 is never closed. Add a line with `::` after its last child.
@@ -32,7 +32,7 @@ A `#fragment` link that matches no heading id or `{#id}` in the same document. T
 
 ### `comark/invalid-frontmatter` {#comark0005}
 
-Frontmatter that isn't valid YAML, on the line of the YAML error. Comark throws on it; comark-lint reports it and still checks the rest of the document.
+Frontmatter that isn't valid YAML, on the line of the YAML error. Comark throws on it; lint-comark reports it and still checks the rest of the document.
 
 ### `comark/plugin-issue` {#comark0006}
 
@@ -44,4 +44,4 @@ A `javascript:`, `vbscript:`, or `data:` URL in an `href` or `src`. `data:` imag
 
 ## Positions
 
-Comark gives parsed nodes no source positions. comark-lint takes block components' lines from the parser's tokens and finds everything else by searching the source, so a component inside a paragraph gets its line and the first matching column, a URL is matched where it starts an attribute or link rather than in prose, and a repeated value is matched in order.
+Comark gives parsed nodes no source positions. lint-comark takes block components' lines from the parser's tokens and finds everything else by searching the source, so a component inside a paragraph gets its line and the first matching column, a URL is matched where it starts an attribute or link rather than in prose, and a repeated value is matched in order.

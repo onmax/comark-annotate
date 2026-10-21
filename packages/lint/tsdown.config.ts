@@ -8,6 +8,6 @@ export default defineConfig({
   publint: true,
   exports: {
     exclude: ["cli"],
-    bin: { "comark-lint": "src/cli.ts" },
+    bin: { "lint-comark": "src/cli.ts" },
   },
 });

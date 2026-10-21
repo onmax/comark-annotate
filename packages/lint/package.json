@@ -19,7 +19,7 @@
     "directory": "packages/lint"
   },
   "bin": {
-    "comark-lint": "./dist/cli.mjs"
+    "lint-comark": "./dist/cli.mjs"
   },
   "files": [
     "dist"

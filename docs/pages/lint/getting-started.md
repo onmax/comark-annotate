@@ -7,8 +7,8 @@ install: pnpm add -D comark-linter
 ## Command line
 
 ```sh
-pnpm comark-lint "docs/**/*.md"
-pnpm comark-lint review.md --format json
+pnpm lint-comark "docs/**/*.md"
+pnpm lint-comark review.md --format json
 ```
 
 The package is `comark-linter`, since npm refuses `comark-lint` as too close to `remark-lint`. Its command and config file are `comark-lint`.

@@ -33,6 +33,7 @@
     "comark": "catalog:",
     "comark-linter": "workspace:*",
     "geist": "catalog:",
+    "lint-comark": "workspace:*",
     "pkg-pr-new": "catalog:",
     "publint": "catalog:",
     "shiki": "catalog:",
