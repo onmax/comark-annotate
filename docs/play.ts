@@ -1,5 +1,5 @@
 // The playground: renders the editor's Markdown in the browser with every plugin that runs there. comark-include
-// reads files and comark-lint is a checker, so they're left out, and so is Shiki, which would triple the bundle.
+// reads files and lint-comark is a checker, so they're left out, and so is Shiki, which would triple the bundle.
 import { renderHtmlFromDocument } from "@comark/html";
 import { parseMarkdown } from "comark";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
@@ -9,17 +9,29 @@ import embed, { components as embedComponents } from "../packages/embed/src/html
 import githubCallouts, {
   components as githubCalloutsComponents,
 } from "../packages/github-callouts/src/html.ts";
+import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
+import { defaultConfig, type PlayConfig, readConfig } from "./config.ts";
 import { previewDocument } from "./preview.ts";
 
-const plugins = () => [annotate(), carousel(), charts(), embed(), githubCallouts(), tabs(), zoom()];
+const plugins = (config: PlayConfig) => [
+  annotate(),
+  carousel(),
+  charts(),
+  embed(),
+  githubCallouts(config["comark-github-callouts"]),
+  icon(),
+  tabs(),
+  zoom(config["comark-zoom"]),
+];
 const components = {
   ...annotateComponents,
   ...carouselComponents,
   ...chartsComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
+  ...iconComponents,
   ...tabsComponents,
   ...zoomComponents,
 };
@@ -29,18 +41,20 @@ function find<T extends Element>(selector: string, type: new () => T) {
   if (!(element instanceof type)) throw new Error(`The playground needs ${selector}.`);
   return element;
 }
-const editor = find(".play textarea", HTMLTextAreaElement);
+const editor = find('.play-code[data-pane="markdown"] textarea', HTMLTextAreaElement);
+const configEditor = find('.play-code[data-pane="config"] textarea', HTMLTextAreaElement);
+const panes = find(".play-panes", HTMLDivElement);
 const preview = find(".play-preview", HTMLIFrameElement);
 const issues = find(".play-issues", HTMLUListElement);
 const share = find(".play-share", HTMLButtonElement);
-const paint = find(".play-paint", HTMLDivElement);
 const npmx = find(".top a.npmx", HTMLAnchorElement);
 const npmxName = find(".top a.npmx span", HTMLSpanElement);
 const presets: { id: string; source: string; npm: string }[] = JSON.parse(
   find("#presets", HTMLScriptElement).text,
 );
 
-// A shared link carries its Markdown in the hash, deflated, so nothing is stored anywhere.
+// A shared link carries its Markdown in the hash, deflated, so nothing is stored anywhere. A changed config rides
+// along the same way.
 const sharingUnsupported = "Sharing is unavailable in this browser (raw deflate is not supported).";
 function compressionStream(kind: "compress" | "decompress") {
   const Stream = kind === "compress" ? CompressionStream : DecompressionStream;
@@ -67,16 +81,53 @@ async function unpack(code: string) {
 
 // The editor is a transparent textarea over its own text, colored. Until the grammar loads, the text under it is
 // plain. The extra line keeps a trailing newline as tall as the textarea's.
-let highlight: ((code: string) => string) | undefined;
-function repaint() {
-  const text = `${editor.value}\n `;
-  if (highlight) paint.innerHTML = highlight(text);
+let highlight: ((code: string, lang: "mdc" | "json") => string) | undefined;
+function repaint(textarea = editor) {
+  const paint = textarea.previousElementSibling;
+  if (!paint) return;
+  const text = `${textarea.value}\n `;
+  if (highlight) paint.innerHTML = highlight(text, textarea === editor ? "mdc" : "json");
   else paint.replaceChildren(Object.assign(document.createElement("pre"), { textContent: text }));
 }
 void import("./highlight.ts").then((module) => {
   highlight = module.highlight;
-  repaint();
+  repaint(editor);
+  repaint(configEditor);
 });
+
+// The Markdown and the config share the editor's column; the bar's switch shows one of them.
+panes.addEventListener("click", (event) => {
+  const button = event.target instanceof Element ? event.target.closest("button") : null;
+  if (!button?.dataset.pane) return;
+  for (const other of panes.querySelectorAll("button"))
+    other.setAttribute("aria-pressed", String(other === button));
+  for (const code of document.querySelectorAll<HTMLElement>(".play-code"))
+    code.hidden = code.dataset.pane !== button.dataset.pane;
+});
+
+// Each still in the presets' column is a page laid out at full width. It's scaled to show all of itself, unless that
+// would fill less than most of its card's width; then it fills that much and shows its top.
+function fit(thumb: HTMLElement) {
+  const page = thumb.firstElementChild;
+  if (!(page instanceof HTMLElement) || !thumb.clientWidth || !page.offsetWidth) return;
+  const { clientWidth: width, clientHeight: height } = thumb;
+  const scale = Math.min(
+    width / page.offsetWidth,
+    Math.max(height / page.offsetHeight, (width * 0.7) / page.offsetWidth),
+  );
+  const x = (width - page.offsetWidth * scale) / 2;
+  const y = Math.max(0, (height - page.offsetHeight * scale) / 2);
+  page.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+}
+const fitting = new ResizeObserver((entries) => {
+  for (const { target } of entries)
+    if (target instanceof HTMLElement)
+      fit(target.classList.contains("preset-thumb") ? target : (target.parentElement ?? target));
+});
+for (const thumb of document.querySelectorAll(".preset-thumb")) {
+  fitting.observe(thumb);
+  if (thumb.firstElementChild) fitting.observe(thumb.firstElementChild);
+}
 
 function showIssues(list: string[]) {
   issues.replaceChildren(
@@ -116,16 +167,23 @@ function pointNpmx(npm?: string) {
 }
 
 let run = 0;
+let loadIssues: string[] = [];
+let configLinkInvalid = false;
 async function render() {
   const current = ++run;
   let html = "";
+  const { config, issues: configIssues } = readConfig(configEditor.value);
   let problems: string[] = [];
   try {
-    const parsed = await parseMarkdown(editor.value, { plugins: plugins() });
+    const parsed = await parseMarkdown(editor.value, { plugins: plugins(config) });
     html = await renderHtmlFromDocument(parsed, { components });
-    problems = parsed.meta.issues;
+    problems = [...loadIssues, ...configIssues, ...parsed.meta.issues];
   } catch (error) {
-    problems = [error instanceof Error ? error.message : String(error)];
+    problems = [
+      ...loadIssues,
+      ...configIssues,
+      error instanceof Error ? error.message : String(error),
+    ];
   }
   // A slower render of older text must not replace a newer one.
   if (current !== run) return;
@@ -135,9 +193,27 @@ async function render() {
   showIssues(problems);
 }
 
+async function link() {
+  const config =
+    configEditor.value === defaultConfig ? "" : `&config=${await pack(configEditor.value)}`;
+  return `#md=${await pack(editor.value)}${config}`;
+}
+
 async function load() {
+  loadIssues = [];
+  configLinkInvalid = false;
   const hash = new URLSearchParams(location.hash.slice(1));
   const code = hash.get("md");
+  const config = hash.get("config");
+  // A preset keeps whatever config is in the tab, so one config can be tried across them.
+  if (config !== null) {
+    configEditor.value = await unpack(config).catch(() => {
+      configLinkInvalid = true;
+      loadIssues.push("The link's config is cut off or changed; using the default config.");
+      return defaultConfig;
+    });
+    repaint(configEditor);
+  } else if (code !== null) configEditor.value = defaultConfig;
   const preset =
     presets.find((preset) => preset.id === hash.get("preset")) ??
     (code === null ? presets[0] : undefined);
@@ -152,29 +228,37 @@ async function load() {
     });
   markPreset(preset?.id);
   pointNpmx(preset?.npm);
-  repaint();
+  repaint(editor);
+  repaint(configEditor);
   await render();
 }
 
 let timer: ReturnType<typeof setTimeout> | undefined;
-editor.addEventListener("input", () => {
-  repaint();
-  clearTimeout(timer);
-  timer = setTimeout(async () => {
-    markPreset();
-    // Replaced, not pushed: Back leaves the playground instead of stepping through keystrokes.
-    try {
-      history.replaceState(null, "", `#md=${await pack(editor.value)}`);
-    } catch (error) {
-      showIssues([error instanceof Error ? error.message : String(error)]);
+for (const textarea of [editor, configEditor])
+  textarea.addEventListener("input", () => {
+    if (textarea === configEditor) {
+      configLinkInvalid = false;
+      loadIssues = [];
     }
-    await render();
-  }, 200);
-});
+    repaint(textarea);
+    clearTimeout(timer);
+    timer = setTimeout(async () => {
+      if (textarea === editor) markPreset();
+      // Replaced, not pushed: Back leaves the playground instead of stepping through keystrokes.
+      try {
+        history.replaceState(null, "", await link());
+      } catch (error) {
+        showIssues([error instanceof Error ? error.message : String(error)]);
+      }
+      await render();
+    }, 200);
+  });
 share.addEventListener("click", async () => {
   try {
-    if (!location.hash.startsWith("#md="))
-      history.replaceState(null, "", `#md=${await pack(editor.value)}`);
+    if (configLinkInvalid || !location.hash.startsWith("#md=")) {
+      history.replaceState(null, "", await link());
+      configLinkInvalid = false;
+    }
     await navigator.clipboard.writeText(location.href);
     share.textContent = "Copied";
     setTimeout(() => (share.textContent = "Copy link"), 1500);

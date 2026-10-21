@@ -1,5 +1,5 @@
 {
-  "name": "comark-lint",
+  "name": "lint-comark",
   "version": "0.2.0",
   "description": "Finds unclosed blocks, unknown components, broken anchors, and plugin issues in Comark documents. A library, a CLI, and a Vite Doctor extension.",
   "keywords": [
@@ -19,7 +19,7 @@
     "directory": "packages/lint"
   },
   "bin": {
-    "comark-lint": "./dist/cli.mjs"
+    "lint-comark": "./dist/cli.mjs"
   },
   "files": [
     "dist"
@@ -39,7 +39,7 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
-    "prepack": "pnpm --filter comark-lint... build"
+    "prepack": "pnpm --filter lint-comark... build"
   },
   "devDependencies": {
     "comark": "catalog:",
@@ -48,6 +48,7 @@
     "comark-charts": "workspace:*",
     "comark-code": "workspace:*",
     "comark-github-callouts": "workspace:*",
+    "comark-icon": "workspace:*",
     "comark-tabs": "workspace:*",
     "comark-zoom": "workspace:*",
     "vite-doctor": "catalog:"
@@ -59,6 +60,7 @@
     "comark-charts": "workspace:^",
     "comark-code": "workspace:^",
     "comark-github-callouts": "workspace:^",
+    "comark-icon": "workspace:^",
     "comark-tabs": "workspace:^",
     "comark-zoom": "workspace:^",
     "vite-doctor": "^0.1.0"
@@ -77,6 +79,9 @@
       "optional": true
     },
     "comark-github-callouts": {
+      "optional": true
+    },
+    "comark-icon": {
       "optional": true
     },
     "comark-tabs": {

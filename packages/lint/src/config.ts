@@ -2,7 +2,7 @@ import type { LintOptions } from "./index.ts";
 
 export type Config = LintOptions;
 
-/** Types a `comark-lint.config.ts`. Its plugins and components are added to the installed comark-plugins packages. */
+/** Types a `lint-comark.config.ts`. Its plugins and components are added to the installed comark-plugins packages. */
 export const defineConfig = (config: Config): Config => config;
 
 // Each one is an optional peer dependency, so a project lints with exactly the plugins it renders with. The names
@@ -14,6 +14,7 @@ const packages = [
   ["comark-code/html", () => import("comark-code/html"), []],
   ["comark-charts/html", () => import("comark-charts/html"), []],
   ["comark-github-callouts/html", () => import("comark-github-callouts/html"), []],
+  ["comark-icon/html", () => import("comark-icon/html"), []],
   ["comark-tabs/html", () => import("comark-tabs/html"), ["code-group", "tabs-item"]],
   ["comark-zoom/html", () => import("comark-zoom/html"), []],
 ] as const;

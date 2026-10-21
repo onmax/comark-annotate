@@ -1,0 +1,84 @@
+import type { ElementNode, Node } from "comark";
+import { defineComarkPlugin } from "comark";
+import { resolveAttributes } from "comark/render";
+import { createIcons, describeIconProblem, type IconOptions, type Icons } from "./resolve.ts";
+
+export {
+  createIcons,
+  describeIconProblem,
+  parseIconName,
+  type IconData,
+  type IconCollection,
+  type IconOptions,
+  type IconProblem,
+  type Icons,
+} from "./resolve.ts";
+
+export type IconMeta = {
+  /** One readable sentence per problem with an `:icon`. Other plugins add theirs too. */
+  issues: string[];
+};
+
+/** The node an icon is. After parsing, its attributes are `name`, `src`, `ratio`, `mask`, and `label`. */
+export const ICON_TAG = "icon";
+
+const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
+const childrenOf = ([, , ...rest]: ElementNode): Node[] => rest;
+const text = (value: unknown) =>
+  value === undefined || value === null || value instanceof Object
+    ? ""
+    : // SAFETY: undefined, null, objects, and arrays returned above, so only a string, number, or boolean is left.
+      String(value as string | number | boolean).trim();
+
+function collect(nodes: Node[], found: { node: ElementNode; parent: Node[] }[]) {
+  for (const node of nodes) {
+    if (!isElement(node)) continue;
+    if (node[0] === ICON_TAG) found.push({ node, parent: nodes });
+    else collect(childrenOf(node), found);
+  }
+}
+
+/**
+ * Draws `:icon{name="lucide:apple"}`, an Iconify name or an image URL, as a CSS image with no script. Icons are
+ * resolved while parsing, from `collections` or else the Iconify API. An icon it can't draw is left out, and its
+ * problem added to `meta.issues`. Pass an `Icons` from `createIcons()` to share one with other plugins.
+ */
+export default defineComarkPlugin<IconOptions | Icons, IconMeta>((options) => {
+  const icons = options && "resolve" in options ? options : createIcons(options);
+  return {
+    name: "comark-icon",
+    async post(state) {
+      const { tree } = state;
+      const found: { node: ElementNode; parent: Node[] }[] = [];
+      collect(tree.nodes, found);
+      if (!found.length) return;
+      const data = { frontmatter: tree.frontmatter, meta: tree.meta, data: {}, props: {} };
+      const props = found.map(({ node }) => resolveAttributes(node[1], data, { parseJson: true }));
+      const resolved = await icons.resolve(props.map((attrs) => text(attrs.name)));
+      const issues: string[] = [];
+      for (const [index, { node, parent }] of found.entries()) {
+        const name = text(props[index].name);
+        const icon = resolved.get(name);
+        const where = `\`:icon\` ${index + 1}`;
+        if (!name)
+          issues.push(`${where}: \`name\` is required. Write \`:icon{name="lucide:apple"}\`.`);
+        else if (icon && "problem" in icon)
+          issues.push(`${where} ("${name}"): ${describeIconProblem(name, icon)}`);
+        if (!name || !icon || "problem" in icon) {
+          parent.splice(parent.indexOf(node), 1);
+          continue;
+        }
+        const label = text(props[index].label);
+        node[1] = {
+          name,
+          src: icon.src,
+          ratio: String(icon.ratio),
+          ...(icon.mask && { mask: "true" }),
+          ...(label && { label }),
+        };
+        node.splice(2);
+      }
+      tree.meta.issues = [...(tree.meta.issues ?? []), ...issues];
+    },
+  };
+});

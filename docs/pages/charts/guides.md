@@ -25,7 +25,7 @@ It reports unknown props and types, columns that `x` or `y` name but the table d
 
 Annotations are checked too: a missing or unknown `at`, a `series` the chart doesn't draw, and the mark, color, and side, as comark-annotate checks them on screenshots.
 
-Rendering never throws. A cell that isn't a number is left out, a mark it can't place is left out, a type that doesn't fit falls back to the default, a pie or a waterfall draws its first column, and a chart with nothing to draw shows its content as it is. [comark-lint](/lint/) reports the same issues with their line numbers.
+Rendering never throws. A cell that isn't a number is left out, a mark it can't place is left out, a type that doesn't fit falls back to the default, a pie or a waterfall draws its first column, and a chart with nothing to draw shows its content as it is. [lint-comark](/lint/) reports the same issues with their line numbers.
 
 ## Theming
 
