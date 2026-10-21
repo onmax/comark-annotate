@@ -1,5 +1,11 @@
 # comark-zoom
 
+[![npm version](https://npmx.dev/api/registry/badge/version/comark-zoom)](https://npmx.dev/package/comark-zoom)
+[![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-zoom)](https://npmx.dev/package/comark-zoom)
+[![install size](https://npmx.dev/api/registry/badge/size/comark-zoom)](https://npmx.dev/package/comark-zoom)
+[![license](https://npmx.dev/api/registry/badge/license/comark-zoom)](https://npmx.dev/package/comark-zoom)
+[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/zoom/)
+
 Zoom images and any block like medium-zoom, written in Markdown. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 
 ```sh
