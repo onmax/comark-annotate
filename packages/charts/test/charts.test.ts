@@ -38,6 +38,15 @@ describe("comark-charts", () => {
     expect(await issues(chart(sizes))).toEqual([]);
   });
 
+  it("takes the card's side padding from --cch-padding, which the Data footer spans too", async () => {
+    const html = await render(chart(sizes));
+    expect(html).toContain(":where(.cch){--cch-padding:1.5rem}");
+    expect(html).toMatch(/\.cch\{[^}]*padding:1\.25rem var\(--cch-padding\) 0;/);
+    expect(html).toMatch(
+      /\.cch-data\{margin:1rem calc\(-1 \* var\(--cch-padding\)\) 0;padding:\.75rem var\(--cch-padding\);/,
+    );
+  });
+
   it("labels the chart with the table's own headers, dots and all", async () => {
     const html = await render(
       chart(`

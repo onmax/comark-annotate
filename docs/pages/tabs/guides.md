@@ -43,7 +43,7 @@ const plugins = [
 ];
 ```
 
-Size them with `--comark-icon-size`, and style them as [comark-icon's syntax](/icon/syntax/#styling) describes.
+Size them with `--comark-icon-size`, and style them as [comark-icon's Theming page](/icon/theming/) describes.
 
 ## Validation
 
