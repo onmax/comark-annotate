@@ -48,6 +48,7 @@
     "comark-annotate": "workspace:*",
     "flint-chart": "catalog:",
     "vega": "catalog:",
+    "vega-interpreter": "catalog:",
     "vega-lite": "catalog:"
   },
   "devDependencies": {

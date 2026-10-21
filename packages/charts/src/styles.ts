@@ -1,5 +1,5 @@
 import { theme } from "comark-zoom/theme";
-import { INK, SERIES } from "./draw.ts";
+import { INK, SERIES } from "./colors.ts";
 
 // Rules of the host's stylesheet beat an SVG's presentation attributes, so each ink is swapped by its color.
 const swap = (hex: string, color: string, props = ["fill", "stroke"]) =>

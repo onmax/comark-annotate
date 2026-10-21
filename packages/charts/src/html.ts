@@ -1,7 +1,7 @@
 import type { ElementNode, NodeHandler } from "comark";
 import { annotateHtml } from "comark-annotate/html";
 import { escapeHtml } from "comark/utils";
-import { draw } from "./draw.ts";
+import type { draw } from "./draw.ts";
 import { readChart } from "./read.ts";
 import { css } from "./styles.ts";
 
@@ -28,7 +28,8 @@ const chart: NodeHandler = async (node, state) => {
   const title = read.title ? `<figcaption>${escapeHtml(read.title)}</figcaption>` : "";
   let drawn: Awaited<ReturnType<typeof draw>>;
   try {
-    drawn = await draw(read);
+    // Flint and Vega take hundreds of milliseconds to load, so a document or a lint run with no chart never loads them.
+    drawn = await (await import("./draw.ts")).draw(read);
   } catch {
     // Rendering never throws: a chart that can't be drawn still shows its numbers.
     return `${styles}<figure class="cch" data-type="${read.type}">${title}${data}</figure>`;

@@ -1,40 +1,13 @@
 import type { ChartAssemblyInput, ThemeSpec } from "flint-chart";
 import { assembleVegaLite } from "flint-chart";
 import { logger, None, parse, View } from "vega";
+import { expressionInterpreter } from "vega-interpreter";
 import type { TopLevelSpec } from "vega-lite";
 import type { Field } from "vega-lite/types_unstable/channeldef.js";
 import type { LayerSpec, UnitSpec } from "vega-lite/types_unstable/spec/index.js";
 import { compile } from "vega-lite";
+import { INK, SERIES } from "./colors.ts";
 import type { Chart, XKind } from "./read.ts";
-
-/**
- * The colors the SVG is drawn with. Each is the light theme's value of a CSS variable, so the SVG reads on its own,
- * and the stylesheet swaps each one for its variable, which follows the page's theme and dark mode.
- */
-export const INK = {
-  foreground: "#0a0a0a",
-  muted: "#737373",
-  border: "#e5e5e5",
-  // Flint lightens a quiet grid from `border`.
-  grid: "#ececec",
-  background: "#ffffff",
-} as const;
-// Tailwind's 500 shades read on white and on black, so the defaults work in both themes. Past the palette, Flint
-// would merge series into a gray "Others", so there are enough for any table a review holds.
-export const SERIES = [
-  "#3b82f6",
-  "#f97316",
-  "#10b981",
-  "#a855f7",
-  "#f43f5e",
-  "#eab308",
-  "#06b6d4",
-  "#ec4899",
-  "#84cc16",
-  "#6366f1",
-  "#14b8a6",
-  "#f59e0b",
-] as const;
 
 const theme: ThemeSpec = {
   extends: "nyt",
@@ -337,6 +310,9 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
   const flat = longest(chart) * 7 + 12 <= step;
   spec.config = {
     ...spec.config,
+    // The SVG is one `role="img"` labeled by its caption, and the table under it is what screen readers and agents
+    // read, so a label on every bar only repeats the table.
+    aria: false,
     // shadcn/ui's tick margin: with no axis lines, labels need the room to stay apart where the axes meet.
     axisX: {
       ...spec.config?.axisX,
@@ -383,6 +359,10 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
           labelOverlap: "greedy",
           labelSeparation: 6,
         };
+    // Vega-Lite rounds a stack as a whole, which costs a clipped group per bar, so bars that stack nothing don't stack.
+    if (chart.type === "bar")
+      for (const channel of [x, y])
+        if (channel && "field" in channel && channel.field === "y") channel.stack = null;
     if (waterfall && x && "field" in x && x.field === "x")
       x.scale = { ...("scale" in x && x.scale), paddingOuter: flat ? 0.4 : 1 };
   }
@@ -408,11 +388,23 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
       spec.layer.push({ mark: { type: "point", opacity: 0 }, encoding });
     }
   }
-  const view = new View(parse(compile(spec, { logger: quiet }).spec), {
+  // Vega compiles its expressions with `new Function` unless told to interpret them, and Cloudflare Workers, where
+  // documents like these often render, forbid that.
+  const view = new View(parse(compile(spec, { logger: quiet }).spec, undefined, { ast: true }), {
     renderer: "none",
     logLevel: None,
+    expr: expressionInterpreter,
   });
-  const svg = await view.toSVG();
+  // Vega gives every group a role for screen readers, which the one `role="img"` hides anyway, an empty foreground
+  // path, and float noise such as `10.000000000000021`. Only tags change, since text holds the table's own numbers,
+  // and Vega escapes `>` in attributes.
+  const svg = (await view.toSVG())
+    .replace(/<path class="foreground"[^>]* d=""[^>]*\/>/g, "")
+    .replace(/<[^>]+>/g, (tag) =>
+      tag
+        .replace(/ (?:role|aria-roledescription|aria-hidden)="[^"]*"/g, "")
+        .replace(/(\.\d\d)\d+/g, "$1"),
+    );
   const [, width = "0", height = "0"] = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg) ?? [];
   const found = boxes(chart, view, Number(width), Number(height));
   view.finalize();
