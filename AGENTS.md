@@ -4,14 +4,14 @@ Comark plugins for review documents: annotated screenshots, before/after compari
 
 ## Shape
 
-A pnpm workspace. Every package in `packages/` is published to npm under its own name, and all of them share one version.
+A pnpm workspace. Every package in `packages/` is published to npm under its own name, and all of them share one version. Each `tsdown.config.ts` is one call to `definePackage()` or, for a package with a renderer per framework, `defineComponentsPackage()` from the root `tsdown.shared.ts`, so the packages build alike.
 
 - `packages/annotate` is `comark-annotate`.
   - `src/read.ts` reads `::screenshot`, `::compare`, `::diff`, and `::annotation` nodes and reports their issues. The plugin and the renderer both go through it, so they can't disagree.
   - `src/index.ts` is the parse plugin. It appends its problems to `meta.issues`.
   - `src/html.ts` is the `@comark/html` renderer. The output reads without a script; the zoom and carousel scripts and all styles are inlined once per document. A screenshot zooms with `comark-zoom`, and `::compare` is a two-column `comark-carousel`. Marks are not links, so a click anywhere on a screenshot zooms it. `::diff` is a table of before and after lines with no script, and doesn't zoom: its code scrolls in place.
   - Only the HTML renderer exists: notes are Markdown, and Vue, React, and Svelte versions would each copy the whole figure template.
-  - `src/marks.ts` holds the hand-drawn marks, taken from AnnotationKit.
+  - `src/marks.ts` holds the hand-drawn marks, taken from AnnotationKit, and `src/script.ts` is the browser script the HTML renderer inlines.
 - `packages/carousel` is `comark-carousel`. Its parse plugin turns `::carousel` content into explicit `slide` nodes with their position, so no renderer splits children. Its script is built like zoom's, and a carousel is a zoom gallery.
 - `packages/chips` is `comark-chips`. Its parse plugin turns every web link, `@user`, and `:chip` into a `chip` node with `href`, `kind` (`favicon` or `avatar`), `src`, and `title`, so no renderer reads URLs. `src/images.ts` downloads each image while parsing and inlines it as a data URI, cached per process; an HTTP error maps to its status, and any other failure keeps the URL for the reader's browser. No script: the components add the styles on mount.
 - `packages/code` is `comark-code`. Its components replace `pre`: each wraps the block, rendered as it would be without them, in `.ck` with a bar of buttons, so Shiki's output and code groups work in any plugin order. The bar's markup is one string from `buttons()` in `src/client.ts` that every renderer inlines. Its parse plugin only writes the configured `actions` onto matching `pre` nodes; the script sends a `comark-code-action` event for them and does nothing else.
@@ -25,17 +25,17 @@ A pnpm workspace. Every package in `packages/` is published to npm under its own
   - `src/index.ts` is the parse plugin. It resolves every `:icon` in one call and writes `src`, `ratio`, `mask`, and `label` on the node, and drops one it can't draw. `name` stays, so a renderer that maps `icon` to Nuxt UI's component still works.
   - An icon is a `.ci` span with its image in `--ci`: a mask over `currentColor` when the SVG uses it, a background image otherwise. The renderers set the style as an object, because `@comark/react` splits a style string at every colon and would cut the data URI.
   - Plugins that draw icons (tabs) take an `Icons` and draw with `iconHtml()`/`iconStyles()` from `/html` and the `Icon` component from `/vue`, `/react`, and `/svelte`.
-- `packages/lint` is `comark-linter`, a library, CLI, and Vite Doctor extension that lints Comark documents. npm refuses `comark-lint` as too close to `remark-lint`, so only the package is `comark-linter`: its command, config file, and messages stay `comark-lint`.
+- `packages/lint` is `comark-linter`, a library, CLI, and Vite Doctor extension that lints Comark documents. npm refuses `comark-lint` as too close to `remark-lint`, so the package is `comark-linter` and its command and config file are `lint-comark`.
   - `src/index.ts` is `lint()`. Comark gives nodes no positions, so block components take their line from markdown-exit tokens (plus the stripped frontmatter's lines) and everything else is found by searching the source with fenced code blanked out.
   - `src/config.ts` loads the other packages in this repo through optional dynamic imports; they are optional peer dependencies. Add a new package there.
-  - `src/doctor.ts` is `comark-linter/doctor`. Vite Doctor has no Markdown visitor, so its Rules are manifest Rules that glob the Markdown in `onProjectEnd`. The root `doctor.config.ts` lints `docs/pages` with it as part of `pnpm run doctor`.
+  - `src/doctor.ts` is `comark-linter/doctor`. Vite Doctor has no Markdown visitor, so its Rules are manifest Rules that glob the Markdown in `onProjectEnd`. The root `doctor.config.ts` lints `docs/pages` and every package's `docs/` with it as part of `pnpm run doctor`.
 - `packages/tabs` is `comark-tabs`. Its parse plugin turns `::code-group` into `::tabs` and gives each `tabs-item` its label and position, and the `tabs` node every label and a `uid` from a hash of the source, so no renderer splits children and the HTML renderer's ids differ between documents on one page. Its script is built like carousel's.
 - `packages/zoom` is `comark-zoom`.
   - `src/index.ts` is the parse plugin. It marks content images and adds one `zoom-runtime` node to a document with anything to zoom.
   - `src/script.ts` is the browser script. `script()` is self-contained because the HTML renderer inlines its source. `src/client.ts` exports `start()`, which runs it with the bundled styles; Vue, React, and Svelte components call it on mount and stop it on unmount.
   - `src/theme.ts` resolves the shared `--comark-*` tokens, and `comark-zoom/theme` exports it alone. `comark-github`, `comark-embed`, and `comark-tabs` have it as a dev dependency and bundle only this entry, so they don't install zoom or carry its styles.
   - `src/html.ts`, `src/vue.ts`, `src/react.ts`, and `src/svelte/` are the renderers. They all output the same markup.
-- `docs/` builds the docs site with the plugins themselves. Cloudflare serves it from `docs/dist`. Each package has a folder in `docs/pages/` with an overview, getting started, components or syntax, and guides; `docs/build.ts` lists the sections. `docs/play.ts` is the playground, bundled with Vite; its presets are the examples at the top of each page.
+- `docs/` builds the docs site with the plugins themselves. Cloudflare serves it from `docs/dist`. Each package's pages sit in its own `docs/`, like VueUse's: an overview, getting started, components or syntax, and guides, which `files` keeps out of npm. The overview's frontmatter gives the package's rail group, icon, blurb, and credits, and `packageOrder` in `docs/build.ts` its place. `docs/pages/` holds the rest of the site: the landing page, guides, recipes, and comparisons. `docs/plugins.ts` is the one list of plugins the pages and the playground render with. `docs/play.ts` is the playground, bundled with Vite; its presets are the examples at the top of each page.
 
 ## Rules
 
@@ -43,6 +43,7 @@ A pnpm workspace. Every package in `packages/` is published to npm under its own
 - Test through the public interface: parse plus render. Don't test internals.
 - Rendering never throws. Problems go in `meta.issues`, one sentence each that names the block and the fix. Every plugin appends to the list and never replaces it, since several run on one document.
 - Comments are rare and explain why, never what.
+- Each package's classes start with its own prefix, since every package's styles share the `comark` layer: `ca` annotate, `cc` carousel, `cch` charts, `cp` chips, `ck` code, `ce` embed, `cgc` github, `ci` icon, `ct` tabs, `cz` zoom. Pick an unused one for a new package.
 - Every build runs publint, so a package whose `exports`, `files`, or types don't resolve fails to build. Svelte entries ship as source with a hand-written `index.d.ts`; keep it in step with the components' props.
 - `pnpm ready` formats, lints, typechecks, builds, tests, and runs Vite Doctor with the strict TypeScript preset (each package's `doctor.config.json`). Run it before opening a PR; CI runs the same steps.
 - Use conventional commit titles. uppt builds the release from them (see Releasing below).

@@ -2,18 +2,18 @@ import { theme } from "comark-zoom/theme";
 
 /**
  * Players in a bordered frame the page's width, with the link under them, and link cards in the style of shadcn/ui's
- * Item, on the shared `--comark-*` tokens. Override `--ce-app-height` for CodePen, StackBlitz, and Figma. The rules sit
- * in the `comark` layer, so any unlayered rule of the host's wins.
+ * Item, on the shared `--comark-*` tokens. Override `--ce-app-height` for CodePen, StackBlitz, and Figma, and
+ * `--ce-short-width` for a YouTube Short. The rules sit in the `comark` layer, so any unlayered rule of the host's wins.
  */
 export const css = `@layer comark{${[
   theme(".ce,.ce-card"),
-  ":where(.ce){--ce-app-height:30rem}",
+  ":where(.ce){--ce-app-height:30rem;--ce-short-width:20rem}",
   ".ce{margin:1.5rem 0;font-family:var(--_comark-font)}",
   ".ce-frame{overflow:hidden;border:1px solid var(--_comark-border);border-radius:var(--_comark-radius);background:color-mix(in srgb,var(--_comark-foreground) 4%,transparent)}",
   // A dark page paints an iframe white until its document, which declares no color scheme, matches the iframe's.
   ".ce-frame iframe{display:block;width:100%;height:100%;border:0;color-scheme:light}",
   ".ce[data-size='video'] .ce-frame{aspect-ratio:16/9}",
-  ".ce[data-size='short'] .ce-frame{aspect-ratio:9/16;max-width:20rem;margin-inline:auto}",
+  ".ce[data-size='short'] .ce-frame{aspect-ratio:9/16;max-width:var(--ce-short-width);margin-inline:auto}",
   // Spotify draws its own rounded card at these heights.
   ".ce[data-size='compact'] .ce-frame{height:152px;border:0;background:none}",
   ".ce[data-size='list'] .ce-frame{height:352px;border:0;background:none}",

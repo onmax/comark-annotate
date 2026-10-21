@@ -13,6 +13,7 @@ const packages = [
   ["comark-carousel/html", () => import("comark-carousel/html"), []],
   ["comark-code/html", () => import("comark-code/html"), []],
   ["comark-charts/html", () => import("comark-charts/html"), []],
+  ["comark-embed/html", () => import("comark-embed/html"), []],
   [
     "comark-github/html",
     // Of its plugins only callouts make blocks; references and raw HTML have nothing to lint.

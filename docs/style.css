@@ -2969,7 +2969,7 @@ li {
 }
 
 /* Unlayered, these would beat the embed's and the chips' own link styles, which the page shows off. */
-a:where(:not(.ce-card, .ce a, .cch)) {
+a:where(:not(.ce-card, .ce a, .cp)) {
   color: var(--fg);
   text-decoration: underline;
   text-decoration-color: var(--line);
@@ -2978,7 +2978,7 @@ a:where(:not(.ce-card, .ce a, .cch)) {
   transition: text-decoration-color 150ms ease;
 }
 
-a:where(:not(.ce-card, .ce a, .cch)):hover {
+a:where(:not(.ce-card, .ce a, .cp)):hover {
   text-decoration-color: var(--fg);
 }
 

@@ -36,17 +36,44 @@ export function start(css: string): () => void {
   const panelsOf = (root: Element) => [...root.querySelectorAll(":scope>.ct-panel")];
   const label = (tab: Element) => tab.textContent?.trim() ?? "";
 
-  function select(root: Element, index: number) {
-    for (const [at, tab] of tabsOf(root).entries()) {
+  const motion = matchMedia("(prefers-reduced-motion: reduce)");
+  const easing = "cubic-bezier(.22,1,.36,1)";
+  // The new tab's surface starts where the old one is drawn, mid-slide if it was still moving, so fast switches retarget.
+  function slide(from: HTMLElement, to: HTMLElement) {
+    if (motion.matches) {
+      to.animate({ opacity: [0, 1] }, { duration: 150, pseudoElement: "::before" });
+      return;
+    }
+    const start = from.getBoundingClientRect();
+    const end = to.getBoundingClientRect();
+    if (!end.width) return;
+    const drawn = new DOMMatrix(getComputedStyle(from, "::before").transform);
+    for (const running of from.getAnimations({ subtree: true })) running.cancel();
+    const left = start.left + drawn.m41;
+    const width = start.width * drawn.m11;
+    to.animate(
+      {
+        transform: [`translateX(${left - end.left}px) scaleX(${width / end.width})`, "none"],
+      },
+      { duration: 200, easing, pseudoElement: "::before" },
+    );
+  }
+
+  function select(root: Element, index: number, animate = false) {
+    const tabs = tabsOf(root);
+    const from = tabs.find((tab) => tab.getAttribute("aria-selected") === "true");
+    for (const [at, tab] of tabs.entries()) {
       tab.setAttribute("aria-selected", String(at === index));
       tab.tabIndex = at === index ? 0 : -1;
     }
     for (const [at, panel] of panelsOf(root).entries())
       panel.toggleAttribute("data-inactive", at !== index);
+    const to = tabs[index];
+    if (animate && from && to && from !== to) slide(from, to);
   }
-  const selectLabel = (root: Element, name: string) => {
+  const selectLabel = (root: Element, name: string, animate = false) => {
     const index = tabsOf(root).findIndex((tab) => label(tab) === name);
-    if (index >= 0) select(root, index);
+    if (index >= 0) select(root, index, animate);
   };
 
   // Storage can throw, in a sandboxed frame or with cookies blocked; the tabs still switch without it.
@@ -87,15 +114,15 @@ export function start(css: string): () => void {
     if (sync) {
       // Switching tabs above the reader changes their height, so the page scrolls by as much to keep this tab still.
       const before = tab.getBoundingClientRect().top;
-      for (const other of synced(sync)) selectLabel(other, label(tab));
-      select(root, tabsOf(root).indexOf(tab));
+      for (const other of synced(sync)) selectLabel(other, label(tab), true);
+      select(root, tabsOf(root).indexOf(tab), true);
       window.scrollBy({ top: tab.getBoundingClientRect().top - before, behavior: "instant" });
       const selected = label(tab);
       current.set(sync, selected);
       try {
         localStorage.setItem(key(sync), selected);
       } catch {}
-    } else select(root, tabsOf(root).indexOf(tab));
+    } else select(root, tabsOf(root).indexOf(tab), true);
     if (focus) tab.focus();
   }
 
