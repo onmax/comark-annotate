@@ -55,6 +55,6 @@ The cache lands, and builds drop below 600 ms.
 
 ## Check it
 
-In a project with comark-charts installed, run `npx comark-lint report.md`. It prints one line per problem, each naming the chart by its position (`` `::chart` 2 ``) and saying how to fix it, and exits with 1 if there are any. Fix every one. In code, the same sentences are in `meta.issues` after `parseMarkdown(markdown, { plugins: [charts()] })`.
+In a project with comark-charts installed, run `npx lint-comark report.md`. It prints one line per problem, each naming the chart by its position (`` `::chart` 2 ``) and saying how to fix it, and exits with 1 if there are any. Fix every one. In code, the same sentences are in `meta.issues` after `parseMarkdown(markdown, { plugins: [charts()] })`.
 
 When you can render the page, open it and confirm the chart says what your text says: the right type, every series named, and the numbers in the expected order.

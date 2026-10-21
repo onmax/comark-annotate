@@ -1,26 +1,26 @@
-# comark-lint
+# lint-comark
 
-[![npm version](https://npmx.dev/api/registry/badge/version/comark-lint)](https://npmx.dev/package/comark-lint)
-[![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-lint)](https://npmx.dev/package/comark-lint)
-[![install size](https://npmx.dev/api/registry/badge/size/comark-lint)](https://npmx.dev/package/comark-lint)
-[![license](https://npmx.dev/api/registry/badge/license/comark-lint)](https://npmx.dev/package/comark-lint)
+[![npm version](https://npmx.dev/api/registry/badge/version/lint-comark)](https://npmx.dev/package/lint-comark)
+[![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/lint-comark)](https://npmx.dev/package/lint-comark)
+[![install size](https://npmx.dev/api/registry/badge/size/lint-comark)](https://npmx.dev/package/lint-comark)
+[![license](https://npmx.dev/api/registry/badge/license/lint-comark)](https://npmx.dev/package/lint-comark)
 [![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/lint/)
 
 Finds unclosed blocks, unknown components, broken anchors, and plugin issues in [Comark](https://comark.dev) documents. A library, a CLI, and a [Vite Doctor](https://github.com/onmax/vite-doctor) extension. Every message names the block and says how to fix it.
 
 ```sh
-pnpm add -D comark-lint
-pnpm comark-lint "docs/**/*.md"
+pnpm add -D lint-comark
+pnpm lint-comark "docs/**/*.md"
 ```
 
 ```txt
 docs/review.md:8:1 comark/unclosed-block `::compare` opened on line 8 is never closed. Add a line with `::` after its last child.
 ```
 
-The CLI checks each file with every comark-plugins package installed (annotate, carousel, charts, github-callouts, zoom), prints `file:line:column rule message`, or JSON with `--format json`, and exits with 1 on any problem. Add your own plugins and component names with `--config comark-lint.config.ts`, which exports `defineConfig({ plugins, components })`.
+The CLI checks each file with every comark-plugins package installed (annotate, carousel, charts, github-callouts, zoom), prints `file:line:column rule message`, or JSON with `--format json`, and exits with 1 on any problem. Add your own plugins and component names with `--config lint-comark.config.ts`, which exports `defineConfig({ plugins, components })`.
 
 ```ts
-import { lint } from "comark-lint";
+import { lint } from "lint-comark";
 import annotate, { components } from "comark-annotate/html";
 
 const diagnostics = await lint(markdown, { plugins: [annotate()], components });
@@ -31,7 +31,7 @@ const diagnostics = await lint(markdown, { plugins: [annotate()], components });
 For Vite Doctor 0.1 or later, register the extension in `doctor.config.ts` and run `vite-doctor . --config doctor.config.ts`:
 
 ```ts
-import comark from "comark-lint/doctor";
+import comark from "lint-comark/doctor";
 import { defineDoctorConfig } from "vite-doctor/config";
 
 export default defineDoctorConfig({ extends: ["auto"], extensions: [comark()] });

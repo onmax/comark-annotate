@@ -36,7 +36,7 @@ Link the page from the pull request, or upload it as a CI artifact. GitHub shows
 
 Drop fits a review that goes back and forth: comments sit on the screenshot they're about, and the agent fixes what they ask without anyone copying feedback into a chat. Your own page fits a team that wants no service in the loop, or already reviews on preview deployments.
 
-Either way, write the document first, as [A review document](/recipes/review/) shows, and check it with [comark-lint](/lint/) before it goes out.
+Either way, write the document first, as [A review document](/recipes/review/) shows, and check it with [lint-comark](/lint/) before it goes out.
 
 ## About Drop
 

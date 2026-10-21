@@ -1,5 +1,5 @@
 // The playground: renders the editor's Markdown in the browser with every plugin that runs there. comark-include
-// reads files and comark-lint is a checker, so they're left out, and so is Shiki, which would triple the bundle.
+// reads files and lint-comark is a checker, so they're left out, and so is Shiki, which would triple the bundle.
 import { renderHtmlFromDocument } from "@comark/html";
 import { parseMarkdown } from "comark";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";

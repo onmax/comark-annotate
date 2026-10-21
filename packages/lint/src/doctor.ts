@@ -35,7 +35,7 @@ const diagnostics = defineDoctorDiagnostics(
 );
 
 /**
- * A Doctor Extension that lints the project's Markdown with comark-lint. Register it in
+ * A Doctor Extension that lints the project's Markdown with lint-comark. Register it in
  * `doctor.config.ts` and run `vite-doctor . --config doctor.config.ts`.
  */
 export default function comark(options: DoctorOptions = {}) {
@@ -49,7 +49,7 @@ export default function comark(options: DoctorOptions = {}) {
 
   // Every Rule reads the same results; the first one to run lints the files.
   const lintProject = (ctx: RuleContext) => {
-    const key = `comark-lint:${ctx.project.root}`;
+    const key = `lint-comark:${ctx.project.root}`;
     let results =
       ctx.cache.get<Promise<{ file: string; text: string; found: Diagnostic[] }[]>>(key);
     if (!results) {
