@@ -85,6 +85,7 @@ const lucideNames = [
   "panels-top-left",
   "search",
   "shapes",
+  "square-code",
   "tv-minimal-play",
   "zoom-in",
 ] as const;
@@ -112,7 +113,7 @@ const packages = (
     { slug: "zoom", group: "Page behavior", icon: "zoom-in" },
     { slug: "carousel", group: "Page behavior", icon: "gallery-horizontal-end" },
     { slug: "tabs", group: "Page behavior", icon: "panels-top-left" },
-    { slug: "code", group: "Page behavior", icon: "panels-top-left" },
+    { slug: "code", group: "Page behavior", icon: "square-code" },
     { slug: "include", group: "Authoring tools", icon: "file-input" },
     { slug: "lint", group: "Authoring tools", icon: "list-checks" },
   ] satisfies { slug: string; group: string; icon: IconName }[]

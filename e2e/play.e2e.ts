@@ -36,6 +36,23 @@ test("an example's Playground link opens its Markdown in the playground", async 
   await expect(page.frameLocator(".play-preview").locator(".cgc").first()).toBeVisible();
 });
 
+test("the playground puts comark-code's buttons on code blocks, and actions from the config", async ({
+  page,
+}) => {
+  await page.goto("/play/#preset=code-copy-and-wrap");
+  const preview = page.frameLocator(".play-preview");
+  await expect(preview.getByRole("button", { name: "Copy code" })).toBeAttached();
+  await expect(preview.getByRole("button", { name: "Run" })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Config" }).click();
+  await page
+    .getByRole("textbox", { name: "Config" })
+    .fill(
+      '{ "comark-code": { "actions": [{ "id": "run", "label": "Run", "languages": ["sh"] }] } }',
+    );
+  await expect(preview.getByRole("button", { name: "Run" })).toBeAttached();
+});
+
 test("a package's Open in playground link opens its first example", async ({ page }) => {
   await page.goto("/annotate/");
   await page.locator(".sidebar").getByRole("link", { name: "Open in playground" }).click();
