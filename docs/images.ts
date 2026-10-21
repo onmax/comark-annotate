@@ -7,7 +7,7 @@ import { renderHtmlFromDocument } from "@comark/html";
 import { chromium, type Browser } from "@playwright/test";
 import { parseMarkdown } from "comark";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
-import callouts, { components as githubComponents } from "../packages/github/src/html.ts";
+import { callouts, components as githubComponents } from "../packages/github/src/html.ts";
 import { draw } from "../packages/annotate/src/marks.ts";
 
 const root = new URL("./", import.meta.url);
