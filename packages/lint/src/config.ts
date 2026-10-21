@@ -13,6 +13,16 @@ const packages = [
   ["comark-carousel/html", () => import("comark-carousel/html"), []],
   ["comark-code/html", () => import("comark-code/html"), []],
   ["comark-charts/html", () => import("comark-charts/html"), []],
+  [
+    "comark-chips/html",
+    // Linting reads no images, so it downloads none.
+    () =>
+      import("comark-chips/html").then((module) => ({
+        ...module,
+        default: () => module.default({ download: false }),
+      })),
+    [],
+  ],
   ["comark-github-callouts/html", () => import("comark-github-callouts/html"), []],
   ["comark-icon/html", () => import("comark-icon/html"), []],
   ["comark-tabs/html", () => import("comark-tabs/html"), ["code-group", "tabs-item"]],

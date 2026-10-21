@@ -5,6 +5,7 @@ import { parseMarkdown } from "comark";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
 import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
+import chips, { components as chipsComponents } from "../packages/chips/src/html.ts";
 import code, { components as codeComponents } from "../packages/code/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
 import githubCallouts, {
@@ -20,6 +21,8 @@ const plugins = (config: PlayConfig) => [
   annotate(),
   carousel(),
   charts(),
+  // A browser may not download another site's images, so the reader's loads them as links.
+  chips({ download: false }),
   code(config["comark-code"]),
   embed(),
   githubCallouts(config["comark-github-callouts"]),
@@ -31,6 +34,7 @@ const components = {
   ...annotateComponents,
   ...carouselComponents,
   ...chartsComponents,
+  ...chipsComponents,
   ...codeComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
