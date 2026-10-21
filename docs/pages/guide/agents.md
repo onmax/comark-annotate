@@ -37,7 +37,7 @@ The text then always matches the renderer the app installed: an app on an older 
 
 ## Check the result
 
-An agent should check a document before it hands it over. lint-comark lists every problem, each with its line:
+An agent should check a document before it hands it over. comark-linter lists every problem, each with its line:
 
 ```sh
 npx lint-comark duck-audit.md
