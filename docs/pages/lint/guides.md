@@ -1,0 +1,91 @@
+---
+title: Guides
+description: Run comark-lint next to ESLint or oxlint, on staged files and in CI, or all of it as one Vite Doctor run.
+---
+
+## ESLint and oxlint
+
+ESLint and oxlint check your code, and comark-lint checks your Markdown. Neither reads `::` blocks, so add comark-lint to the same scripts instead of to their configs:
+
+```sh
+pnpm add -D comark-linter
+```
+
+::code-group
+```json [ESLint]
+{
+  "scripts": {
+    "lint": "eslint . && comark-lint \"content/**/*.md\""
+  }
+}
+```
+
+```json [oxlint]
+{
+  "scripts": {
+    "lint": "oxlint && comark-lint \"content/**/*.md\""
+  }
+}
+```
+::
+
+Quote the glob so the shell passes it as it is; comark-lint expands it and skips `node_modules` and `dist`. `pnpm lint` now fails on a broken document the way it fails on a lint error in code:
+
+```txt
+content/review.md:8:1 comark/unclosed-block `::compare` opened on line 8 is never closed. Add a line with `::` after its last child.
+```
+
+If you use `@eslint/markdown`, keep it: it checks plain Markdown, and comark-lint checks what Comark adds on top.
+
+## Staged files
+
+With [lint-staged](https://github.com/lint-staged/lint-staged), each tool gets the staged files it understands. comark-lint takes file paths as well as globs:
+
+```json
+{
+  "lint-staged": {
+    "*.{js,ts,vue}": "eslint --fix",
+    "*.{md,mdc}": "comark-lint"
+  }
+}
+```
+
+Swap `eslint --fix` for `oxlint --fix` if that's your linter.
+
+## CI
+
+`pnpm lint` exits with 1 on any problem, so a CI job needs only one step for both:
+
+```yaml
+- run: pnpm install --frozen-lockfile
+- run: pnpm lint
+```
+
+## Vite Doctor
+
+If your project is a Vite, Vue, Nuxt, or Nitro app, [Vite Doctor](https://github.com/onmax/vite-doctor) can run comark-lint for you. It checks the framework mistakes your linter can't see, such as a raw `fetch` in a Nuxt `setup` or a secret in Vite's `define`, and `comark-linter/doctor` adds every comark-lint rule to the same run:
+
+```sh
+pnpm add -D comark-linter vite-doctor
+```
+
+```ts
+// doctor.config.ts
+import comark from "comark-linter/doctor";
+import { defineDoctorConfig } from "vite-doctor/config";
+
+export default defineDoctorConfig({
+  extends: ["auto", "comark/recommended"],
+  extensions: [comark({ include: "content/**/*.md" })],
+});
+```
+
+```json
+{
+  "scripts": {
+    "lint": "eslint . && vite-doctor . --config doctor.config.ts --max-warnings 0"
+  }
+}
+```
+
+One report covers the code and the documents, and each comark-lint problem gets its own code, `COMARK0001` to `COMARK0007`, linked to its rule. Most comark-lint rules are warnings, and Vite Doctor exits with 0 on warnings alone, so `--max-warnings 0` is what fails the script. In a coding agent's terminal it prints a compact report with the fix for each problem, and `--format sarif` gives GitHub code scanning a file it can annotate a pull request with. [Vite Doctor](/lint/vite-doctor/) lists the options.
