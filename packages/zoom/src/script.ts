@@ -404,11 +404,10 @@ export function script(css: string): () => void {
       gutter: root.style.scrollbarGutter,
       padding: root.style.paddingRight,
     };
-    if (scrollbar > 0) {
-      if (CSS.supports("scrollbar-gutter", "stable")) root.style.scrollbarGutter = "stable";
-      else
-        root.style.paddingRight = `${parseFloat(getComputedStyle(root).paddingRight) + scrollbar}px`;
-    }
+    // Reserve the space with padding before hiding overflow. Applying `scrollbar-gutter` at this point can itself
+    // trigger a layout shift in Chromium, while padding preserves the existing content width deterministically.
+    if (scrollbar > 0)
+      root.style.paddingRight = `${parseFloat(getComputedStyle(root).paddingRight) + scrollbar}px`;
     root.style.overflow = "hidden";
   }
 
