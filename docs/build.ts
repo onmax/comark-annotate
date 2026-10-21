@@ -13,72 +13,30 @@ import { icons as lucide } from "@iconify-json/lucide";
 import dark from "shiki/themes/vitesse-dark.mjs";
 import light from "shiki/themes/vitesse-light.mjs";
 import { build } from "vite";
-import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
-import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
-import code, { components as codeComponents } from "../packages/code/src/html.ts";
-import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
-import chips, { components as chipsComponents } from "../packages/chips/src/html.ts";
-import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
-import {
-  callouts,
-  components as githubComponents,
-  html as githubHtml,
-  references,
-} from "../packages/github/src/html.ts";
-import icon, {
-  components as iconComponents,
-  createIcons,
-  css as iconCss,
-  iconHtml,
-} from "../packages/icon/src/html.ts";
+import { createIcons, css as iconCss, iconHtml } from "../packages/icon/src/html.ts";
 import include from "../packages/include/src/index.ts";
-import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
-import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
 import { defaultConfig } from "./config.ts";
 import { highlight } from "./highlight.ts";
+import { browserPlugins, components } from "./plugins.ts";
 import { previewDocument } from "./preview.ts";
 
 const root = new URL("./", import.meta.url);
 const dist = new URL("dist/", root);
 const fonts = new URL("../node_modules/geist/dist/fonts/", root);
 const site = "https://comark.onmax.me";
-// The plugins that run in a browser, the playground's set.
-const browserPlugins = () => [
-  annotate(),
-  carousel(),
-  code(),
-  charts(),
-  chips(),
-  embed(),
-  callouts(),
-  references({ repo: "onmax/comark-plugins" }),
-  githubHtml(),
-  icon(),
-  tabs(),
-  zoom(),
-];
+// `#123` on the site links to this repository's issues.
+const sitePlugins = () =>
+  browserPlugins({ "comark-github": { references: { repo: "onmax/comark-plugins" } } });
 // Every page sits in pages/, so includes resolve from there.
 const contentPlugins = () => [
   include({ root: fileURLToPath(new URL("pages/", root)) }),
-  ...browserPlugins(),
+  ...sitePlugins(),
 ];
 // The site's own links stay plain; chips show in the examples and the playground.
 const plugins = [
   ...contentPlugins().filter((plugin) => plugin.name !== "comark-chips"),
   shiki({ themes: { light, dark } }),
 ];
-const components = {
-  ...annotateComponents,
-  ...carouselComponents,
-  ...codeComponents,
-  ...chartsComponents,
-  ...chipsComponents,
-  ...embedComponents,
-  ...githubComponents,
-  ...iconComponents,
-  ...tabsComponents,
-  ...zoomComponents,
-};
 
 // The site's own icons, drawn the way `:icon` draws them: Lucide's, and annotate's, a hand-drawn loop like its marks.
 const ownIcons = {
@@ -428,7 +386,7 @@ const thumbnailStyles = new Set<string>();
 const thumbnails = new Map(
   await Promise.all(
     presets.map(async (preset) => {
-      const document = await parseMarkdown(preset.source, { plugins: browserPlugins() });
+      const document = await parseMarkdown(preset.source, { plugins: sitePlugins() });
       const html = (await renderHtmlFromDocument(document, { components }))
         .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, (style) => (thumbnailStyles.add(style), ""))
         .replace(/<script>[\s\S]*?<\/script>/g, "")
@@ -932,7 +890,7 @@ ${page.toc ? `<aside class="toc"><nav aria-label="On this page"><p class="nav-gr
 const playSection = sections.find((section) => section.slug === "play");
 const first = presets[0];
 if (playSection && first) {
-  const document = await parseMarkdown(first.source, { plugins: browserPlugins() });
+  const document = await parseMarkdown(first.source, { plugins: sitePlugins() });
   await mkdir(new URL("play/", dist), { recursive: true });
   await writeFile(
     new URL("play/index.html", dist),
