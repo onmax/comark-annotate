@@ -42,21 +42,4 @@ const diagnostics = await lint(markdown, { plugins: [annotate()], components });
 
 ## Vite Doctor
 
-`comark-lint/doctor` is a [Vite Doctor](https://github.com/onmax/vite-doctor) extension. Vite Doctor loads extensions from an executable config, so register it in `doctor.config.ts`:
-
-```ts
-// doctor.config.ts
-import comark from "comark-lint/doctor";
-import { defineDoctorConfig } from "vite-doctor/config";
-
-export default defineDoctorConfig({
-  extends: ["auto"],
-  extensions: [comark({ components: ["tabs"] })],
-});
-```
-
-```sh
-pnpm vite-doctor . --config doctor.config.ts
-```
-
-It lints `**/*.{md,mdc}` except `node_modules` and `dist`; set `include` and `exclude` to change that. Each rule reports with its own code, `COMARK0001` to `COMARK0007`, and the `comark/recommended` preset turns them all on. It runs whenever the extension is registered. It needs `vite-doctor` 0.1 or later.
+`comark-lint/doctor` runs the same rules inside [Vite Doctor](/lint/vite-doctor/), each with its own code.
