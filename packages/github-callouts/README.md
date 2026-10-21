@@ -25,10 +25,10 @@ Write them as on GitHub. Text after the marker on its line replaces the title:
 
 ```md
 > [!NOTE]
-> Drafts save every few seconds.
+> Pigeon counts update every five minutes.
 
 > [!WARNING] Breaking change in v2
-> The `render` option moved.
+> The `correlate` option moved.
 ```
 
 The types are GitHub's five: `NOTE`, `TIP`, `IMPORTANT`, `WARNING`, and `CAUTION`. The plugin is named `alert`, so it takes the place of Comark's built-in alert plugin. A quote without a marker, or with another type, stays a quote. `githubCallouts({ titles: { note: "Nota" } })` changes the default titles.

@@ -16,7 +16,7 @@ pnpm comark-lint "docs/**/*.md"
 The package is `comark-linter`, since npm refuses `comark-lint` as too close to `remark-lint`. Its command, config file, and messages are `comark-lint`.
 
 ```txt
-docs/review.md:8:1 comark/unclosed-block `::compare` opened on line 8 is never closed. Add a line with `::` after its last child.
+docs/pigeons-vs-deploys.md:8:1 comark/unclosed-block `::compare` opened on line 8 is never closed. Add a line with `::` after its last child.
 ```
 
 The CLI checks each file with every comark-plugins package installed (annotate, carousel, charts, github-callouts, zoom), prints `file:line:column rule message`, or JSON with `--format json`, and exits with 1 on any problem. Add your own plugins and component names with `--config comark-linter.config.ts`, which exports `defineConfig({ plugins, components })`.

@@ -42,7 +42,7 @@ The zoomed view follows the shared tokens in [Theming](/guide/theming/). To them
 
 ```html
 <figure>
-  <img data-zoom data-zoom-aside="figcaption" src="chart.png" alt="Weekly sales">
-  <figcaption>Sales dip in week 3, when the store closed.</figcaption>
+  <img data-zoom data-zoom-aside="figcaption" src="pigeons.png" alt="Pigeons on the roof by week">
+  <figcaption>Pigeons dip in week 3, when the falcon visited.</figcaption>
 </figure>
 ```

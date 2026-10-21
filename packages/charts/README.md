@@ -20,12 +20,12 @@ const render = createHtmlRenderer({ plugins: [charts()], components });
 ```
 
 ```md
-::chart{title="Build time, before and after the cache (ms)"}
-| month | before | after |
+::chart{title="Coffee cups and commits, per month (r = 0.98)"}
+| month | coffee cups | commits |
 | --- | --: | --: |
 | 2026-04 | 820 | 610 |
-| 2026-05 | 890 | 622 |
-| 2026-06 | 905 | 640 |
+| 2026-05 | 890 | 640 |
+| 2026-06 | 905 | 652 |
 ::
 ```
 
@@ -41,8 +41,8 @@ Put one table between `::chart` and `::`: a header row, then one row per point. 
 Mark a value with a [comark-annotate](https://comark.onmax.me/annotate/) annotation after the table: `at` names the row by its x value and `series` its column, and the renderer draws the mark around the bar, point, or slice.
 
 ```md
-:::annotation{at="2026-05" series="after" mark="circle" color="green"}
-The cache lands.
+:::annotation{at="2026-05" series="commits" mark="circle" color="green"}
+The espresso machine arrives.
 :::
 ```
 
