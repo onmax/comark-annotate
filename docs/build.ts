@@ -69,6 +69,7 @@ const icons = {
   "list-checks": `<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>`,
   "arrow-left": `<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>`,
   "arrow-right": `<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>`,
+  search: `<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>`,
 };
 type IconName = keyof typeof icons;
 const icon = (name: IconName, size = 18) =>
@@ -329,12 +330,16 @@ const column = (section: Section, current: string) => {
               `<a${page.slug === current ? ' aria-current="page"' : ""} href="${href(page.slug)}">${escapeHtml(page.label)}</a>`,
           ),
         }));
+  // A package with examples opens its first one in the playground.
+  const preset = presets.find((preset) => preset.group === section.label);
   return `<nav class="pages" aria-label="${escapeHtml(section.label)}"><div class="section-head">${icon(section.icon)}<span><small>${escapeHtml(section.group)}</small><strong${section.npm ? ' class="mono"' : ""}>${escapeHtml(section.label)}</strong></span></div>${lists
     .map(
       (list) =>
         `${list.title ? `<p class="nav-group">${escapeHtml(list.title)}</p>` : ""}${list.links.join("")}`,
     )
-    .join("")}</nav>`;
+    .join(
+      "",
+    )}${section.npm && preset ? `<a class="pages-play" href="/play/#preset=${preset.id}">${icon("flask-conical", 15)}Open in playground</a>` : ""}</nav>`;
 };
 // Previous and next page in the section.
 function pager(page: Page) {
@@ -384,6 +389,90 @@ const spy = new IntersectionObserver(entries => {
 for (const h of document.querySelectorAll("main h2[id], main h3[id]")) spy.observe(h);
 `;
 
+// Search over every page and its headings, from /search.json, fetched the first time it's needed. Without the
+// script the button stays hidden.
+const searchScript = `
+const open = document.querySelector(".search-open"), dialog = document.querySelector("dialog.search");
+const input = dialog.querySelector("input"), list = dialog.querySelector("[role=listbox]"), empty = dialog.querySelector(".search-empty");
+let entries, results = [], active = 0;
+const load = () => entries ??= fetch("/search.json").then(r => r.json());
+open.hidden = false;
+if (/Mac|iP(hone|ad)/.test(navigator.platform)) open.querySelector("kbd").textContent = "⌘K";
+const select = i => {
+  active = i;
+  for (const [j, a] of [...list.children].entries()) a.setAttribute("aria-selected", j === i);
+  const a = list.children[i];
+  if (a) { input.setAttribute("aria-activedescendant", a.id); a.scrollIntoView({ block: "nearest" }) } else input.removeAttribute("aria-activedescendant");
+};
+const update = async () => {
+  const all = await load(), q = input.value.trim().toLowerCase(), words = q.split(/\\s+/).filter(Boolean);
+  const rank = e => [e.t.toLowerCase().startsWith(q) ? 0 : e.t.toLowerCase().includes(q) ? 1 : 2, e.k === "page" ? 0 : 1];
+  results = (q ? all.filter(e => words.every(w => (e.t + " " + e.p + " " + (e.d ?? "")).toLowerCase().includes(w)))
+    .map((e, i) => [...rank(e), i, e]).sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]).map(x => x[3])
+    : all.filter(e => e.k === "page")).slice(0, 12);
+  list.replaceChildren(...results.map((e, i) => {
+    const a = Object.assign(document.createElement("a"), { id: "search-" + i, href: e.h, tabIndex: -1 });
+    a.setAttribute("role", "option");
+    a.append(Object.assign(document.createElement("small"), { textContent: e.p }), Object.assign(document.createElement("span"), { textContent: e.t }));
+    return a;
+  }));
+  empty.hidden = results.length > 0;
+  input.setAttribute("aria-expanded", results.length > 0);
+  select(0);
+};
+const show = () => { dialog.showModal(); input.select(); update() };
+open.addEventListener("click", show);
+open.addEventListener("pointerenter", load, { once: true });
+addEventListener("keydown", e => {
+  const typing = e.target.closest("input, textarea, select, [contenteditable]");
+  if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing)) { e.preventDefault(); if (dialog.open) dialog.close(); else show() }
+});
+input.addEventListener("input", update);
+input.addEventListener("keydown", e => {
+  if ((e.key === "ArrowDown" || e.key === "ArrowUp") && results.length) { e.preventDefault(); select((active + (e.key === "ArrowDown" ? 1 : -1) + results.length) % results.length) }
+  else if (e.key === "Enter" && results[active]) { e.preventDefault(); dialog.close(); location.href = results[active].h }
+});
+list.addEventListener("pointermove", e => { const a = e.target.closest("[role=option]"); if (a) select([...list.children].indexOf(a)) });
+list.addEventListener("click", () => dialog.close());
+dialog.addEventListener("click", e => { if (e.target === dialog) dialog.close() });
+`;
+// One entry per page and per heading: its title, where it sits, and its link.
+const searchIndex = [
+  ...parsed.flatMap((page) => {
+    const where =
+      page.section.slug === page.slug
+        ? page.section.label
+        : `${page.section.label} › ${page.label}`;
+    const title =
+      page.section.npm && page.slug === page.section.slug ? page.section.npm : page.title;
+    return [
+      {
+        k: "page",
+        t: title,
+        p: page.section.npm ? page.section.label : "Docs",
+        h: href(page.slug),
+        d: page.description,
+      },
+      ...page.document.nodes
+        .filter(isElement)
+        .filter(([tag]) => tag === "h2" || tag === "h3")
+        .map((heading) => ({
+          k: "heading",
+          t: textContent(heading),
+          p: where,
+          h: `${href(page.slug)}#${str(heading[1].id)}`,
+        })),
+    ];
+  }),
+  {
+    k: "page",
+    t: "Playground",
+    p: "Docs",
+    h: "/play/",
+    d: "Edit any example with every plugin and share a link to it.",
+  },
+];
+
 await rm(dist, { recursive: true, force: true });
 await mkdir(new URL("fonts/", dist), { recursive: true });
 await cp(new URL("public/", root), dist, { recursive: true });
@@ -394,6 +483,7 @@ await cp(
   new URL("fonts/Caveat-Variable.woff2", dist),
 );
 const style = await readFile(new URL("style.css", root), "utf8");
+await writeFile(new URL("search.json", dist), JSON.stringify(searchIndex));
 // Pages inline the styles; the playground's preview loads them.
 await writeFile(new URL("style.css", dist), style);
 await build({
@@ -470,13 +560,22 @@ function shell(options: {
 <body>
 <header class="top">
 <a class="name" href="/">${logo}comark plugins</a>
+<button type="button" class="search-open" aria-haspopup="dialog" hidden>${icon("search", 15)}<span>Search docs</span><kbd>Ctrl K</kbd></button>
+<div class="top-end">
 <nav>${section.npm ? `<a class="icon" href="https://npmx.dev/package/${section.npm}" aria-label="${section.npm} on npmx" title="npmx">${npmx}</a>` : ""}<a class="icon" href="https://github.com/onmax/comark-plugins" aria-label="comark-plugins on GitHub" title="GitHub">${github}</a></nav>
 <details class="menu"><summary aria-label="Menu" title="Menu">${menuIcon}</summary><div class="menu-panel">${nav}</div></details>
+</div>
 </header>
+<dialog class="search" aria-label="Search the docs">
+<div class="search-field">${icon("search", 16)}<input type="text" enterkeyhint="search" role="combobox" aria-label="Search the docs" aria-controls="search-results" aria-expanded="false" aria-autocomplete="list" placeholder="Search the docs" autocomplete="off" spellcheck="false"><kbd>Esc</kbd></div>
+<div id="search-results" class="search-results" role="listbox" aria-label="Results"></div>
+<p class="search-empty" role="status" hidden>No page or heading matches.</p>
+</dialog>
 <div class="layout">
 <aside class="sidebar">${nav}</aside>
 ${options.body}
 </div>
+<script>${searchScript.trim()}</script>
 </body>
 </html>
 `;
