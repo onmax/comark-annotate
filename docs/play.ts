@@ -236,7 +236,7 @@ for (const textarea of [editor, configEditor])
   });
 share.addEventListener("click", async () => {
   try {
-    if (!location.hash.startsWith("#md=")) history.replaceState(null, "", await link());
+    history.replaceState(null, "", await link());
     await navigator.clipboard.writeText(location.href);
     share.textContent = "Copied";
     setTimeout(() => (share.textContent = "Copy link"), 1500);
