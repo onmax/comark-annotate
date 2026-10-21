@@ -51,10 +51,8 @@ test("hovering the rail shows every section's name over the pages, without movin
 test("a package's card copies its install command", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/");
-  await page.getByRole("button", { name: "Copy pnpm add comark-github-callouts" }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-    "pnpm add comark-github-callouts",
-  );
+  await page.getByRole("button", { name: "Copy pnpm add comark-github" }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("pnpm add comark-github");
 });
 
 test("no page scrolls sideways on a phone", async ({ page }) => {
@@ -66,7 +64,7 @@ test("no page scrolls sideways on a phone", async ({ page }) => {
     "/annotate/guides/",
     "/charts/guides/",
     "/embed/syntax/",
-    "/github-callouts/getting-started/",
+    "/github/getting-started/",
     "/lint/vite-doctor/",
   ]) {
     await page.goto(path);

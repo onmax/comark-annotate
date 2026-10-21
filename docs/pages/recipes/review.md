@@ -2,7 +2,7 @@
 title: A review document
 description: A decision, before/after screenshots, a code change, and a link to try it, in one review.
 tagline: Put a pull request's evidence in one Markdown file. The reviewer reads the decision first, then sees it, then reads the code.
-install: pnpm add comark @comark/html comark-annotate comark-github-callouts comark-embed comark-zoom
+install: pnpm add comark @comark/html comark-annotate comark-github comark-embed comark-zoom
 ---
 
 ::example
@@ -58,7 +58,7 @@ A reviewer decides whether to approve, so give them the decision first and the e
 
 ## Setup
 
-Register the plugins in one renderer, as [Renderers](/guide/renderers/#several-plugins) shows. This document needs annotate, diff, github-callouts, embed, and zoom. Annotate brings zoom with it for the screenshots, and `zoom()` adds it for the table.
+Register the plugins in one renderer, as [Renderers](/guide/renderers/#several-plugins) shows. This document needs annotate, diff, github, embed, and zoom. Annotate brings zoom with it for the screenshots, and `zoom()` adds it for the table.
 
 ## Check it
 

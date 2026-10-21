@@ -49,7 +49,7 @@
     "comark-chips": "workspace:*",
     "comark-code": "workspace:*",
     "comark-diff": "workspace:*",
-    "comark-github-callouts": "workspace:*",
+    "comark-github": "workspace:*",
     "comark-icon": "workspace:*",
     "comark-tabs": "workspace:*",
     "comark-zoom": "workspace:*",
@@ -63,7 +63,7 @@
     "comark-chips": "workspace:^",
     "comark-code": "workspace:^",
     "comark-diff": "workspace:^",
-    "comark-github-callouts": "workspace:^",
+    "comark-github": "workspace:^",
     "comark-icon": "workspace:^",
     "comark-tabs": "workspace:^",
     "comark-zoom": "workspace:^",
@@ -88,7 +88,7 @@
     "comark-diff": {
       "optional": true
     },
-    "comark-github-callouts": {
+    "comark-github": {
       "optional": true
     },
     "comark-icon": {

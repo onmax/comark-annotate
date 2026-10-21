@@ -351,7 +351,7 @@ importers:
         specifier: 'catalog:'
         version: 3.5.44(typescript@6.0.3)
 
-  packages/github-callouts:
+  packages/github:
     devDependencies:
       '@comark/html':
         specifier: 'catalog:'
@@ -459,9 +459,9 @@ importers:
       comark-diff:
         specifier: workspace:*
         version: link:../diff
-      comark-github-callouts:
+      comark-github:
         specifier: workspace:*
-        version: link:../github-callouts
+        version: link:../github
       comark-icon:
         specifier: workspace:*
         version: link:../icon

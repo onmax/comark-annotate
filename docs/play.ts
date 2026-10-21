@@ -9,9 +9,12 @@ import chips, { components as chipsComponents } from "../packages/chips/src/html
 import code, { components as codeComponents } from "../packages/code/src/html.ts";
 import diff, { components as diffComponents } from "../packages/diff/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
-import githubCallouts, {
-  components as githubCalloutsComponents,
-} from "../packages/github-callouts/src/html.ts";
+import {
+  callouts,
+  components as githubComponents,
+  html as githubHtml,
+  references,
+} from "../packages/github/src/html.ts";
 import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
@@ -27,7 +30,9 @@ const plugins = (config: PlayConfig) => [
   code(config["comark-code"]),
   diff(),
   embed(),
-  githubCallouts(config["comark-github-callouts"]),
+  callouts(config["comark-github"]?.callouts),
+  references(config["comark-github"]?.references),
+  githubHtml(),
   icon(),
   tabs(),
   zoom(config["comark-zoom"]),
@@ -40,7 +45,7 @@ const components = {
   ...codeComponents,
   ...diffComponents,
   ...embedComponents,
-  ...githubCalloutsComponents,
+  ...githubComponents,
   ...iconComponents,
   ...tabsComponents,
   ...zoomComponents,
