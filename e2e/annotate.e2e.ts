@@ -176,9 +176,13 @@ test("Copy puts a screenshot on the clipboard with its marks, and a right-click 
     frame.addEventListener(
       "contextmenu",
       (event) => {
-        (window as typeof window & { __annotateContextTarget?: string }).__annotateContextTarget = (
-          event.target as Element
-        ).className;
+        const target = event.target as Element;
+        const state = window as typeof window & {
+          __annotateContextTarget?: string;
+          __annotateContextArmed?: boolean;
+        };
+        state.__annotateContextTarget = target.className;
+        state.__annotateContextArmed = target.matches(".ca-overlay[data-menu]");
         (event.target as HTMLElement).click();
       },
       { once: true },
@@ -186,15 +190,19 @@ test("Copy puts a screenshot on the clipboard with its marks, and a right-click 
   });
   const frame = figure.locator(".ca-frame");
   await frame.click({ button: "right" });
-  await expect(figure.locator(".ca-overlay[data-menu]")).toHaveCount(1);
   await expect
     .poll(() =>
       page.evaluate(
-        () =>
-          (window as typeof window & { __annotateContextTarget?: string }).__annotateContextTarget,
+        () => {
+          const state = window as typeof window & {
+            __annotateContextTarget?: string;
+            __annotateContextArmed?: boolean;
+          };
+          return [state.__annotateContextTarget, state.__annotateContextArmed];
+        },
       ),
     )
-    .toBe("ca-overlay");
+    .toEqual(["ca-overlay", true]);
   await expect(page.locator(".cz-dialog")).toBeVisible();
   await page.keyboard.press("ControlOrMeta+c");
   await expect(page.locator(".cz-item .ca-copy-status")).toHaveText("Copied");
