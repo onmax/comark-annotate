@@ -1,5 +1,11 @@
 # comark-annotate
 
+[![npm version](https://npmx.dev/api/registry/badge/version/comark-annotate)](https://npmx.dev/package/comark-annotate)
+[![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-annotate)](https://npmx.dev/package/comark-annotate)
+[![install size](https://npmx.dev/api/registry/badge/size/comark-annotate)](https://npmx.dev/package/comark-annotate)
+[![license](https://npmx.dev/api/registry/badge/license/comark-annotate)](https://npmx.dev/package/comark-annotate)
+[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/annotate/)
+
 Hand-drawn marks, numbered notes, and arrows on screenshots, and code changes shown as suggested changes, written in Markdown. A [Comark](https://comark.dev) plugin that renders static HTML.
 
 [![A dashboard screenshot with handwritten notes above and beside it, each pointing at a value with a hand-drawn arrow](https://comark.onmax.me/readme.png)](https://comark.onmax.me/annotate/)
