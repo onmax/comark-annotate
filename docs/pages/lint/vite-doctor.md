@@ -1,16 +1,16 @@
 ---
 title: Vite Doctor
 description: Lint a project's Markdown as part of Vite Doctor, with one code per rule.
-install: pnpm add -D comark-lint vite-doctor
+install: pnpm add -D comark-linter vite-doctor
 ---
 
 ## Setup
 
-`comark-lint/doctor` is a [Vite Doctor](https://github.com/onmax/vite-doctor) extension. Vite Doctor loads extensions from an executable config, so register it in `doctor.config.ts`:
+`comark-linter/doctor` is a [Vite Doctor](https://github.com/onmax/vite-doctor) extension. Vite Doctor loads extensions from an executable config, so register it in `doctor.config.ts`:
 
 ```ts
 // doctor.config.ts
-import comark from "comark-lint/doctor";
+import comark from "comark-linter/doctor";
 import { defineDoctorConfig } from "vite-doctor/config";
 
 export default defineDoctorConfig({

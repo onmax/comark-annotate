@@ -5,7 +5,7 @@ import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { lint, resolveConfig, type Config, type Diagnostic } from "./index.ts";
 
-const USAGE = `Usage: comark-lint <file or glob>... [--format text|json] [--config comark-lint.config.ts]
+const USAGE = `Usage: lint-comark <file or glob>... [--format text|json] [--config lint-comark.config.ts]
 
 Checks Comark documents with every comark-plugins package installed. Exits with 1 if there are problems.`;
 
@@ -25,7 +25,7 @@ if (values.help || !positionals.length || (values.format !== "text" && values.fo
 
 let failed = false;
 const fail = (message: string) => {
-  console.error(`comark-lint: ${message}`);
+  console.error(`lint-comark: ${message}`);
   failed = true;
 };
 
