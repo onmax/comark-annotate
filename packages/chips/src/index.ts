@@ -98,6 +98,12 @@ function collect(nodes: Node[], start: number, found: Map<ElementNode, string>) 
     if (tag === "a" && WEB.test(href)) {
       if (text(attrs.chip) === "false") delete attrs.chip;
       else if (!hasImage(childrenOf(node))) {
+        try {
+          new URL(href);
+        } catch {
+          found.set(node, `[${textContent(node).trim()}](${href})`);
+          continue;
+        }
         flattenChips(childrenOf(node));
         node[0] = CHIP_TAG;
         label(node, href);
@@ -138,7 +144,6 @@ export default defineComarkPlugin<ChipsOptions | undefined, ChipsMeta>((options)
           issues.push(
             `${where}: \`href\` must be a web address, such as \`href="https://vite.dev"\`.`,
           );
-          node.splice(0, 2, "span", {});
           return [];
         }
         const custom = text(node[1].avatar);
