@@ -55,6 +55,6 @@ Each entry exports the parse plugin as `default` and the renderer's `components`
 
 ## Customize
 
-Chips follow shadcn/ui's Badge and the shared `--comark-*` tokens. A chip is an `a.cch` with `data-kind="favicon"` or `data-kind="avatar"`, holding an `img.cch-img`. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
+Chips follow shadcn/ui's Badge and the shared `--comark-*` tokens. A chip is an `a.cp` with `data-kind="favicon"` or `data-kind="avatar"`, holding an `img.cp-img`. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
 
 Docs and live demos: [comark.onmax.me/chips](https://comark.onmax.me/chips/).
