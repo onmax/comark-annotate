@@ -9,17 +9,28 @@ import embed, { components as embedComponents } from "../packages/embed/src/html
 import githubCallouts, {
   components as githubCalloutsComponents,
 } from "../packages/github-callouts/src/html.ts";
+import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
 import { previewDocument } from "./preview.ts";
 
-const plugins = () => [annotate(), carousel(), charts(), embed(), githubCallouts(), tabs(), zoom()];
+const plugins = () => [
+  annotate(),
+  carousel(),
+  charts(),
+  embed(),
+  githubCallouts(),
+  icon(),
+  tabs(),
+  zoom(),
+];
 const components = {
   ...annotateComponents,
   ...carouselComponents,
   ...chartsComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
+  ...iconComponents,
   ...tabsComponents,
   ...zoomComponents,
 };
