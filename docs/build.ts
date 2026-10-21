@@ -86,9 +86,10 @@ const lucideNames = [
 ] as const;
 type IconName = (typeof lucideNames)[number] | keyof typeof ownIcons;
 const iconId = (name: IconName) => (name in ownIcons ? `site:${name}` : `lucide:${name}`);
-const siteIcons = await createIcons({ collections: { lucide, site: ownIcons }, fetch: false }).resolve(
-  [...lucideNames, ...Object.keys(ownIcons)].map((name) => iconId(name as IconName)),
-);
+const siteIcons = await createIcons({
+  collections: { lucide, site: ownIcons },
+  fetch: false,
+}).resolve([...lucideNames, ...Object.keys(ownIcons)].map((name) => iconId(name as IconName)));
 const siteIcon = (name: IconName, size = 18) => {
   const found = siteIcons.get(iconId(name));
   if (!found || "problem" in found) throw new Error(`docs/build.ts: no icon "${name}".`);
