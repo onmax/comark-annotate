@@ -405,6 +405,9 @@ importers:
       comark-code:
         specifier: workspace:*
         version: link:../code
+      comark-embed:
+        specifier: workspace:*
+        version: link:../embed
       comark-github-callouts:
         specifier: workspace:*
         version: link:../github-callouts
