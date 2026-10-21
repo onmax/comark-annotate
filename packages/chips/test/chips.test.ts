@@ -77,6 +77,28 @@ describe("comark-chips", () => {
     );
   });
 
+  it("preserves malformed web destinations instead of throwing", async () => {
+    const html = await render("[broken](https://)");
+    expect(html).toContain("broken");
+    expect(html).not.toContain('class="cch"');
+    expect(await issues("[broken](https://)")).toEqual([
+      '[broken](https://): `href` must be a valid web address.',
+    ]);
+  });
+
+  it("does not nest chips when a link wraps an explicit chip", async () => {
+    const html = await render('[:chip[y]{href="https://y.dev"}](https://x.dev)');
+    expect(html.match(/<a/g)).toHaveLength(1);
+    expect(html).toContain('href="https://x.dev"');
+    expect(html).toContain(">y</a>");
+  });
+
+  it("leaves raw HTML subtrees unchanged", async () => {
+    const html = await render("<span>@onmax</span> and @onmax");
+    expect(html).toContain("<span>@onmax</span>");
+    expect(html.match(/data-kind="avatar"/g)).toHaveLength(1);
+  });
+
   it("draws an inline :chip like a link", async () => {
     const html = await render(':chip[Nuxt]{href="https://nuxt.com"}');
     expect(html).toContain('<a class="cch" href="https://nuxt.com" data-kind="favicon"><img');

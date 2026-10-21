@@ -45,6 +45,14 @@ const text = (value: unknown) =>
 const childrenOf = ([, , ...rest]: ElementNode): Node[] => rest;
 const hasImage = (nodes: Node[]): boolean =>
   nodes.some((node) => isElement(node) && (node[0] === "img" || hasImage(childrenOf(node))));
+/** Remove interactive chip descendants before making their parent interactive. */
+function flattenChips(nodes: Node[]) {
+  for (const node of nodes) {
+    if (!isElement(node)) continue;
+    if (node[0] === CHIP_TAG) node[0] = "span";
+    else flattenChips(childrenOf(node));
+  }
+}
 
 const favicon = (host: string) =>
   `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
@@ -85,10 +93,12 @@ function collect(nodes: Node[], start: number, found: Map<ElementNode, string>) 
     }
     if (!isElement(node)) continue;
     const [tag, attrs] = node;
+    if (attrs.$?.html) continue;
     const href = text(attrs.href);
-    if (tag === "a" && !attrs.$?.html && WEB.test(href)) {
+    if (tag === "a" && WEB.test(href)) {
       if (text(attrs.chip) === "false") delete attrs.chip;
       else if (!hasImage(childrenOf(node))) {
+        flattenChips(childrenOf(node));
         node[0] = CHIP_TAG;
         label(node, href);
         found.set(node, `[${textContent(node).trim()}](${href})`);
@@ -135,7 +145,15 @@ export default defineComarkPlugin<ChipsOptions | undefined, ChipsMeta>((options)
         const named = custom.startsWith("@") ? custom.slice(1) : undefined;
         const linked = custom ? undefined : ACCOUNT.exec(href)?.[1];
         const account = named ?? (linked && !ROUTES.has(linked.toLowerCase()) ? linked : undefined);
-        const image = account ? accountImage(account) : custom || siteImage(new URL(href).host);
+        let host: string;
+        try {
+          host = new URL(href).host;
+        } catch {
+          issues.push(`${where}: \`href\` must be a valid web address.`);
+          node.splice(0, 2, "span", {});
+          return [];
+        }
+        const image = account ? accountImage(account) : custom || siteImage(host);
         const kind = custom || account ? "avatar" : "favicon";
         return [{ node, where, href, image, kind, custom: Boolean(custom) }];
       });
