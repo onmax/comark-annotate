@@ -1,15 +1,23 @@
 <script setup lang="ts">
 import { github, installerFor, npmx } from "#shared/chrome";
+import { docsPath, slugOf } from "~/utils/body";
 import { enhance } from "~/utils/enhance";
 import { runScripts } from "~/utils/scripts";
 
 const site = "https://comark.onmax.me";
 const route = useRoute();
-const slug = computed(() => [route.params.slug ?? []].flat().filter(Boolean).join("/"));
-const { data: page } = await useFetch(() => `/api/pages/${slug.value || "index"}`, {
-  key: () => `page:${slug.value}`,
-  query: { body: 0 },
-});
+const slug = computed(() => slugOf(route));
+const nuxtApp = useNuxtApp();
+const hydrating = nuxtApp.isHydrating;
+const [{ data: page }] = await Promise.all([
+  useFetch(() => `/api/pages/${slug.value || "index"}`, {
+    key: () => `page:${slug.value}`,
+    query: { body: 0 },
+  }),
+  // The body the navigation started fetching, so <PageBody> finds it instead of asking again. If it failed,
+  // <PageBody> asks itself and reports the error.
+  import.meta.client && !hydrating ? nuxtApp.$loadBody(slug.value).catch(() => {}) : undefined,
+]);
 if (!page.value) throw createError({ status: 404, message: `No page at /${slug.value}.` });
 
 useHead(() => ({
@@ -24,7 +32,6 @@ useHead(() => ({
 
 const layout = useTemplateRef<HTMLElement>("layout");
 const body = useTemplateRef<HTMLElement>("body");
-const hydrating = useNuxtApp().isHydrating;
 let undo: (() => void)[] = [];
 onMounted(() => (undo = [runScripts(body.value!, !hydrating), enhance(layout.value!)]));
 onBeforeUnmount(() => undo.forEach((stop) => stop()));
@@ -42,11 +49,11 @@ function follow(event: MouseEvent) {
     event.shiftKey
   )
     return;
-  const url = new URL(link.href, location.href);
-  if (url.origin !== location.origin || link.target || url.pathname === location.pathname) return;
-  if (!router.resolve(url.pathname).matched.length) return;
+  const path = docsPath(link);
+  if (!path || path === location.pathname) return;
   event.preventDefault();
-  void router.push(url.pathname + url.search + url.hash);
+  const url = new URL(link.href, location.href);
+  void router.push(path + url.search + url.hash);
 }
 </script>
 
@@ -58,7 +65,7 @@ function follow(event: MouseEvent) {
       >
       <nav>
         <NuxtLink
-          v-for="link in page.pages.filter((p) => p.npm)"
+          v-for="link in page.pages.filter((p) => p.npm && p.slug && !p.slug.includes('/'))"
           :key="link.slug"
           class="link"
           :to="`/${link.slug}/`"

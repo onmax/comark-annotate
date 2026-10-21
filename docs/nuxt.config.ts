@@ -84,8 +84,6 @@ export default defineNuxtConfig({
   telemetry: false,
   experimental: {
     componentIslands: true,
-    // Prefetching a page also fetches its body, and the header links to every page.
-    defaults: { nuxtLink: { prefetchOn: { visibility: false, interaction: true } } },
     // Nuxt 5's default: the first load reads the payload inlined in the HTML, and client navigations fetch `_payload.json`.
     payloadExtraction: "client",
   },
