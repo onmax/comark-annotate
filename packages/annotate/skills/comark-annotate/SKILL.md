@@ -67,7 +67,7 @@ const r = document.querySelector("SELECTOR").getBoundingClientRect();
 ```
 
 For a full-page screenshot, add `scrollX`/`scrollY` and divide by `document.documentElement.scrollWidth` and `scrollHeight` instead.
-For a clipped capture, subtract the clip's `x` and `y` and divide by its `width` and `height`.
+For a clipped capture, make sure the clip fully contains every marked element. Subtract the clip's `x` and `y` and divide by its `width` and `height`; if an element crosses the clip edge, intersect its measured rectangle with the clip before normalizing so every value stays between 0 and 100.
 
 ## Check and preview
 
