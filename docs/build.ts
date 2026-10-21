@@ -165,7 +165,7 @@ const packages = (
     {
       slug: "code",
       group: "Page behavior",
-      icon: "panels-top-left",
+      icon: "square-code",
       blurb: "Copy and wrap buttons on code",
     },
     {
