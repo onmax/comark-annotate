@@ -147,8 +147,48 @@ describe("comark-annotate", () => {
       /class="ca-callout ca-callout-right" id="ca-[a-z0-9]+-1" data-n="1"[^>]*><span class="ca-stamp ca-letter">A<\/span><div>Beside/,
     );
     expect(html).toContain('aria-label="Side note: Beside"');
-    expect(html).toContain('<span class="ca-stamp">1</span></span>');
+    expect(html).toContain(
+      '<span class="ca-stamp" style="right:calc(100% + 4px);bottom:calc(100% + 4px)">1</span></span>',
+    );
     expect(html).toMatch(/<ol class="ca-notes"><li id="ca-[a-z0-9]+-2" data-n="2">.*Listed/);
+  });
+
+  it("puts each number at a corner clear of the other numbers and marks", async () => {
+    const { issues, html } = await run(
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=10 y=20 w=20 h=10}\nFirst\n:::\n:::annotation{x=10 y=26 w=20 h=10}\nJust under it\n:::\n:::annotation{x=0 y=60 w=10 h=10}\nAgainst the left edge\n:::\n::`,
+    );
+    expect(issues).toEqual([]);
+    const stamps = [...html.matchAll(/<span class="ca-stamp" style="([^"]*)">(\d)<\/span>/g)];
+    expect(stamps.map(([, css, number]) => [number, css])).toEqual([
+      ["1", "right:calc(100% + 4px);bottom:calc(100% + 4px)"],
+      // Above-left would touch number 1, so it moves above-right.
+      ["2", "left:calc(100% + 4px);bottom:calc(100% + 4px)"],
+      // No room left of the mark, so it slides along the edge above it.
+      ["3", "left:-4px;bottom:calc(100% + 4px)"],
+    ]);
+  });
+
+  it("draws every mark its own way, and the same way on every render", async () => {
+    const source = `::screenshot{src="a.png" alt="A"}\n:::annotation{x=10 y=10 w=20 h=20}\nOne\n:::\n:::annotation{x=50 y=50 w=20 h=20}\nTwo\n:::\n:::annotation{x=10 y=60 w=20 h=5 mark="underline"}\nThree\n:::\n:::annotation{x=50 y=80 w=20 h=5 mark="underline"}\nFour\n:::\n::`;
+    const { html } = await run(source);
+    const drawn = [...html.matchAll(/<span class="ca-mark[^>]*><svg[^>]*>(.*?)<\/svg>/g)].map(
+      ([, paths]) => paths,
+    );
+    expect(drawn).toHaveLength(4);
+    expect(drawn[0]).not.toBe(drawn[1]);
+    expect(drawn[2]).not.toBe(drawn[3]);
+    expect((await run(source)).html).toBe(html);
+  });
+
+  it("reports numbers that overlap at every corner", async () => {
+    const pile = Array.from(
+      { length: 5 },
+      (_, index) => `:::annotation{x=40 y=40 w=10 h=10}\nMark ${index + 1}\n:::\n`,
+    ).join("");
+    const { issues } = await run(`::screenshot{src="a.png" alt="A"}\n${pile}::`);
+    expect(issues).toEqual([
+      'screenshot "a.png": the numbers of annotations 1 and 5 overlap at every corner of their marks. Leave room between the marks, or merge them into one annotation.',
+    ]);
   });
 
   it("keeps both images of a comparison level when only one has a note above it", async () => {
@@ -351,7 +391,7 @@ describe("comark-annotate", () => {
     await expect(cli("check", join(dir, "bad.md"))).rejects.toMatchObject({ code: 1 });
     await cli("render", join(dir, "ok.md"));
     expect(await readFile(join(dir, "ok.html"), "utf8")).toContain(
-      'class="ca-mark ca-box ca-at-left ca-at-top"',
+      '<span class="ca-stamp" style="left:calc(100% + 4px);top:-4px">1</span>',
     );
 
     // Every file is checked, and each issue says which file it's in.
