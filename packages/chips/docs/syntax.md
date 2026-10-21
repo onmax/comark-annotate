@@ -1,6 +1,6 @@
 ---
 title: Syntax
-description: Which links and mentions become chips, the props that change one, and how to theme them.
+description: Which links and mentions become chips, and the props that change one.
 ---
 
 ## Links
@@ -28,12 +28,4 @@ Any link to an `http` or `https` address becomes a chip. A link's text stays as 
 
 `:chip[Text]{href="https://…"}` writes a chip directly, for text that isn't a link elsewhere in Markdown.
 
-## Theming
-
-Chips follow shadcn/ui's Badge and the shared tokens in [Theming](/guide/theming/). A chip is an `a.cch` with `data-kind="favicon"` or `data-kind="avatar"`, holding an `img.cch-img` and its text. Favicons are square with rounded corners and avatars round.
-
-```css
-.cch {
-  border-radius: 0.375rem;
-}
-```
+[Theming](/chips/theming/) covers the variables and class names that change how chips look.

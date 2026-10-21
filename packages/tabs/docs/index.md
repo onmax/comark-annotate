@@ -61,4 +61,4 @@ bun add comark-tabs
 :::
 ::
 
-Without a script, every tab shows under its label, one after another. The script adds the tab strip, the arrow keys, and `sync`, which switches every block with the same key at once and remembers the choice.
+Without a script, every tab shows under its label, one after another. The script adds the tab strip, whose highlight slides to the tab you pick, the arrow keys, and `sync`, which switches every block with the same key at once and remembers the choice.
