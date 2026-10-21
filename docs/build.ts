@@ -672,9 +672,16 @@ const update = async () => {
   // Keep the combobox state synchronized when the dialog closes without another search.
   select(0);
 };
-const show = () => { menu.open = false; dialog.showModal(); input.select(); update() };
-for (const open of opens) { open.addEventListener("click", show); open.addEventListener("pointerenter", load, { once: true }) }
-dialog.addEventListener("close", () => input.setAttribute("aria-expanded", "false"));
+let restoreMenuFocus = false;
+const show = trigger => {
+  restoreMenuFocus = trigger?.classList.contains("menu-search") ?? false;
+  menu.open = false; dialog.showModal(); input.select(); update()
+};
+for (const open of opens) { open.addEventListener("click", () => show(open)); open.addEventListener("pointerenter", load, { once: true }) }
+dialog.addEventListener("close", () => {
+  input.setAttribute("aria-expanded", "false");
+  if (restoreMenuFocus) { menu.querySelector("summary")?.focus(); restoreMenuFocus = false }
+});
 dialog.querySelector(".search-close").addEventListener("click", () => dialog.close());
 addEventListener("keydown", e => {
   const typing = e.target.closest("input, textarea, select, [contenteditable]");
