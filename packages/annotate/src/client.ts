@@ -563,7 +563,19 @@ export function start(): () => void {
     },
     { capture: true, signal },
   );
-  document.addEventListener("contextmenu", () => setTimeout(disarm), { signal });
+  document.addEventListener(
+    "contextmenu",
+    (event) => {
+      // Chromium can resolve the native menu target before the armed overlay starts
+      // receiving pointer events. Hand the event to the prepared copy as well, so
+      // browser image actions and listeners see the marked screenshot consistently.
+      if (armed && event.target !== armed) {
+        armed.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, button: 2 }));
+      }
+      setTimeout(disarm);
+    },
+    { signal },
+  );
 
   const say = (frame: Element | null, message: string, state: "done" | "failed") => {
     const button = frame?.querySelector(".ca-copy");
