@@ -1,49 +1,7 @@
 ---
-title: comark-embed
-description: Videos, audio, and live code from a link, written in Markdown.
-tagline: Paste a YouTube, Vimeo, Loom, Spotify, CodePen, StackBlitz, or Figma link and get its player, with the link under it. Nothing is fetched.
-install: pnpm add comark @comark/html comark-embed
+title: Syntax
+description: The links embed reads, its props, and how to theme players and cards.
 ---
-
-::examples
-:::example{label="Video"}
-```md
-::embed{url="https://www.youtube.com/watch?v=KCrXgy8qtjM" title="Vite in 100 Seconds"}
-::
-```
-:::
-
-:::example{label="Live code"}
-```md
-::embed{url="https://stackblitz.com/edit/vitejs-vite?file=index.html" title="A Vite starter on StackBlitz"}
-::
-```
-:::
-
-:::example{label="Link card"}
-```md
-::embed{url="https://comark.dev" title="Comark, Markdown with components"}
-::
-```
-:::
-::
-
-The plugin reads the player's address from the link alone, so a document renders the same offline, in tests, and at build time. The link stays under every player, so the page still makes sense in a feed reader or where iframes are blocked, and in print each player gives way to its address.
-
-## Usage
-
-Register the plugin and pass the renderer's `components`:
-
-```ts
-import { createHtmlRenderer } from "@comark/html";
-import embed, { components } from "comark-embed/html";
-
-const render = createHtmlRenderer({ plugins: [embed()], components });
-```
-
-For Vue, React, or Svelte, import from `comark-embed/vue`, `comark-embed/react`, or `comark-embed/svelte`; the components add the styles when they mount. Import `comark-embed/style.css` with your styles so a server-rendered page doesn't shift. [Renderers](/guide/renderers/) covers using it with other plugins.
-
-## Syntax
 
 ```md
 ::embed{url="https://youtu.be/KCrXgy8qtjM" title="Vite in 100 Seconds" start=30}
@@ -72,9 +30,7 @@ Any other `https://` link renders as a card with its `title` and host. Cards don
 
 The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes: a missing `url`, one that isn't `https://` (it renders nothing), a provider's link it can't read an ID from (it renders as a card), a card without a `title`, a `start` that isn't whole seconds or is set on a player that can't seek, and content inside the block. Each issue names its block and says how to fix it.
 
-## Guides
-
-### Theming
+## Theming
 
 Players sit in a bordered frame with their link under it, and cards follow shadcn/ui's Item: a globe, the title, and the host. Both follow the shared tokens in [Theming](/guide/theming/). Override `--ce-app-height` to change the height of CodePen, StackBlitz, and Figma:
 

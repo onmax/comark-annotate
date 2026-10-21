@@ -33,7 +33,7 @@ Each screenshot is a slide. Its `title` heads the slide, so the reader knows whi
 
 ## When to use it
 
-Use a carousel for a sequence: the steps of a flow, or one view at several sizes. For one view before and after a change, use [`::compare`](/annotate/#components-compare), which is a two-column carousel already and continues the note numbers from one side to the other.
+Use a carousel for a sequence: the steps of a flow, or one view at several sizes. For one view before and after a change, use [`::compare`](/annotate/components/#compare), which is a two-column carousel already and continues the note numbers from one side to the other.
 
 ## Two at a time
 
