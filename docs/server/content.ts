@@ -2,6 +2,7 @@ import shiki from "@comark/html/plugins/shiki";
 import { defineContent } from "@vite-hub/content";
 import annotate from "comark-annotate";
 import carousel from "comark-carousel";
+import charts from "comark-charts";
 import fs from "comark-content/sources/fs";
 import embed from "comark-embed";
 import githubCallouts from "comark-github-callouts";
@@ -19,6 +20,7 @@ export const plugins = () => [
   include({ root: pagesDir }),
   annotate(),
   carousel(),
+  charts(),
   embed(),
   githubCallouts(),
   tabs(),
