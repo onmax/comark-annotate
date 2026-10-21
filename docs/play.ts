@@ -50,6 +50,9 @@ const panes = find(".play-panes", HTMLDivElement);
 const preview = find(".play-preview", HTMLIFrameElement);
 const issues = find(".play-issues", HTMLUListElement);
 const share = find(".play-share", HTMLButtonElement);
+const copy = find(".play-copy", HTMLButtonElement);
+const reset = find(".play-reset", HTMLButtonElement);
+const confirmReset = find(".play-confirm", HTMLDialogElement);
 const npmx = find(".top a.npmx", HTMLAnchorElement);
 const npmxName = find(".top a.npmx span", HTMLSpanElement);
 const presets: { id: string; source: string; npm: string }[] = JSON.parse(
@@ -106,6 +109,10 @@ panes.addEventListener("click", (event) => {
     other.setAttribute("aria-pressed", String(other === button));
   for (const code of document.querySelectorAll<HTMLElement>(".play-code"))
     code.hidden = code.dataset.pane !== button.dataset.pane;
+  copy.setAttribute(
+    "aria-label",
+    button.dataset.pane === "config" ? "Copy the config" : "Copy the Markdown",
+  );
 });
 
 // Each still in the presets' column is a page laid out at full width. It's scaled to show all of itself, unless that
@@ -142,6 +149,13 @@ function showIssues(list: string[]) {
 function markPreset(id?: string) {
   for (const link of document.querySelectorAll<HTMLAnchorElement>(".pages a[data-preset]"))
     link.toggleAttribute("aria-current", link.dataset.preset === id);
+}
+
+// The example the Markdown started from. Once the Markdown differs from it, Reset appears and brings it back.
+let base: (typeof presets)[number] | undefined;
+function markEdited() {
+  reset.hidden = !base || editor.value === base.source;
+  if (base) markPreset(reset.hidden ? base.id : undefined);
 }
 
 // The header's npmx link follows the preset, and stays on its package while you edit it. A shared link's Markdown
@@ -229,7 +243,9 @@ async function load() {
           : "The link's Markdown is cut off or changed.";
       return editor.value;
     });
+  base = preset;
   markPreset(preset?.id);
+  reset.hidden = true;
   pointNpmx(preset?.npm);
   repaint(editor);
   repaint(configEditor);
@@ -246,7 +262,7 @@ for (const textarea of [editor, configEditor])
     repaint(textarea);
     clearTimeout(timer);
     timer = setTimeout(async () => {
-      if (textarea === editor) markPreset();
+      if (textarea === editor) markEdited();
       // Replaced, not pushed: Back leaves the playground instead of stepping through keystrokes.
       try {
         history.replaceState(null, "", await link());
@@ -269,7 +285,28 @@ share.addEventListener("click", async () => {
     showIssues([error instanceof Error ? error.message : String(error)]);
   }
 });
+// Resetting drops edits that live nowhere else, so it asks first.
+reset.addEventListener("click", () => {
+  confirmReset.returnValue = "";
+  confirmReset.showModal();
+});
+confirmReset.addEventListener("close", () => {
+  if (confirmReset.returnValue === "reset" && base) location.hash = `preset=${base.id}`;
+});
+copy.addEventListener("click", async () => {
+  const shown = configEditor.closest<HTMLElement>(".play-code")?.hidden ? editor : configEditor;
+  try {
+    await navigator.clipboard.writeText(shown.value);
+    copy.classList.add("copied");
+    setTimeout(() => copy.classList.remove("copied"), 1200);
+  } catch (error) {
+    showIssues([error instanceof Error ? error.message : String(error)]);
+  }
+});
 addEventListener("hashchange", load);
 // The build already rendered the first preset, so only a link to something else needs a render now.
 if (location.hash) await load();
-else markPreset(presets[0]?.id);
+else {
+  base = presets[0];
+  markPreset(base?.id);
+}
