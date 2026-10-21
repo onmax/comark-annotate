@@ -188,6 +188,8 @@ const packages = (
     },
   ] satisfies { slug: string; group: string; icon: IconName; blurb: string; credits?: string }[]
 ).filter((pkg) => existsSync(new URL(`pages/${pkg.slug}/index.md`, root)));
+// npm refuses `comark-lint` as too close to `remark-lint`.
+const npmNames: Record<string, string> = { lint: "comark-linter" };
 const fileOf = (slug: string) =>
   existsSync(new URL(`pages/${slug || "index"}.md`, root))
     ? `${slug || "index"}.md`
@@ -228,7 +230,7 @@ const sections: Section[] = [
   ...packages.map((pkg) => ({
     ...pkg,
     label: pkg.slug,
-    npm: `comark-${pkg.slug}`,
+    npm: npmNames[pkg.slug] ?? `comark-${pkg.slug}`,
     // A package's pages, in this order when it has them.
     lists: [
       {

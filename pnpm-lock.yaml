@@ -116,12 +116,12 @@ importers:
       comark:
         specifier: 'catalog:'
         version: 0.7.0(shiki@4.5.0)
+      comark-linter:
+        specifier: workspace:*
+        version: link:packages/lint
       geist:
         specifier: 'catalog:'
         version: 1.7.2(next@16.4.0(@playwright/test@1.64.1)(@types/node@24.19.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))
-      lint-comark:
-        specifier: workspace:*
-        version: link:packages/lint
       pkg-pr-new:
         specifier: 'catalog:'
         version: 0.0.91

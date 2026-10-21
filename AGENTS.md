@@ -24,10 +24,10 @@ A pnpm workspace. Every package in `packages/` is published to npm under its own
   - `src/index.ts` is the parse plugin. It resolves every `:icon` in one call and writes `src`, `ratio`, `mask`, and `label` on the node, and drops one it can't draw. `name` stays, so a renderer that maps `icon` to Nuxt UI's component still works.
   - An icon is a `.ci` span with its image in `--ci`: a mask over `currentColor` when the SVG uses it, a background image otherwise. The renderers set the style as an object, because `@comark/react` splits a style string at every colon and would cut the data URI.
   - Plugins that draw icons (tabs) take an `Icons` and draw with `iconHtml()`/`iconStyles()` from `/html` and the `Icon` component from `/vue`, `/react`, and `/svelte`.
-- `packages/lint` is `lint-comark`, a library, CLI, and Vite Doctor extension that lints Comark documents.
+- `packages/lint` is `comark-linter`, a library, CLI, and Vite Doctor extension that lints Comark documents. npm refuses `comark-lint` as too close to `remark-lint`, so only the package is `comark-linter`: its command, config file, and messages stay `comark-lint`.
   - `src/index.ts` is `lint()`. Comark gives nodes no positions, so block components take their line from markdown-exit tokens (plus the stripped frontmatter's lines) and everything else is found by searching the source with fenced code blanked out.
   - `src/config.ts` loads the other packages in this repo through optional dynamic imports; they are optional peer dependencies. Add a new package there.
-  - `src/doctor.ts` is `lint-comark/doctor`. Vite Doctor has no Markdown visitor, so its Rules are manifest Rules that glob the Markdown in `onProjectEnd`. The root `doctor.config.ts` lints `docs/pages` with it as part of `pnpm run doctor`.
+  - `src/doctor.ts` is `comark-linter/doctor`. Vite Doctor has no Markdown visitor, so its Rules are manifest Rules that glob the Markdown in `onProjectEnd`. The root `doctor.config.ts` lints `docs/pages` with it as part of `pnpm run doctor`.
 - `packages/tabs` is `comark-tabs`. Its parse plugin turns `::code-group` into `::tabs` and gives each `tabs-item` its label and position, and the `tabs` node every label and a `uid` from a hash of the source, so no renderer splits children and the HTML renderer's ids differ between documents on one page. Its script is built like carousel's.
 - `packages/zoom` is `comark-zoom`.
   - `src/index.ts` is the parse plugin. It marks content images and adds one `zoom-runtime` node to a document with anything to zoom.
