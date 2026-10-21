@@ -47,7 +47,7 @@ const components = {
   ...zoomComponents,
 };
 
-// The index first, then the guides and recipes, then one page per package, each at its own path.
+// The index first, then the guides and recipes, then one page per package, then the comparisons, each at its own path.
 const pages = [
   { slug: "", file: "index.md", label: "Overview" },
   { slug: "guide/renderers", file: "guide/renderers.md" },
@@ -66,6 +66,7 @@ const pages = [
   { slug: "include", file: "include.md", npm: "comark-include" },
   { slug: "embed", file: "embed.md", npm: "comark-embed" },
   { slug: "charts", file: "charts.md", npm: "comark-charts" },
+  { slug: "compare/charts", file: "compare/charts.md" },
 ];
 
 // The sidebar, in order. A slug with no page yet, such as one whose package is still on a branch, is left out.
@@ -78,6 +79,7 @@ const groups = [
   { title: "Review blocks", slugs: ["annotate", "charts", "embed", "github-callouts"] },
   { title: "Page behavior", slugs: ["zoom", "carousel", "tabs"] },
   { title: "Authoring tools", slugs: ["include", "lint"] },
+  { title: "Compared", slugs: ["compare/charts"] },
 ];
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
