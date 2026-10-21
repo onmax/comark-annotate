@@ -1,8 +1,12 @@
 # comark-linter
 
-Finds unclosed blocks, unknown components, broken anchors, and plugin issues in [Comark](https://comark.dev) documents. A library, a CLI, and a [Vite Doctor](https://github.com/onmax/vite-doctor) extension. Every message names the block and says how to fix it.
+[![npm version](https://npmx.dev/api/registry/badge/version/comark-lint)](https://npmx.dev/package/comark-lint)
+[![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-lint)](https://npmx.dev/package/comark-lint)
+[![install size](https://npmx.dev/api/registry/badge/size/comark-lint)](https://npmx.dev/package/comark-lint)
+[![license](https://npmx.dev/api/registry/badge/license/comark-lint)](https://npmx.dev/package/comark-lint)
+[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/lint/)
 
-**[Docs](https://comark.onmax.me/lint/)**
+Finds unclosed blocks, unknown components, broken anchors, and plugin issues in [Comark](https://comark.dev) documents. A library, a CLI, and a [Vite Doctor](https://github.com/onmax/vite-doctor) extension. Every message names the block and says how to fix it.
 
 ```sh
 pnpm add -D comark-linter
