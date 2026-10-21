@@ -59,8 +59,8 @@ describe("comark-code", () => {
 
   it("inlines styles a site can theme with --ck-* variables, with today's look as the fallback", async () => {
     const style = /<style data-comark-code>(.*?)<\/style>/s.exec(await render(sh))?.[1];
-    expect(style).toContain("top:var(--ck-inset,.5rem);right:var(--ck-inset,.5rem)");
-    expect(style).toContain("height:var(--ck-button-size,1.75rem)");
+    expect(style).toContain("div.ck>pre{padding-top:var(--_ck-bar)}");
+    expect(style).toContain("height:var(--_ck-bar)");
   });
 
   it("keeps Shiki's highlighting and the block's filename", async () => {

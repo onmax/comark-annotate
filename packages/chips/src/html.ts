@@ -20,8 +20,8 @@ const chip: NodeHandler = async ([, attrs, ...children], state) => {
   const src = str(attrs.src);
   const title = str(attrs.title);
   return (
-    `${styles}<a class="cch" href="${attr(str(attrs.href))}" data-kind="${attr(str(attrs.kind))}"${title ? ` title="${attr(title)}"` : ""}>` +
-    `${src ? `<img class="cch-img" src="${attr(src)}" alt="">` : ""}${(await Promise.all(children.map((child) => state.one(child, state)))).join("")}</a>`
+    `${styles}<a class="cp" href="${attr(str(attrs.href))}" data-kind="${attr(str(attrs.kind))}"${title ? ` title="${attr(title)}"` : ""}>` +
+    `${src ? `<img class="cp-img" src="${attr(src)}" alt="">` : ""}${(await Promise.all(children.map((child) => state.one(child, state)))).join("")}</a>`
   );
 };
 
