@@ -36,6 +36,6 @@ export const css = `@layer comark{${[
   ".ct[data-tabs-code]>.ct-panel{border-radius:0 0 var(--_comark-radius) var(--_comark-radius)}",
   "@media (pointer:coarse){.ct-tab{padding-block:.5rem}}",
 ].join("")}}${
-  // The host styles its code blocks with plain rules, which beat any layered one.
-  ".ct[data-tabs-code]>.ct-panel>pre{margin:0;border-radius:0 0 var(--_comark-radius) var(--_comark-radius)}"
+  // The host styles its code blocks with plain rules, which beat any layered one. comark-code wraps each block in `.ck`.
+  ".ct[data-tabs-code]>.ct-panel>pre,.ct[data-tabs-code]>.ct-panel>.ck>pre{margin:0;border-radius:0 0 var(--_comark-radius) var(--_comark-radius)}"
 }`;

@@ -1,4 +1,5 @@
 import { theme } from "comark-zoom/client";
+import { caveat } from "./font.ts";
 
 // Hovering, focusing, or linking to a mark or its note sets `--ca-on` on both, so each lights up the other without a script.
 // The zoomed view holds the screenshot and its notes in separate copies, so the dialog links those two, and only those:
@@ -13,6 +14,8 @@ const linked = Array.from({ length: 40 }, (_, index) => {
 });
 
 export const css = `@layer comark{${[
+  // Notes and labels sit on hand-drawn marks, so they're handwritten too. No handwriting font ships with every system, so it comes inlined.
+  `@font-face{font-family:comark-caveat;src:url(data:font/woff2;base64,${caveat}) format("woff2");font-display:block}`,
   // Surfaces, borders, and radii follow the shared `--comark-*` tokens; the mark colors stay their own.
   theme(".ca"),
   // One meaning per color: blue points something out (the default), red flags a problem, amber a warning, green a fix, gray anything neutral.
@@ -20,12 +23,14 @@ export const css = `@layer comark{${[
   // so their number stays white (5:1 or better); only amber keeps a dark number.
   // Declared on `.ca` alone and at zero specificity, so a host's plain `.ca { --ca-color: … }` reaches every mark. A
   // zoomed screenshot sits in a copy of its `.ca`, so it keeps them too.
-  ":where(.ca){--ca-gutter:10rem;--ca-top-gutter:5rem;--ca-gap:1.25rem;--ca-red:#ee3533;--ca-amber:#f5a524;--ca-green:#259f56;--ca-blue:#0581e6;--ca-gray:#71717a;--ca-red-solid:#d01d21;--ca-amber-solid:#f59e0b;--ca-green-solid:#037e3f;--ca-blue-solid:#0267c7;--ca-gray-solid:#52525b;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-solid:var(--ca-blue-solid);--ca-ink:var(--ca-blue-ink)}",
+  ":where(.ca){--ca-note-font:comark-caveat,cursive;--ca-note-size:1.25em;--ca-label-size:1.5em;--ca-gutter:10rem;--ca-top-gutter:5rem;--ca-gap:1.25rem;--ca-red:#ee3533;--ca-amber:#f5a524;--ca-green:#259f56;--ca-blue:#0581e6;--ca-gray:#71717a;--ca-red-solid:#d01d21;--ca-amber-solid:#f59e0b;--ca-green-solid:#037e3f;--ca-blue-solid:#0267c7;--ca-gray-solid:#52525b;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-solid:var(--ca-blue-solid);--ca-ink:var(--ca-blue-ink)}",
   ":where(.ca){margin:1.5rem 0}",
   "@media (prefers-color-scheme:dark){:where(.ca){--ca-red:#fd736d;--ca-amber:#ffb224;--ca-green:#59d38c;--ca-blue:#67b0f9;--ca-gray:#a1a1aa}}",
-  // Before and after are bare and line up at the top, even when one screenshot is taller.
-  ".ca-compare .cc{margin:0;--cc-gap:1.5rem}",
-  ".ca-compare .cc-track>.cc-slide{align-content:start;padding:0;background:none}",
+  // Before and after are bare and line up at the top, even when one screenshot is taller. The track clips what a slide
+  // overflows, so each slide keeps room at its sides for a stamp on an edge mark, and the gap shrinks to keep the
+  // screenshots 1.5rem apart.
+  ".ca-compare .cc{margin:0;--cc-gap:.5rem}",
+  ".ca-compare .cc-track>.cc-slide{align-content:start;padding:0 .5rem;background:none}",
   // A slider without its script stacks the pair, each under its title.
   ".ca-slider{container-type:inline-size}",
   ".ca-swipe{display:grid;gap:1.5rem}",
@@ -90,7 +95,7 @@ export const css = `@layer comark{${[
   ".ca-underline svg{top:calc(100% - 5px);height:12px}",
   // A tick beside the target, so it doesn't hide what it approves.
   ".ca-check svg{left:calc(100% + 4px);top:50%;width:20px;height:20px;transform:translateY(-50%)}",
-  ".ca-stamp{display:inline-grid;place-items:center;flex:none;min-width:15px;height:15px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:var(--ca-solid,var(--ca-color));color:var(--ca-ink);font-family:inherit;font-size:9.5px;font-weight:600;line-height:1;letter-spacing:-.01em;font-variant-numeric:tabular-nums}",
+  ".ca-stamp{display:inline-grid;place-items:center;flex:none;min-width:15px;height:15px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:var(--ca-solid,var(--ca-color));color:var(--ca-ink);font-family:var(--_comark-font);font-size:9.5px;font-weight:600;line-height:1;letter-spacing:-.01em;font-variant-numeric:tabular-nums}",
   ".ca-letter{display:none}",
   ".ca-mark .ca-stamp{position:absolute;right:calc(100% + 4px);bottom:calc(100% + 4px);box-shadow:0 0 0 2px var(--ca-ring,var(--_comark-background)),0 1px 3px rgb(0 0 0/.18);transform:scale(calc(1 + .1 * var(--ca-on,0)));transition:transform .15s ease}",
   ".ca-at-left .ca-stamp{right:auto;left:-4px}",
@@ -106,7 +111,7 @@ export const css = `@layer comark{${[
   ".ca-arrow-left .ca-arrow-head{right:1px;transform:scaleX(-1)}",
   ".ca-arrow-top{width:24px;height:auto;transform:translateX(-50%)}",
   ".ca-arrow-top .ca-arrow-head{top:auto;bottom:1px;left:8.5px}",
-  ".ca-callout{position:absolute;width:calc(var(--ca-gutter) - var(--ca-gap));padding:.25rem .5rem;box-sizing:border-box;border-radius:calc(var(--_comark-radius) - 4px);color:var(--ca-color);font-family:var(--ca-note-font,inherit);font-size:var(--ca-note-size,.8125em);line-height:1.35;transform:translateY(-50%);background:color-mix(in srgb,var(--ca-color) calc(8% * var(--ca-on,0)),transparent);transition:background .15s ease}",
+  ".ca-callout{position:absolute;width:calc(var(--ca-gutter) - var(--ca-gap));padding:.25rem .5rem;box-sizing:border-box;border-radius:calc(var(--_comark-radius) - 4px);color:var(--ca-color);font-family:var(--ca-note-font);font-size:var(--ca-note-size);line-height:1.35;text-wrap:balance;transform:translateY(-50%);background:color-mix(in srgb,var(--ca-color) calc(8% * var(--ca-on,0)),transparent);transition:background .15s ease}",
   ".ca-callout-right{right:0}",
   ".ca-callout-left{left:0;text-align:right}",
   ".ca-callout-top{bottom:calc(100% - var(--ca-top-gutter) + var(--ca-gap));width:max-content;max-width:14rem;text-align:center;transform:translateX(-50%)}",
@@ -119,7 +124,7 @@ export const css = `@layer comark{${[
   ".ca figcaption{margin-top:.75rem;text-align:start}",
   // One line, so the two images of a compare stay level.
   ".ca-heading{display:flex;gap:.5rem;align-items:center;min-width:0;height:1.5em;margin-bottom:.5rem;text-align:start}",
-  ".ca-label{flex:none;font-family:var(--ca-note-font,inherit);font-size:var(--ca-label-size,.8125em);font-weight:500}",
+  ".ca-label{flex:none;font-family:var(--ca-note-font);font-size:var(--ca-label-size);font-weight:500;line-height:1}",
   ".ca-heading a{font-size:.75em;opacity:.6}",
   ".ca-notes{list-style:none;margin:.5rem 0 0;padding:0;display:grid;gap:.125rem}",
   // `>` so a list written inside a note keeps its own bullets and spacing.

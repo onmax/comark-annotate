@@ -113,6 +113,18 @@ describe("comark-annotate", () => {
     expect(css).not.toMatch(/\.ca-notes li\b/);
   });
 
+  it("writes side notes and labels by hand, in a font inlined with the styles", async () => {
+    const { html } = await run(
+      `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10 side="right"}\nNote\n:::\n::`,
+    );
+    expect(html).toContain(
+      "@font-face{font-family:comark-caveat;src:url(data:font/woff2;base64,d09GMg",
+    );
+    expect(html).toMatch(/:where\(\.ca\)\{--ca-note-font:comark-caveat,cursive;/);
+    expect(html).toMatch(/\.ca-callout\{[^}]*font-family:var\(--ca-note-font\);/);
+    expect(html).toMatch(/\.ca-label\{[^}]*font-family:var\(--ca-note-font\);/);
+  });
+
   it("lets Comark's security plugin clean notes", async () => {
     const source = `::screenshot{src="a.png" alt="A"}\n:::annotation{x=0 y=0 w=10 h=10}\nNote <img src="x" onerror="alert(1)"> <script>alert(2)</script>\n:::\n::`;
     const document = await parseMarkdown(source, {

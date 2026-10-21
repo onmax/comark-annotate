@@ -20,9 +20,20 @@ npx skills add https://comark.onmax.me --skill comark-annotate
 
 | Skill | What it knows |
 | --- | --- |
-| `comark-annotate` | The screenshot, compare, and diff syntax, how to measure marks from the page instead of guessing them from the image, and how to check the render |
+| `comark-annotate` | The screenshot, compare, and diff syntax, which marks to draw and what their notes say, how to measure marks from the page instead of guessing them from the image, and how to check the render |
+| `comark-charts` | The table shape for each chart type, how to pick the type that fits the data, and how to mark the values that matter |
 
 The other packages have no skill. Their syntax fits on their page, and a document that gets it wrong fails [validation](/guide/validation/) with a message that says what to change.
+
+## Bundle a skill in your app
+
+An app that renders these documents and serves skills to its own agents, such as Drop, can ship our skill instead of writing its own. Each package with a skill exports it, so the app imports it at build time:
+
+```ts
+import annotateSkill from "comark-annotate/skills/comark-annotate/SKILL.md?raw";
+```
+
+The text then always matches the renderer the app installed: an app on an older version never tells its agents about syntax it can't draw yet, and its agents need no network request to read it. Serve it as a skill of its own, or inside one of yours as a reference file with its front matter removed. When it names a CLI command, pin it to the installed version, such as `npx comark-annotate@0.3.0 check`.
 
 ## Check the result
 
@@ -40,4 +51,4 @@ npx comark-annotate render report.md -o report.html
 
 ## Writing for reviewers
 
-Agents often write these documents as evidence on a pull request. [A review document](/recipes/review/) shows one put together from several plugins.
+Agents often write these documents as evidence on a pull request. [A review document](/recipes/review/) shows one put together from several plugins. [Sharing a review](/recipes/share/) shows how the agent publishes it to Drop, where reviewers comment on the exact spot and the agent reads their comments.

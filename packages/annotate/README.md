@@ -33,7 +33,7 @@ Five filters don't fit, so the toolbar wraps onto a second row.
 ::
 ```
 
-Coordinates are percentages of the image, written as numbers without `%`. Props can be inline, in a YAML props block, or bound with `:x`. Marks: `box`, `circle`, `underline`, `highlight`, `cross`, `check`. Colors: `blue` (default), `red`, `amber`, `green`, `gray`, or a 3- or 6-digit hex. Add `side="left"`, `side="right"`, or `side="top"` to put a note beside or above the image with a hand-drawn arrow, and `mark="none"` to let the arrow do the pointing. A screenshot takes a `title` above the image and an `href` to the captured page; a compare takes a `title` for screen readers. `::compare{mode="slider"}` lays the two screenshots over each other with a divider the reader drags, and lists side notes under it; side by side, a compare lists notes beside an image and keeps notes above it. A screenshot's Copy button, or Ctrl+C or ⌘C while it's focused, copies it as a PNG with its marks and notes. An image from another origin needs CORS headers for that, and an iframe needs `allow="clipboard-write"`. Set `--ca-note-font` for handwritten notes; the docs use Caveat.
+Coordinates are percentages of the image, written as numbers without `%`. Props can be inline, in a YAML props block, or bound with `:x`. Marks: `box`, `circle`, `underline`, `highlight`, `cross`, `check`. Colors: `blue` (default), `red`, `amber`, `green`, `gray`, or a 3- or 6-digit hex. Add `side="left"`, `side="right"`, or `side="top"` to put a note beside or above the image with a hand-drawn arrow, and `mark="none"` to let the arrow do the pointing. A screenshot takes a `title` above the image and an `href` to the captured page; a compare takes a `title` for screen readers. `::compare{mode="slider"}` lays the two screenshots over each other with a divider the reader drags, and lists side notes under it; side by side, a compare lists notes beside an image and keeps notes above it. A screenshot's Copy button, or Ctrl+C or ⌘C while it's focused, copies it as a PNG with its marks and notes. An image from another origin needs CORS headers for that, and an iframe needs `allow="clipboard-write"`. Side notes and labels are handwritten in Caveat, inlined with the styles; set `--ca-note-font: inherit` for the page font.
 
 `::diff` shows a code change the way a pull request review shows a suggested change: removed lines red, added lines green, and the changed words marked within a pair of lines. Write the code before and after as two fenced blocks:
 
@@ -60,7 +60,7 @@ The styles follow shadcn/ui: they read its CSS variables, such as `--background`
 
 ## Agents
 
-An agent skill ships in the package (`skills/comark-annotate/SKILL.md`) and is served at the docs site, so `npx skills add https://comark.onmax.me` installs it. The CLI checks and previews documents:
+An agent skill ships in the package (`skills/comark-annotate/SKILL.md`) and is served at the docs site, so `npx skills add https://comark.onmax.me` installs it. An app that serves skills to its own agents can bundle it from `comark-annotate/skills/comark-annotate/SKILL.md`, which always matches the renderer it installed. The CLI checks and previews documents:
 
 ```sh
 npx comark-annotate check report.md other.md        # one line per problem, exit 1 if any

@@ -45,7 +45,9 @@ const HYPHENATED =
  */
 export function parseIconName(value: string, prefixes: Iterable<string> = []) {
   const bare = value.startsWith("i-") ? value.slice(2) : value;
-  let [prefix, name] = bare.split(":");
+  const parts = bare.split(":");
+  if (parts.length > 2) return undefined;
+  let [prefix, name] = parts;
   if (name === undefined && value.startsWith("i-")) {
     prefix =
       [...prefixes, ...HYPHENATED]
