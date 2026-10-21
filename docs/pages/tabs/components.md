@@ -32,6 +32,7 @@ One tab. It holds any Markdown, even other tabs.
 | Prop | |
 | --- | --- |
 | `label` | The tab's name, required. Labels in one block must differ. |
+| `icon` | An [Iconify](https://icones.js.org) name such as `lucide:apple`, or an image URL, drawn by [comark-icon](/icon/) before the label. See [Icons](/tabs/guides/#icons). |
 
 ## code-group
 
@@ -54,3 +55,5 @@ npm install comark-tabs
 | Prop | |
 | --- | --- |
 | `sync` | As on `::tabs`. A code group and tabs with the same key switch together. |
+
+A code block takes an icon after its label, as `icon=logos:pnpm`.
