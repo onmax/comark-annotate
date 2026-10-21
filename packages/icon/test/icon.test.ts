@@ -133,6 +133,7 @@ describe("comark-icon", () => {
     );
     const markdown =
       'A :icon{name="lucide:aple"} B :icon{name="apple"} C :icon{name="gone:x"} D :icon{name="down:x"} E :icon{name="lucide:apple:extra"} F :icon';
+    expect(stripStyles(await render(markdown))).toBe("<p>A B C D E F</p>");
     expect(await issues(markdown)).toEqual([
       '`:icon` 1 ("lucide:aple"): The `lucide` set has no icon `aple`. Find its name at https://icones.js.org/collection/lucide.',
       '`:icon` 2 ("apple"): "apple" isn\'t an icon name. Write it as `set:name`, such as `lucide:apple`, or give an image URL.',
@@ -141,7 +142,6 @@ describe("comark-icon", () => {
       '`:icon` 5 ("lucide:apple:extra"): "lucide:apple:extra" isn\'t an icon name. Write it as `set:name`, such as `lucide:apple`, or give an image URL.',
       '`:icon` 6: `name` is required. Write `:icon{name="lucide:apple"}`.',
     ]);
-    expect(stripStyles(await render(markdown))).toBe("<p>A B C D E F</p>");
   });
 
   it("adds its issues to the ones other plugins found", async () => {
