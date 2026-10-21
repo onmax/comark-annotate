@@ -373,14 +373,17 @@ function installerFor(install: string, skill: string) {
 }
 
 // The first column: one icon per section. Hovering or focusing it widens it over the second column to show every
-// section's name, as on vitehub.dev. The current section's is marked.
+// section's name, as on vitehub.dev. The current section's is marked. Drop sits at the bottom: it renders the
+// review documents these plugins make, and it's by the same author.
 const rail = (current: Section) =>
   `<nav class="rail" aria-label="Sections">${sections
     .map(
       (section, i) =>
         `${i && section.group !== sections[i - 1].group ? "<hr>" : ""}<a href="${href(section.slug)}"${section === current ? ' aria-current="true"' : ""}>${icon(section.icon)}<span class="rail-label">${escapeHtml(section.label)}</span></a>`,
     )
-    .join("")}</nav>`;
+    .join(
+      "",
+    )}<a class="rail-drop" href="https://drop.vitehub.dev"><img src="/drop.svg" alt="" width="18" height="18"><span class="rail-label"><strong>Review on Drop</strong><span>Comment on the exact spot</span></span></a></nav>`;
 // The second column: the current section's pages, or the playground's presets.
 const column = (section: Section, current: string) => {
   const lists =
