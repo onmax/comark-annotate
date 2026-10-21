@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parseMarkdown } from "comark";
 import { defineNuxtConfig } from "nuxt/config";
@@ -63,6 +63,21 @@ async function writeAssets() {
     await cp(playground, new URL("play/", generated), { recursive: true });
 }
 
+// Every page, so one that nothing links to still prerenders: docs/pages, and each package's docs/ under its name.
+function pageRoutes() {
+  const routes = (dir: URL, base: string) =>
+    readdirSync(dir, { recursive: true, encoding: "utf8" })
+      .filter((file) => file.endsWith(".md") && !file.startsWith("partials/"))
+      .map((file) => `${base}/${file.replace(/(^|\/)?index\.md$|\.md$/, "")}`.replace(/\/?$/, "/"));
+  const packages = new URL("../packages/", root);
+  return [
+    ...routes(new URL("pages/", root), ""),
+    ...readdirSync(packages)
+      .filter((folder) => existsSync(new URL(`${folder}/docs/index.md`, packages)))
+      .flatMap((folder) => routes(new URL(`${folder}/docs/`, packages), `/${folder}`)),
+  ];
+}
+
 export default defineNuxtConfig({
   compatibilityDate: "2026-10-01",
   devtools: { enabled: false },
@@ -101,6 +116,6 @@ export default defineNuxtConfig({
   ],
   nitro: {
     output: { dir: fileURLToPath(new URL("dist/", root)) },
-    prerender: { crawlLinks: true, failOnError: true, routes: ["/"] },
+    prerender: { crawlLinks: true, failOnError: true, routes: pageRoutes() },
   },
 });

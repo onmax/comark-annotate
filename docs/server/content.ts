@@ -38,18 +38,19 @@ export const plugins = () => [
 // docs/pages holds the site's own pages, and each package keeps its pages in its own docs/, served under its folder's
 // name. A content instance reads one source, so this one reads them all.
 function pages(): Source {
-  const roots = [
+  const roots: [prefix: string, source: Source][] = [
     ["", fs(pagesDir)],
     ...readdirSync(packagesDir)
       .filter((folder) => existsSync(join(packagesDir, folder, "docs/index.md")))
-      .map((folder) => [
+      .map((folder): [string, Source] => [
         folder,
         fs(join(packagesDir, folder, "docs"), { exclude: ["partials/**"] }),
       ]),
-  ] as const;
+  ];
   const find = (key: string) => {
     const at = key.split("/", 1)[0] ?? "";
-    const [prefix, source] = roots.find(([folder]) => folder && folder === at) ?? roots[0];
+    // SAFETY: roots starts with docs/pages, so there's always a first entry.
+    const [prefix, source] = roots.find(([folder]) => folder && folder === at) ?? roots[0]!;
     return { source, key: prefix ? key.slice(prefix.length + 1) : key };
   };
   return {
@@ -71,12 +72,12 @@ function pages(): Source {
     },
     watch: async (callback) => {
       const stops = await Promise.all(
-        roots.map(([prefix, source]) =>
+        roots.map(async ([prefix, source]) =>
           source.watch?.((event, key) => callback(event, prefix ? `${prefix}/${key}` : key)),
         ),
       );
       return async () => {
-        await Promise.all(stops.map((stop) => stop?.()));
+        await Promise.all(stops.map(async (stop) => stop?.()));
       };
     },
   };
