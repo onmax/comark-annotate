@@ -1,0 +1,41 @@
+import { theme } from "comark-zoom/theme";
+import { INK, SERIES } from "./draw.ts";
+
+// Rules of the host's stylesheet beat an SVG's presentation attributes, so each ink is swapped by its color.
+const swap = (hex: string, color: string, props = ["fill", "stroke"]) =>
+  props.map((prop) => `.cch-plot [${prop}="${hex}"]{${prop}:${color}}`).join("");
+
+/**
+ * A chart over its data table, on the shared `--comark-*` tokens. Series take `--comark-chart-1` to `-6`, then
+ * shadcn/ui's `--chart-1` to `-6`. The rules sit in the `comark` layer, so any unlayered rule of the host's wins.
+ */
+export const css = `@layer comark{${[
+  theme(".cch"),
+  // A card, as shadcn/ui frames its charts: the title on top, the chart, and the data as its footer.
+  ".cch{margin:1.5rem 0;padding:1.25rem 1.5rem 0;border:1px solid var(--_comark-border);border-radius:var(--_comark-radius);background:var(--_comark-background);color:var(--_comark-foreground);font-family:var(--_comark-font)}",
+  ".cch figcaption{margin-bottom:1rem;font-weight:600;font-size:1rem;line-height:1.5rem}",
+  // Scaled, the SVG's text would shrink past reading or swell past its labels, so a narrow column scrolls it instead.
+  ".cch-plot{overflow-x:auto}.cch-plot svg{display:block;max-width:none;height:auto}",
+  ".cch-plot text{font-family:var(--_comark-font)}",
+  // Marks sit at percentages of the SVG, so a marked chart shrinks to fit rather than scrolling under them.
+  ".cch-marked{overflow:visible}.cch-marked .ca-frame{width:fit-content;max-width:100%}.cch-marked .ca-frame svg{max-width:100%}",
+  swap(INK.foreground, "var(--_comark-foreground)"),
+  swap(INK.muted, "var(--_comark-muted)"),
+  swap(INK.border, "var(--_comark-border)"),
+  swap(INK.grid, "var(--_comark-border)"),
+  // Flint's connectors between a waterfall's steps.
+  swap("#6b7280", "var(--_comark-muted)"),
+  // White fills are labels on a mark, which stay white; white strokes part slices and points from the page.
+  swap(INK.background, "var(--_comark-background)", ["stroke"]),
+  ...SERIES.map((hex, index) =>
+    swap(hex, `var(--comark-chart-${index + 1},var(--chart-${index + 1},${hex}))`),
+  ),
+  ".cch-data{margin:1rem -1.5rem 0;padding:.75rem 1.5rem;border-top:1px solid var(--_comark-border);color:var(--_comark-muted);font-size:.875rem;line-height:1.25rem}",
+  ".cch-data summary{width:fit-content;cursor:pointer}",
+  ".cch>table{margin-bottom:1.25rem}",
+  ".cch-data summary:focus-visible{border-radius:calc(var(--_comark-radius) - 4px);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--_comark-ring) 50%,transparent)}",
+  ".cch-data table{margin-top:.5rem;border-collapse:collapse;color:var(--_comark-foreground);font-variant-numeric:tabular-nums}",
+  ".cch-data :is(th,td){padding:.25rem .75rem;border-bottom:1px solid var(--_comark-border);text-align:start}",
+  ".cch-data th{font-weight:500}",
+  "@media print{.cch{break-inside:avoid}.cch-plot svg{max-width:100%}}",
+].join("")}}`;

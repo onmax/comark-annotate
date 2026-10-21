@@ -1,7 +1,7 @@
 ---
 title: Comark plugins
 description: Plugins for Comark that make review documents easier to read.
-tagline: Annotated screenshots, zoom, carousels, tabs, callouts, and embeds for Comark documents. Each plugin is its own package, and they all share one version.
+tagline: Annotated screenshots, zoom, carousels, tabs, callouts, embeds, and charts for Comark documents. Each plugin is its own package, and they all share one version.
 ---
 
 ## Plugins
