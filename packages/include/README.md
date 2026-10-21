@@ -24,11 +24,11 @@ const document = await parseMarkdown(markdown, {
 Each include sits alone on its own line:
 
 ```md
-:include{src="./parts/setup.md"}
+:include{src="./parts/pizza-policy.md"}
 
-:include{src="/src/index.ts" lines="10:24"}
+:include{src="/src/ducks.ts" lines="10:24"}
 
-:include{src="/src/index.ts" region="setup"}
+:include{src="/src/ducks.ts" region="estimate"}
 ```
 
 A `.md`, `.mdc`, or `.markdown` file is pasted as Markdown, without its frontmatter, and its own includes resolve from its folder. Any other file becomes a fenced code block in the language of its extension, with a fence longer than any backtick run in the file.
@@ -37,7 +37,7 @@ A `.md`, `.mdc`, or `.markdown` file is pasted as Markdown, without its frontmat
 | --- | --- |
 | `src` | The file. A relative path starts at the document's folder, or at the including partial's; `/` starts at `root`. Required. |
 | `lines` | `"10:24"`: lines 10 to 24, 1-based and inclusive. `"10:"` and `":24"` leave one end open. Lines count from the top of the file, frontmatter included, as in an editor, but frontmatter is never pasted. |
-| `region` | The lines between `#region setup` and `#endregion setup`. A marker starts its line, after a comment opener if any: `//`, `#`, `/*`, `<!--`, `--`, `;`, `%`, or `'`. Marker lines are dropped. |
+| `region` | The lines between `#region estimate` and `#endregion estimate`. A marker starts its line, after a comment opener if any: `//`, `#`, `/*`, `<!--`, `--`, `;`, `%`, or `'`. Marker lines are dropped. |
 | `code` | Fences a Markdown file instead of pasting it. |
 | `lang` | The fence's language, instead of the extension. Fences the file too. |
 
@@ -61,8 +61,8 @@ Paths are normalized as strings, so `../` can't leave `root` in any runtime, and
 An include that fails is dropped, and the plugin adds a sentence to `meta.issues` that names it and says how to fix it:
 
 ```txt
-include "./x.md": file not found. It resolved to "guide/x.md" under the root; check the path or base.
-include "./a.md": guide/a.md includes itself (guide/a.md -> guide/b.md -> guide/a.md). Remove one of the includes.
+include "./duck-log.md": file not found. It resolved to "guide/duck-log.md" under the root; check the path or base.
+include "./pizzas.md": guide/pizzas.md includes itself (guide/pizzas.md -> guide/merged-prs.md -> guide/pizzas.md). Remove one of the includes.
 ```
 
 It reports a missing `src`, an argument it doesn't know, a missing file, a path that leaves the root, a URL, a cycle, nesting past `depth`, a `lines` range that is malformed or runs past the end, a missing or unclosed `region`, `lines` with `region`, a reader that throws, and an include that isn't alone on its line or is written `::include`. A partial that leaves a `::block` open is closed at the end of its paste and reported. Rendering never throws.

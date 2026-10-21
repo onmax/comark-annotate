@@ -20,10 +20,10 @@ const render = createHtmlRenderer({ plugins: [embed()], components });
 ```
 
 ```md
-::embed{url="https://youtu.be/KCrXgy8qtjM" title="Vite in 100 Seconds" start=30}
+::embed{url="https://youtu.be/KCrXgy8qtjM" title="Watch before standup: Vite in 100 Seconds" start=30}
 ::
 
-::embed{url="https://comark.dev" title="Comark docs"}
+::embed{url="https://comark.dev" title="Comark docs, for the duck report"}
 ::
 ```
 

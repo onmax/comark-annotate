@@ -8,18 +8,18 @@ install: pnpm add comark @comark/html comark-annotate comark-github comark-embed
 ::example
 ````md
 > [!IMPORTANT] Decision
-> Extra filters collapse into **+2 filters**, so the toolbar stays on one row at 640px.
+> Moon phase and vibes collapse into **+2 filters**, so the toolbar stays on one row at 640px.
 
 ::compare{title="Filter toolbar at 640px"}
 :::screenshot{src="/before.png" alt="Filter toolbar wrapping onto a second row" viewport="640x250"}
-::::annotation{x=5 y=29.6 w=90 h=45.3 color="red"}
-Five filters don't fit, so the toolbar wraps and pushes the table down.
+::::annotation{x=4.5 y=28.7 w=90.9 h=44.4 color="red"}
+Moon phase and vibes don't fit, so the toolbar wraps and pushes the table down.
 ::::
 :::
 
 :::screenshot{src="/after.png" alt="Filter toolbar on one row" viewport="640x250"}
-::::annotation{x=67.9 y=34.8 w=13 h=14.2 mark="highlight" color="blue"}
-Extra filters collapse into **+2 filters**.
+::::annotation{x=68 y=33.1 w=13.3 h=16 mark="highlight" color="blue"}
+Moon phase and vibes collapse into **+2 filters**.
 ::::
 :::
 ::
@@ -37,11 +37,11 @@ const hidden = filters.length - visible.length;
 ::zoom{title="Toolbar height"}
 | Width | Before | After |
 | --- | --: | --: |
-| 640px | 96px | 48px |
-| 1024px | 48px | 48px |
+| 640px | 105px | 56px |
+| 1024px | 56px | 56px |
 ::
 
-::embed{url="https://pr42.preview.example.com/plan" title="Try it on the preview deployment"}
+::embed{url="https://pr42.preview.example.com/correlations" title="Try it on the preview deployment"}
 ::
 ````
 ::

@@ -3,10 +3,10 @@ import { expect, test } from "@playwright/test";
 test("the playground renders a preset, reports issues as you type, and opens a shared link", async ({
   page,
 }) => {
-  await page.goto("/play/#preset=github-callouts");
+  await page.goto("/play/#preset=github");
   const preview = page.frameLocator(".play-preview");
   await expect(preview.locator(".cgc").first()).toBeVisible();
-  await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("Callouts");
+  await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("GitHub");
   const npmx = page.locator(".top a.npmx");
   await expect(npmx).toHaveAttribute("href", "https://npmx.dev/package/comark-github");
 

@@ -24,11 +24,11 @@ Each `:::tabs-item` inside `::tabs` is a tab. In a `::code-group`, each code blo
 ````md
 ::tabs{sync="os"}
 :::tabs-item{label="macOS"}
-Press **⌘K** to search.
+Press **⌘K** to find the pigeon data.
 :::
 
 :::tabs-item{label="Windows"}
-Press **Ctrl+K** to search.
+Press **Ctrl+K** to find the pigeon data.
 :::
 ::
 

@@ -822,6 +822,15 @@ function shell(options: {
 <meta name="description" content="${escapeHtml(options.description)}">\n<link rel="canonical" href="${site}${href(slug)}">
 <meta property="og:title" content="${escapeHtml(options.title)}">
 <meta property="og:description" content="${escapeHtml(options.description)}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="${site}${href(slug)}">
+<meta property="og:site_name" content="comark plugins">
+<meta property="og:image" content="${site}/og/home.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Review documents, written in Markdown: comark plugins">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="${site}/og/home.png">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin>

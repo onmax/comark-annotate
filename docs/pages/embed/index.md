@@ -8,21 +8,21 @@ install: pnpm add comark @comark/html comark-embed
 ::examples
 :::example{label="Video"}
 ```md
-::embed{url="https://www.youtube.com/watch?v=KCrXgy8qtjM" title="Vite in 100 Seconds"}
+::embed{url="https://www.youtube.com/watch?v=KCrXgy8qtjM" title="Watch before standup: Vite in 100 Seconds"}
 ::
 ```
 :::
 
 :::example{label="Live code"}
 ```md
-::embed{url="https://stackblitz.com/edit/vitejs-vite?file=index.html" title="A Vite starter on StackBlitz"}
+::embed{url="https://stackblitz.com/edit/vitejs-vite?file=index.html" title="The pigeon tracker starts from this Vite starter"}
 ::
 ```
 :::
 
 :::example{label="Link card"}
 ```md
-::embed{url="https://comark.dev" title="Comark, Markdown with components"}
+::embed{url="https://comark.dev" title="Comark, for writing up the pigeon findings"}
 ::
 ```
 :::

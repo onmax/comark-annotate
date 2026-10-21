@@ -13,7 +13,7 @@ install: pnpm add comark @comark/html comark-carousel
 
 ![Filter toolbar on one row](/after.png)
 
-![Forecast planning dashboard](/dashboard.png)
+![Office correlations dashboard](/dashboard.png)
 ::
 ```
 :::

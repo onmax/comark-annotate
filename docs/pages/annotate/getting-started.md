@@ -25,6 +25,6 @@ The package ships an agent skill with the syntax, how to measure marks from the 
 It also comes with a small CLI that knows zoom and carousel too. `check` lists every problem in one or more files and exits with 1 if there are any; `render` writes a standalone page next to each file, which you can open and screenshot to confirm each mark sits on its target.
 
 ```sh
-npx comark-annotate check report.md other.md
-npx comark-annotate render report.md -o report.html
+npx comark-annotate check duck-audit.md pigeons.md
+npx comark-annotate render duck-audit.md -o duck-audit.html
 ```

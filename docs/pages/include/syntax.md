@@ -6,18 +6,18 @@ description: Partials and snippets by lines or region, and the plugin's options.
 Each include sits alone on its own line, with one colon:
 
 ```md
-:include{src="./parts/setup.md"}
+:include{src="./parts/pizza-policy.md"}
 
-:include{src="/src/index.ts" lines="10:24"}
+:include{src="/src/ducks.ts" lines="10:24"}
 
-:include{src="/src/index.ts" region="setup"}
+:include{src="/src/ducks.ts" region="estimate"}
 ```
 
 | Argument | |
 | --- | --- |
 | `src` | The file. A relative path starts at the page's folder, or at the including partial's; `/` starts at `root`. Required. |
 | `lines` | `"10:24"`: lines 10 to 24, 1-based and inclusive. `"10:"` and `":24"` leave one end open. Lines count from the top of the file, frontmatter included. |
-| `region` | The lines between `#region setup` and `#endregion setup`. A marker starts its line, after a comment opener if any: `//`, `#`, `/*`, `<!--`, `--`, `;`, `%`, or `'`. Marker lines are dropped. |
+| `region` | The lines between `#region estimate` and `#endregion estimate`. A marker starts its line, after a comment opener if any: `//`, `#`, `/*`, `<!--`, `--`, `;`, `%`, or `'`. Marker lines are dropped. |
 | `code` | Shows a Markdown file as code instead of pasting it. |
 | `lang` | The code block's language, instead of the extension. |
 
@@ -26,10 +26,10 @@ A `.md`, `.mdc`, or `.markdown` file is pasted without its frontmatter, and its 
 Pasted lines are indented like the include, so a partial can sit in a list item:
 
 ```md
-1. Install the packages.
+1. Count the pigeons on the roof.
 
-   :include{src="./parts/install.md"}
-2. Register the plugin.
+   :include{src="./parts/pigeon-count.md"}
+2. Postpone the deploy.
 ```
 
 ## Options
