@@ -510,10 +510,6 @@ await mkdir(new URL("fonts/", dist), { recursive: true });
 await cp(new URL("public/", root), dist, { recursive: true });
 for (const font of ["geist-sans/Geist-Variable.woff2", "geist-mono/GeistMono-Variable.woff2"])
   await cp(new URL(font, fonts), new URL(`fonts/${font.split("/")[1]}`, dist));
-await cp(
-  new URL("../node_modules/@fontsource-variable/caveat/files/caveat-latin-wght-normal.woff2", root),
-  new URL("fonts/Caveat-Variable.woff2", dist),
-);
 const style = await readFile(new URL("style.css", root), "utf8");
 await writeFile(new URL("search.json", dist), JSON.stringify(searchIndex));
 // Pages inline the styles; the playground's preview loads them.

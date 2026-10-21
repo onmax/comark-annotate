@@ -26,7 +26,6 @@
   },
   "devDependencies": {
     "@comark/html": "catalog:",
-    "@fontsource-variable/caveat": "catalog:",
     "@playwright/test": "catalog:",
     "@types/node": "catalog:",
     "comark": "catalog:",
