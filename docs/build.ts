@@ -482,14 +482,15 @@ for (const b of document.querySelectorAll(".card-copy")) b.addEventListener("cli
 for (const win of document.querySelectorAll(".window")) {
   const tabs = [...win.querySelectorAll("[role=tab]")], panels = [...win.querySelectorAll("[role=tabpanel]")];
   const place = indicate(win.querySelector(".window-tabs"), "[aria-selected=true]");
-  let timer;
+  let timer, transition = 0;
   const show = (i, wipe) => {
     clearTimeout(timer); delete win.dataset.typing;
     if (tabs[i].getAttribute("aria-selected") === "true") return;
+    const currentTransition = ++transition;
     for (const [j, t] of tabs.entries()) { t.setAttribute("aria-selected", j === i); t.tabIndex = j === i ? 0 : -1 }
     const [from, to] = [panels[1 - i], panels[i]];
     to.toggleAttribute("data-active", true); to.inert = false; from.inert = true;
-    const done = () => from.removeAttribute("data-active");
+    const done = () => { if (currentTransition === transition) from.removeAttribute("data-active") };
     if (wipe && !reduce.matches) to.animate({ clipPath: ["inset(0 100% 0 0)", "inset(0)"] }, { duration: 700, easing: "cubic-bezier(0.77, 0, 0.175, 1)" }).finished.then(done);
     else done();
     place();
