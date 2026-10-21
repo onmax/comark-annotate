@@ -17,6 +17,7 @@ import annotate, { components as annotateComponents } from "../packages/annotate
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
 import code, { components as codeComponents } from "../packages/code/src/html.ts";
 import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
+import chips, { components as chipsComponents } from "../packages/chips/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
 import {
   callouts,
@@ -47,6 +48,7 @@ const browserPlugins = () => [
   carousel(),
   code(),
   charts(),
+  chips(),
   embed(),
   callouts(),
   references({ repo: "onmax/comark-plugins" }),
@@ -60,12 +62,17 @@ const contentPlugins = () => [
   include({ root: fileURLToPath(new URL("pages/", root)) }),
   ...browserPlugins(),
 ];
-const plugins = [...contentPlugins(), shiki({ themes: { light, dark } })];
+// The site's own links stay plain; chips show in the examples and the playground.
+const plugins = [
+  ...contentPlugins().filter((plugin) => plugin.name !== "comark-chips"),
+  shiki({ themes: { light, dark } }),
+];
 const components = {
   ...annotateComponents,
   ...carouselComponents,
   ...codeComponents,
   ...chartsComponents,
+  ...chipsComponents,
   ...embedComponents,
   ...githubComponents,
   ...iconComponents,
@@ -81,6 +88,7 @@ const lucideNames = [
   "arrow-left",
   "arrow-right",
   "arrow-up-right",
+  "at-sign",
   "book-open",
   "chart-column",
   "file-input",
@@ -125,6 +133,14 @@ const packages = (
       blurb: "Charts from a Markdown table",
       credits:
         'Laid out by Microsoft Research\'s <a href="https://github.com/microsoft/flint-chart">Flint</a> on its New York Times theme, and drawn by <a href="https://vega.github.io">Vega</a>.',
+    },
+    {
+      slug: "chips",
+      group: "Review blocks",
+      icon: "at-sign",
+      blurb: "Links and @mentions as chips",
+      credits:
+        'After <a href="https://antfu.me">Anthony Fu</a>\'s <a href="https://github.com/antfu/markdown-it-magic-link">markdown-it-magic-link</a>. Favicons from Google, avatars from GitHub.',
     },
     {
       slug: "embed",

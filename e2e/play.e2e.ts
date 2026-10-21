@@ -30,7 +30,7 @@ test("Reset asks before it brings back the example, and Copy copies the open pan
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("/play/#preset=github-callouts-types");
+  await page.goto("/play/#preset=github-callouts");
   const editor = page.getByRole("textbox", { name: "Markdown" });
   const example = await editor.inputValue();
   const reset = page.getByRole("button", { name: "Reset to the example" });
@@ -50,7 +50,7 @@ test("Reset asks before it brings back the example, and Copy copies the open pan
   await dialog.getByRole("button", { name: "Reset" }).click();
   await expect(editor).toHaveValue(example);
   await expect(reset).toBeHidden();
-  await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("Types");
+  await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("Callouts");
 });
 
 test("an example's Playground link opens its Markdown in the playground", async ({ page }) => {
