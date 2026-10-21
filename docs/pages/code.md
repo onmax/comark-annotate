@@ -9,7 +9,7 @@ install: pnpm add comark @comark/html comark-code
 :::example{label="Copy and wrap"}
 ````md
 ```sh
-pnpm add comark @comark/html comark-code && pnpm exec comark-lint docs/**/*.md --max-warnings 0 --format text
+pnpm add comark @comark/html comark-code && pnpm exec lint-comark docs/**/*.md --max-warnings 0 --format text
 ```
 ````
 :::
