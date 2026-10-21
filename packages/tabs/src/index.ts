@@ -2,6 +2,20 @@ import type { ElementNode, Node } from "comark";
 import { defineComarkPlugin } from "comark";
 import { resolveAttributes } from "comark/render";
 import { textContent } from "comark/utils";
+import { createIcons, describeIconProblem, type IconData, type Icons } from "comark-icon";
+
+export type TabsOptions = {
+  /**
+   * Icons for tabs that don't set one, by label, such as `{ pnpm: "logos:pnpm" }`. Labels match without regard to
+   * case. Each value is an Iconify name or an image URL, like the `icon` prop.
+   */
+  icons?: Record<string, string>;
+  /**
+   * Resolves the icons, from `createIcons()` in comark-icon. Pass the one the page's other plugins use, so they share
+   * its `collections` and `fetch`. By default icons come from the Iconify API.
+   */
+  iconResolver?: Icons;
+};
 
 export type TabsMeta = {
   /** One readable sentence per problem with a `::tabs`, `::code-group`, or `:::tabs-item`. Empty when there are none. */
@@ -49,6 +63,8 @@ function describe(node: Node) {
 interface Walk {
   data: Data;
   issues: string[];
+  labelIcons: Map<string, string>;
+  icons: { block: ElementNode; index: number; value: string; name: string }[];
   tabs: number;
   groups: number;
   strays: number;
@@ -64,6 +80,9 @@ function hash(text: string) {
     value = Math.imul(value ^ text.charCodeAt(at), 0x01000193);
   return (value >>> 0).toString(36);
 }
+
+// `icon=logos:pnpm` after a code block's label, quoted or not.
+const ICON = /(?:^|\s)icon=(?:"([^"]*)"|'([^']*)'|(\S+))(?=\s|$)/;
 
 const resolve = (node: ElementNode, walk: Walk) =>
   resolveAttributes(node[1], walk.data, { parseJson: true });
@@ -88,7 +107,18 @@ function codeGroup(node: ElementNode, walk: Walk) {
     }
     // The tab names the block, so its own title bar doesn't repeat it.
     delete child[1].filename;
-    items.push(["tabs-item", { label }, child]);
+    const meta = text(child[1].meta);
+    const icon = ICON.exec(meta);
+    if (icon) {
+      const rest = meta.replace(icon[0], " ").trim();
+      if (rest) child[1].meta = rest;
+      else delete child[1].meta;
+    }
+    items.push([
+      "tabs-item",
+      icon ? { label, icon: icon[1] ?? icon[2] ?? icon[3] } : { label },
+      child,
+    ]);
   }
   node[0] = "tabs";
   node[1].code = "true";
@@ -115,7 +145,8 @@ function tabs(node: ElementNode, walk: Walk) {
     );
   const labels: string[] = [];
   for (const [index, item] of items.entries()) {
-    let label = text(resolve(item, walk).label);
+    const props = resolve(item, walk);
+    let label = text(props.label);
     if (!label) {
       label = `Tab ${index + 1}`;
       walk.issues.push(
@@ -128,6 +159,8 @@ function tabs(node: ElementNode, walk: Walk) {
       );
     labels.push(label);
     item[1] = { label, index: String(index + 1) };
+    const icon = text(props.icon) || walk.labelIcons.get(label.toLowerCase());
+    if (icon) walk.icons.push({ block: node, index, value: icon, name });
   }
   const sync = text(attrs.sync);
   const code = node[1].code;
@@ -135,6 +168,28 @@ function tabs(node: ElementNode, walk: Walk) {
   if (sync) node[1].sync = sync;
   if (code) node[1].code = "true";
   node.splice(2, node.length - 2, ...items);
+}
+
+// Each block gets `icons`, one per tab or null, and each tab its own `icon`, so the strip and the captions both draw it.
+async function addIcons(walk: Walk, resolver: Icons) {
+  if (!walk.icons.length) return;
+  const resolved = await resolver.resolve(walk.icons.map(({ value }) => value));
+  const blocks = new Map<ElementNode, (IconData | null)[]>();
+  for (const { block, index, value, name } of walk.icons) {
+    const icon = resolved.get(value);
+    const where = `${name}, tab ${index + 1}`;
+    if (!icon) continue;
+    if ("problem" in icon) {
+      walk.issues.push(`${where}, icon "${clip(value)}": ${describeIconProblem(value, icon)}`);
+      continue;
+    }
+    const icons = blocks.get(block) ?? childrenOf(block).map(() => null);
+    icons[index] = icon;
+    blocks.set(block, icons);
+    const item = childrenOf(block)[index];
+    if (isElement(item)) item[1].icon = icon;
+  }
+  for (const [block, icons] of blocks) block[1].icons = icons;
 }
 
 // Every renderer gets tabs with their label and position, so none of them has to split rendered children.
@@ -159,20 +214,28 @@ function normalize(nodes: Node[], walk: Walk, inTabs = false) {
  * script every tab shows under its label; the script adds the tab strip, keys, and `sync`. Problems, such as content
  * outside every tab, are added to `meta.issues`.
  */
-export default defineComarkPlugin<void, TabsMeta>(() => ({
-  name: "comark-tabs",
-  post(state) {
-    const { tree } = state;
-    const walk: Walk = {
-      data: { frontmatter: tree.frontmatter, meta: tree.meta, data: {}, props: {} },
-      issues: [],
-      tabs: 0,
-      groups: 0,
-      strays: 0,
-      blocks: 0,
-      prefix: `ct-${hash(state.markdown)}`,
-    };
-    normalize(tree.nodes, walk);
-    tree.meta.issues = [...(tree.meta.issues ?? []), ...walk.issues];
-  },
-}));
+export default defineComarkPlugin<TabsOptions, TabsMeta>((options = {}) => {
+  const resolver = options.iconResolver ?? createIcons();
+  return {
+    name: "comark-tabs",
+    async post(state) {
+      const { tree } = state;
+      const walk: Walk = {
+        data: { frontmatter: tree.frontmatter, meta: tree.meta, data: {}, props: {} },
+        issues: [],
+        labelIcons: new Map(
+          Object.entries(options.icons ?? {}).map(([label, icon]) => [label.toLowerCase(), icon]),
+        ),
+        icons: [],
+        tabs: 0,
+        groups: 0,
+        strays: 0,
+        blocks: 0,
+        prefix: `ct-${hash(state.markdown)}`,
+      };
+      normalize(tree.nodes, walk);
+      await addIcons(walk, resolver);
+      tree.meta.issues = [...(tree.meta.issues ?? []), ...walk.issues];
+    },
+  };
+});
