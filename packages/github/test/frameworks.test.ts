@@ -9,13 +9,13 @@ import { compile } from "svelte/compiler";
 import { describe, expect, it } from "vite-plus/test";
 import { createSSRApp, h } from "vue";
 import { renderToString as renderVue } from "vue/server-renderer";
-import githubCallouts from "../src/index.ts";
+import { callouts } from "../src/index.ts";
 import { components as htmlComponents } from "../src/html.ts";
 import { components as reactComponents } from "../src/react.ts";
 import { components as vueComponents } from "../src/vue.ts";
 
 const markdown = "> [!WARNING] Heads up\n> Read **this**.";
-const parse = () => parseMarkdown(markdown, { plugins: [githubCallouts()] });
+const parse = () => parseMarkdown(markdown, { plugins: [callouts()] });
 // Drops what differs only in serialization: comments, whitespace between tags, and the HTML renderer's inline styles.
 const normalize = (html: string) =>
   html
@@ -25,9 +25,9 @@ const normalize = (html: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-describe("comark-github-callouts renderers", async () => {
+describe("comark-github renderers", async () => {
   const expected = normalize(
-    await createHtmlRenderer({ plugins: [githubCallouts()], components: htmlComponents })(markdown),
+    await createHtmlRenderer({ plugins: [callouts()], components: htmlComponents })(markdown),
   );
 
   it("renders the same markup in Vue", async () => {

@@ -1,10 +1,10 @@
 import { createHtmlRenderer } from "@comark/html";
 import { describe, expect, it } from "vite-plus/test";
-import githubCallouts, { components } from "../src/html.ts";
+import { callouts, components } from "../src/html.ts";
 
-type Options = Parameters<typeof githubCallouts>[0];
+type Options = Parameters<typeof callouts>[0];
 const render = (markdown: string, options?: Options, registerDefaultPlugins = true) =>
-  createHtmlRenderer({ plugins: [githubCallouts(options)], components, registerDefaultPlugins })(
+  createHtmlRenderer({ plugins: [callouts(options)], components, registerDefaultPlugins })(
     markdown,
   );
 const callout = (html: string) =>
@@ -12,7 +12,7 @@ const callout = (html: string) =>
     html.replaceAll("\n", " "),
   );
 
-describe("comark-github-callouts", () => {
+describe("comark-github callouts", () => {
   it("turns each GitHub alert into a callout with its icon, title, and body, and inlines the styles once", async () => {
     const types = ["NOTE", "TIP", "IMPORTANT", "WARNING", "CAUTION"];
     const html = await render(types.map((type) => `> [!${type}]\n> Body of ${type}.`).join("\n\n"));
@@ -25,7 +25,7 @@ describe("comark-github-callouts", () => {
       );
       expect(html).toContain(`Body of ${type}.`);
     }
-    expect(html.match(/<style data-comark-github-callouts>/g)).toHaveLength(1);
+    expect(html.match(/<style data-comark-github>/g)).toHaveLength(1);
     expect(html).not.toContain("[!");
   });
 

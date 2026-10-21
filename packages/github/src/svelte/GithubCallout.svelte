@@ -1,7 +1,7 @@
 <!-- A callout for `@comark/svelte`. -->
 <script>
   import { onMount } from "svelte";
-  import { addStyles, icon, typeOf } from "comark-github-callouts/client";
+  import { addStyles, icon, typeOf } from "comark-github/client";
 
   let { type = undefined, title = undefined, children } = $props();
   const kind = $derived(typeOf(type));

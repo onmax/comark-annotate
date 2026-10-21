@@ -3,12 +3,12 @@ import { expect, test } from "@playwright/test";
 test("the playground renders a preset, reports issues as you type, and opens a shared link", async ({
   page,
 }) => {
-  await page.goto("/play/#preset=github-callouts-types");
+  await page.goto("/play/#preset=github-callouts");
   const preview = page.frameLocator(".play-preview");
   await expect(preview.locator(".cgc").first()).toBeVisible();
-  await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("Types");
+  await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("Callouts");
   const npmx = page.locator(".top a.npmx");
-  await expect(npmx).toHaveAttribute("href", "https://npmx.dev/package/comark-github-callouts");
+  await expect(npmx).toHaveAttribute("href", "https://npmx.dev/package/comark-github");
 
   const editor = page.getByRole("textbox", { name: "Markdown" });
   await editor.fill('::screenshot{src="/after.png"}\n::');
@@ -30,7 +30,7 @@ test("Reset asks before it brings back the example, and Copy copies the open pan
   context,
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.goto("/play/#preset=github-callouts-types");
+  await page.goto("/play/#preset=github-callouts");
   const editor = page.getByRole("textbox", { name: "Markdown" });
   const example = await editor.inputValue();
   const reset = page.getByRole("button", { name: "Reset to the example" });
@@ -50,11 +50,11 @@ test("Reset asks before it brings back the example, and Copy copies the open pan
   await dialog.getByRole("button", { name: "Reset" }).click();
   await expect(editor).toHaveValue(example);
   await expect(reset).toBeHidden();
-  await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("Types");
+  await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("Callouts");
 });
 
 test("an example's Playground link opens its Markdown in the playground", async ({ page }) => {
-  await page.goto("/github-callouts/");
+  await page.goto("/github/");
   const source = await page.locator(".example-code code").first().textContent();
   await page.locator(".example-play").first().click();
   await expect(page).toHaveURL(/\/play\/#md=/);

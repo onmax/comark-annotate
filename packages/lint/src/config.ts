@@ -14,6 +14,12 @@ const packages = [
   ["comark-code/html", () => import("comark-code/html"), []],
   ["comark-charts/html", () => import("comark-charts/html"), []],
   [
+    "comark-github/html",
+    // Of its plugins only callouts make blocks; references and raw HTML have nothing to lint.
+    () => import("comark-github/html").then((module) => ({ ...module, default: module.callouts })),
+    [],
+  ],
+  [
     "comark-chips/html",
     // Linting reads no images, so it downloads none.
     () =>
@@ -23,7 +29,6 @@ const packages = [
       })),
     [],
   ],
-  ["comark-github-callouts/html", () => import("comark-github-callouts/html"), []],
   ["comark-icon/html", () => import("comark-icon/html"), []],
   ["comark-tabs/html", () => import("comark-tabs/html"), ["code-group", "tabs-item"]],
   ["comark-zoom/html", () => import("comark-zoom/html"), []],

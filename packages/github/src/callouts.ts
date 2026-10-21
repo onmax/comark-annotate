@@ -4,7 +4,7 @@ import { textContent } from "comark/utils";
 
 export type CalloutType = "note" | "tip" | "important" | "warning" | "caution";
 
-export interface GithubCalloutsOptions {
+export interface CalloutsOptions {
   /** Titles for callouts that don't set their own, by type. Default GitHub's: Note, Tip, Important, Warning, Caution. */
   titles?: Partial<Record<CalloutType, string>>;
 }
@@ -124,7 +124,7 @@ function transform(nodes: Node[], start: number, titles: Record<CalloutType, str
  * GitHub's alerts, `> [!NOTE]` through `> [!CAUTION]`, as callouts with an icon and a title. Text after the marker
  * on its line replaces the title. It is named `alert`, so it takes the place of Comark's built-in alert plugin.
  */
-export default defineComarkPlugin<GithubCalloutsOptions>((options) => ({
+export const callouts = defineComarkPlugin<CalloutsOptions>((options) => ({
   name: "alert",
   post(state) {
     transform(state.tree.nodes, 0, { ...TITLES, ...options?.titles });
