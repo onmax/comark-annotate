@@ -1,5 +1,5 @@
 import { createElement, type ReactNode, useEffect } from "react";
-import { buttons, css, start } from "./client.ts";
+import { buttons, css, preAttributes, start } from "./client.ts";
 
 export { default } from "./index.ts";
 
@@ -18,7 +18,7 @@ export function Pre({ actions, children, ...attrs }: PreProps) {
     "div",
     { className: "ck" },
     // Everything but `actions` belongs to the `pre` itself, such as Shiki's class and the block's language.
-    createElement("pre", attrs, children),
+    createElement("pre", preAttributes(attrs), children),
     // The bar is static markup built from escaped text, the same string every renderer uses.
     createElement("div", {
       className: "ck-bar",
