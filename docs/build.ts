@@ -14,6 +14,7 @@ import light from "shiki/themes/vitesse-light.mjs";
 import { build } from "vite";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
+import code, { components as codeComponents } from "../packages/code/src/html.ts";
 import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
 import githubCallouts, {
@@ -34,6 +35,7 @@ const site = "https://comark.onmax.me";
 const browserPlugins = () => [
   annotate(),
   carousel(),
+  code(),
   charts(),
   embed(),
   githubCallouts(),
@@ -49,6 +51,7 @@ const plugins = [...contentPlugins(), shiki({ themes: { light, dark } })];
 const components = {
   ...annotateComponents,
   ...carouselComponents,
+  ...codeComponents,
   ...chartsComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
@@ -116,6 +119,7 @@ const packages = (
       icon: "panels-top-left",
       credits: 'Syntax from <a href="https://ui.nuxt.com">Nuxt UI</a>\'s tabs and code groups.',
     },
+    { slug: "code", group: "Page behavior", icon: "panels-top-left" },
     {
       slug: "include",
       group: "Authoring tools",
@@ -225,8 +229,6 @@ const examples: NodeHandler = async ([, , ...children], state) => {
   return `<div class="examples"><div class="tablist" role="tablist">${labels.join("")}</div>${bodies.join("")}</div>`;
 };
 
-// A comparison table, which the styles lay out: a row with only its first cell filled heads a group, and italics in
-// a first cell describe the row.
 const matrix: NodeHandler = async ([, , ...children], state) =>
   `<div class="matrix">${(await Promise.all(children.map((child) => state.one(child, state)))).join("")}</div>`;
 
@@ -411,14 +413,17 @@ function installerFor(install: string, skill: string) {
 }
 
 // The first column: one icon per section. Hovering or focusing it widens it over the second column to show every
-// section's name, as on vitehub.dev. The current section's is marked.
+// section's name, as on vitehub.dev. The current section's is marked. Drop sits at the bottom: it renders the
+// review documents these plugins make, and it's by the same author.
 const rail = (current: Section) =>
   `<nav class="rail" aria-label="Sections">${sections
     .map(
       (section, i) =>
         `${i && section.group !== sections[i - 1].group ? "<hr>" : ""}<a href="${href(section.slug)}"${section === current ? ' aria-current="true"' : ""}>${icon(section.icon)}<span class="rail-label">${escapeHtml(section.label)}</span></a>`,
     )
-    .join("")}</nav>`;
+    .join(
+      "",
+    )}<a class="rail-drop" href="https://drop.vitehub.dev/?utm_source=comark-plugins&amp;utm_medium=sidebar"><img src="/drop.svg" alt="" width="18" height="18"><span class="rail-label"><strong>Review on Drop</strong><span>Comment on the exact spot</span></span></a></nav>`;
 // The second column: the current section's pages, or the playground's presets.
 const column = (section: Section, current: string) => {
   const lists =
@@ -475,7 +480,7 @@ const npmxLink = (npm?: string) =>
 const logo = `<span class="logo" aria-hidden="true">1</span>`;
 const menuIcon = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>`;
 
-// The example tabs, the Preview/Code switch, copy buttons, and the active sidebar link. Without it the page still reads top to bottom.
+// The example tabs, the Preview/Code switch, the install command's copy button, and the active sidebar link. Without it the page still reads top to bottom.
 const script = `
 const reduce = matchMedia("(prefers-reduced-motion: reduce)");
 // One indicator per tab row or switch slides to the chosen item. A hidden row measures zero, so it's placed again,
@@ -519,7 +524,6 @@ for (const box of document.querySelectorAll(".installer")) {
 for (const b of document.querySelectorAll(".card-copy")) b.addEventListener("click", async () => {
   await navigator.clipboard.writeText(b.dataset.copy); b.classList.add("copied"); setTimeout(() => b.classList.remove("copied"), 1200);
 });
-// The index's window types its Markdown once, then wipes to the rendered page. A tab chosen first stops it.
 for (const win of document.querySelectorAll(".window")) {
   const tabs = [...win.querySelectorAll("[role=tab]")], panels = [...win.querySelectorAll("[role=tabpanel]")];
   const place = indicate(win.querySelector(".window-tabs"), "[aria-selected=true]");
@@ -532,23 +536,14 @@ for (const win of document.querySelectorAll(".window")) {
     const [from, to] = [panels[1 - i], panels[i]];
     to.toggleAttribute("data-active", true); to.inert = false; from.inert = true;
     const done = () => { if (currentTransition === transition) from.removeAttribute("data-active") };
-    if (wipe && !reduce.matches) to.animate({ clipPath: ["inset(0 100% 0 0)", "inset(0)"] }, { duration: 700, easing: "cubic-bezier(0.77, 0, 0.175, 1)" }).finished.then(done);
-    else done();
+    if (wipe && !reduce.matches) to.animate({ clipPath: ["inset(0 100% 0 0)", "inset(0)"] }, { duration: 700, easing: "cubic-bezier(0.77, 0, 0.175, 1)" }).finished.then(done); else done();
     place();
   };
   win.querySelector(".window-tabs").addEventListener("click", e => { const t = e.target.closest("[role=tab]"); if (t) show(tabs.indexOf(t), true) });
-  win.querySelector(".window-tabs").addEventListener("keydown", e => {
-    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-    const i = tabs.indexOf(e.target) === 0 ? 1 : 0; show(i, true); tabs[i].focus();
-  });
-  if (reduce.matches) show(1);
-  else { win.dataset.typing = ""; timer = setTimeout(() => show(1, true), parseFloat(getComputedStyle(win).getPropertyValue("--typed")) + 900) }
+  win.querySelector(".window-tabs").addEventListener("keydown", e => { if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return; const i = tabs.indexOf(e.target) === 0 ? 1 : 0; show(i, true); tabs[i].focus() });
+  if (reduce.matches) show(1); else { win.dataset.typing = ""; timer = setTimeout(() => show(1, true), parseFloat(getComputedStyle(win).getPropertyValue("--typed")) + 900) }
 }
-for (const pre of document.querySelectorAll("main pre:not(.window pre)")) {
-  const b = document.createElement("button"); b.className = "copy"; b.type = "button"; b.textContent = "Copy";
-  b.onclick = async () => { await navigator.clipboard.writeText(pre.querySelector("code").innerText.trimEnd()); b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1500) };
-  pre.append(b);
-}
+
 const links = [...document.querySelectorAll(".toc a")];
 const spy = new IntersectionObserver(entries => {
   for (const e of entries) if (e.isIntersecting) for (const a of links) a.toggleAttribute("data-active", a.hash === "#" + e.target.id);
