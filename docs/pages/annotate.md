@@ -121,7 +121,7 @@ Notes without a `side` stay in the list. **Apply** waits until every filter is s
 :::
 ::
 
-Hover a mark or a note to highlight the other, and click a screenshot to zoom it. To share one, use its Copy button or press Ctrl+C (⌘C on a Mac) while it's focused; you get a PNG of the screenshot with its marks and notes. The browser's own Copy Image on the screenshot copies the same PNG once the pointer has been over it. If the image comes from another origin, its server has to send CORS headers. In an iframe, the frame needs `allow="clipboard-write"`. A comparison shows its screenshots side by side, or one at a time on a narrow page, and they zoom as one gallery; a slider lays one over the other, and you drag the divider between them. The page reads the same without a script; [zoom](/zoom) and [carousel](/carousel) come with the package.
+Hover a mark or a note to highlight the other, and click a screenshot to zoom it. To share one, use its Copy button or press Ctrl+C (⌘C on a Mac) while it's focused; you get a PNG of the screenshot with its marks and notes. The browser's own Copy Image on the screenshot copies the same PNG once the pointer has been over it. If the image comes from another origin, its server has to send CORS headers. In an iframe, the frame needs `allow="clipboard-write"`. A comparison shows its screenshots side by side, or one at a time on a narrow page, and they zoom as one gallery; a slider lays one over the other, and you drag the divider between them. The page reads the same without a script; [zoom](/zoom/) and [carousel](/carousel/) come with the package. To page through screenshots spread across a page, or show a flow one step at a time, see the [recipes](/recipes/zoom/).
 
 ## Usage
 
@@ -135,7 +135,7 @@ const render = createHtmlRenderer({ plugins: [annotate()], components });
 const html = await render(markdown);
 ```
 
-The renderer inlines its styles once per document; [Theming](#guides-theming) covers how to change them. Positions use `style` attributes, so a strict CSP needs `style-src 'unsafe-inline'`. Notes are ordinary Markdown, so raw HTML in them renders like anywhere else in the document; for untrusted input, add Comark's `security` plugin and list the tags to drop, such as `security({ blockedTags: ["script", "style", "iframe"] })`; it cleans notes too.
+The renderer inlines its styles and script once per document. Annotate renders only to HTML; [Renderers](/guide/renderers/) covers using it with other plugins, a strict Content Security Policy, and untrusted notes.
 
 ## Components
 
@@ -272,17 +272,7 @@ For a full-page screenshot, add the scroll offset and divide by the page size in
 
 ### Validation
 
-The plugin checks every block while parsing and adds the problems to `meta.issues`, so you can reject a document before publishing it. Zoom and carousel add theirs to the same list.
-
-```ts
-import { parseMarkdown } from "comark";
-import annotate from "comark-annotate";
-
-const { meta } = await parseMarkdown(markdown, { plugins: [annotate()] });
-if (meta.issues.length) throw new Error(meta.issues.join("\n"));
-```
-
-Each issue names its block and says how to fix it. A screenshot goes by its `src`, or by its position and `alt` when another screenshot shares it; an annotation goes by its position in its screenshot:
+The plugin adds a problem with any block to `meta.issues`, as [Validation](/guide/validation/) describes. A screenshot goes by its `src`, or by its position and `alt` when another screenshot shares it; an annotation goes by its position in its screenshot:
 
 ```txt
 screenshot "after.png", annotation 2: the box runs past the image edge. Keep x + w and y + h within 100.
@@ -290,57 +280,13 @@ screenshot "after.png", annotation 2: the box runs past the image edge. Keep x +
 
 Unknown props are reported with the valid ones, and so is a `:bound` prop that points at missing frontmatter. Bindings to `data` or `props` are left to the renderer.
 
-Rendering never throws.
-
 ### Theming
 
-The styles follow [shadcn/ui](https://ui.shadcn.com). On a site that already uses its CSS variables, screenshots and comparisons match it with no setup, and a `.dark` class anywhere above them switches the theme. Elsewhere they use shadcn's neutral theme and follow the system's light or dark mode.
-
-Set the `--comark-*` tokens to theme zoom, carousel, and annotate at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
-
-| Token | Falls back to | Used for |
-| --- | --- | --- |
-| `--comark-background` | `--background` | Button faces, the zoom backdrop, the ring around stamps |
-| `--comark-foreground` | `--foreground` | Text, icons, the current thumbnail, slide panels |
-| `--comark-muted` | `--muted-foreground` | The zoom and carousel counters, diff line numbers |
-| `--comark-border` | `--border` | Button, thumbnail, screenshot, and diff borders |
-| `--comark-accent` | `--accent` | Hovered buttons, the diff header |
-| `--comark-ring` | `--ring` | Focus rings, the edge of a highlighted diff line |
-| `--comark-radius` | `--radius` | Corners, a little smaller on buttons and images |
-| `--comark-font` | `--font-sans` | The zoomed view's header |
-
-```css
-:root {
-  --comark-accent: oklch(0.95 0.03 250);
-  --comark-radius: 0.25rem;
-}
-```
-
-The rules sit in a `comark` CSS layer, so any plain rule of your own wins without `!important`, such as `.cc-step { border-radius: 0 }`. shadcn/ui before Tailwind 4 stores colors as bare HSL numbers, so map those: `--comark-border: hsl(var(--border))`.
-
-[Nuxt UI](https://ui.nuxt.com) names its variables differently. Map them once:
-
-```css
-:root {
-  --comark-background: var(--ui-bg);
-  --comark-foreground: var(--ui-text-highlighted);
-  --comark-muted: var(--ui-text-muted);
-  --comark-border: var(--ui-border);
-  --comark-accent: var(--ui-bg-elevated);
-  --comark-ring: var(--ui-primary);
-  --comark-radius: calc(var(--ui-radius) * 2);
-}
-```
-
-The mark colors are separate from the theme, because each one means something: a plain `.ca { --ca-color: #0070f3; --ca-solid: #0070f3; --ca-ink: #fff }` changes the default marks, arrows, and notes (`--ca-color`), stamps (`--ca-solid`), and stamp numbers (`--ca-ink`), and `--ca-red`, `--ca-amber`, `--ca-green`, `--ca-blue`, and `--ca-gray` change the named ones. Side notes and labels use `--ca-note-font`; this page sets it to Caveat for the handwritten look. A diff's code uses `--ca-code-font`, and its colors come from `--ca-red` and `--ca-green`.
+Screenshots, comparisons, and diffs follow the shared tokens in [Theming](/guide/theming/). The mark colors are separate from the theme, because each one means something: a plain `.ca { --ca-color: #0070f3; --ca-solid: #0070f3; --ca-ink: #fff }` changes the default marks, arrows, and notes (`--ca-color`), stamps (`--ca-solid`), and stamp numbers (`--ca-ink`), and `--ca-red`, `--ca-amber`, `--ca-green`, `--ca-blue`, and `--ca-gray` change the named ones. Side notes and labels use `--ca-note-font`; this page sets it to Caveat for the handwritten look. A diff's code uses `--ca-code-font`, and its colors come from `--ca-red` and `--ca-green`.
 
 ## Agents
 
-The package ships an agent skill with the syntax, how to measure marks from the page, and how to check the result. Install it from this site:
-
-```sh
-npx skills add https://comark.onmax.me
-```
+The package ships an agent skill with the syntax, how to measure marks from the page, and how to check the result. The **For agents** button above installs it, and [Agents](/guide/agents/) covers the rest.
 
 It also comes with a small CLI that knows zoom and carousel too. `check` lists every problem in one or more files and exits with 1 if there are any; `render` writes a standalone page next to each file, which you can open and screenshot to confirm each mark sits on its target.
 
@@ -351,4 +297,4 @@ npx comark-annotate render report.md -o report.html
 
 ## Credits
 
-[Comark](https://comark.dev), by the [Comark team](https://github.com/comarkdown), does the hard part: the parser, the component syntax, and the HTML renderer this plugin builds on. The hand-drawn marks come from [AnnotationKit](https://annotationkit.vercel.app).
+The hand-drawn marks come from [AnnotationKit](https://annotationkit.vercel.app).

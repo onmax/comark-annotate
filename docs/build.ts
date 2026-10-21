@@ -1,5 +1,6 @@
 // Renders docs/pages with the plugins themselves into docs/dist, a static site served by Cloudflare at comark.onmax.me.
 import { createHash } from "node:crypto";
+import { existsSync } from "node:fs";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { renderHtmlFromDocument } from "@comark/html";
@@ -46,9 +47,16 @@ const components = {
   ...zoomComponents,
 };
 
-// The index first, then one page per package, each at its own path.
+// The index first, then the guides and recipes, then one page per package, each at its own path.
 const pages = [
-  { slug: "", file: "index.md" },
+  { slug: "", file: "index.md", label: "Overview" },
+  { slug: "guide/renderers", file: "guide/renderers.md" },
+  { slug: "guide/theming", file: "guide/theming.md" },
+  { slug: "guide/validation", file: "guide/validation.md" },
+  { slug: "guide/agents", file: "guide/agents.md" },
+  { slug: "recipes/review", file: "recipes/review.md" },
+  { slug: "recipes/zoom", file: "recipes/zoom.md" },
+  { slug: "recipes/carousel", file: "recipes/carousel.md" },
   { slug: "annotate", file: "annotate.md", npm: "comark-annotate" },
   { slug: "zoom", file: "zoom.md", npm: "comark-zoom" },
   { slug: "carousel", file: "carousel.md", npm: "comark-carousel" },
@@ -58,6 +66,18 @@ const pages = [
   { slug: "include", file: "include.md", npm: "comark-include" },
   { slug: "embed", file: "embed.md", npm: "comark-embed" },
   { slug: "charts", file: "charts.md", npm: "comark-charts" },
+];
+
+// The sidebar, in order. A slug with no page yet, such as one whose package is still on a branch, is left out.
+const groups = [
+  {
+    title: "Guides",
+    slugs: ["", "guide/renderers", "guide/theming", "guide/validation", "guide/agents"],
+  },
+  { title: "Recipes", slugs: ["recipes/review", "recipes/zoom", "recipes/carousel"] },
+  { title: "Review blocks", slugs: ["annotate", "charts", "embed", "github-callouts"] },
+  { title: "Page behavior", slugs: ["zoom", "carousel", "tabs"] },
+  { title: "Authoring tools", slugs: ["include", "lint"] },
 ];
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
@@ -103,7 +123,7 @@ const examples: NodeHandler = async ([, , ...children], state) => {
   return `<div class="examples"><div class="tablist" role="tablist">${labels.join("")}</div>${bodies.join("")}</div>`;
 };
 
-const nav = (document: { nodes: Node[] }) =>
+const toc = (document: { nodes: Node[] }) =>
   document.nodes
     .filter(isElement)
     .filter(([tag]) => tag === "h2" || tag === "h3")
@@ -127,17 +147,36 @@ const parsed = await Promise.all(
       "tagline",
       "install",
     ].map((key) => str(document.frontmatter[key]));
-    return { ...page, document, title, description, tagline, install };
+    const skill =
+      page.npm && existsSync(new URL(`../packages/${page.slug}/skills/${page.npm}/SKILL.md`, root))
+        ? page.npm
+        : "";
+    const label = page.label ?? (page.npm ? page.slug : title);
+    return {
+      ...page,
+      document,
+      title,
+      description,
+      tagline,
+      install,
+      skill,
+      label,
+      toc: toc(document),
+    };
   }),
 );
+const grouped = groups.map((group) => ({
+  ...group,
+  pages: group.slugs.flatMap((slug) => parsed.filter((page) => page.slug === slug)),
+}));
 
-// The index lists every package from its own page's front matter.
-const pluginCards: NodeHandler = () =>
-  `<div class="cards">${parsed
-    .filter((page) => page.npm)
+// The index lists every other page of a group from its own front matter.
+const cards: NodeHandler = ([, attrs]) =>
+  `<div class="cards">${(grouped.find((group) => group.title === str(attrs.group))?.pages ?? [])
+    .filter((page) => page.slug)
     .map(
       (page) =>
-        `<a class="card" href="/${page.slug}/"><strong>${escapeHtml(page.title)}</strong><span>${escapeHtml(page.description)}</span><code>${escapeHtml(page.install.replace(/^pnpm add (comark @comark\/html )?/, "pnpm add "))}</code></a>`,
+        `<a class="card" href="/${page.slug}${page.slug ? "/" : ""}"><strong${page.npm ? ' class="mono"' : ""}>${escapeHtml(page.npm ? page.title : page.label)}</strong><span>${escapeHtml(page.description)}</span>${page.npm ? `<code>${escapeHtml(page.install.replace(/^pnpm add (comark @comark\/html )?/, "pnpm add "))}</code>` : ""}</a>`,
     )
     .join("")}</div>`;
 
@@ -145,15 +184,16 @@ const github = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="tru
 const userIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg>`;
 const botIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 8V4H8M4 8h16v12H4zM2 14h2M20 14h2M15 13v2M9 13v2"/></svg>`;
 const copyIcon = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 8h12v12H8zM16 8V4H4v12h4"/></svg>`;
-// Humans install the package with their package manager; agents install the skill from this site.
-function installerFor(install: string) {
+// Humans install the package with their package manager; agents install the skill from this site, the package's
+// own when it has one.
+function installerFor(install: string, skill: string) {
   const packages = install.replace(/^pnpm add /, "");
   const commands = {
     pnpm: `pnpm add ${packages}`,
     npm: `npm install ${packages}`,
     yarn: `yarn add ${packages}`,
     bun: `bun add ${packages}`,
-    agents: `npx skills add ${site}`,
+    agents: `npx skills add ${site}${skill ? ` --skill ${skill}` : ""}`,
   } satisfies Record<string, string>;
   return `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
 <div class="installer-bar"><div class="seg" role="group" aria-label="Audience"><button type="button" data-audience="humans" aria-pressed="true">${userIcon}For humans</button><button type="button" data-audience="agents" aria-pressed="false">${botIcon}For agents</button></div>
@@ -161,16 +201,22 @@ function installerFor(install: string) {
 <button type="button" class="install" data-copy="${escapeHtml(commands.pnpm)}" aria-label="Copy the install command"><span aria-hidden="true">$</span><code>${escapeHtml(commands.pnpm)}</code><span class="install-hint">${copyIcon}</span></button>
 </div>`;
 }
-const links = (current: string) =>
-  pages
-    .filter((page) => page.npm)
+const sitemap = (current: string) =>
+  grouped
+    .filter((group) => group.pages.length)
     .map(
-      (page) =>
-        `<a class="link"${page.slug === current ? ' aria-current="page"' : ""} href="/${page.slug}/">${page.slug}</a>`,
+      (group) =>
+        `<p class="nav-group">${group.title}</p>${group.pages
+          .map(
+            (page) =>
+              `<a${page.npm ? ' class="mono"' : ""}${page.slug === current ? ' aria-current="page"' : ""} href="/${page.slug}${page.slug ? "/" : ""}">${escapeHtml(page.label)}</a>`,
+          )
+          .join("")}`,
     )
     .join("");
 const npmx = `<svg viewBox="0 0 153 153" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M17.6 107.2h24.1v23.7h-24zM119.8.8 116.2 11 69.9 142l-3.6 10.2h15.5l3.6-10.2 11.7-33.2L135.4.8z"/></svg>`;
 const logo = `<span class="logo" aria-hidden="true">1</span>`;
+const menuIcon = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>`;
 
 // The example tabs, the Preview/Code switch, copy buttons, and the active sidebar link. Without it the page still reads top to bottom.
 const script = `
@@ -196,7 +242,7 @@ for (const pre of document.querySelectorAll("pre")) {
   b.onclick = async () => { await navigator.clipboard.writeText(pre.querySelector("code").innerText.trimEnd()); b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1500) };
   pre.append(b);
 }
-const links = [...document.querySelectorAll(".sidebar a")];
+const links = [...document.querySelectorAll(".toc a")];
 const spy = new IntersectionObserver(entries => {
   for (const e of entries) if (e.isIntersecting) for (const a of links) a.toggleAttribute("data-active", a.hash === "#" + e.target.id);
 }, { rootMargin: "0px 0px -70% 0px" });
@@ -271,16 +317,18 @@ for (const page of parsed) {
 <body>
 <header class="top">
 <a class="name" href="/">${logo}comark plugins</a>
-<nav>${links(page.slug)}${page.npm ? `<a class="icon" href="https://npmx.dev/package/${page.npm}" aria-label="${page.npm} on npmx" title="npmx">${npmx}</a>` : ""}<a class="icon" href="https://github.com/onmax/comark-plugins" aria-label="comark-plugins on GitHub" title="GitHub">${github}</a></nav>
+<nav>${page.npm ? `<a class="icon" href="https://npmx.dev/package/${page.npm}" aria-label="${page.npm} on npmx" title="npmx">${npmx}</a>` : ""}<a class="icon" href="https://github.com/onmax/comark-plugins" aria-label="comark-plugins on GitHub" title="GitHub">${github}</a></nav>
+<details class="menu"><summary aria-label="Menu" title="Menu">${menuIcon}</summary><nav aria-label="Site">${sitemap(page.slug)}</nav></details>
 </header>
 <div class="layout">
-<aside class="sidebar"><nav aria-label="On this page"><a class="nav-h2" href="#">Introduction</a>${nav(page.document)}</nav></aside>
+<aside class="sidebar"><nav aria-label="Site">${sitemap(page.slug)}</nav></aside>
 <div class="content">
 <div class="hero enter"><h1>${page.title}</h1><p>${escapeHtml(page.tagline)}</p>
-${page.install ? installerFor(page.install) : ""}</div>
-<main class="enter" style="--i:1">${await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, plugins: pluginCards } })}</main>
+${page.install ? installerFor(page.install, page.skill) : ""}</div>
+<main class="enter" style="--i:1">${await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, cards } })}</main>
 <footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>. Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>
 </div>
+${page.toc ? `<aside class="toc"><nav aria-label="On this page"><p class="nav-group">On this page</p>${page.toc}</nav></aside>` : ""}
 </div>
 <script>${script.trim()}</script>
 </body>

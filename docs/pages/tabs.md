@@ -52,6 +52,8 @@ import tabs, { components } from "comark-tabs/html";
 const render = createHtmlRenderer({ plugins: [tabs()], components });
 ```
 
+For Vue, React, or Svelte, import from `comark-tabs/vue`, `comark-tabs/react`, or `comark-tabs/svelte` (Svelte 5.20 or later). [Renderers](/guide/renderers/) covers server rendering and using it with other plugins.
+
 ## Components
 
 ### tabs
@@ -118,17 +120,7 @@ Blocks with the same `sync` switch together by label, so `::code-group{sync="pm"
 
 ### Validation
 
-The plugin checks every block while parsing and adds the problems to `meta.issues`, so you can reject a document before publishing it.
-
-```ts
-import { parseMarkdown } from "comark";
-import tabs from "comark-tabs";
-
-const { meta } = await parseMarkdown(markdown, { plugins: [tabs()] });
-if (meta.issues.length) throw new Error(meta.issues.join("\n"));
-```
-
-Each issue names its block and says how to fix it:
+The plugin adds a problem with any block to `meta.issues`, as [Validation](/guide/validation/) describes:
 
 ```txt
 `::code-group` 1, block 2: a code block needs a label. Put it in brackets after the language: ```bash [npm].
@@ -140,23 +132,10 @@ It reports a tab without a label, two tabs with the same label, content outside 
 
 Images in tabs zoom with [comark-zoom](/zoom) like any other image. A gallery or zoom group only pages through what's shown, so images in closed tabs stay out of it.
 
-### Renderers
-
-| Renderer | Import |
-| --- | --- |
-| `@comark/html` | `comark-tabs/html` inlines the styles and script once per document |
-| `@comark/vue` | `comark-tabs/vue` |
-| `@comark/react` | `comark-tabs/react` |
-| `@comark/svelte` | `comark-tabs/svelte`, Svelte 5.20 or later |
-
-Import `comark-tabs/style.css` with your styles when you render on a server.
-
 ### Theming
 
-The tab strip is a segmented control in the style of shadcn/ui, on the same `--comark-*` tokens as the other plugins: `--comark-border` frames it, `--comark-accent` tints it, the open tab sits on `--comark-background`, the others use `--comark-muted`, and `--comark-ring` marks focus. `--comark-radius` rounds the strip, and the tabs inside it a little less. See [Theming](/carousel/#guides-theming) for the full list and the Nuxt UI mapping.
-
-The rules sit in a `comark` CSS layer, so any plain rule of your own wins, such as `.ct-tab { border-radius: 0 }`. One rule sits outside it: pages style code blocks with plain rules, so the rule that drops a code group's block margin and top corners, to join it to its header, has to beat them.
+The tab strip is a segmented control in the style of shadcn/ui, on the shared tokens in [Theming](/guide/theming/): `--comark-border` frames it, `--comark-accent` tints it, the open tab sits on `--comark-background`, and the others use `--comark-muted`. One rule sits outside the `comark` layer: pages style code blocks with plain rules, so the rule that drops a code group's block margin and top corners, to join it to its header, has to beat them.
 
 ## Credits
 
-[Comark](https://comark.dev), by the [Comark team](https://github.com/comarkdown), parses the Markdown and renders it. The syntax follows [Nuxt UI](https://ui.nuxt.com)'s tabs and code groups.
+The syntax follows [Nuxt UI](https://ui.nuxt.com)'s tabs and code groups.

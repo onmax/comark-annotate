@@ -52,6 +52,8 @@ const render = createHtmlRenderer({ plugins: [zoom()], components });
 
 `zoom({ images: false })` leaves images alone, so only `::zoom` blocks and images you mark with `{data-zoom}` zoom.
 
+For Vue, React, or Svelte, import from `comark-zoom/vue`, `comark-zoom/react`, or `comark-zoom/svelte`. [Renderers](/guide/renderers/) covers server rendering, pages without a renderer, and zoom with other plugins.
+
 ## Components
 
 ### Images
@@ -104,21 +106,6 @@ Items in one `group` page through a single zoomed view with a strip of them at t
 ```
 ::
 
-### Renderers
-
-The same markup comes out of every renderer. Import the components from the entry for yours:
-
-| Renderer | Import |
-| --- | --- |
-| `@comark/html` | `comark-zoom/html` inlines the styles and script once per document |
-| `@comark/vue` | `comark-zoom/vue` |
-| `@comark/react` | `comark-zoom/react` |
-| `@comark/svelte` | `comark-zoom/svelte` |
-
-The Vue, React, and Svelte components start the script when they mount and stop it when the last one unmounts. Import `comark-zoom/style.css` with your styles so a server-rendered page doesn't shift when the script starts.
-
-Without a renderer, call `start()` from `comark-zoom/client` once on a page with `data-zoom` elements. It adds the styles and returns a function that stops it.
-
 ### Events
 
 The zoomed view fires `comark-zoom:open`, `comark-zoom:change`, and `comark-zoom:close` on the item. `open` and `change` carry the dialog's `header` and `footer`, and a `layer` over the zoomed content, sized to it, where a host can draw its own pins or controls. `copyOf(element)` finds the copy of a page element in the zoomed view, and `originalOf(element)` goes back, so a pin can follow what it points at. Both return `null` for anything the zoom doesn't show.
@@ -134,45 +121,7 @@ document.addEventListener("comark-zoom:open", (event) => {
 
 ### Theming
 
-The styles follow [shadcn/ui](https://ui.shadcn.com). On a site that already uses its CSS variables, the zoomed view matches it with no setup, and a `.dark` class anywhere above them switches the theme. Elsewhere they use shadcn's neutral theme and follow the system's light or dark mode.
-
-Set the `--comark-*` tokens to theme zoom, carousel, and annotate at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
-
-| Token | Falls back to | Used for |
-| --- | --- | --- |
-| `--comark-background` | `--background` | Button faces, the zoom backdrop, the ring around stamps |
-| `--comark-foreground` | `--foreground` | Text, icons, the current thumbnail, slide panels |
-| `--comark-muted` | `--muted-foreground` | The zoom and carousel counters |
-| `--comark-border` | `--border` | Button, thumbnail, and screenshot borders |
-| `--comark-accent` | `--accent` | Hovered buttons |
-| `--comark-ring` | `--ring` | Focus rings |
-| `--comark-radius` | `--radius` | Corners, a little smaller on buttons and images |
-| `--comark-font` | `--font-sans` | The zoomed view's header |
-
-```css
-:root {
-  --comark-accent: oklch(0.95 0.03 250);
-  --comark-radius: 0.25rem;
-}
-```
-
-The rules sit in a `comark` CSS layer, so any plain rule of your own wins without `!important`, such as `.cc-step { border-radius: 0 }`. shadcn/ui before Tailwind 4 stores colors as bare HSL numbers, so map those: `--comark-border: hsl(var(--border))`.
-
-[Nuxt UI](https://ui.nuxt.com) names its variables differently. Map them once:
-
-```css
-:root {
-  --comark-background: var(--ui-bg);
-  --comark-foreground: var(--ui-text-highlighted);
-  --comark-muted: var(--ui-text-muted);
-  --comark-border: var(--ui-border);
-  --comark-accent: var(--ui-bg-elevated);
-  --comark-ring: var(--ui-primary);
-  --comark-radius: calc(var(--ui-radius) * 2);
-}
-```
-
-To theme only the zoomed view, set `--cz-backdrop`, `--cz-ink`, `--cz-muted`, `--cz-line`, `--cz-hover`, or `--cz-active`; each overrides the token it replaces. An item that needs styles from its ancestors names them with `data-zoom-context`, a selector, and the zoomed copy goes inside empty copies of every ancestor that matches.
+The zoomed view follows the shared tokens in [Theming](/guide/theming/). To theme only the zoomed view, set them on `.cz-dialog`. An item that needs styles from its ancestors names them with `data-zoom-context`, a selector, and the zoomed copy goes inside empty copies of every ancestor that matches.
 
 ### Captions beside the zoom
 
@@ -187,4 +136,4 @@ To theme only the zoomed view, set `--cz-backdrop`, `--cz-ink`, `--cz-muted`, `-
 
 ## Credits
 
-[Comark](https://comark.dev), by the [Comark team](https://github.com/comarkdown), parses the Markdown and renders it. The zoom behaves like [medium-zoom](https://github.com/francoischalifour/medium-zoom).
+The zoom behaves like [medium-zoom](https://github.com/francoischalifour/medium-zoom).
