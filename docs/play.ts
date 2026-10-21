@@ -33,6 +33,7 @@ const editor = find(".play textarea", HTMLTextAreaElement);
 const preview = find(".play-preview", HTMLIFrameElement);
 const issues = find(".play-issues", HTMLUListElement);
 const share = find(".play-share", HTMLButtonElement);
+const paint = find(".play-paint", HTMLDivElement);
 const presets: { id: string; source: string }[] = JSON.parse(
   find("#presets", HTMLScriptElement).text,
 );
@@ -51,6 +52,19 @@ async function unpack(code: string) {
   const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
   return new Response(stream).text();
 }
+
+// The editor is a transparent textarea over its own text, colored. Until the grammar loads, the text under it is
+// plain. The extra line keeps a trailing newline as tall as the textarea's.
+let highlight: ((code: string) => string) | undefined;
+function repaint() {
+  const text = `${editor.value}\n `;
+  if (highlight) paint.innerHTML = highlight(text);
+  else paint.replaceChildren(Object.assign(document.createElement("pre"), { textContent: text }));
+}
+void import("./highlight.ts").then((module) => {
+  highlight = module.highlight;
+  repaint();
+});
 
 function showIssues(list: string[]) {
   issues.replaceChildren(
@@ -94,11 +108,13 @@ async function load() {
   else if (code !== null)
     editor.value = await unpack(code).catch(() => "The link's Markdown is cut off or changed.");
   markPreset(preset?.id);
+  repaint();
   await render();
 }
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 editor.addEventListener("input", () => {
+  repaint();
   clearTimeout(timer);
   timer = setTimeout(async () => {
     markPreset();
