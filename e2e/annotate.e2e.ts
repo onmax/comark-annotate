@@ -67,7 +67,7 @@ test("the zoom maps its copies to the page and back", async ({ page }) => {
 test("a host's `.ca` rule sets the default mark color, on the page and zoomed", async ({
   page,
 }) => {
-  await page.goto("/annotate/");
+  await page.goto("/annotate/components/");
   await page.addStyleTag({ content: ".ca{--ca-color:rgb(1, 2, 3)}" });
   const plain = ".ca-mark:not([style*='--ca-color'])";
   const mark = page.locator(`${plain}:visible`).first();
@@ -208,7 +208,7 @@ test("a diff's counts stay readable when the page's theme and the system's disag
     ["dark", themes.light],
   ] as const) {
     await page.emulateMedia({ colorScheme: system });
-    await page.goto("/annotate/");
+    await page.goto("/annotate/components/");
     await page.addStyleTag({ content: `main{${theme}}` });
     const ratios = await page
       .locator(".ca-diff")

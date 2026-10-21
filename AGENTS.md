@@ -33,7 +33,7 @@ A pnpm workspace. Every package in `packages/` is published to npm under its own
   - `src/script.ts` is the browser script. `script()` is self-contained because the HTML renderer inlines its source. `src/client.ts` exports `start()`, which runs it with the bundled styles; Vue, React, and Svelte components call it on mount and stop it on unmount.
   - `src/theme.ts` resolves the shared `--comark-*` tokens, and `comark-zoom/theme` exports it alone. `comark-github-callouts`, `comark-embed`, and `comark-tabs` have it as a dev dependency and bundle only this entry, so they don't install zoom or carry its styles.
   - `src/html.ts`, `src/vue.ts`, `src/react.ts`, and `src/svelte/` are the renderers. They all output the same markup.
-- `docs/` builds the docs site with the plugins themselves. Cloudflare serves it from `docs/dist`.
+- `docs/` builds the docs site with the plugins themselves. Cloudflare serves it from `docs/dist`. Each package has a folder in `docs/pages/` with an overview, getting started, components or syntax, and guides; `docs/build.ts` lists the sections. `docs/play.ts` is the playground, bundled with Vite; its presets are the examples at the top of each page.
 
 ## Rules
 

@@ -22,34 +22,34 @@ async function writeAssets() {
     ),
     new URL("fonts/Caveat-Variable.woff2", generated),
   );
-  const skill = await readFile(
-    new URL("../packages/annotate/skills/comark-annotate/SKILL.md", root),
-    "utf8",
+  const skills = await Promise.all(
+    ["annotate/skills/comark-annotate", "charts/skills/comark-charts"].map(async (folder) => {
+      const text = await readFile(new URL(`../packages/${folder}/SKILL.md`, root), "utf8");
+      const meta = (await parseMarkdown(text)).frontmatter;
+      return { text, name: str(meta.name), description: str(meta.description) };
+    }),
   );
-  const meta = (await parseMarkdown(skill)).frontmatter;
-  const [name, description] = [str(meta.name), str(meta.description)];
-  for (const base of ["agent-skills", "skills"]) {
-    await mkdir(new URL(`.well-known/${base}/${name}/`, generated), { recursive: true });
-    await writeFile(new URL(`.well-known/${base}/${name}/SKILL.md`, generated), skill);
-  }
+  for (const skill of skills)
+    for (const base of ["agent-skills", "skills"]) {
+      await mkdir(new URL(`.well-known/${base}/${skill.name}/`, generated), { recursive: true });
+      await writeFile(new URL(`.well-known/${base}/${skill.name}/SKILL.md`, generated), skill.text);
+    }
   await writeFile(
     new URL(".well-known/agent-skills/index.json", generated),
     JSON.stringify({
       $schema: "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
-      skills: [
-        {
-          name,
-          type: "skill-md",
-          description,
-          url: `/.well-known/agent-skills/${name}/SKILL.md`,
-          digest: `sha256:${createHash("sha256").update(skill).digest("hex")}`,
-        },
-      ],
+      skills: skills.map(({ text, name, description }) => ({
+        name,
+        type: "skill-md",
+        description,
+        url: `/.well-known/agent-skills/${name}/SKILL.md`,
+        digest: `sha256:${createHash("sha256").update(text).digest("hex")}`,
+      })),
     }),
   );
   await writeFile(
     new URL(".well-known/skills/index.json", generated),
-    JSON.stringify({ skills: [{ name, description, files: ["SKILL.md"] }] }),
+    JSON.stringify({ skills: skills.map(({ name, description }) => ({ name, description, files: ["SKILL.md"] })) }),
   );
 }
 
