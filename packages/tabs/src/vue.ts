@@ -9,9 +9,12 @@ import {
   provide,
   useId,
 } from "vue";
+import { Icon, type IconData } from "comark-icon/vue";
 import { css, start } from "./client.ts";
 
 export { default } from "./index.ts";
+
+const icon = (value?: IconData | null) => (value?.src ? h(Icon, { ...value }) : null);
 
 const tabsId: InjectionKey<string> = Symbol("comark-tabs");
 
@@ -23,6 +26,8 @@ export const Tabs = defineComponent({
   props: {
     // SAFETY: the parse plugin writes `labels` as an array of strings.
     labels: { type: Array as PropType<string[]>, default: () => [] },
+    // SAFETY: the parse plugin writes `icons` as comark-icon's `IconData` or null per tab.
+    icons: { type: Array as PropType<(IconData | null)[]>, default: () => [] },
     sync: String,
     code: [String, Boolean],
   },
@@ -56,7 +61,7 @@ export const Tabs = defineComponent({
                   "aria-selected": String(at === 0),
                   tabindex: at === 0 ? "0" : "-1",
                 },
-                label,
+                [icon(props.icons[at]), label],
               ),
             ),
           ),
@@ -73,6 +78,8 @@ export const TabsItem = defineComponent({
   props: {
     label: String,
     index: [String, Number],
+    // SAFETY: the parse plugin writes `icon` as comark-icon's `IconData`.
+    icon: Object as PropType<IconData>,
   },
   setup(props, { slots }) {
     const id = inject(tabsId, "");
@@ -88,7 +95,7 @@ export const TabsItem = defineComponent({
           tabindex: "0",
           "data-inactive": index > 1 ? "" : undefined,
         },
-        [h("div", { class: "ct-caption" }, props.label), slots.default?.()],
+        [h("div", { class: "ct-caption" }, [icon(props.icon), props.label]), slots.default?.()],
       );
     };
   },

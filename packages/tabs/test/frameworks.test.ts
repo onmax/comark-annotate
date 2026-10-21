@@ -10,6 +10,7 @@ import { describe, expect, it } from "vite-plus/test";
 import { createSSRApp, h } from "vue";
 import { renderToString as renderVue } from "vue/server-renderer";
 import tabs from "../src/index.ts";
+import { createIcons, type IconCollection } from "comark-icon";
 import { components as htmlComponents } from "../src/html.ts";
 import { components as reactComponents } from "../src/react.ts";
 import { components as vueComponents } from "../src/vue.ts";
@@ -51,6 +52,32 @@ describe("comark-tabs renderers", () => {
       expect(html, name).toContain(expected);
       expect(html, name).not.toMatch(/setup|wide|undefined|labels=/);
     }
+  });
+
+  it("draws icons the same in every renderer", async () => {
+    const logos: IconCollection = {
+      prefix: "logos",
+      icons: { pnpm: { body: '<path fill="#f9ad00" d="M0 0h8v8H0z"/>' } },
+    };
+    const lucide: IconCollection = {
+      prefix: "lucide",
+      icons: { apple: { body: '<path stroke="currentColor" d="M1 1"/>' } },
+    };
+    const value = await parseMarkdown(
+      '::tabs\n:::tabs-item{label="A" icon="lucide:apple"}\nA\n:::\n\n:::tabs-item{label="B"}\nB\n:::\n::\n\n::code-group\n```sh [pnpm] icon=logos:pnpm\na\n```\n::',
+      { plugins: [tabs({ iconResolver: createIcons({ collections: { logos, lucide } }) })] },
+    );
+    // Each framework writes the quotes in a style, and an empty attribute, its own way.
+    const quotes = (html: string) =>
+      normalize(html)
+        .replace(/&quot;|&#34;|&#39;|&#x27;|"(?=\)|\()/g, "'")
+        .replace(/;"/g, '"')
+        .replace(/ data-mask(?!=)/g, " data-mask");
+    const expected = quotes(await renderers.html(value));
+    expect(expected.match(/class="ci"/g)).toHaveLength(4);
+    expect(expected).toContain('<span class="ci" data-mask aria-hidden="true" style="--ci:url(');
+    for (const name of ["vue", "react"] as const)
+      expect(quotes(await renderers[name](value)), name).toContain(expected);
   });
 
   it("gives the tabs and panels of a block matching ids", async () => {
