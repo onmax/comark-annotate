@@ -565,7 +565,8 @@ export function start(): () => void {
       // browser image actions and listeners see the marked screenshot consistently.
       if (armed && event.target !== armed && !forwarded) {
         forwarded = true;
-        event.preventDefault();
+        // Keep the browser's native default action (Copy Image, Save Image, etc.)
+        // on the original image while replacing the JavaScript notification.
         event.stopImmediatePropagation();
         armed.dispatchEvent(
           new MouseEvent("contextmenu", {
