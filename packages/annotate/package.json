@@ -31,7 +31,8 @@
   "exports": {
     ".": "./dist/index.mjs",
     "./html": "./dist/html.mjs",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./skills/*": "./skills/*"
   },
   "publishConfig": {
     "access": "public",

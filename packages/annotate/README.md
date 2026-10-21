@@ -60,7 +60,7 @@ The styles follow shadcn/ui: they read its CSS variables, such as `--background`
 
 ## Agents
 
-An agent skill ships in the package (`skills/comark-annotate/SKILL.md`) and is served at the docs site, so `npx skills add https://comark.onmax.me` installs it. The CLI checks and previews documents:
+An agent skill ships in the package (`skills/comark-annotate/SKILL.md`) and is served at the docs site, so `npx skills add https://comark.onmax.me` installs it. An app that serves skills to its own agents can bundle it from `comark-annotate/skills/comark-annotate/SKILL.md`, which always matches the renderer it installed. The CLI checks and previews documents:
 
 ```sh
 npx comark-annotate check report.md other.md        # one line per problem, exit 1 if any
