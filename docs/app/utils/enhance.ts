@@ -106,11 +106,15 @@ export function enhance(root: HTMLElement): () => void {
     pre.append(b);
   }
   for (const button of root.querySelectorAll<HTMLButtonElement>(".card-copy"))
-    button.addEventListener("click", async () => {
-      await navigator.clipboard.writeText(button.dataset.copy!);
-      button.textContent = "Copied";
-      setTimeout(() => (button.textContent = "Copy"), 1200);
-    }, { signal });
+    button.addEventListener(
+      "click",
+      async () => {
+        await navigator.clipboard.writeText(button.dataset.copy!);
+        button.textContent = "Copied";
+        setTimeout(() => (button.textContent = "Copy"), 1200);
+      },
+      { signal },
+    );
   const links = [...root.querySelectorAll<HTMLAnchorElement>(".sidebar a")];
   const spy = new IntersectionObserver(
     (entries) => {

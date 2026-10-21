@@ -115,7 +115,10 @@ const pluginCards: NodeHandler = async () => {
       .filter((page) => page.npm)
       .map(async (page) => {
         const { data } = await read(page.slug);
-        const command = str(data.install).replace(/^pnpm add (comark @comark\/html )?/, "pnpm add ");
+        const command = str(data.install).replace(
+          /^pnpm add (comark @comark\/html )?/,
+          "pnpm add ",
+        );
         return `<a class="card" href="/${page.slug}/"><strong>${escapeHtml(str(data.title))}</strong><span>${escapeHtml(str(data.description))}</span><code>${escapeHtml(command)}</code><button type="button" class="card-copy" aria-label="Copy ${escapeHtml(command)}" data-copy="${escapeHtml(command)}">Copy</button></a>`;
       }),
   );
