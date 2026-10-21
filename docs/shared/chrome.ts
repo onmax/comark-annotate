@@ -19,6 +19,6 @@ export function installerFor(install: string) {
   return `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
 <div class="installer-bar"><div class="seg" role="group" aria-label="Audience"><button type="button" data-audience="humans" aria-pressed="true">${userIcon}For humans</button><button type="button" data-audience="agents" aria-pressed="false">${botIcon}For agents</button></div>
 <div class="seg installer-pm" role="group" aria-label="Package manager">${["pnpm", "npm", "yarn", "bun"].map((pm, i) => `<button type="button" data-pm="${pm}" aria-pressed="${i === 0}">${pm}</button>`).join("")}</div></div>
-<button type="button" class="install" data-copy="${escapeHtml(commands.pnpm)}" aria-label="Copy the install command"><span aria-hidden="true">$</span><code>${escapeHtml(commands.pnpm)}</code><span class="install-hint">${copyIcon}</span></button>
+<button type="button" class="install" data-copy="${escapeHtml(commands.pnpm)}" aria-label="Copy ${escapeHtml(commands.pnpm)}"><span aria-hidden="true">$</span><code>${escapeHtml(commands.pnpm)}</code><span class="install-hint">${copyIcon}</span></button>
 </div>`;
 }

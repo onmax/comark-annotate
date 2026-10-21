@@ -33,7 +33,24 @@ useHead(() => ({
 const layout = useTemplateRef<HTMLElement>("layout");
 const body = useTemplateRef<HTMLElement>("body");
 let undo: (() => void)[] = [];
-onMounted(() => (undo = [runScripts(body.value!, !hydrating), enhance(layout.value!)]));
+onMounted(() => {
+  // PageBody is a server island and may arrive after the page shell mounts.
+  // Enhance it once its HTML is present so generated controls work on both
+  // the initial render and client navigations.
+  const apply = () => {
+    if (!body.value || !layout.value || !body.value.querySelector(".window, .cards, .installer"))
+      return false;
+    undo = [runScripts(body.value, !hydrating), enhance(layout.value)];
+    return true;
+  };
+  if (!apply()) {
+    const observer = new MutationObserver(() => {
+      if (apply()) observer.disconnect();
+    });
+    observer.observe(body.value!, { childList: true, subtree: true });
+    undo.push(() => observer.disconnect());
+  }
+});
 onBeforeUnmount(() => undo.forEach((stop) => stop()));
 
 // Links in rendered Markdown are plain anchors; same-site ones navigate in the app.
