@@ -1307,17 +1307,55 @@ main img {
   color: var(--fg);
 }
 
-.play textarea {
+/* The textarea sits over a colored copy of its text in one grid cell; the copy sets the height and the box scrolls. */
+.play-code {
+  display: grid;
   flex: 1;
   min-height: 0;
-  padding: 1rem;
-  border: 0;
-  outline: none;
+  overflow: auto;
   background: var(--soft);
+}
+
+.play-code > *,
+.play-paint pre {
+  grid-area: 1 / 1;
+}
+
+.play-paint {
+  display: grid;
+  pointer-events: none;
+}
+
+.play-paint pre,
+.play-code textarea {
+  margin: 0;
+  padding: 1rem;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: none !important;
   color: var(--fg);
   font: 0.8125rem/1.65 var(--mono);
-  resize: none;
   tab-size: 2;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.play-paint code {
+  font: inherit;
+}
+
+.play-code textarea {
+  overflow: hidden;
+  outline: none;
+  color: transparent;
+  caret-color: var(--fg);
+  resize: none;
+}
+
+.play-code textarea::selection {
+  background: color-mix(in oklch, var(--fg) 18%, transparent);
 }
 
 .play-issues {
@@ -1353,4 +1391,91 @@ main img {
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
+}
+
+/* The playground's presets: a still of each example over its name, the whole card a link. */
+.pages .nav-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pages .nav-group svg {
+  color: var(--faint);
+}
+
+.preset {
+  position: relative;
+  margin-bottom: 0.75rem;
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition:
+    box-shadow 150ms ease,
+    scale 150ms ease;
+}
+
+.preset:hover {
+  box-shadow: inset 0 0 0 1px var(--faint);
+}
+
+.preset:active {
+  scale: 0.98;
+}
+
+.preset:has(a[aria-current]) {
+  box-shadow: inset 0 0 0 1.5px var(--fg);
+}
+
+.preset-thumb {
+  height: 6.5rem;
+  margin: 1px 1px 0;
+  overflow: hidden;
+  border-radius: 9px 9px 0 0;
+  background: var(--bg);
+  pointer-events: none;
+}
+
+/* Laid out at a page's width, then zoomed to the column's. */
+.preset-page {
+  width: 40rem;
+  padding: 1.5rem;
+  zoom: 0.325;
+}
+
+.preset-page > :first-child {
+  margin-top: 0;
+}
+
+.preset-player {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  background: var(--soft);
+  color: var(--faint);
+}
+
+.pages .preset a {
+  display: block;
+  margin: 0;
+  padding: 0.4rem 0.75rem 0.5rem;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 10px 10px;
+  background: none;
+}
+
+/* The link covers the card, so the still opens the preset too. */
+.pages .preset a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+}
+
+.pages .preset a:focus-visible {
+  outline: none;
+}
+
+.preset:has(a:focus-visible) {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
 }

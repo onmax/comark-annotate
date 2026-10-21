@@ -22,6 +22,7 @@ import githubCallouts, {
 import include from "../packages/include/src/index.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
+import { highlight } from "./highlight.ts";
 import { previewDocument } from "./preview.ts";
 
 const root = new URL("./", import.meta.url);
@@ -262,6 +263,26 @@ const presets = parsed.flatMap((page) =>
     }))
     .filter((preset) => playable(preset.source)),
 );
+// A small still of each preset for the playground's column: no scripts, and a gray box for each embedded player,
+// so the column loads nothing but the pages' own images. The plugins' styles go in the page once.
+const thumbnailStyles = new Set<string>();
+const thumbnails = new Map(
+  await Promise.all(
+    presets.map(async (preset) => {
+      const document = await parseMarkdown(preset.source, { plugins: browserPlugins() });
+      const html = (await renderHtmlFromDocument(document, { components }))
+        .replace(/<style>[\s\S]*?<\/style>/g, (style) => (thumbnailStyles.add(style), ""))
+        .replace(/<script>[\s\S]*?<\/script>/g, "")
+        .replace(
+          /<iframe\b[^>]*><\/iframe>/g,
+          `<span class="preset-player">${icon("tv-minimal-play", 56)}</span>`,
+        )
+        .replace(/\s(id|for|aria-controls|aria-labelledby)="[^"]*"/g, "")
+        .replace(/<img\b/g, '<img loading="lazy"');
+      return [preset.id, html] as const;
+    }),
+  ),
+);
 
 // The index lists a group's packages, or a list of the docs' pages, from their own front matter.
 const cards: NodeHandler = ([, attrs]) => {
@@ -316,15 +337,17 @@ const column = (section: Section, current: string) => {
     section.slug === "play"
       ? [...new Set(presets.map((preset) => preset.group))].map((group) => ({
           title: group,
+          icon: sections.find((section) => section.label === group)?.icon,
           links: presets
             .filter((preset) => preset.group === group)
             .map(
               (preset) =>
-                `<a data-preset="${preset.id}" href="#preset=${preset.id}">${escapeHtml(preset.label)}</a>`,
+                `<div class="preset"><div class="preset-thumb" aria-hidden="true" inert><div class="preset-page">${thumbnails.get(preset.id) ?? ""}</div></div><a data-preset="${preset.id}" href="#preset=${preset.id}">${escapeHtml(preset.label)}</a></div>`,
             ),
         }))
       : pagesOf(section).map((list) => ({
           title: list.title,
+          icon: undefined,
           links: list.pages.map(
             (page) =>
               `<a${page.slug === current ? ' aria-current="page"' : ""} href="${href(page.slug)}">${escapeHtml(page.label)}</a>`,
@@ -335,7 +358,7 @@ const column = (section: Section, current: string) => {
   return `<nav class="pages" aria-label="${escapeHtml(section.label)}"><div class="section-head">${icon(section.icon)}<span><small>${escapeHtml(section.group)}</small><strong${section.npm ? ' class="mono"' : ""}>${escapeHtml(section.label)}</strong></span></div>${lists
     .map(
       (list) =>
-        `${list.title ? `<p class="nav-group">${escapeHtml(list.title)}</p>` : ""}${list.links.join("")}`,
+        `${list.title ? `<p class="nav-group">${list.icon ? icon(list.icon, 14) : ""}${escapeHtml(list.title)}</p>` : ""}${list.links.join("")}`,
     )
     .join(
       "",
@@ -623,11 +646,11 @@ if (playSection && first) {
       title: "Playground · Comark plugins",
       description:
         "Write Comark with every plugin and see it rendered as you type. Start from any example in the docs.",
-      head: `\n<link rel="modulepreload" href="/play/play.js">`,
+      head: `\n<link rel="modulepreload" href="/play/play.js">\n${[...thumbnailStyles].join("")}`,
       body: `<div class="play">
 <div class="play-editor">
 <div class="play-bar"><span>Markdown</span><button type="button" class="play-share">Copy link</button></div>
-<textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Markdown">${escapeHtml(first.source)}</textarea>
+<div class="play-code"><div class="play-paint" aria-hidden="true">${highlight(`${first.source}\n `)}</div><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Markdown">${escapeHtml(first.source)}</textarea></div>
 <ul class="play-issues" aria-label="Issues" aria-live="polite" hidden></ul>
 </div>
 <iframe class="play-preview" title="Preview" srcdoc="${escapeHtml(previewDocument(await renderHtmlFromDocument(document, { components })))}"></iframe>
