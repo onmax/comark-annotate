@@ -143,6 +143,24 @@ Cache on.
     expect(html).toContain('<details class="cch-data"><summary>Data</summary><table>');
   });
 
+  it("places chart stamps using the SVG aspect ratio", async () => {
+    const markdown = `::chart{type="pie"}
+| name | n |
+| --- | --- |
+| a | 1 |
+| b | 2 |
+:::annotation{at="a" mark="circle"}
+The first slice.
+:::
+::`;
+    const html = await createHtmlRenderer({
+      plugins: [charts(), annotate()],
+      components: { ...annotateComponents, ...components },
+    })(markdown);
+    expect(html).toContain('viewBox="0 0 544 376"');
+    expect(html).toContain('ca-stamp" style="right:calc(100% + 4px);bottom:calc(100% + 4px)"');
+  });
+
   it("reports an annotation that points at no row or series", async () => {
     const markdown = `::chart
 ${months.trim()}

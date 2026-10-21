@@ -260,8 +260,9 @@ export async function annotateHtml(
   label: string,
   state: State,
   zoomContext?: string,
+  aspect?: number,
 ): Promise<string> {
-  const shot: Screenshot = { src: label, alt: label, annotations, caption: [] };
+  const shot: Screenshot = { src: label, alt: label, annotations, caption: [], aspect };
   return `${styles(state)}<div class="ca">${await figure(shot, state, idFor([shot], state), false, body, zoomContext)}</div>${zoomRuntime(state)}${runtime(state)}`;
 }
 
