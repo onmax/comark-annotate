@@ -253,6 +253,7 @@ const presets = parsed.flatMap((page) =>
         .replace(/^-|-$/g, "")}`,
       label: str(attrs.label),
       group: page.section.label,
+      npm: page.section.npm ?? "",
       source: textContent(children.find(isPre) ?? ["pre", {}]),
     }))
     .filter((preset) => playable(preset.source)),
@@ -375,6 +376,9 @@ function pager(page: Page) {
 }
 
 const npmx = `<svg viewBox="0 0 153 153" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M17.6 107.2h24.1v23.7h-24zM119.8.8 116.2 11 69.9 142l-3.6 10.2h15.5l3.6-10.2 11.7-33.2L135.4.8z"/></svg>`;
+// npmx shows a page's package, or every package of the project on a page about all of them.
+const npmxLink = (npm?: string) =>
+  `<a class="npmx" href="https://npmx.dev/${npm ? `package/${npm}` : "~onmax_"}" title="${npm ? `${npm} on npmx` : "Every package on npmx"}">${npmx}<span>${npm || "npmx"}</span></a>`;
 const logo = `<span class="logo" aria-hidden="true">1</span>`;
 const menuIcon = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>`;
 
@@ -561,8 +565,11 @@ function shell(options: {
   description: string;
   head?: string;
   body: string;
+  // The package the npmx link opens; the section's by default.
+  npm?: string;
 }) {
   const { slug, section } = options;
+  const npm = options.npm ?? section.npm;
   const nav = rail(section) + column(section, slug);
   return `<!doctype html>
 <html lang="en">
@@ -582,7 +589,7 @@ function shell(options: {
 <a class="name" href="/">${logo}comark plugins</a>
 <button type="button" class="search-open" aria-haspopup="dialog" hidden>${icon("search", 15)}<span>Search docs</span><kbd>Ctrl K</kbd></button>
 <div class="top-end">
-<nav>${section.npm ? `<a class="icon" href="https://npmx.dev/package/${section.npm}" aria-label="${section.npm} on npmx" title="npmx">${npmx}</a>` : ""}<a class="icon" href="https://github.com/onmax/comark-plugins" aria-label="comark-plugins on GitHub" title="GitHub">${github}</a></nav>
+<nav>${npmxLink(npm)}<a class="icon" href="https://github.com/onmax/comark-plugins" aria-label="comark-plugins on GitHub" title="GitHub">${github}</a></nav>
 <details class="menu"><summary aria-label="Menu" title="Menu">${menuIcon}</summary><div class="menu-panel">${nav}</div></details>
 </div>
 </header>
@@ -640,6 +647,7 @@ if (playSection && first) {
     shell({
       slug: "play",
       section: playSection,
+      npm: first.npm,
       title: "Playground · Comark plugins",
       description:
         "Write Comark with every plugin and see it rendered as you type. Start from any example in the docs.",
@@ -652,7 +660,7 @@ if (playSection && first) {
 </div>
 <iframe class="play-preview" title="Preview" srcdoc="${escapeHtml(previewDocument(await renderHtmlFromDocument(document, { components })))}"></iframe>
 </div>
-<script type="application/json" id="presets">${JSON.stringify(presets.map(({ id, source }) => ({ id, source }))).replaceAll("<", "\\u003c")}</script>
+<script type="application/json" id="presets">${JSON.stringify(presets.map(({ id, source, npm }) => ({ id, source, npm }))).replaceAll("<", "\\u003c")}</script>
 <script type="module" src="/play/play.js"></script>`,
     }),
   );

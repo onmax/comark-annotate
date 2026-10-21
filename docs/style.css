@@ -120,6 +120,28 @@ body {
   gap: 0.25rem;
 }
 
+/* npmx, labeled with the package it opens, since on the playground that changes with the preset. */
+.top-end .npmx {
+  height: 2rem;
+  margin-right: 0.25rem;
+  padding: 0 0.625rem;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--line);
+  font: 500 0.75rem/1 var(--mono);
+  transition:
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.top-end .npmx:hover {
+  box-shadow: inset 0 0 0 1px var(--faint);
+}
+
+.top-end .npmx svg {
+  width: 13px;
+  height: 13px;
+}
+
 .top .icon {
   display: grid;
   place-items: center;
@@ -771,8 +793,16 @@ nav > .nav-group:first-child {
     box-shadow: none;
   }
 
-  .search-open :is(span, kbd) {
+  .search-open :is(span, kbd),
+  .top-end .npmx span {
     display: none;
+  }
+
+  .top-end .npmx {
+    width: 2.5rem;
+    justify-content: center;
+    padding: 0;
+    box-shadow: none;
   }
 
   .layout {

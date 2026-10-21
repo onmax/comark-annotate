@@ -34,7 +34,9 @@ const preview = find(".play-preview", HTMLIFrameElement);
 const issues = find(".play-issues", HTMLUListElement);
 const share = find(".play-share", HTMLButtonElement);
 const paint = find(".play-paint", HTMLDivElement);
-const presets: { id: string; source: string }[] = JSON.parse(
+const npmx = find(".top a.npmx", HTMLAnchorElement);
+const npmxName = find(".top a.npmx span", HTMLSpanElement);
+const presets: { id: string; source: string; npm: string }[] = JSON.parse(
   find("#presets", HTMLScriptElement).text,
 );
 
@@ -78,6 +80,14 @@ function markPreset(id?: string) {
     link.toggleAttribute("aria-current", link.dataset.preset === id);
 }
 
+// The header's npmx link follows the preset, and stays on its package while you edit it. A shared link's Markdown
+// could use any of them, so it gets the page with all of them.
+function pointNpmx(npm?: string) {
+  npmx.href = `https://npmx.dev/${npm ? `package/${npm}` : "~onmax_"}`;
+  npmx.title = npm ? `${npm} on npmx` : "Every package on npmx";
+  npmxName.textContent = npm || "npmx";
+}
+
 let run = 0;
 async function render() {
   const current = ++run;
@@ -108,6 +118,7 @@ async function load() {
   else if (code !== null)
     editor.value = await unpack(code).catch(() => "The link's Markdown is cut off or changed.");
   markPreset(preset?.id);
+  pointNpmx(preset?.npm);
   repaint();
   await render();
 }
