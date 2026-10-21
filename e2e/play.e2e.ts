@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("the playground renders a preset, reports issues as you type, and opens a shared link", async ({
   page,
 }) => {
-  await page.goto("/play/#preset=github");
+  await page.goto("/play/#preset=github-callouts");
   const preview = page.frameLocator(".play-preview");
   await expect(preview.locator(".cgc").first()).toBeVisible();
   await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("GitHub");
