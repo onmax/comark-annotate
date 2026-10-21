@@ -263,9 +263,11 @@ export interface Box {
 
 // Shapes drawn one per value; lines, areas, and labels span several or don't mark a value.
 const SHAPES = new Set(["rect", "symbol", "arc"]);
-// A mark keeps clear of the shape it circles, and a point gets a box big enough to draw around.
+// A mark keeps clear of the shape it circles, and a point gets a box big enough to draw around. A mark that draws
+// nothing only leaves its arrow a hair short of the point, so the arrow reaches the data.
 const PAD = 6;
 const SMALLEST = 18;
+const BARE = 3;
 
 interface SceneItem {
   x?: number;
@@ -305,7 +307,8 @@ function boxes(chart: Chart, view: vega.View, width: number, height: number): Ma
       y2 = Math.max(y2, bounds.y2 + dy);
     });
     if (x1 === Infinity) continue;
-    const grow = (from: number, to: number) => Math.max(0, (SMALLEST - (to - from)) / 2) + PAD;
+    const grow = (from: number, to: number) =>
+      mark.mark === "none" ? BARE : Math.max(0, (SMALLEST - (to - from)) / 2) + PAD;
     const [gx, gy] = [grow(x1, x2), grow(y1, y2)];
     const box = {
       x: Math.max(0, x1 - gx),

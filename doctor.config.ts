@@ -7,8 +7,9 @@ export default defineDoctorConfig({
   extensions: [
     comark({
       include: "docs/pages/**/*.md",
-      // docs/build.ts renders these itself.
-      components: ["cards", "example", "examples"],
+      // docs/build.ts renders the first four itself. comark-tabs turns `::code-group` into tabs while parsing, so its
+      // renderer has no component of that name.
+      components: ["cards", "example", "examples", "matrix", "code-group"],
     }),
   ],
 });

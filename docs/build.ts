@@ -22,6 +22,7 @@ import githubCallouts, {
 import include from "../packages/include/src/index.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
+import { highlight } from "./highlight.ts";
 import { previewDocument } from "./preview.ts";
 
 const root = new URL("./", import.meta.url);
@@ -54,11 +55,11 @@ const components = {
   ...zoomComponents,
 };
 
-// Lucide's icons, by name.
+// Lucide's icons, by name, and annotate's own: a hand-drawn loop like its marks.
 const icons = {
   "book-open": `<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>`,
   "flask-conical": `<path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/>`,
-  "pen-tool": `<path d="M15.707 21.293a1 1 0 0 1-1.414 0l-1.586-1.586a1 1 0 0 1 0-1.414l5.586-5.586a1 1 0 0 1 1.414 0l1.586 1.586a1 1 0 0 1 0 1.414z"/><path d="m18 13-1.375-6.874a1 1 0 0 0-.746-.776L3.235 2.028a1 1 0 0 0-1.207 1.207L5.35 15.879a1 1 0 0 0 .776.746L13 18"/><path d="m2.3 2.3 7.286 7.286"/><circle cx="11" cy="11" r="2"/>`,
+  "scribble-loop": `<path d="M7 5.5C11.5 2.8 20.3 3.4 21.5 8.6 22.8 14.3 16.5 20 9.6 20.4 4.4 20.7 1.5 17.6 2.6 13.6 3.6 10 8.3 7.3 13.6 7.2"/>`,
   "chart-column": `<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>`,
   "tv-minimal-play": `<path d="M10 7.75a.75.75 0 0 1 1.142-.638l3.664 2.249a.75.75 0 0 1 0 1.278l-3.664 2.25a.75.75 0 0 1-1.142-.64z"/><path d="M7 21h10"/><rect width="20" height="14" x="2" y="3" rx="2"/>`,
   "message-square-warning": `<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v2"/><path d="M12 13h.01"/>`,
@@ -79,7 +80,7 @@ const icon = (name: IconName, size = 18) =>
 // pages/ yet, such as one still on a branch, is left out.
 const packages = (
   [
-    { slug: "annotate", group: "Review blocks", icon: "pen-tool" },
+    { slug: "annotate", group: "Review blocks", icon: "scribble-loop" },
     { slug: "charts", group: "Review blocks", icon: "chart-column" },
     { slug: "embed", group: "Review blocks", icon: "tv-minimal-play" },
     { slug: "github-callouts", group: "Review blocks", icon: "message-square-warning" },
@@ -115,6 +116,7 @@ const sections: Section[] = [
         slugs: ["guide/renderers", "guide/theming", "guide/validation", "guide/agents"],
       },
       { title: "Recipes", slugs: ["recipes/review", "recipes/zoom", "recipes/carousel"] },
+      { title: "Compared", slugs: ["compare/charts"] },
     ],
   },
   // Its column lists the presets, which come from the pages' examples.
@@ -184,6 +186,11 @@ const examples: NodeHandler = async ([, , ...children], state) => {
   return `<div class="examples"><div class="tablist" role="tablist">${labels.join("")}</div>${bodies.join("")}</div>`;
 };
 
+// A comparison table, which the styles lay out: a row with only its first cell filled heads a group, and italics in
+// a first cell describe the row.
+const matrix: NodeHandler = async ([, , ...children], state) =>
+  `<div class="matrix">${(await Promise.all(children.map((child) => state.one(child, state)))).join("")}</div>`;
+
 const toc = (document: { nodes: Node[] }) =>
   document.nodes
     .filter(isElement)
@@ -252,9 +259,30 @@ const presets = parsed.flatMap((page) =>
         .replace(/^-|-$/g, "")}`,
       label: str(attrs.label),
       group: page.section.label,
+      npm: page.section.npm ?? "",
       source: textContent(children.find(isPre) ?? ["pre", {}]),
     }))
     .filter((preset) => playable(preset.source)),
+);
+// A small still of each preset for the playground's column: no scripts, and a gray box for each embedded player,
+// so the column loads nothing but the pages' own images. The plugins' styles go in the page once.
+const thumbnailStyles = new Set<string>();
+const thumbnails = new Map(
+  await Promise.all(
+    presets.map(async (preset) => {
+      const document = await parseMarkdown(preset.source, { plugins: browserPlugins() });
+      const html = (await renderHtmlFromDocument(document, { components }))
+        .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, (style) => (thumbnailStyles.add(style), ""))
+        .replace(/<script>[\s\S]*?<\/script>/g, "")
+        .replace(
+          /<iframe\b[^>]*><\/iframe>/g,
+          `<span class="preset-player">${icon("tv-minimal-play", 56)}</span>`,
+        )
+        .replace(/\s(id|for|aria-controls|aria-labelledby)="[^"]*"/g, "")
+        .replace(/<img\b/g, '<img loading="lazy"');
+      return [preset.id, html] as const;
+    }),
+  ),
 );
 
 // The index lists a group's packages, or a list of the docs' pages, from their own front matter.
@@ -310,15 +338,20 @@ const column = (section: Section, current: string) => {
     section.slug === "play"
       ? [...new Set(presets.map((preset) => preset.group))].map((group) => ({
           title: group,
-          links: presets
-            .filter((preset) => preset.group === group)
-            .map(
-              (preset) =>
-                `<a data-preset="${preset.id}" href="#preset=${preset.id}">${escapeHtml(preset.label)}</a>`,
-            ),
+          icon: sections.find((section) => section.label === group)?.icon,
+          links: [
+            `<div class="presets">${presets
+              .filter((preset) => preset.group === group)
+              .map(
+                (preset) =>
+                  `<div class="preset"><div class="preset-thumb" aria-hidden="true" inert><div class="preset-page">${thumbnails.get(preset.id) ?? ""}</div></div><a data-preset="${preset.id}" href="#preset=${preset.id}">${escapeHtml(preset.label)}</a></div>`,
+              )
+              .join("")}</div>`,
+          ],
         }))
       : pagesOf(section).map((list) => ({
           title: list.title,
+          icon: undefined,
           links: list.pages.map(
             (page) =>
               `<a${page.slug === current ? ' aria-current="page"' : ""} href="${href(page.slug)}">${escapeHtml(page.label)}</a>`,
@@ -329,7 +362,7 @@ const column = (section: Section, current: string) => {
   return `<nav class="pages" aria-label="${escapeHtml(section.label)}"><div class="section-head">${icon(section.icon)}<span><small>${escapeHtml(section.group)}</small><strong${section.npm ? ' class="mono"' : ""}>${escapeHtml(section.label)}</strong></span></div>${lists
     .map(
       (list) =>
-        `${list.title ? `<p class="nav-group">${escapeHtml(list.title)}</p>` : ""}${list.links.join("")}`,
+        `${list.title ? `<p class="nav-group">${list.icon ? icon(list.icon, 14) : ""}${escapeHtml(list.title)}</p>` : ""}${list.links.join("")}`,
     )
     .join(
       "",
@@ -349,6 +382,9 @@ function pager(page: Page) {
 }
 
 const npmx = `<svg viewBox="0 0 153 153" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M17.6 107.2h24.1v23.7h-24zM119.8.8 116.2 11 69.9 142l-3.6 10.2h15.5l3.6-10.2 11.7-33.2L135.4.8z"/></svg>`;
+// npmx shows a page's package, or every package of the project on a page about all of them.
+const npmxLink = (npm?: string) =>
+  `<a class="npmx" href="https://npmx.dev/${npm ? `package/${npm}` : "~onmax_"}" title="${npm ? `${npm} on npmx` : "Every package on npmx"}">${npmx}<span>${npm || "npmx"}</span></a>`;
 const logo = `<span class="logo" aria-hidden="true">1</span>`;
 const menuIcon = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>`;
 
@@ -411,11 +447,13 @@ const update = async () => {
     return a;
   }));
   empty.hidden = results.length > 0;
-  input.setAttribute("aria-expanded", results.length > 0);
+  input.setAttribute("aria-expanded", String(dialog.open));
+  // Keep the combobox state synchronized when the dialog closes without another search.
   select(0);
 };
 const show = () => { dialog.showModal(); input.select(); update() };
 open.addEventListener("click", show);
+dialog.addEventListener("close", () => input.setAttribute("aria-expanded", "false"));
 open.addEventListener("pointerenter", load, { once: true });
 addEventListener("keydown", e => {
   const typing = e.target.closest("input, textarea, select, [contenteditable]");
@@ -535,8 +573,11 @@ function shell(options: {
   description: string;
   head?: string;
   body: string;
+  // The package the npmx link opens; the section's by default.
+  npm?: string;
 }) {
   const { slug, section } = options;
+  const npm = options.npm ?? section.npm;
   const nav = rail(section) + column(section, slug);
   return `<!doctype html>
 <html lang="en">
@@ -556,7 +597,7 @@ function shell(options: {
 <a class="name" href="/">${logo}comark plugins</a>
 <button type="button" class="search-open" aria-haspopup="dialog" hidden>${icon("search", 15)}<span>Search docs</span><kbd>Ctrl K</kbd></button>
 <div class="top-end">
-<nav>${section.npm ? `<a class="icon" href="https://npmx.dev/package/${section.npm}" aria-label="${section.npm} on npmx" title="npmx">${npmx}</a>` : ""}<a class="icon" href="https://github.com/onmax/comark-plugins" aria-label="comark-plugins on GitHub" title="GitHub">${github}</a></nav>
+<nav>${npmxLink(npm)}<a class="icon" href="https://github.com/onmax/comark-plugins" aria-label="comark-plugins on GitHub" title="GitHub">${github}</a></nav>
 <details class="menu"><summary aria-label="Menu" title="Menu">${menuIcon}</summary><div class="menu-panel">${nav}</div></details>
 </div>
 </header>
@@ -591,7 +632,7 @@ for (const page of parsed) {
 <div class="content">
 <div class="hero enter">${subpage ? `<p class="eyebrow mono">${npm}</p>` : ""}<h1>${escapeHtml(page.title)}</h1><p>${escapeHtml(page.tagline)}</p>
 ${page.install ? installerFor(page.install, page.skill) : ""}</div>
-<main class="enter" style="--i:1">${await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, cards } })}</main>
+<main class="enter" style="--i:1">${await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, cards, matrix } })}</main>
 ${pager(page)}
 <footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>. Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>
 </div>
@@ -614,19 +655,20 @@ if (playSection && first) {
     shell({
       slug: "play",
       section: playSection,
+      npm: first.npm,
       title: "Playground · Comark plugins",
       description:
         "Write Comark with every plugin and see it rendered as you type. Start from any example in the docs.",
-      head: `\n<link rel="modulepreload" href="/play/play.js">`,
+      head: `\n<link rel="modulepreload" href="/play/play.js">\n${[...thumbnailStyles].join("")}`,
       body: `<div class="play">
 <div class="play-editor">
 <div class="play-bar"><span>Markdown</span><button type="button" class="play-share">Copy link</button></div>
-<textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Markdown">${escapeHtml(first.source)}</textarea>
+<div class="play-code"><div class="play-paint" aria-hidden="true">${highlight(`${first.source}\n `)}</div><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Markdown">${escapeHtml(first.source)}</textarea></div>
 <ul class="play-issues" aria-label="Issues" aria-live="polite" hidden></ul>
 </div>
 <iframe class="play-preview" title="Preview" srcdoc="${escapeHtml(previewDocument(await renderHtmlFromDocument(document, { components })))}"></iframe>
 </div>
-<script type="application/json" id="presets">${JSON.stringify(presets.map(({ id, source }) => ({ id, source }))).replaceAll("<", "\\u003c")}</script>
+<script type="application/json" id="presets">${JSON.stringify(presets.map(({ id, source, npm }) => ({ id, source, npm }))).replaceAll("<", "\\u003c")}</script>
 <script type="module" src="/play/play.js"></script>`,
     }),
   );

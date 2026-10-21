@@ -7,6 +7,8 @@ test("the playground renders a preset, reports issues as you type, and opens a s
   const preview = page.frameLocator(".play-preview");
   await expect(preview.locator(".cgc").first()).toBeVisible();
   await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("Types");
+  const npmx = page.locator(".top a.npmx");
+  await expect(npmx).toHaveAttribute("href", "https://npmx.dev/package/comark-github-callouts");
 
   const editor = page.getByRole("textbox", { name: "Markdown" });
   await editor.fill('::screenshot{src="/after.png"}\n::');
@@ -19,6 +21,7 @@ test("the playground renders a preset, reports issues as you type, and opens a s
   await page.goto("/");
   await page.goto(shared);
   await expect(editor).toHaveValue('::screenshot{src="/after.png"}\n::');
+  await expect(npmx).toHaveAttribute("href", "https://npmx.dev/~onmax_");
   await expect(page.getByRole("list", { name: "Issues" })).toContainText("`alt` is required");
 });
 

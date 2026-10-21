@@ -120,6 +120,28 @@ body {
   gap: 0.25rem;
 }
 
+/* npmx, labeled with the package it opens, since on the playground that changes with the preset. */
+.top-end .npmx {
+  height: 2rem;
+  margin-right: 0.25rem;
+  padding: 0 0.625rem;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--line);
+  font: 500 0.75rem/1 var(--mono);
+  transition:
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.top-end .npmx:hover {
+  box-shadow: inset 0 0 0 1px var(--faint);
+}
+
+.top-end .npmx svg {
+  width: 13px;
+  height: 13px;
+}
+
 .top .icon {
   display: grid;
   place-items: center;
@@ -771,8 +793,16 @@ nav > .nav-group:first-child {
     box-shadow: none;
   }
 
-  .search-open :is(span, kbd) {
+  .search-open :is(span, kbd),
+  .top-end .npmx span {
     display: none;
+  }
+
+  .top-end .npmx {
+    width: 2.5rem;
+    justify-content: center;
+    padding: 0;
+    box-shadow: none;
   }
 
   .layout {
@@ -919,9 +949,9 @@ th {
   --ca-code-font: var(--mono);
 }
 
-/* The docs' prop tables have no header worth showing. Tables in examples keep theirs, and so do their zoomed copies,
-   which open in a dialog outside main. */
-main th:not(.example-preview th) {
+/* A prop table's two columns need no header. Wider tables compare columns, so they keep theirs, and so do tables in
+   examples and their zoomed copies, which open in a dialog outside main. */
+main thead:not(:has(th:nth-child(3))) th:not(.example-preview th) {
   display: none;
 }
 
@@ -944,6 +974,101 @@ td:first-child code {
   padding: 0;
   background: none;
   box-shadow: none;
+}
+
+/* A comparison: short cells under named columns, rows in groups, and the first column naming each row with a line
+   that describes it. The first package column is ours, so it is tinted. */
+.matrix {
+  margin: 1.25rem 0;
+  overflow-x: auto;
+}
+
+.matrix table {
+  min-width: 40rem;
+  margin: 0;
+  table-layout: fixed;
+}
+
+.matrix th {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  vertical-align: bottom;
+}
+
+.matrix th a {
+  color: var(--fg);
+  text-decoration: none;
+}
+
+/* tbody matches the specificity of the prop table rules above, so these win. */
+.matrix tbody td {
+  padding: 0.75rem;
+  color: var(--muted);
+  vertical-align: top;
+}
+
+.matrix tbody td:first-child {
+  width: 14rem;
+  padding-left: 0;
+  color: var(--fg);
+  font-weight: 500;
+  white-space: normal;
+}
+
+.matrix th:first-child {
+  width: 14rem;
+}
+
+.matrix td:first-child em {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--faint);
+  font-size: 0.8125rem;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.matrix th:nth-child(2),
+.matrix td:nth-child(2) {
+  background: var(--soft);
+  color: var(--fg);
+}
+
+.matrix tr:has(> td:nth-child(2):empty) td {
+  padding-top: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-top: none;
+}
+
+.matrix tr:has(> td:nth-child(2):empty) td:first-child {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.matrix tr:has(> td:nth-child(2):empty) strong {
+  font-weight: 500;
+}
+
+@media (max-width: 40rem) {
+  .matrix table {
+    min-width: 32rem;
+  }
+
+  /* Row names stay in view while the packages scroll sideways. */
+  .matrix th:first-child,
+  .matrix tbody td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    width: 8.5rem;
+    padding-right: 0.75rem;
+    background: var(--bg);
+  }
 }
 
 blockquote {
@@ -1212,17 +1337,55 @@ main img {
   color: var(--fg);
 }
 
-.play textarea {
+/* The textarea sits over a colored copy of its text in one grid cell; the copy sets the height and the box scrolls. */
+.play-code {
+  display: grid;
   flex: 1;
   min-height: 0;
-  padding: 1rem;
-  border: 0;
-  outline: none;
+  overflow: auto;
   background: var(--soft);
+}
+
+.play-code > *,
+.play-paint pre {
+  grid-area: 1 / 1;
+}
+
+.play-paint {
+  display: grid;
+  pointer-events: none;
+}
+
+.play-paint pre,
+.play-code textarea {
+  margin: 0;
+  padding: 1rem;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: none !important;
   color: var(--fg);
   font: 0.8125rem/1.65 var(--mono);
-  resize: none;
   tab-size: 2;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.play-paint code {
+  font: inherit;
+}
+
+.play-code textarea {
+  overflow: hidden;
+  outline: none;
+  color: transparent;
+  caret-color: var(--fg);
+  resize: none;
+}
+
+.play-code textarea::selection {
+  background: color-mix(in oklch, var(--fg) 18%, transparent);
 }
 
 .play-issues {
@@ -1258,4 +1421,110 @@ main img {
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
+}
+
+/* The playground's presets: a still of each example over its name, the whole card a link. */
+.pages .nav-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pages .nav-group svg {
+  color: var(--faint);
+}
+
+/* Two to a row, so the playground's column is wider than a section's. */
+.sidebar:has(.presets),
+.menu-panel:has(.presets) {
+  grid-template-columns: 3.25rem 21rem;
+}
+
+.menu-panel:has(.presets) {
+  max-width: calc(100vw - 2rem);
+}
+
+.presets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.preset {
+  position: relative;
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition:
+    box-shadow 150ms ease,
+    scale 150ms ease;
+}
+
+.preset:hover {
+  box-shadow: inset 0 0 0 1px var(--faint);
+}
+
+.preset:active {
+  scale: 0.98;
+}
+
+.preset:has(a[aria-current]) {
+  box-shadow: inset 0 0 0 1.5px var(--fg);
+}
+
+.preset-thumb {
+  height: 4.75rem;
+  margin: 1px 1px 0;
+  overflow: hidden;
+  border-radius: 9px 9px 0 0;
+  background: var(--bg);
+  pointer-events: none;
+}
+
+/* Laid out at a page's width, then zoomed to the column's. */
+.preset-page {
+  width: 40rem;
+  padding: 1.5rem;
+  zoom: 0.23;
+}
+
+.preset-page > :first-child {
+  margin-top: 0;
+}
+
+.preset-player {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  background: var(--soft);
+  color: var(--faint);
+}
+
+.pages .preset a {
+  display: block;
+  overflow: hidden;
+  margin: 0;
+  padding: 0.3rem 0.625rem 0.375rem;
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 10px 10px;
+  background: none;
+}
+
+/* The link covers the card, so the still opens the preset too. */
+.pages .preset a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+}
+
+.pages .preset a:focus-visible {
+  outline: none;
+}
+
+.preset:has(a:focus-visible) {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
 }

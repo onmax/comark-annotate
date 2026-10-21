@@ -39,6 +39,13 @@ Several plugins in one document.
 ::cards{group="Recipes"}
 ::
 
+## Compared
+
+How these packages differ from other Comark plugins that do the same job.
+
+::cards{group="Compared"}
+::
+
 ## Playground
 
 Every example on these pages opens in the [playground](/play/), where you can edit it, see each problem the plugins report, and share a link to the result.

@@ -33,13 +33,26 @@ const editor = find(".play textarea", HTMLTextAreaElement);
 const preview = find(".play-preview", HTMLIFrameElement);
 const issues = find(".play-issues", HTMLUListElement);
 const share = find(".play-share", HTMLButtonElement);
-const presets: { id: string; source: string }[] = JSON.parse(
+const paint = find(".play-paint", HTMLDivElement);
+const npmx = find(".top a.npmx", HTMLAnchorElement);
+const npmxName = find(".top a.npmx span", HTMLSpanElement);
+const presets: { id: string; source: string; npm: string }[] = JSON.parse(
   find("#presets", HTMLScriptElement).text,
 );
 
 // A shared link carries its Markdown in the hash, deflated, so nothing is stored anywhere.
+const sharingUnsupported = "Sharing is unavailable in this browser (raw deflate is not supported).";
+function compressionStream(kind: "compress" | "decompress") {
+  const Stream = kind === "compress" ? CompressionStream : DecompressionStream;
+  if (typeof Stream !== "function") throw new Error(sharingUnsupported);
+  try {
+    return new Stream("deflate-raw");
+  } catch {
+    throw new Error(sharingUnsupported);
+  }
+}
 async function pack(text: string) {
-  const stream = new Blob([text]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+  const stream = new Blob([text]).stream().pipeThrough(compressionStream("compress"));
   const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
@@ -48,9 +61,22 @@ async function pack(text: string) {
 async function unpack(code: string) {
   const binary = atob(code.replaceAll("-", "+").replaceAll("_", "/"));
   const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
-  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  const stream = new Blob([bytes]).stream().pipeThrough(compressionStream("decompress"));
   return new Response(stream).text();
 }
+
+// The editor is a transparent textarea over its own text, colored. Until the grammar loads, the text under it is
+// plain. The extra line keeps a trailing newline as tall as the textarea's.
+let highlight: ((code: string) => string) | undefined;
+function repaint() {
+  const text = `${editor.value}\n `;
+  if (highlight) paint.innerHTML = highlight(text);
+  else paint.replaceChildren(Object.assign(document.createElement("pre"), { textContent: text }));
+}
+void import("./highlight.ts").then((module) => {
+  highlight = module.highlight;
+  repaint();
+});
 
 function showIssues(list: string[]) {
   issues.replaceChildren(
@@ -62,6 +88,14 @@ function showIssues(list: string[]) {
 function markPreset(id?: string) {
   for (const link of document.querySelectorAll<HTMLAnchorElement>(".pages a[data-preset]"))
     link.toggleAttribute("aria-current", link.dataset.preset === id);
+}
+
+// The header's npmx link follows the preset, and stays on its package while you edit it. A shared link's Markdown
+// could use any of them, so it gets the page with all of them.
+function pointNpmx(npm?: string) {
+  npmx.href = `https://npmx.dev/${npm ? `package/${npm}` : "~onmax_"}`;
+  npmx.title = npm ? `${npm} on npmx` : "Every package on npmx";
+  npmxName.textContent = npm || "npmx";
 }
 
 let run = 0;
@@ -92,27 +126,44 @@ async function load() {
     (code === null ? presets[0] : undefined);
   if (preset) editor.value = preset.source;
   else if (code !== null)
-    editor.value = await unpack(code).catch(() => "The link's Markdown is cut off or changed.");
+    editor.value = await unpack(code).catch((error) => {
+      editor.value =
+        error instanceof Error && error.message === sharingUnsupported
+          ? sharingUnsupported
+          : "The link's Markdown is cut off or changed.";
+      return editor.value;
+    });
   markPreset(preset?.id);
+  pointNpmx(preset?.npm);
+  repaint();
   await render();
 }
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 editor.addEventListener("input", () => {
+  repaint();
   clearTimeout(timer);
   timer = setTimeout(async () => {
     markPreset();
     // Replaced, not pushed: Back leaves the playground instead of stepping through keystrokes.
-    history.replaceState(null, "", `#md=${await pack(editor.value)}`);
+    try {
+      history.replaceState(null, "", `#md=${await pack(editor.value)}`);
+    } catch (error) {
+      showIssues([error instanceof Error ? error.message : String(error)]);
+    }
     await render();
   }, 200);
 });
 share.addEventListener("click", async () => {
-  if (!location.hash.startsWith("#md="))
-    history.replaceState(null, "", `#md=${await pack(editor.value)}`);
-  await navigator.clipboard.writeText(location.href);
-  share.textContent = "Copied";
-  setTimeout(() => (share.textContent = "Copy link"), 1500);
+  try {
+    if (!location.hash.startsWith("#md="))
+      history.replaceState(null, "", `#md=${await pack(editor.value)}`);
+    await navigator.clipboard.writeText(location.href);
+    share.textContent = "Copied";
+    setTimeout(() => (share.textContent = "Copy link"), 1500);
+  } catch (error) {
+    showIssues([error instanceof Error ? error.message : String(error)]);
+  }
 });
 addEventListener("hashchange", load);
 // The build already rendered the first preset, so only a link to something else needs a render now.

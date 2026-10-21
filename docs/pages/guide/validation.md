@@ -1,12 +1,12 @@
 ---
 title: Validation
-description: Every plugin reports problems to meta.issues, one sentence each that names the block and the fix.
-tagline: Check a document before you publish it. Each problem is one sentence that names the block and says how to fix it, and rendering never throws.
+description: Plugins that validate blocks report problems to meta.issues, one sentence each that names the block and the fix.
+tagline: Check a document before you publish it. Each validation problem is one sentence that names the block and says how to fix it, and rendering never throws.
 ---
 
 ## meta.issues
 
-The plugins check every block while parsing and add their problems to `meta.issues`. Several plugins run on one document, so each one adds to the list and never replaces it. Parse with the plugins you render with, and reject the document if the list isn't empty:
+Plugins that validate blocks check them while parsing and add their problems to `meta.issues`. Several plugins run on one document, so each one adds to the list and never replaces it. Parse with the plugins you render with, and reject the document if the list isn't empty:
 
 ```ts
 import { parseMarkdown } from "comark";
