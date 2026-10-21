@@ -54,7 +54,7 @@
     "vite-doctor": "catalog:"
   },
   "peerDependencies": {
-    "comark": "^0.7.0",
+    "comark": "^0.8.0",
     "comark-annotate": "workspace:^",
     "comark-carousel": "workspace:^",
     "comark-charts": "workspace:^",
