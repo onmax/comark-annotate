@@ -5,11 +5,15 @@ import { parseMarkdown } from "comark";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
 import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
+import chips, { components as chipsComponents } from "../packages/chips/src/html.ts";
 import code, { components as codeComponents } from "../packages/code/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
-import githubCallouts, {
-  components as githubCalloutsComponents,
-} from "../packages/github-callouts/src/html.ts";
+import {
+  callouts,
+  components as githubComponents,
+  html as githubHtml,
+  references,
+} from "../packages/github/src/html.ts";
 import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
@@ -20,9 +24,13 @@ const plugins = (config: PlayConfig) => [
   annotate(),
   carousel(),
   charts(),
+  // A browser may not download another site's images, so the reader's loads them as links.
+  chips({ download: false }),
   code(config["comark-code"]),
   embed(),
-  githubCallouts(config["comark-github-callouts"]),
+  callouts(config["comark-github"]?.callouts),
+  references(config["comark-github"]?.references),
+  githubHtml(),
   icon(),
   tabs(),
   zoom(config["comark-zoom"]),
@@ -31,9 +39,10 @@ const components = {
   ...annotateComponents,
   ...carouselComponents,
   ...chartsComponents,
+  ...chipsComponents,
   ...codeComponents,
   ...embedComponents,
-  ...githubCalloutsComponents,
+  ...githubComponents,
   ...iconComponents,
   ...tabsComponents,
   ...zoomComponents,

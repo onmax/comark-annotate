@@ -519,26 +519,11 @@ export function start(): () => void {
     return overlay;
   }
   let armed: HTMLImageElement | null = null;
-  let armedSource: HTMLImageElement | null = null;
-  let armedSourceSrc: string | null = null;
-  let armedSourceSrcset: string | null = null;
-  let armedSourceSizes: string | null = null;
-  let armedSourceOpacity: string | null = null;
   let disarming = 0;
   const disarm = () => {
     clearTimeout(disarming);
     armed?.removeAttribute("data-menu");
-    if (armedSource) {
-      if (armedSourceSrc === null) armedSource.removeAttribute("src");
-      else armedSource.setAttribute("src", armedSourceSrc);
-      if (armedSourceSrcset === null) armedSource.removeAttribute("srcset");
-      else armedSource.setAttribute("srcset", armedSourceSrcset);
-      if (armedSourceSizes === null) armedSource.removeAttribute("sizes");
-      else armedSource.setAttribute("sizes", armedSourceSizes);
-      armedSource.style.opacity = armedSourceOpacity ?? "";
-    }
     armed = null;
-    armedSource = null;
   };
 
   document.addEventListener(
@@ -564,20 +549,6 @@ export function start(): () => void {
       armed = overlayOf(frame);
       if (armed.getAttribute("src") !== ready.url) armed.src = ready.url;
       armed.setAttribute("data-menu", "");
-      // Keep the native event and its default actions intact. If the browser resolves
-      // the original image as the hit target, it now points at the composed screenshot.
-      const source = frame.querySelector<HTMLImageElement>(":scope>img:not(.ca-overlay)");
-      if (source) {
-        armedSource = source;
-        armedSourceSrc = source.getAttribute("src");
-        armedSourceSrcset = source.getAttribute("srcset");
-        armedSourceSizes = source.getAttribute("sizes");
-        armedSourceOpacity = source.style.opacity;
-        source.setAttribute("src", ready.url);
-        source.removeAttribute("srcset");
-        source.removeAttribute("sizes");
-        source.style.opacity = "0";
-      }
       disarming = window.setTimeout(disarm, 1500);
     },
     { capture: true, signal },

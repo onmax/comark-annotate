@@ -12,7 +12,7 @@ shadcn/ui before Tailwind 4 stores colors as bare HSL numbers, so map those thro
 
 ## Tokens
 
-Set the `--comark-*` tokens to theme annotate, carousel, code, embed, github-callouts, tabs, and zoom at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
+Set the `--comark-*` tokens to theme annotate, carousel, code, embed, github, tabs, and zoom at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
 
 | Token | Falls back to | Used for |
 | --- | --- | --- |
@@ -63,5 +63,5 @@ Some things belong to one plugin, so they have their own variables:
 | [annotate](/annotate/guides/#theming) | `--ca-color`, `--ca-solid`, and `--ca-ink` for the default marks, stamps, and stamp numbers; `--ca-red`, `--ca-amber`, `--ca-green`, `--ca-blue`, and `--ca-gray` for the named colors; `--ca-note-font` and `--ca-code-font` |
 | [carousel](/carousel/guides/#theming) | `--cc-gap` between slides, `--cc-surface` behind them |
 | [embed](/embed/syntax/#theming) | `--ce-app-height` for CodePen, StackBlitz, and Figma |
-| [github-callouts](/github-callouts/syntax/#theming) | `--cgc-note`, `--cgc-tip`, `--cgc-important`, `--cgc-warning`, and `--cgc-caution` |
+| [github](/github/syntax/#theming) | `--cgc-note`, `--cgc-tip`, `--cgc-important`, `--cgc-warning`, and `--cgc-caution` |
 | [zoom](/zoom/guides/#theming) | `data-zoom-context`, for items that need styles from their ancestors |
