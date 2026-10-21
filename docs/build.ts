@@ -47,7 +47,7 @@ const components = {
   ...zoomComponents,
 };
 
-// The index first, then the guides and recipes, then one page per package, each at its own path.
+// The index first, then the guides and recipes, then one page per package, then the comparisons, each at its own path.
 const pages = [
   { slug: "", file: "index.md", label: "Overview" },
   { slug: "guide/renderers", file: "guide/renderers.md" },
@@ -66,6 +66,7 @@ const pages = [
   { slug: "include", file: "include.md", npm: "comark-include" },
   { slug: "embed", file: "embed.md", npm: "comark-embed" },
   { slug: "charts", file: "charts.md", npm: "comark-charts" },
+  { slug: "compare/charts", file: "compare/charts.md" },
 ];
 
 // The sidebar, in order. A slug with no page yet, such as one whose package is still on a branch, is left out.
@@ -78,6 +79,7 @@ const groups = [
   { title: "Review blocks", slugs: ["annotate", "charts", "embed", "github-callouts"] },
   { title: "Page behavior", slugs: ["zoom", "carousel", "tabs"] },
   { title: "Authoring tools", slugs: ["include", "lint"] },
+  { title: "Compared", slugs: ["compare/charts"] },
 ];
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
@@ -122,6 +124,11 @@ const examples: NodeHandler = async ([, , ...children], state) => {
   );
   return `<div class="examples"><div class="tablist" role="tablist">${labels.join("")}</div>${bodies.join("")}</div>`;
 };
+
+// A comparison table, which the styles lay out: a row with only its first cell filled heads a group, and italics in
+// a first cell describe the row.
+const matrix: NodeHandler = async ([, , ...children], state) =>
+  `<div class="matrix">${(await Promise.all(children.map((child) => state.one(child, state)))).join("")}</div>`;
 
 const toc = (document: { nodes: Node[] }) =>
   document.nodes
@@ -325,7 +332,7 @@ for (const page of parsed) {
 <div class="content">
 <div class="hero enter"><h1>${page.title}</h1><p>${escapeHtml(page.tagline)}</p>
 ${page.install ? installerFor(page.install, page.skill) : ""}</div>
-<main class="enter" style="--i:1">${await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, cards } })}</main>
+<main class="enter" style="--i:1">${await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, cards, matrix } })}</main>
 <footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>. Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>
 </div>
 ${page.toc ? `<aside class="toc"><nav aria-label="On this page"><p class="nav-group">On this page</p>${page.toc}</nav></aside>` : ""}
