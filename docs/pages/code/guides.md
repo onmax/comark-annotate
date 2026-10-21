@@ -1,6 +1,6 @@
 ---
 title: Guides
-description: Actions of your own, Copy, Wrap, and theming.
+description: Actions of your own, Copy, and Wrap.
 ---
 
 ## Actions
