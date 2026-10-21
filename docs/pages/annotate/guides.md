@@ -25,6 +25,8 @@ const box = {
 
 For a full-page screenshot, add the scroll offset and divide by the page size instead.
 
+Numbers place themselves. Each one sits outside a corner of its mark, so it doesn't cover what the mark points at. It takes the first corner, in the order top left, top right, bottom left, bottom right, that keeps it off the other numbers, marks, and arrows. Against the image's edge it slides along that edge. Set `viewport` on the screenshot so the corners are judged against the image's real shape. When marks crowd one spot so closely that two numbers overlap at every corner, the plugin reports both annotations.
+
 ## Validation
 
 The plugin adds a problem with any block to `meta.issues`, as [Validation](/guide/validation/) describes. A screenshot goes by its `src`, or by its position and `alt` when another screenshot shares it; an annotation goes by its position in its screenshot:

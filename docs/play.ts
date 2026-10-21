@@ -5,6 +5,7 @@ import { parseMarkdown } from "comark";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
 import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
+import code, { components as codeComponents } from "../packages/code/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
 import githubCallouts, {
   components as githubCalloutsComponents,
@@ -19,6 +20,7 @@ const plugins = (config: PlayConfig) => [
   annotate(),
   carousel(),
   charts(),
+  code(config["comark-code"]),
   embed(),
   githubCallouts(config["comark-github-callouts"]),
   icon(),
@@ -29,6 +31,7 @@ const components = {
   ...annotateComponents,
   ...carouselComponents,
   ...chartsComponents,
+  ...codeComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
   ...iconComponents,
