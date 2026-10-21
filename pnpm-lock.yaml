@@ -170,6 +170,9 @@ importers:
       comark-charts:
         specifier: workspace:*
         version: link:../packages/charts
+      comark-code:
+        specifier: workspace:*
+        version: link:../packages/code
       comark-content:
         specifier: 0.4.1
         version: 0.4.1(aws4fetch@1.0.20)(db0@0.4.1)(shiki@4.5.0)
@@ -182,6 +185,9 @@ importers:
       comark-include:
         specifier: workspace:*
         version: link:../packages/include
+      comark-icon:
+        specifier: workspace:*
+        version: link:../packages/icon
       comark-tabs:
         specifier: workspace:*
         version: link:../packages/tabs

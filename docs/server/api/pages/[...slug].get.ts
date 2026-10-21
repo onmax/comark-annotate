@@ -2,8 +2,10 @@ import { renderHtmlFromDocument } from "@comark/html";
 import { components as annotateComponents } from "comark-annotate/html";
 import { components as carouselComponents } from "comark-carousel/html";
 import { components as chartsComponents } from "comark-charts/html";
+import { components as codeComponents } from "comark-code/html";
 import { components as embedComponents } from "comark-embed/html";
 import { components as githubCalloutsComponents } from "comark-github-callouts/html";
+import { components as iconComponents } from "comark-icon/html";
 import { components as tabsComponents } from "comark-tabs/html";
 import { components as zoomComponents } from "comark-zoom/html";
 import type { ElementNode, Node, NodeHandler } from "comark";
@@ -45,8 +47,10 @@ const components = {
   ...annotateComponents,
   ...carouselComponents,
   ...chartsComponents,
+  ...codeComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
+  ...iconComponents,
   ...tabsComponents,
   ...zoomComponents,
 };

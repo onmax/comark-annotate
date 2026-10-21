@@ -49,7 +49,9 @@ async function writeAssets() {
   );
   await writeFile(
     new URL(".well-known/skills/index.json", generated),
-    JSON.stringify({ skills: skills.map(({ name, description }) => ({ name, description, files: ["SKILL.md"] })) }),
+    JSON.stringify({
+      skills: skills.map(({ name, description }) => ({ name, description, files: ["SKILL.md"] })),
+    }),
   );
 }
 

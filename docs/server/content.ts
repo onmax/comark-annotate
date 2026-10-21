@@ -3,10 +3,12 @@ import { defineContent } from "@vite-hub/content";
 import annotate from "comark-annotate";
 import carousel from "comark-carousel";
 import charts from "comark-charts";
+import code from "comark-code";
 import fs from "comark-content/sources/fs";
 import embed from "comark-embed";
 import githubCallouts from "comark-github-callouts";
 import include from "comark-include";
+import icon from "comark-icon";
 import tabs from "comark-tabs";
 import zoom from "comark-zoom";
 import { useRuntimeConfig } from "nitro/runtime-config";
@@ -21,9 +23,11 @@ export const plugins = () => [
   annotate(),
   carousel(),
   charts(),
+  code(),
   embed(),
   githubCallouts(),
   tabs(),
+  icon(),
   zoom(),
   shiki({ themes: { light, dark } }),
 ];
