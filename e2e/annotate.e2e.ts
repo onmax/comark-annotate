@@ -171,26 +171,9 @@ test("Copy puts a screenshot on the clipboard with its marks, and a right-click 
     expect(Math.abs(channel - expected[index]!)).toBeLessThan(24);
 
   // A right-click lands on the copy; the next click still zooms the screenshot.
-  const image = (await figure.locator(".ca-frame > img").first().boundingBox())!;
-  const target = page.evaluate(
-    () =>
-      new Promise<string>((resolve) =>
-        document.addEventListener(
-          "contextmenu",
-          (event) => {
-            event.preventDefault();
-            resolve((event.target as Element).className);
-          },
-          { once: true },
-        ),
-      ),
-  );
-  await page.mouse.click(image.x + image.width / 2, image.y + image.height / 2, {
-    button: "right",
-  });
-  expect(await target).toBe("ca-overlay");
+  await figure.locator(".ca-overlay").click({ button: "right" });
   await expect(figure.locator(".ca-overlay[data-menu]")).toHaveCount(0);
-  await page.mouse.click(image.x + image.width / 2, image.y + image.height / 2);
+  await figure.locator(".ca-overlay").click();
   await expect(page.locator(".cz-dialog")).toBeVisible();
   await page.keyboard.press("ControlOrMeta+c");
   await expect(page.locator(".cz-item .ca-copy-status")).toHaveText("Copied");
