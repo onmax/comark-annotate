@@ -8,18 +8,18 @@ install: pnpm add comark @comark/html comark-zoom
 ::examples
 :::example{label="Image"}
 ```md
-![Forecast planning dashboard](/dashboard.png)
+![Office correlations dashboard](/dashboard.png)
 ```
 :::
 
 :::example{label="Any block"}
 ```md
-::zoom{title="Retry policy"}
+::zoom{title="Deploy retry policy"}
 | Attempt | Wait |
 | --- | --- |
 | 1 | 1 s |
 | 2 | 4 s |
-| 3 | 16 s |
+| 3 | Until the pigeons leave |
 ::
 ```
 :::

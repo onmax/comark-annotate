@@ -7,21 +7,21 @@ install: pnpm add comark @comark/html comark-annotate comark-zoom
 
 ::example
 ```md
-The filters wrap onto a second row at 640px.
+At 640px, moon phase and vibes push the filters onto a second row.
 
 ::zoom{group="toolbar" title="Before"}
 :::screenshot{src="/before.png" alt="Filter toolbar wrapping onto a second row" viewport="640x250"}
-::::annotation{x=50.9 y=55.4 w=10.5 h=14.2 mark="circle" color="red"}
+::::annotation{x=23.6 y=52.7 w=10.9 h=16 mark="circle" color="red"}
 **Apply** sits 6px lower than the chips.
 ::::
 :::
 ::
 
-With extra filters collapsed, everything fits on one row.
+With moon phase and vibes behind **+2 filters**, everything fits on one row.
 
 ::zoom{group="toolbar" title="After"}
 :::screenshot{src="/after.png" alt="Filter toolbar on one row" viewport="640x250"}
-::::annotation{x=82.5 y=34.8 w=10.5 h=14.2 mark="check" color="green"}
+::::annotation{x=82.5 y=33.1 w=10.9 h=16 mark="check" color="green"}
 **Apply** lines up with the chips.
 ::::
 :::

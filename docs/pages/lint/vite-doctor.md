@@ -15,7 +15,7 @@ import { defineDoctorConfig } from "vite-doctor/config";
 
 export default defineDoctorConfig({
   extends: ["comark/recommended"],
-  extensions: [comark({ components: ["tabs"] })],
+  extensions: [comark({ components: ["duck-count"] })],
 });
 ```
 

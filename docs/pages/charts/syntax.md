@@ -4,8 +4,8 @@ description: The table each chart type reads, and the marks you can draw on a ch
 ---
 
 ```md
-::chart{type="line" x="month" y="before, after" title="Build time (ms)"}
-| month | before | after |
+::chart{type="line" x="month" y="coffee cups, commits" title="Coffee cups and commits"}
+| month | coffee cups | commits |
 | --- | --: | --: |
 | 2026-04 | 820 | 610 |
 ::
@@ -40,45 +40,45 @@ Bars turn sideways when their labels are long or there are many of them, so file
 ::examples
 :::example{label="Sideways bars"}
 ```md
-::chart{title="Slowest tests (s)"}
-| test | duration |
+::chart{title="Longest review threads (min)"}
+| first comment | minutes |
 | --- | --: |
-| e2e/annotate.e2e.ts › copies a zoomed screenshot | 8.4 |
-| e2e/zoom.e2e.ts › closes on Escape | 5.1 |
-| e2e/carousel.e2e.ts › snaps to the next slide | 4.7 |
-| packages/lint/test/cli.test.ts › exits with 1 | 2.2 |
+| nit: this file uses tabs and the rest of the repo uses spaces | 84 |
+| could we call this something other than data2 | 51 |
+| why does the deploy script check for pigeons | 47 |
+| is the rubber duck in this screenshot load-bearing | 22 |
 ::
 ```
 :::
 
 :::example{label="Grouped"}
 ```md
-::chart{title="Render phases (ms)"}
-| phase | v0.1 | v0.2 |
+::chart{title="Tabs-vs-spaces arguments per month"}
+| team | sunny | rainy |
 | --- | --: | --: |
-| parse | 120 | 80 |
-| render | 160 | 102 |
-| hydrate | 200 | 124 |
+| frontend | 12 | 31 |
+| backend | 16 | 40 |
+| design | 2 | 9 |
 ::
 ```
 :::
 
 :::example{label="Stacked"}
 ```md
-::chart{type="stacked" title="Page weight by asset (kB)"}
-| page | js | css | images |
+::chart{type="stacked" title="Standup by topic (min)"}
+| day | work | weekend | pigeons |
 | --- | --: | --: | --: |
-| home | 120 | 18 | 240 |
-| docs | 95 | 22 | 60 |
-| blog | 70 | 15 | 180 |
+| Monday | 4 | 11 | 2 |
+| Wednesday | 6 | 1 | 3 |
+| Friday | 2 | 14 | 7 |
 ::
 ```
 :::
 
 :::example{label="Area"}
 ```md
-::chart{type="area" title="Lines in the repo (thousands)"}
-| month | code | docs |
+::chart{type="area" title="Emoji reactions in team chat (hundreds)"}
+| month | thumbs up | eyes |
 | --- | --: | --: |
 | 2026-06 | 40 | 20 |
 | 2026-07 | 46 | 24 |
@@ -91,27 +91,27 @@ Bars turn sideways when their labels are long or there are many of them, so file
 
 :::example{label="Scatter"}
 ```md
-::chart{type="scatter" title="Load time against page size"}
-| size (kB) | cold (ms) | warm (ms) |
+::chart{type="scatter" title="Failed deploys against pigeons on the roof (r = 0.96)"}
+| pigeons | failed deploys | rollbacks |
 | --: | --: | --: |
-| 40 | 210 | 90 |
-| 85 | 320 | 120 |
-| 120 | 410 | 150 |
-| 200 | 650 | 210 |
-| 260 | 760 | 260 |
+| 2 | 1 | 0 |
+| 5 | 3 | 1 |
+| 9 | 4 | 2 |
+| 14 | 7 | 3 |
+| 21 | 9 | 5 |
 ::
 ```
 :::
 
 :::example{label="Pie"}
 ```md
-::chart{type="pie" title="Renderers in use (%)"}
-| renderer | share |
+::chart{type="pie" title="Why the build failed, according to the team (%)"}
+| reason | share |
 | --- | --: |
-| html | 58 |
-| vue | 24 |
-| react | 12 |
-| svelte | 6 |
+| the pigeons | 58 |
+| cat on the keyboard | 24 |
+| it's Friday | 12 |
+| the code | 6 |
 ::
 ```
 :::
@@ -122,13 +122,13 @@ Bars turn sideways when their labels are long or there are many of them, so file
 Point at data with [comark-annotate](/annotate/)'s marks: put an `::annotation` inside the chart, after the table, and name the row it marks with `at`, the row's x value as the table writes it. Add `series` to mark one column's value rather than the whole row.
 
 ```md
-::chart{title="Bundle size by package (kB)"}
-| package | size |
+::chart{title="Rubber ducks bought, by team"}
+| team | ducks |
 | --- | --: |
-| annotate | 41.2 |
-| zoom | 18.1 |
-:::annotation{at="annotate" color="red"}
-The largest, with the marks and their notes.
+| backend | 41 |
+| frontend | 18 |
+:::annotation{at="backend" color="red"}
+Bought in bulk after the Tuesday incident.
 :::
 ::
 ```

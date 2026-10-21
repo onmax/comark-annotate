@@ -12,12 +12,12 @@ So a `::chart` holds a Markdown table. The renderer draws the chart from it and 
 
 ::example
 ```md
-::chart{title="Bundle size by package (kB)"}
-| package | size |
+::chart{title="Pizza slices per merged pull request"}
+| team | slices |
 | --- | --: |
-| annotate | 41.2 |
-| embed | 12.4 |
-| zoom | 18.1 |
+| backend | 4.1 |
+| design | 1.2 |
+| frontend | 1.8 |
 ::
 ```
 ::
@@ -32,14 +32,14 @@ The other two plugins draw the same chart from a JSON spec, and the page holds o
   "mark": "bar",
   "data": {
     "values": [
-      { "package": "annotate", "size": 41.2 },
-      { "package": "embed", "size": 12.4 },
-      { "package": "zoom", "size": 18.1 }
+      { "team": "backend", "slices": 4.1 },
+      { "team": "design", "slices": 1.2 },
+      { "team": "frontend", "slices": 1.8 }
     ]
   },
   "encoding": {
-    "x": { "field": "package", "type": "nominal" },
-    "y": { "field": "size", "type": "quantitative", "title": "size (kB)" }
+    "x": { "field": "team", "type": "nominal" },
+    "y": { "field": "slices", "type": "quantitative", "title": "slices per PR" }
   }
 }
 ```
@@ -51,15 +51,15 @@ The other two plugins draw the same chart from a JSON spec, and the page holds o
 {
   "data": {
     "values": [
-      { "package": "annotate", "size": 41.2 },
-      { "package": "embed", "size": 12.4 },
-      { "package": "zoom", "size": 18.1 }
+      { "team": "backend", "slices": 4.1 },
+      { "team": "design", "slices": 1.2 },
+      { "team": "frontend", "slices": 1.8 }
     ]
   },
-  "semantic_types": { "package": "Category", "size": "Quantity" },
+  "semantic_types": { "team": "Category", "slices": "Quantity" },
   "chart_spec": {
     "chartType": "Bar Chart",
-    "encodings": { "x": { "field": "package" }, "y": { "field": "size" } }
+    "encodings": { "x": { "field": "team" }, "y": { "field": "slices" } }
   }
 }
 ```
