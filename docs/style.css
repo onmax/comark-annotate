@@ -572,9 +572,9 @@ th {
   --ca-code-font: var(--mono);
 }
 
-/* The docs' prop tables have no header worth showing. Tables in examples keep theirs, and so do their zoomed copies,
-   which open in a dialog outside main. */
-main th:not(.example-preview th) {
+/* A prop table's two columns need no header. Wider tables compare columns, so they keep theirs, and so do tables in
+   examples and their zoomed copies, which open in a dialog outside main. */
+main thead:not(:has(th:nth-child(3))) th:not(.example-preview th) {
   display: none;
 }
 
