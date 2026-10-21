@@ -3,7 +3,6 @@ import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, join, normalize } from "node:path";
-import { existsSync } from "node:fs";
 
 const output = new URL("../docs/dist/", import.meta.url).pathname;
 // Nitro writes static assets below `public/`; older Nuxt output placed them
