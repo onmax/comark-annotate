@@ -164,6 +164,8 @@ function pointNpmx(npm?: string) {
 }
 
 let run = 0;
+let loadIssues: string[] = [];
+let configLinkInvalid = false;
 async function render() {
   const current = ++run;
   let html = "";
@@ -172,9 +174,13 @@ async function render() {
   try {
     const parsed = await parseMarkdown(editor.value, { plugins: plugins(config) });
     html = await renderHtmlFromDocument(parsed, { components });
-    problems = [...configIssues, ...parsed.meta.issues];
+    problems = [...loadIssues, ...configIssues, ...parsed.meta.issues];
   } catch (error) {
-    problems = [...configIssues, error instanceof Error ? error.message : String(error)];
+    problems = [
+      ...loadIssues,
+      ...configIssues,
+      error instanceof Error ? error.message : String(error),
+    ];
   }
   // A slower render of older text must not replace a newer one.
   if (current !== run) return;
@@ -191,12 +197,18 @@ async function link() {
 }
 
 async function load() {
+  loadIssues = [];
+  configLinkInvalid = false;
   const hash = new URLSearchParams(location.hash.slice(1));
   const code = hash.get("md");
   const config = hash.get("config");
   // A preset keeps whatever config is in the tab, so one config can be tried across them.
   if (config !== null) {
-    configEditor.value = await unpack(config).catch(() => defaultConfig);
+    configEditor.value = await unpack(config).catch(() => {
+      configLinkInvalid = true;
+      loadIssues.push("The link's config is cut off or changed; using the default config.");
+      return defaultConfig;
+    });
     repaint(configEditor);
   } else if (code !== null) configEditor.value = defaultConfig;
   const preset =
@@ -221,6 +233,10 @@ async function load() {
 let timer: ReturnType<typeof setTimeout> | undefined;
 for (const textarea of [editor, configEditor])
   textarea.addEventListener("input", () => {
+    if (textarea === configEditor) {
+      configLinkInvalid = false;
+      loadIssues = [];
+    }
     repaint(textarea);
     clearTimeout(timer);
     timer = setTimeout(async () => {
@@ -236,7 +252,10 @@ for (const textarea of [editor, configEditor])
   });
 share.addEventListener("click", async () => {
   try {
-    if (!location.hash.startsWith("#md=")) history.replaceState(null, "", await link());
+    if (configLinkInvalid || !location.hash.startsWith("#md=")) {
+      history.replaceState(null, "", await link());
+      configLinkInvalid = false;
+    }
     await navigator.clipboard.writeText(location.href);
     share.textContent = "Copied";
     setTimeout(() => (share.textContent = "Copy link"), 1500);
