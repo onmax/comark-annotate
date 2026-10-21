@@ -57,7 +57,7 @@ test("opening and closing the zoom doesn't shift the page sideways", async ({ pa
         shifts.push((entry as PerformanceEntry & { value: number }).value);
     }).observe({ type: "layout-shift" });
   });
-  const heading = page.locator("main h2").first();
+  const heading = page.locator("h1");
   const left = await heading.evaluate((node) => node.getBoundingClientRect().left);
 
   await page.locator(".cc-slide").first().click();
@@ -70,7 +70,7 @@ test("opening and closing the zoom doesn't shift the page sideways", async ({ pa
 });
 
 test("a zoomed table keeps its header row", async ({ page }) => {
-  await page.goto("/zoom/");
+  await page.goto("/zoom/components/");
   const block = page
     .locator("main .example-preview .cz")
     .filter({ has: page.locator("table") })
@@ -83,7 +83,7 @@ test("a zoomed table keeps its header row", async ({ page }) => {
 test("a zoomed block keeps its text styles, so it closes onto the original without a jump", async ({
   page,
 }) => {
-  await page.goto("/zoom/");
+  await page.goto("/zoom/components/");
   const block = page
     .locator("main .example-preview .cz")
     .filter({ has: page.locator("table") })
@@ -115,11 +115,27 @@ test("a zoom opened as another closes keeps scroll restoration off until it clos
 });
 
 test("a group leaves out the items in a closed tab, and its strip is a group", async ({ page }) => {
-  await page.goto("/zoom/");
-  // The Group tab above holds the same group, hidden.
-  const item = page.locator("main .example-preview [data-zoom-group='tour']").last();
-  await item.scrollIntoViewIfNeeded();
-  await item.click();
+  const item = (title: string, src: string) =>
+    `::zoom{group="tour" title="${title}"}\n![${title}](${src})\n::`;
+  await fixture(
+    page,
+    await render(
+      [
+        item("Hidden before", "/before.png"),
+        item("Hidden after", "/after.png"),
+        item("Before", "/before.png"),
+        item("After", "/after.png"),
+      ].join("\n\n"),
+    ),
+  );
+  // The first two go in a hidden wrapper, the way a closed tab hides its panel.
+  await page.evaluate(() => {
+    const wrapper = Object.assign(document.createElement("div"), { hidden: true });
+    const items = document.querySelectorAll("[data-zoom-group='tour']");
+    items[0]!.before(wrapper);
+    wrapper.append(items[0]!, items[1]!);
+  });
+  await page.locator("[data-zoom-group='tour']").last().click();
   await expect(page.locator(".cz-count")).toHaveText("2 / 2");
   await expect(page.locator(".cz-strip")).toHaveAttribute("role", "group");
   await expect(page.locator(".cz-thumb")).toHaveCount(2);

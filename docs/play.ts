@@ -1,0 +1,120 @@
+// The playground: renders the editor's Markdown in the browser with every plugin that runs there. comark-include
+// reads files and comark-lint is a checker, so they're left out, and so is Shiki, which would triple the bundle.
+import { renderHtmlFromDocument } from "@comark/html";
+import { parseMarkdown } from "comark";
+import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
+import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
+import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
+import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
+import githubCallouts, {
+  components as githubCalloutsComponents,
+} from "../packages/github-callouts/src/html.ts";
+import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
+import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
+import { previewDocument } from "./preview.ts";
+
+const plugins = () => [annotate(), carousel(), charts(), embed(), githubCallouts(), tabs(), zoom()];
+const components = {
+  ...annotateComponents,
+  ...carouselComponents,
+  ...chartsComponents,
+  ...embedComponents,
+  ...githubCalloutsComponents,
+  ...tabsComponents,
+  ...zoomComponents,
+};
+
+function find<T extends Element>(selector: string, type: new () => T) {
+  const element = document.querySelector(selector);
+  if (!(element instanceof type)) throw new Error(`The playground needs ${selector}.`);
+  return element;
+}
+const editor = find(".play textarea", HTMLTextAreaElement);
+const preview = find(".play-preview", HTMLIFrameElement);
+const issues = find(".play-issues", HTMLUListElement);
+const share = find(".play-share", HTMLButtonElement);
+const presets: { id: string; source: string }[] = JSON.parse(
+  find("#presets", HTMLScriptElement).text,
+);
+
+// A shared link carries its Markdown in the hash, deflated, so nothing is stored anywhere.
+async function pack(text: string) {
+  const stream = new Blob([text]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+  const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+}
+async function unpack(code: string) {
+  const binary = atob(code.replaceAll("-", "+").replaceAll("_", "/"));
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Response(stream).text();
+}
+
+function showIssues(list: string[]) {
+  issues.replaceChildren(
+    ...list.map((issue) => Object.assign(document.createElement("li"), { textContent: issue })),
+  );
+  issues.hidden = !list.length;
+}
+
+function markPreset(id?: string) {
+  for (const link of document.querySelectorAll<HTMLAnchorElement>(".pages a[data-preset]"))
+    link.toggleAttribute("aria-current", link.dataset.preset === id);
+}
+
+let run = 0;
+async function render() {
+  const current = ++run;
+  let html = "";
+  let problems: string[] = [];
+  try {
+    const parsed = await parseMarkdown(editor.value, { plugins: plugins() });
+    html = await renderHtmlFromDocument(parsed, { components });
+    problems = parsed.meta.issues;
+  } catch (error) {
+    problems = [error instanceof Error ? error.message : String(error)];
+  }
+  // A slower render of older text must not replace a newer one.
+  if (current !== run) return;
+  const top = preview.contentWindow?.scrollY ?? 0;
+  preview.addEventListener("load", () => preview.contentWindow?.scrollTo(0, top), { once: true });
+  preview.srcdoc = previewDocument(html);
+  showIssues(problems);
+}
+
+async function load() {
+  const hash = new URLSearchParams(location.hash.slice(1));
+  const code = hash.get("md");
+  const preset =
+    presets.find((preset) => preset.id === hash.get("preset")) ??
+    (code === null ? presets[0] : undefined);
+  if (preset) editor.value = preset.source;
+  else if (code !== null)
+    editor.value = await unpack(code).catch(() => "The link's Markdown is cut off or changed.");
+  markPreset(preset?.id);
+  await render();
+}
+
+let timer: ReturnType<typeof setTimeout> | undefined;
+editor.addEventListener("input", () => {
+  clearTimeout(timer);
+  timer = setTimeout(async () => {
+    markPreset();
+    // Replaced, not pushed: Back leaves the playground instead of stepping through keystrokes.
+    history.replaceState(null, "", `#md=${await pack(editor.value)}`);
+    await render();
+  }, 200);
+});
+share.addEventListener("click", async () => {
+  if (!location.hash.startsWith("#md="))
+    history.replaceState(null, "", `#md=${await pack(editor.value)}`);
+  await navigator.clipboard.writeText(location.href);
+  share.textContent = "Copied";
+  setTimeout(() => (share.textContent = "Copy link"), 1500);
+});
+addEventListener("hashchange", load);
+// The build already rendered the first preset, so only a link to something else needs a render now.
+if (location.hash) await load();
+else markPreset(presets[0]?.id);
