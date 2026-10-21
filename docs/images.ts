@@ -10,7 +10,7 @@ import annotate, { components as annotateComponents } from "../packages/annotate
 import githubCallouts, {
   components as githubCalloutsComponents,
 } from "../packages/github-callouts/src/html.ts";
-import { marks } from "../packages/annotate/src/marks.ts";
+import { draw } from "../packages/annotate/src/marks.ts";
 
 const root = new URL("./", import.meta.url);
 const pub = new URL("public/", root);
@@ -130,7 +130,8 @@ async function shoot(browser: Browser, screen: Screen, dark: boolean) {
   return { png, boxes };
 }
 
-const underline = `<svg viewBox="${marks.underline.viewBox}" preserveAspectRatio="none" aria-hidden="true">${marks.underline.paths.map((d) => `<path d="${d}"/>`).join("")}</svg>`;
+const underlineMark = draw("underline", 200, 60, 0);
+const underline = `<svg viewBox="${underlineMark.viewBox}" preserveAspectRatio="none" aria-hidden="true">${underlineMark.paths.map((d) => `<path d="${d}"/>`).join("")}</svg>`;
 const logo = `<svg viewBox="0 0 32 32" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="#f5f5f5" stroke-width="2.6" d="M13.6 9.5 11.8 22.5M20.2 9.5 18.4 22.5M9.6 13.6H23.2M8.8 18.4H22.4"/><path stroke="${red}" stroke-width="2.2" d="M9.3 7.3C15.3 3.7 27.1 4.5 28.7 11.5 30.4 19.1 22 26.7 12.8 27.2 5.9 27.6 2 23.5 3.5 18.1 4.8 13.3 11.1 9.7 18.1 9.6"/></g></svg>`;
 
 const browser = await chromium.launch();
