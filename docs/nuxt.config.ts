@@ -53,6 +53,11 @@ async function writeAssets() {
       skills: skills.map(({ name, description }) => ({ name, description, files: ["SKILL.md"] })),
     }),
   );
+
+  // The playground is a standalone browser app. Keep its generated HTML and
+  // script under Nitro's public root so `/play/` remains available alongside
+  // the Nuxt-rendered documentation pages.
+  await cp(new URL("dist/play/", root), new URL("play/", generated), { recursive: true });
 }
 
 export default defineNuxtConfig({
