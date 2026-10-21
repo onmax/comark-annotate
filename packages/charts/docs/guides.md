@@ -1,6 +1,6 @@
 ---
 title: Guides
-description: Validation, theming, chart size, and renderers.
+description: Validation, chart size, and renderers.
 ---
 
 ## Validation
@@ -26,29 +26,6 @@ It reports unknown props and types, columns that `x` or `y` name but the table d
 Annotations are checked too: a missing or unknown `at`, a `series` the chart doesn't draw, and the mark, color, and side, as comark-annotate checks them on screenshots.
 
 Rendering never throws. A cell that isn't a number is left out, a mark it can't place is left out, a type that doesn't fit falls back to the default, a pie or a waterfall draws its first column, and a chart with nothing to draw shows its content as it is. [comark-linter](/lint/) reports the same issues with their line numbers.
-
-## Theming
-
-The styles follow [shadcn/ui](https://ui.shadcn.com) and the shared `--comark-*` tokens, like the other plugins, so a chart switches with the page's dark mode:
-
-| Token | Falls back to | Used for |
-| --- | --- | --- |
-| `--comark-foreground` | `--foreground` | Values and the caption |
-| `--comark-muted` | `--muted-foreground` | Axis labels, the **Data** toggle, waterfall totals |
-| `--comark-border` | `--border` | Grid lines and the data table's rules |
-| `--comark-background` | `--background` | The edges between slices and around points |
-| `--comark-font` | `--font-sans` | All text |
-| `--comark-chart-1` to `-6` | `--chart-1` to `-6` | Series, in column order |
-
-Without either, series use six colors that read on light and dark pages: blue, orange, green, purple, rose, and yellow. A waterfall's increases and decreases are series 3 and 5.
-
-```css
-:root {
-  --comark-chart-1: oklch(0.65 0.2 250);
-}
-```
-
-The rules sit in a `comark` CSS layer, so any plain rule of your own wins. A chart is a card, a `figure.cch` with `data-type`, holding a `figcaption`, the SVG in `.cch-plot`, and the table in `details.cch-data` as its footer. Marks use comark-annotate's styles and colors.
 
 ## Size
 

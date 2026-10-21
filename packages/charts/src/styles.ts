@@ -11,8 +11,10 @@ const swap = (hex: string, color: string, props = ["fill", "stroke"]) =>
  */
 export const css = `@layer comark{${[
   theme(".cch"),
+  // The Data footer runs to the card's edges, so it spans the same side padding the card has.
+  ":where(.cch){--cch-padding:1.5rem}",
   // A card, as shadcn/ui frames its charts: the title on top, the chart, and the data as its footer.
-  ".cch{margin:1.5rem 0;padding:1.25rem 1.5rem 0;border:1px solid var(--_comark-border);border-radius:var(--_comark-radius);background:var(--_comark-background);color:var(--_comark-foreground);font-family:var(--_comark-font)}",
+  ".cch{margin:1.5rem 0;padding:1.25rem var(--cch-padding) 0;border:1px solid var(--_comark-border);border-radius:var(--_comark-radius);background:var(--_comark-background);color:var(--_comark-foreground);font-family:var(--_comark-font)}",
   ".cch figcaption{margin-bottom:1rem;font-weight:600;font-size:1rem;line-height:1.5rem}",
   // Scaled, the SVG's text would shrink past reading or swell past its labels, so a narrow column scrolls it instead.
   // Only the chart's own SVG: a mark's circle and arrow are SVGs too, and `height:auto` would stretch them to their viewBox.
@@ -31,7 +33,7 @@ export const css = `@layer comark{${[
   ...SERIES.map((hex, index) =>
     swap(hex, `var(--comark-chart-${index + 1},var(--chart-${index + 1},${hex}))`),
   ),
-  ".cch-data{margin:1rem -1.5rem 0;padding:.75rem 1.5rem;border-top:1px solid var(--_comark-border);color:var(--_comark-muted);font-size:.875rem;line-height:1.25rem}",
+  ".cch-data{margin:1rem calc(-1 * var(--cch-padding)) 0;padding:.75rem var(--cch-padding);border-top:1px solid var(--_comark-border);color:var(--_comark-muted);font-size:.875rem;line-height:1.25rem}",
   ".cch-data summary{width:fit-content;cursor:pointer}",
   ".cch>table{margin-bottom:1.25rem}",
   ".cch-data summary:focus-visible{border-radius:calc(var(--_comark-radius) - 4px);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--_comark-ring) 50%,transparent)}",
