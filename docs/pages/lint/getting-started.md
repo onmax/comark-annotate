@@ -1,14 +1,14 @@
 ---
 title: Getting started
-description: Run comark-lint from the command line, a script, or Vite Doctor.
-install: pnpm add -D comark-lint
+description: Run lint-comark from the command line, a script, or Vite Doctor.
+install: pnpm add -D lint-comark
 ---
 
 ## Command line
 
 ```sh
-pnpm comark-lint "docs/**/*.md"
-pnpm comark-lint review.md --format json
+pnpm lint-comark "docs/**/*.md"
+pnpm lint-comark review.md --format json
 ```
 
 It checks each file with the plugins and components of every comark-plugins package installed: annotate, carousel, github-callouts, and zoom. It prints one `file:line:column rule message` line per problem and exits with 1 if there are any, or 2 if a file can't be read.
@@ -16,8 +16,8 @@ It checks each file with the plugins and components of every comark-plugins pack
 Components of your own go in a config, passed with `--config`:
 
 ```ts
-// comark-lint.config.ts
-import { defineConfig } from "comark-lint";
+// lint-comark.config.ts
+import { defineConfig } from "lint-comark";
 import mermaid from "./mermaid.ts";
 
 export default defineConfig({
@@ -31,7 +31,7 @@ Its `plugins` and `components` are added to the installed packages'. `components
 ## Library
 
 ```ts
-import { lint } from "comark-lint";
+import { lint } from "lint-comark";
 import annotate, { components } from "comark-annotate/html";
 
 const diagnostics = await lint(markdown, { plugins: [annotate()], components });
@@ -42,4 +42,4 @@ const diagnostics = await lint(markdown, { plugins: [annotate()], components });
 
 ## Vite Doctor
 
-`comark-lint/doctor` runs the same rules inside [Vite Doctor](/lint/vite-doctor/), each with its own code.
+`lint-comark/doctor` runs the same rules inside [Vite Doctor](/lint/vite-doctor/), each with its own code.

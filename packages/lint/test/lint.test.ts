@@ -82,7 +82,7 @@ describe("comark/unknown-component", () => {
         line: 6,
         column: 5,
         message:
-          "`:badge` on line 6 is not a known component. Known: `annotation`, `compare`, `diff`, `screenshot`. If it is yours, add it to the components you give comark-lint.",
+          "`:badge` on line 6 is not a known component. Known: `annotation`, `compare`, `diff`, `screenshot`. If it is yours, add it to the components you give lint-comark.",
       },
     ]);
   });
@@ -298,11 +298,11 @@ describe("lint()", () => {
     expect(found.map(({ rule, message }) => [rule, message])).toEqual([
       [
         "comark/broken-anchor",
-        "comark-lint crashed while checking `comark/broken-anchor`: Cannot read properties of null (reading 'id').",
+        "lint-comark crashed while checking `comark/broken-anchor`: Cannot read properties of null (reading 'id').",
       ],
       [
         "comark/unsafe-url",
-        "comark-lint crashed while checking `comark/unsafe-url`: Cannot read properties of null (reading 'href').",
+        "lint-comark crashed while checking `comark/unsafe-url`: Cannot read properties of null (reading 'href').",
       ],
       ["comark/unclosed-block", "`::compare` opened on line 1 is never closed."],
     ]);
@@ -319,7 +319,7 @@ describe("positions", () => {
   });
 });
 
-describe("comark-lint CLI", () => {
+describe("lint-comark CLI", () => {
   const cli = (...args: string[]) =>
     promisify(execFile)(process.execPath, [
       new URL("../dist/cli.mjs", import.meta.url).pathname,
@@ -327,7 +327,7 @@ describe("comark-lint CLI", () => {
     ]);
 
   it("prints file:line:col, the rule, and the fix, and exits with 1 on any problem", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "comark-lint-"));
+    const dir = await mkdtemp(join(tmpdir(), "lint-comark-"));
     await writeFile(join(dir, "ok.md"), `::screenshot{src="a.png" alt="A"}\n::\n`);
     await writeFile(join(dir, "bad.md"), `# Title\n\n::compare\n`);
     expect((await cli(join(dir, "ok.md"))).stdout).toBe("No problems.\n");
@@ -350,25 +350,25 @@ describe("comark-lint CLI", () => {
 
     await expect(cli(join(dir, "missing.md"))).rejects.toMatchObject({
       code: 2,
-      stderr: expect.stringContaining(`comark-lint: can't read ${join(dir, "missing.md")}`),
+      stderr: expect.stringContaining(`lint-comark: can't read ${join(dir, "missing.md")}`),
     });
   });
 
   it("adds a config's components to the installed packages'", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "comark-lint-"));
+    const dir = await mkdtemp(join(tmpdir(), "lint-comark-"));
     await writeFile(join(dir, "steps.md"), `::steps\n::\n`);
     await writeFile(
-      join(dir, "comark-lint.config.mjs"),
+      join(dir, "lint-comark.config.mjs"),
       `export default { components: ["steps"] };\n`,
     );
     await expect(cli(join(dir, "steps.md"))).rejects.toMatchObject({ code: 1 });
     expect(
-      (await cli(join(dir, "steps.md"), "--config", join(dir, "comark-lint.config.mjs"))).stdout,
+      (await cli(join(dir, "steps.md"), "--config", join(dir, "lint-comark.config.mjs"))).stdout,
     ).toBe("No problems.\n");
   });
 });
 
-describe("comark-lint/doctor", () => {
+describe("lint-comark/doctor", () => {
   it("reports Markdown problems as Vite Doctor diagnostics", async () => {
     const result = await runProjectFixture({
       framework: "vite",
