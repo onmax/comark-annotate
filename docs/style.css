@@ -523,10 +523,9 @@ kbd {
   transition: background-color 150ms ease;
 }
 
-.grid svg {
+.grid .ci {
   grid-row: span 2;
   color: var(--faint);
-  stroke-width: 1.5;
   transition: color 150ms ease;
 }
 
@@ -573,7 +572,7 @@ kbd {
     background: var(--soft);
   }
 
-  .grid a:hover svg {
+  .grid a:hover .ci {
     color: var(--fg);
   }
 }
@@ -775,10 +774,6 @@ kbd {
   transition:
     color 150ms ease,
     background-color 150ms ease;
-}
-
-.rail a svg {
-  flex: none;
 }
 
 .rail a:hover,
@@ -2070,7 +2065,7 @@ main img {
   gap: 0.5rem;
 }
 
-.pages .nav-group svg {
+.pages .nav-group .ci {
   color: var(--faint);
 }
 

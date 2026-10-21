@@ -9,6 +9,7 @@ import shiki from "@comark/html/plugins/shiki";
 import type { ElementNode, Node, NodeHandler } from "comark";
 import { parseMarkdown } from "comark";
 import { escapeHtml, textContent } from "comark/utils";
+import { icons as lucide } from "@iconify-json/lucide";
 import dark from "shiki/themes/vitesse-dark.mjs";
 import light from "shiki/themes/vitesse-light.mjs";
 import { build } from "vite";
@@ -20,6 +21,12 @@ import embed, { components as embedComponents } from "../packages/embed/src/html
 import githubCallouts, {
   components as githubCalloutsComponents,
 } from "../packages/github-callouts/src/html.ts";
+import icon, {
+  components as iconComponents,
+  createIcons,
+  css as iconCss,
+  iconHtml,
+} from "../packages/icon/src/html.ts";
 import include from "../packages/include/src/index.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
@@ -39,6 +46,7 @@ const browserPlugins = () => [
   charts(),
   embed(),
   githubCallouts(),
+  icon(),
   tabs(),
   zoom(),
 ];
@@ -55,31 +63,43 @@ const components = {
   ...chartsComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
+  ...iconComponents,
   ...tabsComponents,
   ...zoomComponents,
 };
 
-// Lucide's icons, by name, and annotate's own: a hand-drawn loop like its marks.
-const icons = {
-  "book-open": `<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>`,
-  "flask-conical": `<path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/>`,
-  "scribble-loop": `<path d="M7 5.5C11.5 2.8 20.3 3.4 21.5 8.6 22.8 14.3 16.5 20 9.6 20.4 4.4 20.7 1.5 17.6 2.6 13.6 3.6 10 8.3 7.3 13.6 7.2"/>`,
-  "chart-column": `<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>`,
-  "tv-minimal-play": `<path d="M10 7.75a.75.75 0 0 1 1.142-.638l3.664 2.249a.75.75 0 0 1 0 1.278l-3.664 2.25a.75.75 0 0 1-1.142-.64z"/><path d="M7 21h10"/><rect width="20" height="14" x="2" y="3" rx="2"/>`,
-  "message-square-warning": `<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v2"/><path d="M12 13h.01"/>`,
-  "zoom-in": `<circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/>`,
-  "gallery-horizontal-end": `<path d="M2 7v10"/><path d="M6 5v14"/><rect width="12" height="18" x="10" y="3" rx="2"/>`,
-  "panels-top-left": `<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>`,
-  "file-input": `<path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M2 15h10"/><path d="m9 18 3-3-3-3"/>`,
-  "list-checks": `<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>`,
-  "arrow-left": `<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>`,
-  "arrow-right": `<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>`,
-  "arrow-up-right": `<path d="M7 7h10v10"/><path d="M7 17 17 7"/>`,
-  search: `<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>`,
+// The site's own icons, drawn the way `:icon` draws them: Lucide's, and annotate's, a hand-drawn loop like its marks.
+const ownIcons = {
+  "scribble-loop": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5.5C11.5 2.8 20.3 3.4 21.5 8.6 22.8 14.3 16.5 20 9.6 20.4 4.4 20.7 1.5 17.6 2.6 13.6 3.6 10 8.3 7.3 13.6 7.2"/></svg>`,
 };
-type IconName = keyof typeof icons;
-const icon = (name: IconName, size = 18) =>
-  `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name]}</svg>`;
+const lucideNames = [
+  "arrow-left",
+  "arrow-right",
+  "arrow-up-right",
+  "book-open",
+  "chart-column",
+  "file-input",
+  "flask-conical",
+  "gallery-horizontal-end",
+  "list-checks",
+  "message-square-warning",
+  "panels-top-left",
+  "search",
+  "shapes",
+  "tv-minimal-play",
+  "zoom-in",
+] as const;
+type IconName = (typeof lucideNames)[number] | keyof typeof ownIcons;
+const iconId = (name: IconName) => (name in ownIcons ? `site:${name}` : `lucide:${name}`);
+const siteIcons = await createIcons({
+  collections: { lucide, site: ownIcons },
+  fetch: false,
+}).resolve([...lucideNames, ...Object.keys(ownIcons)].map((name) => iconId(name as IconName)));
+const siteIcon = (name: IconName, size = 18) => {
+  const found = siteIcons.get(iconId(name));
+  if (!found || "problem" in found) throw new Error(`docs/build.ts: no icon "${name}".`);
+  return iconHtml(found).replace('style="', `style="--comark-icon-size:${size}px;`);
+};
 
 // The rail, in order: the docs, the playground, then one section per package. A package whose folder isn't in
 // pages/ yet, such as one still on a branch, is left out.
@@ -113,6 +133,12 @@ const packages = (
       blurb: "GitHub's alerts as callouts",
       credits:
         'Syntax from <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts">GitHub\'s alerts</a>.',
+    },
+    {
+      slug: "icon",
+      group: "Review blocks",
+      icon: "shapes",
+      blurb: "Iconify icons in Markdown",
     },
     {
       slug: "zoom",
@@ -232,7 +258,7 @@ const example: NodeHandler = async ([, attrs, ...children], state) => {
   if (preview.meta.issues.length)
     throw new Error(`Example "${str(attrs.label)}":\n${preview.meta.issues.join("\n")}`);
   const play = playable(source)
-    ? `<a class="example-play" href="${escapeHtml(playLink(source))}">${icon("flask-conical", 13)}Playground</a>`
+    ? `<a class="example-play" href="${escapeHtml(playLink(source))}">${siteIcon("flask-conical", 13)}Playground</a>`
     : "";
   return (
     `<div class="example"><div class="example-bar">${play}<div class="seg" role="group" aria-label="View">` +
@@ -288,7 +314,7 @@ const hero: NodeHandler = async ([, , ...children], state) => {
     `<div class="window" style="--typed:${Math.round(at)}ms"><div class="window-bar">` +
     `<div class="window-tabs" role="tablist" aria-label="The example"><button type="button" role="tab" id="window-source-tab" aria-controls="window-source" aria-selected="true">review.md</button>` +
     `<button type="button" role="tab" id="window-page-tab" aria-controls="window-page" aria-selected="false" tabindex="-1">Rendered</button></div>` +
-    `<a class="window-play" href="${escapeHtml(playLink(source))}">${icon("flask-conical", 13)}<span>Open in playground</span></a></div>` +
+    `<a class="window-play" href="${escapeHtml(playLink(source))}">${siteIcon("flask-conical", 13)}<span>Open in playground</span></a></div>` +
     `<div class="window-body"><div class="window-source" id="window-source" role="tabpanel" aria-labelledby="window-source-tab" data-active>${code}</div>` +
     `<div class="window-page" id="window-page" role="tabpanel" aria-labelledby="window-page-tab" inert>${await state.flow(["div", {}, ...page.nodes], state)}</div></div></div></section>`
   );
@@ -382,7 +408,7 @@ const thumbnails = new Map(
         .replace(/<details class="cch-data">[\s\S]*?<\/details>/g, "")
         .replace(
           /<iframe\b[^>]*><\/iframe>/g,
-          `<span class="preset-player">${icon("tv-minimal-play", 128)}</span>`,
+          `<span class="preset-player">${siteIcon("tv-minimal-play", 128)}</span>`,
         )
         .replace(/\s(id|for|aria-controls|aria-labelledby)="[^"]*"/g, "")
         .replace(/<img\b/g, '<img loading="lazy"');
@@ -397,7 +423,7 @@ const packageGrid: NodeHandler = () =>
     .filter((section) => section.npm)
     .map(
       (section) =>
-        `<li><a href="${href(section.slug)}">${icon(section.icon, 24)}<strong>${escapeHtml(section.label)}</strong><span>${escapeHtml(section.blurb ?? "")}</span></a><button type="button" class="grid-copy" data-copy="pnpm add ${escapeHtml(section.npm!)}" aria-label="Copy pnpm add ${escapeHtml(section.npm!)}">${copyIcon}</button></li>`,
+        `<li><a href="${href(section.slug)}">${siteIcon(section.icon, 24)}<strong>${escapeHtml(section.label)}</strong><span>${escapeHtml(section.blurb ?? "")}</span></a><button type="button" class="grid-copy" data-copy="pnpm add ${escapeHtml(section.npm!)}" aria-label="Copy pnpm add ${escapeHtml(section.npm!)}">${copyIcon}</button></li>`,
     )
     .join("")}</ul>`;
 
@@ -407,7 +433,7 @@ const drop: NodeHandler = async ([, , ...children], state) => {
   const pitch = children.filter((child) => !steps.includes(child));
   return (
     `<section class="drop"><div class="drop-pitch"><img src="/drop.svg" alt="" width="36" height="36">${await state.flow(["div", {}, ...pitch], state)}` +
-    `<div class="actions"><a class="button primary" href="https://drop.vitehub.dev">Try Drop${icon("arrow-up-right", 15)}</a><a class="button" href="/recipes/share/">Read the recipe</a></div></div>` +
+    `<div class="actions"><a class="button primary" href="https://drop.vitehub.dev">Try Drop${siteIcon("arrow-up-right", 15)}</a><a class="button" href="/recipes/share/">Read the recipe</a></div></div>` +
     `${(await Promise.all(steps.map((step) => state.one(step, state)))).join("")}</section>`
   );
 };
@@ -458,7 +484,7 @@ const rail = (current: Section) =>
   `<nav class="rail" aria-label="Sections">${sections
     .map(
       (section, i) =>
-        `${i && section.group !== sections[i - 1].group ? "<hr>" : ""}<a href="${href(section.lists[0]?.slugs[0] ?? section.slug)}"${section === current ? ' aria-current="true"' : ""}>${icon(section.icon)}<span class="rail-label">${escapeHtml(section.label)}</span></a>`,
+        `${i && section.group !== sections[i - 1].group ? "<hr>" : ""}<a href="${href(section.lists[0]?.slugs[0] ?? section.slug)}"${section === current ? ' aria-current="true"' : ""}>${siteIcon(section.icon)}<span class="rail-label">${escapeHtml(section.label)}</span></a>`,
     )
     .join(
       "",
@@ -493,11 +519,11 @@ const column = (section: Section, current: string) => {
   return `<nav class="pages" aria-label="${escapeHtml(section.label)}"><p class="pages-title">${escapeHtml(section.npm ?? section.label)}</p>${lists
     .map(
       (list) =>
-        `${list.title ? `<p class="nav-group">${list.icon ? icon(list.icon, 14) : ""}${escapeHtml(list.title)}</p>` : ""}${list.links.join("")}`,
+        `${list.title ? `<p class="nav-group">${list.icon ? siteIcon(list.icon, 14) : ""}${escapeHtml(list.title)}</p>` : ""}${list.links.join("")}`,
     )
     .join(
       "",
-    )}${section.npm && preset ? `<a class="pages-play" href="/play/#preset=${preset.id}">${icon("flask-conical", 15)}Open in playground</a>` : ""}</nav>`;
+    )}${section.npm && preset ? `<a class="pages-play" href="/play/#preset=${preset.id}">${siteIcon("flask-conical", 15)}Open in playground</a>` : ""}</nav>`;
 };
 // Previous and next page in the section.
 function pager(page: Page) {
@@ -507,7 +533,7 @@ function pager(page: Page) {
   if (!previous && !next) return "";
   const link = (target: Page | undefined, rel: string, arrow: IconName) =>
     target
-      ? `<a class="pager-${rel}" rel="${rel}" href="${href(target.slug)}"><small>${rel === "prev" ? "Previous" : "Next"}</small><span>${rel === "prev" ? icon(arrow, 14) : ""}${escapeHtml(target.label)}${rel === "next" ? icon(arrow, 14) : ""}</span></a>`
+      ? `<a class="pager-${rel}" rel="${rel}" href="${href(target.slug)}"><small>${rel === "prev" ? "Previous" : "Next"}</small><span>${rel === "prev" ? siteIcon(arrow, 14) : ""}${escapeHtml(target.label)}${rel === "next" ? siteIcon(arrow, 14) : ""}</span></a>`
       : "<span></span>";
   return `<nav class="pager" aria-label="Pages">${link(previous, "prev", "arrow-left")}${link(next, "next", "arrow-right")}</nav>`;
 }
@@ -784,19 +810,19 @@ function shell(options: {
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<style>${style}</style>${options.head ?? ""}
+<style>${style}${iconCss}</style>${options.head ?? ""}
 </head>
 <body>
 <header class="top">
 <div class="top-start"><a class="name" href="/">${logo}comark plugins</a>${options.landing ? `<nav class="top-links" aria-label="Site"><a href="/guide/renderers/">Docs</a><a href="/play/">Playground</a><a href="https://drop.vitehub.dev">Drop</a></nav>` : ""}</div>
-<button type="button" class="search-open" aria-haspopup="dialog" hidden>${icon("search", 15)}<span>Search docs</span><kbd>Ctrl K</kbd></button>
+<button type="button" class="search-open" aria-haspopup="dialog" hidden>${siteIcon("search", 15)}<span>Search docs</span><kbd>Ctrl K</kbd></button>
 <div class="top-end">
 <nav>${npmxLink(npm)}${githubLink}</nav>
-<details class="menu"><summary aria-label="Menu" title="Menu">${menuIcon}</summary><div class="menu-panel"><button type="button" class="search-open menu-search" aria-haspopup="dialog" hidden>${icon("search", 15)}<span>Search docs</span></button>${nav}</div></details>
+<details class="menu"><summary aria-label="Menu" title="Menu">${menuIcon}</summary><div class="menu-panel"><button type="button" class="search-open menu-search" aria-haspopup="dialog" hidden>${siteIcon("search", 15)}<span>Search docs</span></button>${nav}</div></details>
 </div>
 </header>
 <dialog class="search" aria-label="Search the docs">
-<div class="search-field">${icon("search", 16)}<input type="text" enterkeyhint="search" role="combobox" aria-label="Search the docs" aria-controls="search-results" aria-expanded="false" aria-autocomplete="list" placeholder="Search the docs" autocomplete="off" spellcheck="false"><kbd>Esc</kbd><button type="button" class="search-close">Cancel</button></div>
+<div class="search-field">${siteIcon("search", 16)}<input type="text" enterkeyhint="search" role="combobox" aria-label="Search the docs" aria-controls="search-results" aria-expanded="false" aria-autocomplete="list" placeholder="Search the docs" autocomplete="off" spellcheck="false"><kbd>Esc</kbd><button type="button" class="search-close">Cancel</button></div>
 <div id="search-results" class="search-results" role="listbox" aria-label="Results"></div>
 <p class="search-empty" role="status" hidden>No page or heading matches.</p>
 </dialog>
@@ -821,7 +847,7 @@ await writeFile(
     description: landing.tagline,
     body: `<div class="landing">
 <div class="landing-hero enter"><div><h1>${escapeHtml(landing.headline)}</h1><p>${escapeHtml(landing.tagline)}</p></div>
-<div>${installerFor(landing.install, "")}<div class="actions"><a class="button primary" href="/play/">${icon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the docs${icon("arrow-right", 15)}</a></div></div></div>
+<div>${installerFor(landing.install, "")}<div class="actions"><a class="button primary" href="/play/">${siteIcon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the docs${siteIcon("arrow-right", 15)}</a></div></div></div>
 <main class="enter" style="--i:1">${await renderHtmlFromDocument(landing.document, { components: { ...components, packages: packageGrid, drop, hero } })}</main>
 ${footer()}
 </div>

@@ -1,5 +1,5 @@
 // The playground: renders the editor's Markdown in the browser with every plugin that runs there. comark-include
-// reads files and comark-lint is a checker, so they're left out, and so is Shiki, which would triple the bundle.
+// reads files and lint-comark is a checker, so they're left out, and so is Shiki, which would triple the bundle.
 import { renderHtmlFromDocument } from "@comark/html";
 import { parseMarkdown } from "comark";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
@@ -9,6 +9,7 @@ import embed, { components as embedComponents } from "../packages/embed/src/html
 import githubCallouts, {
   components as githubCalloutsComponents,
 } from "../packages/github-callouts/src/html.ts";
+import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
 import { defaultConfig, type PlayConfig, readConfig } from "./config.ts";
@@ -20,6 +21,7 @@ const plugins = (config: PlayConfig) => [
   charts(),
   embed(),
   githubCallouts(config["comark-github-callouts"]),
+  icon(),
   tabs(),
   zoom(config["comark-zoom"]),
 ];
@@ -29,6 +31,7 @@ const components = {
   ...chartsComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
+  ...iconComponents,
   ...tabsComponents,
   ...zoomComponents,
 };
@@ -164,6 +167,7 @@ function pointNpmx(npm?: string) {
 }
 
 let run = 0;
+let loadIssues: string[] = [];
 async function render() {
   const current = ++run;
   let html = "";
@@ -172,9 +176,13 @@ async function render() {
   try {
     const parsed = await parseMarkdown(editor.value, { plugins: plugins(config) });
     html = await renderHtmlFromDocument(parsed, { components });
-    problems = [...configIssues, ...parsed.meta.issues];
+    problems = [...loadIssues, ...configIssues, ...parsed.meta.issues];
   } catch (error) {
-    problems = [...configIssues, error instanceof Error ? error.message : String(error)];
+    problems = [
+      ...loadIssues,
+      ...configIssues,
+      error instanceof Error ? error.message : String(error),
+    ];
   }
   // A slower render of older text must not replace a newer one.
   if (current !== run) return;
@@ -191,12 +199,16 @@ async function link() {
 }
 
 async function load() {
+  loadIssues = [];
   const hash = new URLSearchParams(location.hash.slice(1));
   const code = hash.get("md");
   const config = hash.get("config");
   // A preset keeps whatever config is in the tab, so one config can be tried across them.
   if (config !== null) {
-    configEditor.value = await unpack(config).catch(() => defaultConfig);
+    configEditor.value = await unpack(config).catch(() => {
+      loadIssues.push("The link's config is cut off or changed; using the default config.");
+      return defaultConfig;
+    });
     repaint(configEditor);
   } else if (code !== null) configEditor.value = defaultConfig;
   const preset =
@@ -221,6 +233,9 @@ async function load() {
 let timer: ReturnType<typeof setTimeout> | undefined;
 for (const textarea of [editor, configEditor])
   textarea.addEventListener("input", () => {
+    if (textarea === configEditor) {
+      loadIssues = [];
+    }
     repaint(textarea);
     clearTimeout(timer);
     timer = setTimeout(async () => {
