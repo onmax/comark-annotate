@@ -253,7 +253,7 @@ const sections: Section[] = [
     // A package's pages, in this order when it has them.
     lists: [
       {
-        slugs: ["", "getting-started", "components", "syntax", "guides", "vite-doctor"]
+        slugs: ["", "getting-started", "components", "syntax", "guides", "theming", "vite-doctor"]
           .map((page) => (page ? `${pkg.slug}/${page}` : pkg.slug))
           .filter((slug) => existsSync(new URL(`pages/${fileOf(slug)}`, root))),
       },
