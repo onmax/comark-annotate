@@ -52,4 +52,4 @@ A click sends a `comark-code-action` event from the block that bubbles up to the
 
 Each entry exports the parse plugin as `default` and the renderer's `components`.
 
-The buttons read shadcn's CSS variables, such as `--background` and `--border`, when the page has them, and use its neutral theme otherwise. Set the `--comark-*` tokens to theme every comark plugin at once. The rules sit in a `comark` CSS layer, so any plain rule of your own wins, except the one that wraps lines. See [Theming](https://comark.onmax.me/guide/theming/).
+The buttons read shadcn's CSS variables, such as `--background` and `--border`, when the page has them, and use its neutral theme otherwise. Set the `--comark-*` tokens to theme every comark plugin at once. The rules sit in a `comark` CSS layer, so any plain rule of your own wins, except the one that wraps lines. `--ck-inset` moves the bar and `--ck-button-size` sizes its buttons; see the code's [Theming page](https://comark.onmax.me/code/theming/).

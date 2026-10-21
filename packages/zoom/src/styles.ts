@@ -2,15 +2,15 @@ import { theme } from "./theme.ts";
 
 /**
  * The zoom styles. The script adds them to the page once. Theme it with the shared `--comark-*` tokens; they resolve on
- * `.cz-dialog` itself, so tokens set there theme only the zoomed view. The rules sit in the `comark` layer, so any
- * unlayered rule of the host's wins.
+ * `.cz-dialog` itself, so tokens set there theme only the zoomed view. `--cz-backdrop` and `--cz-backdrop-opacity`
+ * change the backdrop. The rules sit in the `comark` layer, so any unlayered rule of the host's wins.
  */
 export const css = `@layer comark{${[
   theme(".cz-dialog,[data-zoom]"),
   "[data-zoom]{cursor:zoom-in}",
   "[data-zoom]:focus-visible{outline:2px solid var(--_comark-ring);outline-offset:3px}",
   ".cz-dialog{position:fixed;inset:0;z-index:2147483000;display:grid;grid-template-rows:auto minmax(0,1fr) auto;color:var(--_comark-foreground);font:13px/1.4 var(--_comark-font);outline:none}",
-  ".cz-backdrop{position:absolute;inset:0;background:color-mix(in srgb,var(--_comark-background) 96%,transparent)}",
+  ".cz-backdrop{position:absolute;inset:0;background:var(--cz-backdrop,color-mix(in srgb,var(--_comark-background) var(--cz-backdrop-opacity,96%),transparent))}",
   ".cz-header{position:relative;display:flex;gap:.75rem;align-items:center;min-height:2.75rem;padding:0 .5rem 0 1rem}",
   ".cz-title{overflow:hidden;font-weight:500;white-space:nowrap;text-overflow:ellipsis}",
   ".cz-count{color:var(--_comark-muted);font-variant-numeric:tabular-nums}",

@@ -14,6 +14,15 @@ describe("comark-zoom", () => {
     expect(html.match(/<script>/g)).toHaveLength(1);
   });
 
+  it("inlines styles a site can theme with --cz-* variables, with today's look as the fallback", async () => {
+    const style = /<style data-comark-zoom>(.*?)<\/style>/s.exec(
+      await render("![One](a.png)"),
+    )?.[1];
+    expect(style).toContain(
+      "background:var(--cz-backdrop,color-mix(in srgb,var(--_comark-background) var(--cz-backdrop-opacity,96%),transparent))",
+    );
+  });
+
   it("leaves linked images alone, and adds nothing when nothing zooms", async () => {
     const html = await render("[![Logo](logo.png)](https://example.com)");
     expect(html).toContain('<img src="logo.png" alt="Logo">');
