@@ -696,8 +696,20 @@ blockquote {
   padding: 1.75rem 1.5rem;
 }
 
-.example-preview > :is(.ca, .ce, .ce-card) {
+.example-preview > :is(.ca, .ce, .ce-card, .cch) {
   margin: 0;
+}
+
+/* A chart, a link card, or a diff draws its own card, so a preview of only that, after its styles, drops the frame rather than nest one card in another. */
+.example-body:has(
+  > .example-preview:not([hidden])
+    > :is(.cch, .ce-card, .ca-diff):last-child:not(:not(style, script) ~ *)
+) {
+  box-shadow: none;
+}
+
+.example-preview:has(> :is(.cch, .ce-card, .ca-diff):last-child:not(:not(style, script) ~ *)) {
+  padding: 0;
 }
 
 .example-code pre {
