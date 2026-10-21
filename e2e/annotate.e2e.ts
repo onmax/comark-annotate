@@ -192,15 +192,13 @@ test("Copy puts a screenshot on the clipboard with its marks, and a right-click 
   await frame.click({ button: "right" });
   await expect
     .poll(() =>
-      page.evaluate(
-        () => {
-          const state = window as typeof window & {
-            __annotateContextTarget?: string;
-            __annotateContextArmed?: boolean;
-          };
-          return [state.__annotateContextTarget, state.__annotateContextArmed];
-        },
-      ),
+      page.evaluate(() => {
+        const state = window as typeof window & {
+          __annotateContextTarget?: string;
+          __annotateContextArmed?: boolean;
+        };
+        return [state.__annotateContextTarget, state.__annotateContextArmed];
+      }),
     )
     .toEqual(["ca-overlay", true]);
   await expect(page.locator(".cz-dialog")).toBeVisible();

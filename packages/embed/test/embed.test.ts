@@ -47,6 +47,15 @@ describe("comark-embed", () => {
     expect(short).toContain('data-provider="youtube" data-size="short"');
   });
 
+  it("sizes apps and Shorts from --ce-app-height and --ce-short-width", async () => {
+    const html = await render(block("https://www.youtube.com/shorts/dQw4w9WgXcQ"));
+    expect(html).toContain(":where(.ce){--ce-app-height:30rem;--ce-short-width:20rem}");
+    expect(html).toContain(
+      ".ce[data-size='short'] .ce-frame{aspect-ratio:9/16;max-width:var(--ce-short-width);",
+    );
+    expect(html).toContain(".ce[data-size='app'] .ce-frame{height:var(--ce-app-height)}");
+  });
+
   it("reads Vimeo links, unlisted ones too, without tracking", async () => {
     expect(await iframe("https://vimeo.com/76979871")).toBe(
       "https://player.vimeo.com/video/76979871?dnt=1",
