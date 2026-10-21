@@ -41,16 +41,11 @@ catalog:
 
 overrides:
   vite: "catalog:"
+  # comark-content 0.4.1 asks for comark ^0.7, and the plugins need 0.8's parser.
+  "comark-content>comark": "catalog:"
 
 minimumReleaseAgeExclude:
   - vite-doctor@0.1.0
-  - "@nuxt/kit-nightly@5.0.0-2610192007-fe9ca5b"
-  - "@nuxt/nitro-server-nightly@5.0.0-2610192007-fe9ca5b"
-  - "@nuxt/schema-nightly@5.0.0-2610192007-fe9ca5b"
-  - "@nuxt/vite-builder-nightly@5.0.0-2610192007-fe9ca5b"
-  - "@nuxt/vite-server-nightly@5.0.0-2610192007-fe9ca5b"
-  - nuxt-nightly@5.0.0-2610192007-fe9ca5b
-
   - "@comark/html@0.8.1"
   - "@comark/react@0.8.1"
   - "@comark/vue@0.8.1"

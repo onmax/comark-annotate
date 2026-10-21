@@ -11,7 +11,7 @@ import { components as zoomComponents } from "comark-zoom/html";
 import type { ElementNode, Node, NodeHandler } from "comark";
 import { parseMarkdown } from "comark";
 import { escapeHtml, textContent } from "comark/utils";
-import { defineHandler, getQuery, getRouterParam, HTTPError } from "nitro/h3";
+import { createError, defineEventHandler, getQuery, getRouterParam } from "nuxt/server";
 import type { Page } from "#shared/pages";
 import { content, plugins } from "../../content";
 
@@ -97,7 +97,7 @@ const examples: NodeHandler = async ([, , ...children], state) => {
 
 async function read(slug: string) {
   const file = await content.get(`/${slug}`);
-  if (!file) throw new HTTPError({ status: 404, message: `No page at /${slug}.` });
+  if (!file) throw createError({ status: 404, message: `No page at /${slug}.` });
   const issues = (file.meta.issues as string[] | undefined) ?? [];
   if (issues.length) throw new Error(`/${slug}:\n${issues.join("\n")}`);
   return file;
@@ -134,12 +134,12 @@ const hero: NodeHandler = async ([, , ...children], state) => {
 const drop: NodeHandler = async ([, , ...children], state) =>
   `<section class="drop">${await state.flow(["div", {}, ...children], state)}</section>`;
 
-export default defineHandler(async (event): Promise<Page> => {
+export default defineEventHandler(async (event): Promise<Page> => {
   const param = (getRouterParam(event, "slug") ?? "").replace(/\/$/, "");
   const slug = param === "index" ? "" : param;
   const pages = await listPages();
   const page = pages.find((candidate) => candidate.slug === slug);
-  if (!page) throw new HTTPError({ status: 404, message: `No page at /${slug}.` });
+  if (!page) throw createError({ status: 404, message: `No page at /${slug}.` });
   const file = await read(slug);
   const document = { nodes: file.nodes, frontmatter: file.data, meta: file.meta };
   // The page shell asks without the body, which the PageBody server component renders.

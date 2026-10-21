@@ -14,7 +14,7 @@ import include from "comark-include";
 import icon from "comark-icon";
 import tabs from "comark-tabs";
 import zoom from "comark-zoom";
-import { useRuntimeConfig } from "nitro/runtime-config";
+import { useRuntimeConfig } from "nuxt/server";
 import dark from "shiki/themes/vitesse-dark.mjs";
 import light from "shiki/themes/vitesse-light.mjs";
 

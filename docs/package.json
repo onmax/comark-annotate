@@ -25,7 +25,7 @@
     "comark-tabs": "workspace:*",
     "comark-zoom": "workspace:*",
     "geist": "catalog:",
-    "nuxt": "npm:nuxt-nightly@5.0.0-2610192007-fe9ca5b",
+    "nuxt": "^4.6.2",
     "shiki": "catalog:",
     "vue": "catalog:"
   },
