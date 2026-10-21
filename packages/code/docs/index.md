@@ -3,6 +3,9 @@ title: comark-code
 description: Copy and wrap buttons on code blocks.
 tagline: Copy and Wrap on every code block, and buttons of your own, such as Run, that hand the code to your app.
 install: pnpm add comark @comark/html comark-code
+group: Page behavior
+icon: square-code
+blurb: Copy and wrap buttons on code
 ---
 
 ::examples

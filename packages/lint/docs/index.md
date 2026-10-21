@@ -3,6 +3,9 @@ title: comark-linter
 description: Finds unclosed blocks, unknown components, broken anchors, and plugin issues in Comark documents.
 tagline: Check Comark documents before they publish, from a script, the command line, or Vite Doctor. Every message names the block and says how to fix it.
 install: pnpm add -D comark-linter
+group: Authoring tools
+icon: list-checks
+blurb: Catches what Comark forgives
 ---
 
 Comark forgives a lot: it closes a `::` block you forgot to close, reads a missing `}` as the end of the line, and renders a misspelled component as an empty element. lint-comark reports each of these, with its line, so whoever wrote the document, often an agent, can fix it.

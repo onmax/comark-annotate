@@ -3,6 +3,10 @@ title: comark-annotate
 description: Hand-drawn marks, numbered notes, and arrows on screenshots, written in Markdown.
 tagline: Mark up screenshots in Markdown with hand-drawn marks, numbered notes, arrows, and before/after comparisons, and show code changes as suggested changes.
 install: pnpm add comark @comark/html comark-annotate
+group: Review blocks
+icon: scribble-loop
+blurb: Marks and notes on screenshots
+credits: 'Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.'
 ---
 
 ::examples
