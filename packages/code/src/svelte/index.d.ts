@@ -4,7 +4,12 @@ export { default } from "comark-code";
 export type { CodeAction, CodeOptions } from "comark-code";
 
 export declare const Pre: Component<{
-  actions?: { id: string; label: string }[];
+  actions?: {
+    id: string;
+    label: string;
+    title: string;
+    icon?: { src: string; ratio: number; mask: boolean };
+  }[];
   children?: Snippet;
   [attribute: string]: unknown;
 }>;

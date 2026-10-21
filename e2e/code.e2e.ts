@@ -1,5 +1,6 @@
 import { createHtmlRenderer } from "@comark/html";
 import { expect, type Page, test } from "@playwright/test";
+import { onCodeAction } from "../packages/code/src/client.ts";
 import code, { components } from "../packages/code/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 
@@ -23,7 +24,6 @@ test("Copy writes the block's code to the clipboard and says so", async ({ page,
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await open(page, `${sh}\n\n\`\`\`ts\nconst a = 1\nconst b = 2\n\`\`\``);
   const block = page.locator(".ck").nth(1);
-  await block.hover();
   await block.getByRole("button", { name: "Copy code" }).click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
     "const a = 1\nconst b = 2",
@@ -37,7 +37,6 @@ test("Copy writes the block's code to the clipboard and says so", async ({ page,
 test("without the clipboard, Copy selects the code and says how to copy it", async ({ page }) => {
   await open(page, sh);
   await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { value: undefined }));
-  await page.locator(".ck").hover();
   await page.getByRole("button", { name: "Copy code" }).click();
   expect(await page.evaluate(() => getSelection()?.toString())).toBe(long);
   await expect(page.getByRole("status")).toContainText("Press Ctrl+C or ⌘C");
@@ -49,7 +48,6 @@ test("Wrap breaks the block's long lines and unwraps them again", async ({ page 
   const overflows = (pre: typeof first) =>
     pre.evaluate((element) => element.scrollWidth > element.clientWidth);
   expect(await overflows(first)).toBe(true);
-  await page.locator(".ck").first().hover();
   const wrap = page.locator(".ck").first().getByRole("button", { name: "Wrap lines" });
   await wrap.click();
   await expect(wrap).toHaveAttribute("aria-pressed", "true");
@@ -63,30 +61,34 @@ test("Wrap breaks the block's long lines and unwraps them again", async ({ page 
 test("an action sends the block's code and language to the page", async ({ page }) => {
   await open(page, `${sh}\n\n\`\`\`ts\nconst a = 1\n\`\`\``);
   await expect(page.locator(".ck").nth(1).getByRole("button", { name: "Run" })).toHaveCount(0);
+  // `onCodeAction` uses nothing from outside its body, so its source runs on the page as it is.
   const detail = page.evaluate(
-    () =>
-      new Promise((resolve) =>
-        document.addEventListener("comark-code-action", (event) => resolve(event.detail), {
-          once: true,
-        }),
-      ),
+    `new Promise((resolve) => { const stop = (${onCodeAction.toString()})("run", (value) => { stop(); resolve(value) }) })`,
   );
-  await page.locator(".ck").first().hover();
   await page.getByRole("button", { name: "Run" }).click();
   expect(await detail).toEqual({ action: "run", code: long, language: "sh" });
 });
 
-test("the buttons show on hover and focus, and not at all without the script", async ({ page }) => {
+test("the header sits above the first line, so its buttons never cover the code", async ({
+  page,
+}) => {
   await open(page, sh);
-  const bar = page.locator(".ck-bar");
-  await expect(bar).toHaveCSS("opacity", "0");
-  // Chromium focuses a block that scrolls before its buttons; either way the bar shows.
+  const [copy, line] = await Promise.all(
+    [".ck-copy", ".ck pre code"].map((selector) =>
+      page.locator(selector).evaluate((element) => element.getBoundingClientRect()),
+    ),
+  );
+  expect(copy.bottom).toBeLessThanOrEqual(line.top);
+  await expect(page.locator(".ck-title")).toHaveText("sh");
+  await expect(page.getByRole("button", { name: "Copy code" })).toBeVisible();
+  // Chromium focuses a block that scrolls before the buttons that follow it.
   await page.keyboard.press("Tab");
-  await expect(bar).toHaveCSS("opacity", "1");
   await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Run" })).toBeFocused();
+  // Without the script the title stays and the buttons, which wouldn't work, are hidden.
   await open(page, sh, { script: false });
-  await expect(bar).toBeHidden();
+  await expect(page.locator(".ck-title")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy code" })).toBeHidden();
 });
 
 test("a block in a code group still hangs from the group's header", async ({ page }) => {

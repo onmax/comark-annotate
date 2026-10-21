@@ -17,7 +17,7 @@ pnpm exec spurious correlate --x "rubber ducks bought" --y "bugs fixed" --office
 
 The `spurious` command above is fictional sample code used to demonstrate a long shell line.
 
-Point at a code block to show its buttons, which stay visible on touch screens. Wrap breaks long lines in that block only, and Copy puts its code on the clipboard. Without a script, the block shows as it would without the plugin, with no buttons.
+Each code block gets a header above its first line, with the file's name or the language on the left and the buttons on the right, so they never cover the code. Wrap breaks long lines in that block only, and Copy puts its code on the clipboard. Without a script the header keeps its title and hides the buttons, which couldn't work.
 
 ## Usage
 
@@ -68,7 +68,7 @@ Wrap breaks long lines in its own block and stays on until it's pressed again, a
 
 ### Theming
 
-The buttons follow the shared tokens in [Theming](/guide/theming/): they sit on `--comark-background` with a `--comark-border` frame, and turn `--comark-accent` on hover and while Wrap is on. Wrap's rule is the one outside the `comark` layer, so it beats a page's own `white-space`; move the bar with a plain rule, such as `.ck-bar { top: 0.75rem }`.
+The header sits on the code block's own background, so it takes your `pre` styles and Shiki's theme. Its title is `--comark-muted`, and the buttons are `--comark-muted` until they turn `--comark-accent` on hover and while Wrap is on; see [Theming](/guide/theming/). Two rules sit outside the `comark` layer so they beat a page's own `pre` styles: the one that gives the block `padding-top` to make room for the header, and Wrap's `white-space`. Line the title up with your code's left padding with a plain rule, such as `.ck-bar { padding-left: 1.25rem }`.
 
 ## Credits
 

@@ -265,6 +265,10 @@ importers:
         version: 3.5.44(typescript@6.0.3)
 
   packages/code:
+    dependencies:
+      comark-icon:
+        specifier: workspace:^
+        version: link:../icon
     devDependencies:
       '@comark/html':
         specifier: 'catalog:'

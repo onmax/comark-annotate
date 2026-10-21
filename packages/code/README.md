@@ -19,27 +19,37 @@ import code, { components } from "comark-code/html";
 const render = createHtmlRenderer({ plugins: [code()], components });
 ```
 
-The components replace how `pre` renders, and keep the block's own markup inside a wrapper, so Shiki's highlighting and your `pre` styles still apply. They work in a `comark-tabs` code group whichever plugin comes first.
+The components replace how `pre` renders, and keep the block's own markup inside a wrapper, so Shiki's highlighting and your `pre` styles still apply. Each block gets a header above its first line, with the file's name or the language and the buttons, so they never cover the code. They work in a `comark-tabs` code group whichever plugin comes first.
 
 Copy writes the code to the clipboard and shows a check. When the page can't write to it, such as over plain http, it selects the code and says to press Ctrl+C or ⌘C. Wrap breaks long lines in that block until it's pressed again.
 
 ## Actions
 
-Each action is a button on the code blocks in its `languages`, or on every block without them:
+Each action is a button on the code blocks in its `languages`, or on every block without them. It shows a `label`, an Iconify `icon`, or both; an icon-only button needs a `title`:
 
 ```ts
 const render = createHtmlRenderer({
-  plugins: [code({ actions: [{ id: "run", label: "Run", languages: ["sh", "bash"] }] })],
+  plugins: [
+    code({
+      actions: [
+        { id: "run", label: "Run", icon: "lucide:play", languages: ["sh", "bash"] },
+        { id: "explain", icon: "lucide:sparkles", title: "Explain this code" },
+      ],
+    }),
+  ],
   components,
-});
-
-document.addEventListener("comark-code-action", (event) => {
-  const { action, code, language } = event.detail;
-  if (action === "run") terminal.run(code);
 });
 ```
 
-A click sends a `comark-code-action` event from the block that bubbles up to the page, and your app decides what the action does.
+Your app decides what an action does, in the page:
+
+```ts
+import { onCodeAction } from "comark-code/client";
+
+const stop = onCodeAction("run", ({ code, language }) => terminal.run(code));
+```
+
+A click sends a `comark-code-action` event from the block that bubbles up to the page; `onCodeAction()` listens for one action's.
 
 ## Renderers
 

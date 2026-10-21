@@ -33,6 +33,8 @@ export const css = `@layer comark{${[
   ".ct[data-tabs-code]>.ct-list,.ct[data-tabs-code]>.ct-panel>.ct-caption{border-radius:var(--_comark-radius) var(--_comark-radius) 0 0}",
   ".ct[data-tabs-code]>.ct-panel>.ct-caption{margin-bottom:-1px;padding:.625rem 1rem}",
   "[data-tabs-ready] .ct[data-tabs-code]>.ct-panel{margin-top:-1px}",
+  // The tab already names the block, so comark-code's header leaves out the title it would repeat.
+  ".ct[data-tabs-code] .ck-title{display:none}",
   ".ct[data-tabs-code]>.ct-panel{border-radius:0 0 var(--_comark-radius) var(--_comark-radius)}",
   "@media (pointer:coarse){.ct-tab{padding-block:.5rem}}",
 ].join("")}}${
