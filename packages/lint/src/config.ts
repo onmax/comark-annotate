@@ -11,6 +11,7 @@ const packages = [
   ["comark-carousel/html", () => import("comark-carousel/html")],
   ["comark-charts/html", () => import("comark-charts/html")],
   ["comark-github-callouts/html", () => import("comark-github-callouts/html")],
+  ["comark-icon/html", () => import("comark-icon/html")],
   ["comark-tabs/html", () => import("comark-tabs/html")],
   ["comark-zoom/html", () => import("comark-zoom/html")],
 ] as const;
