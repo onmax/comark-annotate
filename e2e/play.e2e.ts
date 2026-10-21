@@ -25,6 +25,34 @@ test("the playground renders a preset, reports issues as you type, and opens a s
   await expect(page.getByRole("list", { name: "Issues" })).toContainText("`alt` is required");
 });
 
+test("Reset asks before it brings back the example, and Copy copies the open pane", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/play/#preset=github-callouts-types");
+  const editor = page.getByRole("textbox", { name: "Markdown" });
+  const example = await editor.inputValue();
+  const reset = page.getByRole("button", { name: "Reset to the example" });
+  await expect(reset).toBeHidden();
+
+  await editor.fill("Mine.");
+  await expect(reset).toBeVisible();
+  await page.getByRole("button", { name: "Copy the Markdown" }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("Mine.");
+
+  await reset.click();
+  const dialog = page.getByRole("dialog", { name: "Reset to the example?" });
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(editor).toHaveValue("Mine.");
+
+  await reset.click();
+  await dialog.getByRole("button", { name: "Reset" }).click();
+  await expect(editor).toHaveValue(example);
+  await expect(reset).toBeHidden();
+  await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("Types");
+});
+
 test("an example's Playground link opens its Markdown in the playground", async ({ page }) => {
   await page.goto("/github/");
   const source = await page.locator(".example-code code").first().textContent();
