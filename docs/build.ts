@@ -22,6 +22,7 @@ import githubCallouts, {
 import include from "../packages/include/src/index.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
+import { defaultConfig } from "./config.ts";
 import { highlight } from "./highlight.ts";
 import { previewDocument } from "./preview.ts";
 
@@ -300,7 +301,8 @@ const presets = parsed.flatMap((page) =>
     .filter((preset) => playable(preset.source)),
 );
 // A small still of each preset for the playground's column: no scripts, and a gray box for each embedded player,
-// so the column loads nothing but the pages' own images. The plugins' styles go in the page once.
+// so the column loads nothing but the pages' own images. A chart drops its data table, so the still is all plot. The
+// plugins' styles go in the page once, and the playground scales each still to its card.
 const thumbnailStyles = new Set<string>();
 const thumbnails = new Map(
   await Promise.all(
@@ -309,9 +311,10 @@ const thumbnails = new Map(
       const html = (await renderHtmlFromDocument(document, { components }))
         .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, (style) => (thumbnailStyles.add(style), ""))
         .replace(/<script>[\s\S]*?<\/script>/g, "")
+        .replace(/<details class="cch-data">[\s\S]*?<\/details>/g, "")
         .replace(
           /<iframe\b[^>]*><\/iframe>/g,
-          `<span class="preset-player">${icon("tv-minimal-play", 56)}</span>`,
+          `<span class="preset-player">${icon("tv-minimal-play", 128)}</span>`,
         )
         .replace(/\s(id|for|aria-controls|aria-labelledby)="[^"]*"/g, "")
         .replace(/<img\b/g, '<img loading="lazy"');
@@ -764,8 +767,9 @@ if (playSection && first) {
       head: `\n<link rel="modulepreload" href="/play/play.js">\n${[...thumbnailStyles].join("")}`,
       body: `<div class="play">
 <div class="play-editor">
-<div class="play-bar"><span>Markdown</span><button type="button" class="play-share">Copy link</button></div>
-<div class="play-code"><div class="play-paint" aria-hidden="true">${highlight(`${first.source}\n `)}</div><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Markdown">${escapeHtml(first.source)}</textarea></div>
+<div class="play-bar"><div class="seg play-panes" role="group" aria-label="Editor"><button type="button" data-pane="markdown" aria-pressed="true">Markdown</button><button type="button" data-pane="config" aria-pressed="false">Config</button></div><button type="button" class="play-share">Copy link</button></div>
+<div class="play-code" data-pane="markdown"><div class="play-paint" aria-hidden="true">${highlight(`${first.source}\n `)}</div><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Markdown">${escapeHtml(first.source)}</textarea></div>
+<div class="play-code" data-pane="config" hidden><div class="play-paint" aria-hidden="true">${highlight(`${defaultConfig}\n `, "json")}</div><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Config">${escapeHtml(defaultConfig)}</textarea></div>
 <ul class="play-issues" aria-label="Issues" aria-live="polite" hidden></ul>
 </div>
 <iframe class="play-preview" title="Preview" srcdoc="${escapeHtml(previewDocument(await renderHtmlFromDocument(document, { components })))}"></iframe>
