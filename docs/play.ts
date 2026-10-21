@@ -5,6 +5,7 @@ import { parseMarkdown } from "comark";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
 import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
+import code, { components as codeComponents } from "../packages/code/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
 import githubCallouts, {
   components as githubCalloutsComponents,
@@ -19,6 +20,7 @@ const plugins = (config: PlayConfig) => [
   annotate(),
   carousel(),
   charts(),
+  code(config["comark-code"]),
   embed(),
   githubCallouts(config["comark-github-callouts"]),
   icon(),
@@ -29,6 +31,7 @@ const components = {
   ...annotateComponents,
   ...carouselComponents,
   ...chartsComponents,
+  ...codeComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
   ...iconComponents,
@@ -168,7 +171,6 @@ function pointNpmx(npm?: string) {
 
 let run = 0;
 let loadIssues: string[] = [];
-let configLinkInvalid = false;
 async function render() {
   const current = ++run;
   let html = "";
@@ -201,14 +203,12 @@ async function link() {
 
 async function load() {
   loadIssues = [];
-  configLinkInvalid = false;
   const hash = new URLSearchParams(location.hash.slice(1));
   const code = hash.get("md");
   const config = hash.get("config");
   // A preset keeps whatever config is in the tab, so one config can be tried across them.
   if (config !== null) {
     configEditor.value = await unpack(config).catch(() => {
-      configLinkInvalid = true;
       loadIssues.push("The link's config is cut off or changed; using the default config.");
       return defaultConfig;
     });
@@ -237,7 +237,6 @@ let timer: ReturnType<typeof setTimeout> | undefined;
 for (const textarea of [editor, configEditor])
   textarea.addEventListener("input", () => {
     if (textarea === configEditor) {
-      configLinkInvalid = false;
       loadIssues = [];
     }
     repaint(textarea);
@@ -255,10 +254,7 @@ for (const textarea of [editor, configEditor])
   });
 share.addEventListener("click", async () => {
   try {
-    if (configLinkInvalid || !location.hash.startsWith("#md=")) {
-      history.replaceState(null, "", await link());
-      configLinkInvalid = false;
-    }
+    history.replaceState(null, "", await link());
     await navigator.clipboard.writeText(location.href);
     share.textContent = "Copied";
     setTimeout(() => (share.textContent = "Copy link"), 1500);

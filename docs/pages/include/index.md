@@ -32,7 +32,3 @@ install: pnpm add comark comark-include
 ::
 
 These examples include real files from this site's source. A Markdown file is pasted into the page, and any other file becomes a code block in the language of its extension.
-
-## Credits
-
-The arguments follow [automd](https://github.com/unjs/automd).

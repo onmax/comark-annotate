@@ -2,10 +2,18 @@
 title: Comark plugins
 description: Plugins for Comark that make review documents easier to read.
 headline: Review documents, written in Markdown.
-tagline: Annotated screenshots, code changes, charts, callouts, embeds, zoom, carousels, and tabs for Comark, plus partials and a linter. Each plugin is its own package, and they all share one version.
+tagline: Annotated screenshots, code changes, charts, and more for Comark. Each plugin is its own package.
+install: pnpm add comark @comark/html comark-annotate
 ---
 
+::packages
+::
+
 ::hero
+## Write Markdown. Get a review page.
+
+An agent writes the Markdown and the plugins draw the page. A problem comes back as one sentence that names the block and the fix.
+
 ````md
 > [!TIP] Decision
 > Extra filters collapse into **+2 filters**.
@@ -22,48 +30,12 @@ Five filters now fit on one row.
 ````
 ::
 
-## Review blocks
+::drop
+## Share it on Drop
 
-What a review is made of: screenshots with marks, code changes, callouts, and players.
+[Drop](https://drop.vitehub.dev) renders these documents as a page your team comments on, and connects to Claude Code, Codex, or any MCP agent.
 
-::cards{group="Review blocks"}
+1. Your agent drops the review.
+2. You comment on the exact spot.
+3. Your agent reads them and drops the next version.
 ::
-
-## Page behavior
-
-Scripts that add to plain HTML. Without them a page still reads top to bottom, carousels still swipe, and every tab shows under its label. With them, every zoomable item closes with Escape, Back, or a click around it, keeps focus inside the zoomed view, and returns it when the view closes.
-
-::cards{group="Page behavior"}
-::
-
-## Authoring tools
-
-For writing the documents: shared partials, and a linter that catches what Comark forgives, from the command line or [Vite Doctor](/lint/vite-doctor/).
-
-::cards{group="Authoring tools"}
-::
-
-## Guides
-
-What every package shares.
-
-::cards{group="Guides"}
-::
-
-## Recipes
-
-Several plugins in one document.
-
-::cards{group="Recipes"}
-::
-
-## Compared
-
-How these packages differ from other Comark plugins that do the same job.
-
-::cards{group="Compared"}
-::
-
-## Playground
-
-Every example on these pages opens in the [playground](/play/), where you can edit it, see each problem the plugins report, and share a link to the result.
