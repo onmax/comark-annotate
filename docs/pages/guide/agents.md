@@ -20,7 +20,7 @@ npx skills add https://comark.onmax.me --skill comark-annotate
 
 | Skill | What it knows |
 | --- | --- |
-| `comark-annotate` | The screenshot, compare, and diff syntax, which marks to draw and what their notes say, how to measure marks from the page instead of guessing them from the image, and how to check the render |
+| `comark-annotate` | The screenshot and compare syntax, which marks to draw and what their notes say, how to measure marks from the page instead of guessing them from the image, and how to check the render |
 | `comark-charts` | The table shape for each chart type, how to pick the type that fits the data, and how to mark the values that matter |
 
 The other packages have no skill. Their syntax fits on their page, and a document that gets it wrong fails [validation](/guide/validation/) with a message that says what to change.

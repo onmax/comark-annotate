@@ -11,7 +11,7 @@ pnpm lint-comark "docs/**/*.md"
 pnpm lint-comark review.md --format json
 ```
 
-It checks each file with the plugins and components of every comark-plugins package installed: annotate, carousel, github-callouts, and zoom. It prints one `file:line:column rule message` line per problem and exits with 1 if there are any, or 2 if a file can't be read.
+It checks each file with the plugins and components of every comark-plugins package installed: annotate, carousel, diff, github-callouts, and zoom. It prints one `file:line:column rule message` line per problem and exits with 1 if there are any, or 2 if a file can't be read.
 
 Components of your own go in a config, passed with `--config`:
 

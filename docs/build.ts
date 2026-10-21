@@ -17,6 +17,7 @@ import annotate, { components as annotateComponents } from "../packages/annotate
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
 import code, { components as codeComponents } from "../packages/code/src/html.ts";
 import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
+import diff, { components as diffComponents } from "../packages/diff/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
 import githubCallouts, {
   components as githubCalloutsComponents,
@@ -44,6 +45,7 @@ const browserPlugins = () => [
   carousel(),
   code(),
   charts(),
+  diff(),
   embed(),
   githubCallouts(),
   icon(),
@@ -61,6 +63,7 @@ const components = {
   ...carouselComponents,
   ...codeComponents,
   ...chartsComponents,
+  ...diffComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
   ...iconComponents,
@@ -77,6 +80,7 @@ const lucideNames = [
   "arrow-right",
   "book-open",
   "chart-column",
+  "file-diff",
   "file-input",
   "flask-conical",
   "gallery-horizontal-end",
@@ -107,6 +111,7 @@ const packages = (
   [
     { slug: "annotate", group: "Review blocks", icon: "scribble-loop" },
     { slug: "charts", group: "Review blocks", icon: "chart-column" },
+    { slug: "diff", group: "Review blocks", icon: "file-diff" },
     { slug: "embed", group: "Review blocks", icon: "tv-minimal-play" },
     { slug: "github-callouts", group: "Review blocks", icon: "message-square-warning" },
     { slug: "icon", group: "Review blocks", icon: "shapes" },
