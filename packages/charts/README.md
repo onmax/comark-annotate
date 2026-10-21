@@ -1,8 +1,12 @@
 # comark-charts
 
-Charts from a Markdown table, drawn to SVG with no script. The table stays under the chart, so people see the chart and agents read the numbers. A [Comark](https://comark.dev) plugin for HTML.
+[![npm version](https://npmx.dev/api/registry/badge/version/comark-charts)](https://npmx.dev/package/comark-charts)
+[![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-charts)](https://npmx.dev/package/comark-charts)
+[![install size](https://npmx.dev/api/registry/badge/size/comark-charts)](https://npmx.dev/package/comark-charts)
+[![license](https://npmx.dev/api/registry/badge/license/comark-charts)](https://npmx.dev/package/comark-charts)
+[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/charts/)
 
-**[Docs](https://comark.onmax.me/charts/)**
+Charts from a Markdown table, drawn to SVG with no script. The table stays under the chart, so people see the chart and agents read the numbers. A [Comark](https://comark.dev) plugin for HTML.
 
 ```sh
 pnpm add comark @comark/html comark-charts

@@ -1,5 +1,11 @@
 # comark-github-callouts
 
+[![npm version](https://npmx.dev/api/registry/badge/version/comark-github-callouts)](https://npmx.dev/package/comark-github-callouts)
+[![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-github-callouts)](https://npmx.dev/package/comark-github-callouts)
+[![install size](https://npmx.dev/api/registry/badge/size/comark-github-callouts)](https://npmx.dev/package/comark-github-callouts)
+[![license](https://npmx.dev/api/registry/badge/license/comark-github-callouts)](https://npmx.dev/package/comark-github-callouts)
+[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/github-callouts/)
+
 GitHub's alerts, `> [!NOTE]` through `> [!CAUTION]`, as callouts with an icon and a title. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 
 Comark's built-in alert plugin already reads these markers, tags the quote with its type, and leaves the drawing to you. This package draws them in every renderer, takes a title from the marker's line, and lets you change the default titles.

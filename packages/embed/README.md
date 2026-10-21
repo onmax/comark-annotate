@@ -1,5 +1,11 @@
 # comark-embed
 
+[![npm version](https://npmx.dev/api/registry/badge/version/comark-embed)](https://npmx.dev/package/comark-embed)
+[![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-embed)](https://npmx.dev/package/comark-embed)
+[![install size](https://npmx.dev/api/registry/badge/size/comark-embed)](https://npmx.dev/package/comark-embed)
+[![license](https://npmx.dev/api/registry/badge/license/comark-embed)](https://npmx.dev/package/comark-embed)
+[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/embed/)
+
 Video, audio, and live code from a link: YouTube, Vimeo, Loom, Spotify, CodePen, StackBlitz, and Figma players, read from the link alone with no network fetch. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 
 ```sh
