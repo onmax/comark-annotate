@@ -59,7 +59,8 @@ async function writeAssets() {
   // script under Nitro's public root so `/play/` remains available alongside
   // the Nuxt-rendered documentation pages.
   const playground = new URL("dist/play/", root);
-  if (existsSync(playground)) await cp(playground, new URL("play/", generated), { recursive: true });
+  if (existsSync(playground))
+    await cp(playground, new URL("play/", generated), { recursive: true });
 }
 
 export default defineNuxtConfig({
