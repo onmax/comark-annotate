@@ -38,7 +38,3 @@ install: pnpm add comark @comark/html comark-zoom
 ::
 
 Click an item to zoom it; Escape, Back, or a click around it closes it. Enter or Space opens a focused item, and focus returns to it when the view closes.
-
-## Credits
-
-The zoom behaves like [medium-zoom](https://github.com/francoischalifour/medium-zoom).

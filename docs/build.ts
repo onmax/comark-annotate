@@ -22,6 +22,7 @@ import githubCallouts, {
 import include from "../packages/include/src/index.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
+import { defaultConfig } from "./config.ts";
 import { highlight } from "./highlight.ts";
 import { previewDocument } from "./preview.ts";
 
@@ -80,16 +81,49 @@ const icon = (name: IconName, size = 18) =>
 // pages/ yet, such as one still on a branch, is left out.
 const packages = (
   [
-    { slug: "annotate", group: "Review blocks", icon: "scribble-loop" },
-    { slug: "charts", group: "Review blocks", icon: "chart-column" },
+    {
+      slug: "annotate",
+      group: "Review blocks",
+      icon: "scribble-loop",
+      credits: 'Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.',
+    },
+    {
+      slug: "charts",
+      group: "Review blocks",
+      icon: "chart-column",
+      credits:
+        'Laid out by Microsoft Research\'s <a href="https://github.com/microsoft/flint-chart">Flint</a> on its New York Times theme, and drawn by <a href="https://vega.github.io">Vega</a>.',
+    },
     { slug: "embed", group: "Review blocks", icon: "tv-minimal-play" },
-    { slug: "github-callouts", group: "Review blocks", icon: "message-square-warning" },
-    { slug: "zoom", group: "Page behavior", icon: "zoom-in" },
+    {
+      slug: "github-callouts",
+      group: "Review blocks",
+      icon: "message-square-warning",
+      credits:
+        'Syntax from <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts">GitHub\'s alerts</a>.',
+    },
+    {
+      slug: "zoom",
+      group: "Page behavior",
+      icon: "zoom-in",
+      credits:
+        'Modeled on <a href="https://github.com/francoischalifour/medium-zoom">medium-zoom</a>.',
+    },
     { slug: "carousel", group: "Page behavior", icon: "gallery-horizontal-end" },
-    { slug: "tabs", group: "Page behavior", icon: "panels-top-left" },
-    { slug: "include", group: "Authoring tools", icon: "file-input" },
+    {
+      slug: "tabs",
+      group: "Page behavior",
+      icon: "panels-top-left",
+      credits: 'Syntax from <a href="https://ui.nuxt.com">Nuxt UI</a>\'s tabs and code groups.',
+    },
+    {
+      slug: "include",
+      group: "Authoring tools",
+      icon: "file-input",
+      credits: 'Arguments from <a href="https://github.com/unjs/automd">automd</a>.',
+    },
     { slug: "lint", group: "Authoring tools", icon: "list-checks" },
-  ] satisfies { slug: string; group: string; icon: IconName }[]
+  ] satisfies { slug: string; group: string; icon: IconName; credits?: string }[]
 ).filter((pkg) => existsSync(new URL(`pages/${pkg.slug}/index.md`, root)));
 const fileOf = (slug: string) =>
   existsSync(new URL(`pages/${slug || "index"}.md`, root))
@@ -101,6 +135,8 @@ type Section = {
   group: string;
   icon: IconName;
   npm?: string;
+  // What the footer credits besides Comark, as HTML.
+  credits?: string;
   lists: { title?: string; slugs: string[] }[];
 };
 const sections: Section[] = [
@@ -300,7 +336,8 @@ const presets = parsed.flatMap((page) =>
     .filter((preset) => playable(preset.source)),
 );
 // A small still of each preset for the playground's column: no scripts, and a gray box for each embedded player,
-// so the column loads nothing but the pages' own images. The plugins' styles go in the page once.
+// so the column loads nothing but the pages' own images. A chart drops its data table, so the still is all plot. The
+// plugins' styles go in the page once, and the playground scales each still to its card.
 const thumbnailStyles = new Set<string>();
 const thumbnails = new Map(
   await Promise.all(
@@ -309,9 +346,10 @@ const thumbnails = new Map(
       const html = (await renderHtmlFromDocument(document, { components }))
         .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, (style) => (thumbnailStyles.add(style), ""))
         .replace(/<script>[\s\S]*?<\/script>/g, "")
+        .replace(/<details class="cch-data">[\s\S]*?<\/details>/g, "")
         .replace(
           /<iframe\b[^>]*><\/iframe>/g,
-          `<span class="preset-player">${icon("tv-minimal-play", 56)}</span>`,
+          `<span class="preset-player">${icon("tv-minimal-play", 128)}</span>`,
         )
         .replace(/\s(id|for|aria-controls|aria-labelledby)="[^"]*"/g, "")
         .replace(/<img\b/g, '<img loading="lazy"');
@@ -736,7 +774,7 @@ for (const page of parsed) {
 ${page.install ? installerFor(page.install, page.skill) : ""}${page.slug ? "" : `<div class="actions"><a class="button primary" href="/play/">${icon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the guides${icon("arrow-right", 15)}</a></div>`}</div>
 <main class="enter" style="--i:1">${(await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, cards, matrix, hero } })).replace(/<table>[\s\S]*?<\/table>/g, (table) => `<div class="table-scroll">${table}</div>`)}</main>
 ${pager(page)}
-<footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>. Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>
+<footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>.${page.section.credits ? ` ${page.section.credits}` : ""}</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>
 </div>
 ${page.toc ? `<aside class="toc"><nav aria-label="On this page"><p class="nav-group">On this page</p>${page.toc}</nav></aside>` : ""}
 </div>
@@ -764,8 +802,9 @@ if (playSection && first) {
       head: `\n<link rel="modulepreload" href="/play/play.js">\n${[...thumbnailStyles].join("")}`,
       body: `<div class="play">
 <div class="play-editor">
-<div class="play-bar"><span>Markdown</span><button type="button" class="play-share">Copy link</button></div>
-<div class="play-code"><div class="play-paint" aria-hidden="true">${highlight(`${first.source}\n `)}</div><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Markdown">${escapeHtml(first.source)}</textarea></div>
+<div class="play-bar"><div class="seg play-panes" role="group" aria-label="Editor"><button type="button" data-pane="markdown" aria-pressed="true">Markdown</button><button type="button" data-pane="config" aria-pressed="false">Config</button></div><button type="button" class="play-share">Copy link</button></div>
+<div class="play-code" data-pane="markdown"><div class="play-paint" aria-hidden="true">${highlight(`${first.source}\n `)}</div><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Markdown">${escapeHtml(first.source)}</textarea></div>
+<div class="play-code" data-pane="config" hidden><div class="play-paint" aria-hidden="true">${highlight(`${defaultConfig}\n `, "json")}</div><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Config">${escapeHtml(defaultConfig)}</textarea></div>
 <ul class="play-issues" aria-label="Issues" aria-live="polite" hidden></ul>
 </div>
 <iframe class="play-preview" title="Preview" srcdoc="${escapeHtml(previewDocument(await renderHtmlFromDocument(document, { components })))}"></iframe>

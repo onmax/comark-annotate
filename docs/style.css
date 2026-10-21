@@ -1842,7 +1842,7 @@ main img {
   align-items: center;
   justify-content: space-between;
   height: 2.75rem;
-  padding: 0 0.5rem 0 1rem;
+  padding: 0 0.5rem;
   border-bottom: 1px solid var(--line);
   color: var(--faint);
   font-size: 0.8125rem;
@@ -1996,7 +1996,7 @@ main img {
 }
 
 .preset-thumb {
-  height: 4.75rem;
+  height: 6rem;
   margin: 1px 1px 0;
   overflow: hidden;
   border-radius: 9px 9px 0 0;
@@ -2004,11 +2004,13 @@ main img {
   pointer-events: none;
 }
 
-/* Laid out at a page's width, then zoomed to the column's. */
+/* Laid out at a page's width, then scaled to its card: the playground fits each one, and until it runs, they fill
+   the card's width. */
 .preset-page {
   width: 40rem;
   padding: 1.5rem;
-  zoom: 0.23;
+  transform: scale(0.23);
+  transform-origin: 0 0;
 }
 
 .preset-page > :first-child {
