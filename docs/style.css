@@ -73,8 +73,8 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 24rem) 1fr;
   align-items: center;
   gap: 1rem;
   height: 3.5rem;
@@ -85,14 +85,8 @@ body {
   font-size: 0.875rem;
 }
 
-.top > nav {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-}
-
 .top > a,
-.top > nav a {
+.top-end > nav a {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -102,16 +96,27 @@ body {
 }
 
 .top > a:hover,
-.top > nav a:hover,
+.top-end > nav a:hover,
 .top .name {
   color: var(--fg);
 }
 
 .top .name {
+  justify-self: start;
   font-weight: 500;
 }
 
-.top > nav {
+.top-end {
+  grid-column: 3;
+  display: flex;
+  justify-self: end;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.top-end > nav {
+  display: flex;
+  align-items: center;
   gap: 0.25rem;
 }
 
@@ -130,8 +135,145 @@ body {
   background: var(--soft);
 }
 
-.top > nav {
-  margin-left: auto;
+/* Search: a field-shaped button in the middle of the header, and a dialog under it. */
+.search-open {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 2.25rem;
+  padding: 0 0.375rem 0 0.75rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--soft);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--faint);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    box-shadow 150ms ease,
+    color 150ms ease,
+    scale 150ms ease;
+}
+
+.search-open:hover {
+  box-shadow: inset 0 0 0 1px var(--faint);
+  color: var(--muted);
+}
+
+.search-open:active {
+  scale: 0.99;
+}
+
+.search-open span {
+  flex: 1;
+  text-align: left;
+}
+
+kbd {
+  padding: 0.05rem 0.375rem;
+  border-radius: 4px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--faint);
+  font: 500 0.6875rem/1.6 var(--sans);
+}
+
+.search {
+  width: min(36rem, 100% - 2rem);
+  max-height: min(28rem, 100% - 8rem);
+  margin: 4.5rem auto auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 24px 48px -16px rgb(0 0 0 / 0.3);
+  color: var(--muted);
+  transform-origin: top center;
+  transition:
+    opacity 150ms ease-out,
+    scale 150ms ease-out,
+    display 150ms allow-discrete,
+    overlay 150ms allow-discrete;
+}
+
+.search[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+@starting-style {
+  .search[open] {
+    opacity: 0;
+    scale: 0.97;
+  }
+}
+
+.search::backdrop {
+  background: rgb(0 0 0 / 0.3);
+}
+
+.search-field {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0 0.75rem 0 1rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--faint);
+}
+
+.search-field input {
+  flex: 1;
+  min-width: 0;
+  height: 3rem;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--fg);
+  font: 0.9375rem var(--sans);
+}
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0.375rem;
+  overflow-y: auto;
+}
+
+.search-results:empty {
+  display: none;
+}
+
+.search-results a {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  color: var(--fg);
+  text-decoration: none;
+  scroll-margin: 0.375rem;
+}
+
+.search-results a[aria-selected="true"] {
+  background: var(--soft);
+}
+
+.search-results small {
+  color: var(--faint);
+  font-size: 0.75rem;
+}
+
+.search-empty {
+  margin: 0;
+  padding: 1.5rem 1rem;
+  color: var(--faint);
+  font-size: 0.875rem;
+  text-align: center;
 }
 
 /* The sidebar's links, in a menu on narrow pages, where the sidebar hides. Without a script it still opens. */
@@ -364,6 +506,23 @@ body {
   color: var(--fg);
   font-size: 0.75rem;
   font-weight: 500;
+}
+
+/* Opens the section's first example in the playground. */
+.pages a.pages-play {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  padding: 0.5rem 0.625rem;
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.pages a.pages-play:hover {
+  background: var(--soft);
+  color: var(--fg);
 }
 
 .pages a {
@@ -599,6 +758,23 @@ nav > .nav-group:first-child {
 }
 
 @media (max-width: 60rem) {
+  .top {
+    grid-template-columns: 1fr auto auto;
+  }
+
+  .search-open {
+    width: 2.5rem;
+    height: 2.5rem;
+    justify-content: center;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .search-open :is(span, kbd) {
+    display: none;
+  }
+
   .layout {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -943,6 +1119,10 @@ footer a {
 
   .enter {
     animation: none;
+  }
+
+  .search {
+    transition: none;
   }
 }
 
