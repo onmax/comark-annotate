@@ -372,7 +372,7 @@ const thumbnails = new Map(
         .replace(/<details class="cch-data">[\s\S]*?<\/details>/g, "")
         .replace(
           /<iframe\b[^>]*><\/iframe>/g,
-          `<span class="preset-player">${icon("tv-minimal-play", 128)}</span>`,
+          `<span class="preset-player">${siteIcon("tv-minimal-play", 128)}</span>`,
         )
         .replace(/\s(id|for|aria-controls|aria-labelledby)="[^"]*"/g, "")
         .replace(/<img\b/g, '<img loading="lazy"');

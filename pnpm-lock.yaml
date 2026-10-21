@@ -422,6 +422,10 @@ importers:
         version: 0.1.0(@voidzero-dev/vite-plus-core@1.1.0(@types/node@24.19.2)(publint@0.3.25)(typescript@6.0.3)(yaml@2.9.1))
 
   packages/tabs:
+    dependencies:
+      comark-icon:
+        specifier: workspace:^
+        version: link:../icon
     devDependencies:
       '@comark/html':
         specifier: 'catalog:'
