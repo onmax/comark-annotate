@@ -1,52 +1,10 @@
-// The playground: renders the editor's Markdown in the browser with every plugin that runs there. comark-include
-// reads files and comark-linter is a checker, so they're left out, and so is Shiki, which would triple the bundle.
+// The playground: renders the editor's Markdown in the browser with every plugin that runs there, but not Shiki,
+// which would triple the bundle.
 import { renderHtmlFromDocument } from "@comark/html";
 import { parseMarkdown } from "comark";
-import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
-import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
-import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
-import chips, { components as chipsComponents } from "../packages/chips/src/html.ts";
-import code, { components as codeComponents } from "../packages/code/src/html.ts";
-import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
-import {
-  callouts,
-  components as githubComponents,
-  html as githubHtml,
-  references,
-} from "../packages/github/src/html.ts";
-import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
-import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
-import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
-import { defaultConfig, type PlayConfig, readConfig } from "./config.ts";
+import { defaultConfig, readConfig } from "./config.ts";
+import { browserPlugins, components } from "./plugins.ts";
 import { previewDocument } from "./preview.ts";
-
-const plugins = (config: PlayConfig) => [
-  annotate(),
-  carousel(),
-  charts(),
-  // A browser may not download another site's images, so the reader's loads them as links.
-  chips({ download: false }),
-  code(config["comark-code"]),
-  embed(),
-  callouts(config["comark-github"]?.callouts),
-  references(config["comark-github"]?.references),
-  githubHtml(),
-  icon(),
-  tabs(),
-  zoom(config["comark-zoom"]),
-];
-const components = {
-  ...annotateComponents,
-  ...carouselComponents,
-  ...chartsComponents,
-  ...chipsComponents,
-  ...codeComponents,
-  ...embedComponents,
-  ...githubComponents,
-  ...iconComponents,
-  ...tabsComponents,
-  ...zoomComponents,
-};
 
 function find<T extends Element>(selector: string, type: new () => T) {
   const element = document.querySelector(selector);
@@ -200,7 +158,9 @@ async function render() {
   const { config, issues: configIssues } = readConfig(configEditor.value);
   let problems: string[] = [];
   try {
-    const parsed = await parseMarkdown(editor.value, { plugins: plugins(config) });
+    const parsed = await parseMarkdown(editor.value, {
+      plugins: browserPlugins(config, { download: false }),
+    });
     html = await renderHtmlFromDocument(parsed, { components });
     problems = [...loadIssues, ...configIssues, ...parsed.meta.issues];
   } catch (error) {
