@@ -1204,10 +1204,6 @@ a.window-play:hover {
 }
 
 @media (hover: none) {
-  .copy {
-    opacity: 1;
-  }
-
   .seg button {
     padding: 0.45rem 0.85rem;
   }
@@ -1352,40 +1348,8 @@ pre {
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
-pre[language="txt"] code {
-  white-space: pre-wrap;
-}
-
 pre .line {
   display: inline !important;
-}
-
-.copy {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  padding: 0.2rem 0.5rem;
-  border: 0;
-  border-radius: 4px;
-  background: var(--bg);
-  box-shadow: inset 0 0 0 1px var(--line);
-  color: var(--muted);
-  font: 500 0.75rem/1.4 var(--sans);
-  cursor: pointer;
-  opacity: 0;
-  transition:
-    opacity 150ms ease,
-    color 150ms ease,
-    scale 160ms var(--ease-out);
-}
-
-pre:hover .copy,
-.copy:focus-visible {
-  opacity: 1;
-}
-
-.copy:hover {
-  color: var(--fg);
 }
 
 table:not(.ca-code) {
