@@ -12,12 +12,12 @@ You write Markdown; comark-annotate renders hand-drawn marks, numbered notes, si
 Pick what explains the change best, and mix freely with ordinary Markdown such as tables and lists:
 
 - One `::screenshot` with marks, when a single state shows the point.
-- A `::compare` of two screenshots, when the change is the point. Capture both at the same viewport, zoom, scroll, and page state, and set the same `viewport` on both.
+- A `::compare` of two screenshots, when the change is the point. Capture both at the same viewport, zoom, scroll, and page state, and set the same `viewport` on both. Each image gets under half the page width, where the text of a full-page capture is too small to read, so clip both captures to the same region around the change, such as Playwright's `screenshot({ clip })`.
 - `::compare{mode="slider"}` instead, when both screenshots show the same spot and the change is small, such as a number or a label at the same place. The reader drags a divider across one full-width image instead of reading two half-width ones. Side notes become numbered notes there, so skip `side`.
 - A `::diff` of two code blocks, when a few lines of code are the point, such as a suggested fix. It renders like a suggested change in a GitHub review.
 - A side note (`side="left"`, `"right"`, or `"top"`) for the two or three points that matter most. With `mark="none"` the arrow alone points at the spot, which reads cleanest. Other notes stay numbered in the list under the image. In a side-by-side compare only `side="top"` keeps its arrow; left and right notes join the list.
 
-Keep it to about six marks per screenshot. Every note says what is wrong or what changed, not just "here".
+Mark the change at its own size: the bar, field, or label that changed. What stayed the same goes unmarked, or in one sentence above the screenshots. Keep it to about six marks per screenshot, fewer in a compare. Each note says what changed or what is wrong in the words the screen shows, so the reader can check it against the image; a value the screenshot doesn't show stays out of the note.
 
 ## Syntax
 
@@ -67,6 +67,7 @@ const r = document.querySelector("SELECTOR").getBoundingClientRect();
 ```
 
 For a full-page screenshot, add `scrollX`/`scrollY` and divide by `document.documentElement.scrollWidth` and `scrollHeight` instead.
+For a clipped capture, subtract the clip's `x` and `y` and divide by its `width` and `height`.
 
 ## Check and preview
 
