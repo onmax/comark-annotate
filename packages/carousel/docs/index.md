@@ -3,6 +3,9 @@ title: comark-carousel
 description: A carousel of any Markdown content, written in Markdown.
 tagline: Slides of images, code, or anything else that scroll and snap, with arrows, a counter, keys, and zoom.
 install: pnpm add comark @comark/html comark-carousel
+group: Page behavior
+icon: gallery-horizontal-end
+blurb: Slides of any content
 ---
 
 ::examples

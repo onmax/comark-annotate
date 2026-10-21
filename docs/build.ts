@@ -1,7 +1,7 @@
-// Renders docs/pages with the plugins themselves into docs/dist, a static site served by Cloudflare at comark.onmax.me.
+// Renders docs/pages and each package's docs/ with the plugins themselves into docs/dist, a static site served by Cloudflare at comark.onmax.me.
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { deflateRawSync } from "node:zlib";
 import { renderHtmlFromDocument } from "@comark/html";
@@ -27,9 +27,9 @@ const site = "https://comark.onmax.me";
 // `#123` on the site links to this repository's issues.
 const sitePlugins = () =>
   browserPlugins({ "comark-github": { references: { repo: "onmax/comark-plugins" } } });
-// Every page sits in pages/, so includes resolve from there.
+// Only comark-include's examples include files, so includes resolve from its docs, where their partials sit.
 const contentPlugins = () => [
-  include({ root: fileURLToPath(new URL("pages/", root)) }),
+  include({ root: fileURLToPath(new URL("../packages/include/docs/", root)) }),
   ...sitePlugins(),
 ];
 // The site's own links stay plain; chips show in the examples and the playground.
@@ -42,140 +42,99 @@ const plugins = [
 const ownIcons = {
   "scribble-loop": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5.5C11.5 2.8 20.3 3.4 21.5 8.6 22.8 14.3 16.5 20 9.6 20.4 4.4 20.7 1.5 17.6 2.6 13.6 3.6 10 8.3 7.3 13.6 7.2"/></svg>`,
 };
+// The site's chrome draws these; each package's own comes from its docs' frontmatter.
 const lucideNames = [
   "arrow-left",
   "arrow-right",
   "arrow-up-right",
-  "at-sign",
   "book-open",
-  "chart-column",
-  "file-input",
   "flask-conical",
-  "gallery-horizontal-end",
-  "github",
-  "list-checks",
-  "panels-top-left",
   "search",
-  "shapes",
-  "square-code",
   "tv-minimal-play",
-  "zoom-in",
-] as const;
-type IconName = (typeof lucideNames)[number] | keyof typeof ownIcons;
-const iconId = (name: IconName) => (name in ownIcons ? `site:${name}` : `lucide:${name}`);
+];
+const iconId = (name: string) => (name in ownIcons ? `site:${name}` : `lucide:${name}`);
+const str = (value: unknown) =>
+  value === undefined || value === null || value instanceof Object
+    ? ""
+    : // SAFETY: undefined, null, objects, and arrays returned above, so only a string, number, or boolean is left.
+      String(value as string | number | boolean);
+
+// The rail, in order: the docs, the playground, then one section per package. Each package's pages sit in its own
+// docs/ folder, and its index's frontmatter gives its group, icon, blurb, and credits. A package with no docs yet is
+// left out.
+const packageOrder = [
+  "annotate",
+  "charts",
+  "chips",
+  "embed",
+  "github",
+  "icon",
+  "zoom",
+  "carousel",
+  "tabs",
+  "code",
+  "include",
+  "lint",
+];
+const repo = new URL("../", root);
+// Paths from the repository's root, so an error names the file.
+const fileOf = (slug: string) => {
+  const [first = "", ...rest] = slug.split("/");
+  return packageOrder.includes(first)
+    ? `packages/${first}/docs/${rest.join("/") || "index"}.md`
+    : `docs/pages/${slug || "index"}.md`;
+};
+const exists = (file: string) => existsSync(new URL(file, repo));
+for (const folder of await readdir(new URL("packages/", repo))) {
+  // A branch from before the move would add its pages where nothing reads them.
+  for (const stale of [`docs/pages/${folder}`, `docs/pages/${folder}.md`])
+    if (exists(stale)) throw new Error(`${stale} belongs in packages/${folder}/docs/.`);
+  if (exists(`packages/${folder}/docs/index.md`) && !packageOrder.includes(folder))
+    throw new Error(
+      `packages/${folder}/docs has no place in the rail; add "${folder}" to packageOrder in docs/build.ts.`,
+    );
+}
+const packages = await Promise.all(
+  packageOrder
+    .filter((slug) => exists(fileOf(slug)))
+    .map(async (slug) => {
+      const { frontmatter } = await parseMarkdown(
+        await readFile(new URL(fileOf(slug), repo), "utf8"),
+      );
+      const manifest: unknown = JSON.parse(
+        await readFile(new URL(`packages/${slug}/package.json`, repo), "utf8"),
+      );
+      const [group, icon, blurb, credits] = ["group", "icon", "blurb", "credits"].map((key) =>
+        str(frontmatter[key]),
+      );
+      if (!group || !icon || !blurb)
+        throw new Error(`${fileOf(slug)} needs a group, an icon, and a blurb in its frontmatter.`);
+      return {
+        slug,
+        group,
+        icon,
+        blurb,
+        credits: credits || undefined,
+        npm: str((manifest as { name?: unknown }).name),
+      };
+    }),
+);
 const siteIcons = await createIcons({
   collections: { lucide, site: ownIcons },
   fetch: false,
-}).resolve([...lucideNames, ...Object.keys(ownIcons)].map((name) => iconId(name as IconName)));
-const siteIcon = (name: IconName, size = 18) => {
+}).resolve(
+  [...lucideNames, ...packages.map((pkg) => pkg.icon), ...Object.keys(ownIcons)].map(iconId),
+);
+const siteIcon = (name: string, size = 18) => {
   const found = siteIcons.get(iconId(name));
   if (!found || "problem" in found) throw new Error(`docs/build.ts: no icon "${name}".`);
   return iconHtml(found).replace('style="', `style="--comark-icon-size:${size}px;`);
-};
-
-// The rail, in order: the docs, the playground, then one section per package. A package whose folder isn't in
-// pages/ yet, such as one still on a branch, is left out.
-const packages = (
-  [
-    {
-      slug: "annotate",
-      group: "Review blocks",
-      icon: "scribble-loop",
-      blurb: "Marks and notes on screenshots",
-      credits: 'Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a>.',
-    },
-    {
-      slug: "charts",
-      group: "Review blocks",
-      icon: "chart-column",
-      blurb: "Charts from a Markdown table",
-      credits:
-        'Laid out by Microsoft Research\'s <a href="https://github.com/microsoft/flint-chart">Flint</a> on its New York Times theme, and drawn by <a href="https://vega.github.io">Vega</a>.',
-    },
-    {
-      slug: "chips",
-      group: "Review blocks",
-      icon: "at-sign",
-      blurb: "Links and @mentions as chips",
-      credits:
-        'After <a href="https://antfu.me">Anthony Fu</a>\'s <a href="https://github.com/antfu/markdown-it-magic-link">markdown-it-magic-link</a>. Favicons from Google, avatars from GitHub.',
-    },
-    {
-      slug: "embed",
-      group: "Review blocks",
-      icon: "tv-minimal-play",
-      blurb: "Videos, audio, and live code",
-    },
-    {
-      slug: "github",
-      group: "Review blocks",
-      icon: "github",
-      blurb: "GitHub's alerts, references, and HTML",
-      credits:
-        'Syntax from <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax">GitHub\'s Markdown</a>, and the allowed HTML from its <a href="https://github.com/gjtorikian/html-pipeline">html-pipeline</a>.',
-    },
-    {
-      slug: "icon",
-      group: "Review blocks",
-      icon: "shapes",
-      blurb: "Iconify icons in Markdown",
-    },
-    {
-      slug: "zoom",
-      group: "Page behavior",
-      icon: "zoom-in",
-      blurb: "Zoom images and any block",
-      credits:
-        'Modeled on <a href="https://github.com/francoischalifour/medium-zoom">medium-zoom</a>.',
-    },
-    {
-      slug: "carousel",
-      group: "Page behavior",
-      icon: "gallery-horizontal-end",
-      blurb: "Slides of any content",
-    },
-    {
-      slug: "tabs",
-      group: "Page behavior",
-      icon: "panels-top-left",
-      blurb: "Tabs and code groups",
-      credits: 'Syntax from <a href="https://ui.nuxt.com">Nuxt UI</a>\'s tabs and code groups.',
-    },
-    {
-      slug: "code",
-      group: "Page behavior",
-      icon: "square-code",
-      blurb: "Copy and wrap buttons on code",
-    },
-    {
-      slug: "include",
-      group: "Authoring tools",
-      icon: "file-input",
-      blurb: "Partials and snippets from files",
-      credits: 'Arguments from <a href="https://github.com/unjs/automd">automd</a>.',
-    },
-    {
-      slug: "lint",
-      group: "Authoring tools",
-      icon: "list-checks",
-      blurb: "Catches what Comark forgives",
-    },
-  ] satisfies { slug: string; group: string; icon: IconName; blurb: string; credits?: string }[]
-).filter((pkg) => existsSync(new URL(`pages/${pkg.slug}/index.md`, root)));
-// npm refuses `comark-lint` as too close to `remark-lint`.
-const npmNames: Record<string, string> = { lint: "comark-linter" };
-const fileOf = (slug: string) => {
-  const flat = existsSync(new URL(`pages/${slug || "index"}.md`, root));
-  // A stale flat page left by a merge would hide the folder's index without a word.
-  if (flat && slug && existsSync(new URL(`pages/${slug}/index.md`, root)))
-    throw new Error(`docs/pages has both ${slug}.md and ${slug}/index.md; keep one.`);
-  return flat ? `${slug || "index"}.md` : `${slug}/index.md`;
 };
 type Section = {
   slug: string;
   label: string;
   group: string;
-  icon: IconName;
+  icon: string;
   npm?: string;
   // What the index's grid says under the package's name.
   blurb?: string;
@@ -207,24 +166,18 @@ const sections: Section[] = [
   ...packages.map((pkg) => ({
     ...pkg,
     label: pkg.slug,
-    npm: npmNames[pkg.slug] ?? `comark-${pkg.slug}`,
     // A package's pages, in this order when it has them.
     lists: [
       {
         slugs: ["", "getting-started", "components", "syntax", "guides", "vite-doctor"]
           .map((page) => (page ? `${pkg.slug}/${page}` : pkg.slug))
-          .filter((slug) => existsSync(new URL(`pages/${fileOf(slug)}`, root))),
+          .filter((slug) => exists(fileOf(slug))),
       },
     ],
   })),
 ];
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
-const str = (value: unknown) =>
-  value === undefined || value === null || value instanceof Object
-    ? ""
-    : // SAFETY: undefined, null, objects, and arrays returned above, so only a string, number, or boolean is left.
-      String(value as string | number | boolean);
 const isPre = (node: Node): node is ElementNode => isElement(node) && node[0] === "pre";
 const href = (slug: string) => `/${slug}${slug ? "/" : ""}`;
 // An include reads files, so the playground can't run it.
@@ -317,11 +270,8 @@ const toc = (document: { nodes: Node[] }) =>
 
 async function parsePage(slug: string, section: Section) {
   const file = fileOf(slug);
-  const document = await parseMarkdown(await readFile(new URL(`pages/${file}`, root), "utf8"), {
-    plugins,
-  });
-  if (document.meta.issues.length)
-    throw new Error(`docs/pages/${file}:\n${document.meta.issues.join("\n")}`);
+  const document = await parseMarkdown(await readFile(new URL(file, repo), "utf8"), { plugins });
+  if (document.meta.issues.length) throw new Error(`${file}:\n${document.meta.issues.join("\n")}`);
   const [title, description, tagline, install, headline] = [
     "title",
     "description",
@@ -517,7 +467,7 @@ function pager(page: Page) {
   const i = list.indexOf(page);
   const [previous, next] = [list[i - 1], list[i + 1]];
   if (!previous && !next) return "";
-  const link = (target: Page | undefined, rel: string, arrow: IconName) =>
+  const link = (target: Page | undefined, rel: string, arrow: string) =>
     target
       ? `<a class="pager-${rel}" rel="${rel}" href="${href(target.slug)}"><small>${rel === "prev" ? "Previous" : "Next"}</small><span>${rel === "prev" ? siteIcon(arrow, 14) : ""}${escapeHtml(target.label)}${rel === "next" ? siteIcon(arrow, 14) : ""}</span></a>`
       : "<span></span>";

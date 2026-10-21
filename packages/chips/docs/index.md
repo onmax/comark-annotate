@@ -3,6 +3,10 @@ title: comark-chips
 description: Links and @mentions as chips with the site's favicon or the person's avatar, written in Markdown.
 tagline: Write a link or an @user as usual and get a chip with its favicon or avatar, downloaded while parsing so readers ask no one.
 install: pnpm add comark @comark/html comark-chips
+group: Review blocks
+icon: at-sign
+blurb: Links and @mentions as chips
+credits: 'After <a href="https://antfu.me">Anthony Fu</a>''s <a href="https://github.com/antfu/markdown-it-magic-link">markdown-it-magic-link</a>. Favicons from Google, avatars from GitHub.'
 ---
 
 ::examples
