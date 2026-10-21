@@ -53,8 +53,8 @@
     "comark": "catalog:"
   },
   "peerDependencies": {
-    "@comark/html": "^0.7.0",
-    "comark": "^0.7.0"
+    "@comark/html": "^0.8.0",
+    "comark": "^0.8.0"
   },
   "engines": {
     "node": ">=22.12.0"

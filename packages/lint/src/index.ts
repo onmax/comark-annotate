@@ -51,8 +51,8 @@ export type LintOptions = {
 type Token = {
   type: string;
   tag: string;
-  nesting: number;
   map: [number, number] | null;
+  content: string;
   children: Token[] | null;
 };
 
@@ -154,11 +154,17 @@ const crashed = (rule: Rule, error: unknown): Diagnostic => ({
   fix: "The other rules still ran. Report this with the document at https://github.com/onmax/comark-plugins/issues.",
 });
 
-// Comark reads HTML blocks and code as text, so a `::` or `{` there opens nothing.
+// Comark reads code, comments, and `<pre>`, `<script>`, `<style>`, and `<textarea>` blocks as text, so a `::` or `{`
+// there opens nothing. Every other HTML block holds Markdown. A raw block reaches the tokens as a paragraph that starts
+// with its tag.
+const RAW_HTML = /^\s*(?:<!--|<(?:pre|script|style|textarea)(?:[\s/>]|$))/i;
+
 function rawLines(tokens: Token[], offset: number): Set<number> {
   const lines = new Set<number>();
-  for (const { type, map } of tokens) {
-    if (!map || !["html_block", "code_block", "fence"].includes(type)) continue;
+  for (const { type, map, content } of tokens) {
+    const raw =
+      type === "code_block" || type === "fence" || (type === "inline" && RAW_HTML.test(content));
+    if (!map || !raw) continue;
     for (let line = map[0]; line < map[1]; line++) lines.add(line + offset);
   }
   return lines;
@@ -265,9 +271,9 @@ function scan(text: string, from: number, stop: (char: string, depth: number) =>
 
 function blockComponents(tokens: Token[], offset: number, source: Source): Block[] {
   return tokens.flatMap((token) => {
-    const opens =
-      (token.type === "mdc_block_open" || token.type === "mdc_block_shorthand") &&
-      token.nesting !== -1;
+    const opens = ["mdc_block_open", "mdc_block_shorthand_open", "mdc_block_shorthand"].includes(
+      token.type,
+    );
     if (!opens || !token.map) return [];
     const line = token.map[0] + offset + 1;
     return [{ name: token.tag, line, column: (source.lines[line - 1]?.indexOf(":") ?? 0) + 1 }];
@@ -300,7 +306,8 @@ function unknownComponents(
     if (token.type !== "inline" || !range) continue;
     const counts = new Map<string, number>();
     for (const child of token.children ?? []) {
-      if (child.type !== "mdc_inline_component" || child.nesting === -1) continue;
+      if (child.type !== "mdc_inline_component_open" && child.type !== "mdc_inline_component")
+        continue;
       const nth = counts.get(child.tag) ?? 0;
       counts.set(child.tag, nth + 1);
       const at = find(source, `:${child.tag}`, {
@@ -446,17 +453,17 @@ const ENTITIES = new Map([
   ["newline", "\n"],
 ]);
 
+const references = (text: string, names: Map<string, string>) =>
+  text
+    .replace(/&#x([0-9a-f]+);?/gi, (_, hex: string) => character(Number.parseInt(hex, 16)))
+    .replace(/&#(\d+);?/g, (_, dec: string) => character(Number.parseInt(dec, 10)))
+    .replace(/&([a-z]+);/gi, (entity, name: string) => names.get(name.toLowerCase()) ?? entity);
+
 // A local copy of the idea behind Comark's internal isUnsafeUrlValue: decode what a browser decodes, then read the scheme.
 function unsafeScheme(value: string): string | undefined {
   let url = decode(value);
   for (let pass = 0; pass < 5; pass++) {
-    const next = url
-      .replace(/&#x([0-9a-f]+);?/gi, (_, hex: string) => character(Number.parseInt(hex, 16)))
-      .replace(/&#(\d+);?/g, (_, dec: string) => character(Number.parseInt(dec, 10)))
-      .replace(
-        /&([a-z]+);/gi,
-        (entity, name: string) => ENTITIES.get(name.toLowerCase()) ?? entity,
-      );
+    const next = references(url, ENTITIES);
     if (next === url) break;
     url = next;
   }
@@ -464,6 +471,26 @@ function unsafeScheme(value: string): string | undefined {
   url = url.replace(/[\s\p{Cc}]/gu, "").toLowerCase();
   const scheme = /^(javascript|vbscript|data):/.exec(url)?.[0];
   return scheme === "data:" && url.startsWith("data:image/") ? undefined : scheme;
+}
+
+const REFERENCES = new Map([
+  ["amp", "&"],
+  ["lt", "<"],
+  ["gt", ">"],
+  ["quot", '"'],
+  ["apos", "'"],
+  ...ENTITIES,
+]);
+
+// Comark decodes character references in HTML attributes, so `jav&#x61;script:` reaches the tree as `javascript:`,
+// which the source doesn't contain. These are the quoted values in the source that decode to it.
+function written(source: Source, value: string): string[] {
+  const found = new Set<string>();
+  for (const line of source.prose.slice(source.body))
+    for (const [, , quoted] of line.matchAll(/=\s*(["'])(.*?)\1/g)) {
+      if (quoted !== value && references(quoted!, REFERENCES) === value) found.add(quoted!);
+    }
+  return [...found];
 }
 
 function unsafeUrls(nodes: Node[], source: Source): Diagnostic[] {
@@ -475,7 +502,7 @@ function unsafeUrls(nodes: Node[], source: Source): Diagnostic[] {
       if (!value) continue;
       const scheme = unsafeScheme(value);
       if (!scheme) continue;
-      const { line, column } = locate(value);
+      const { line, column } = locate(value, ...written(source, value));
       found.push({
         rule: "comark/unsafe-url",
         line,

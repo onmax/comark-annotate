@@ -6,7 +6,7 @@ import charts from "comark-charts";
 import code from "comark-code";
 import fs from "comark-content/sources/fs";
 import embed from "comark-embed";
-import githubCallouts from "comark-github-callouts";
+import githubCallouts from "comark-github";
 import include from "comark-include";
 import icon from "comark-icon";
 import tabs from "comark-tabs";

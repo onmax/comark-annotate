@@ -15,15 +15,15 @@ catalog:
   "@playwright/test": ^1.64.1
   "@types/react": ^19.3.0
   "@types/react-dom": ^19.3.0
-  "@comark/react": ^0.7.0
-  "@comark/svelte": ^0.7.0
-  "@comark/vue": ^0.7.0
+  "@comark/react": ^0.8.1
+  "@comark/svelte": ^0.8.1
+  "@comark/vue": ^0.8.1
   react: ^19.3.1
   react-dom: ^19.3.1
   svelte: ^5.57.2
   vue: ^3.5.44
-  "@comark/html": ^0.7.0
-  comark: ^0.7.0
+  "@comark/html": ^0.8.1
+  comark: ^0.8.1
   flint-chart: ^0.5.1
   vega: ^6.4.0
   vega-interpreter: ^2.3.2
@@ -50,6 +50,11 @@ minimumReleaseAgeExclude:
   - "@nuxt/vite-builder-nightly@5.0.0-2610192007-fe9ca5b"
   - "@nuxt/vite-server-nightly@5.0.0-2610192007-fe9ca5b"
   - nuxt-nightly@5.0.0-2610192007-fe9ca5b
+
+  - "@comark/html@0.8.1"
+  - "@comark/react@0.8.1"
+  - "@comark/vue@0.8.1"
+  - comark@0.8.1
 
 allowBuilds:
   esbuild: false

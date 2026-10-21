@@ -17,10 +17,14 @@ import annotate, { components as annotateComponents } from "../packages/annotate
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
 import code, { components as codeComponents } from "../packages/code/src/html.ts";
 import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
+import chips, { components as chipsComponents } from "../packages/chips/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
-import githubCallouts, {
-  components as githubCalloutsComponents,
-} from "../packages/github-callouts/src/html.ts";
+import {
+  callouts,
+  components as githubComponents,
+  html as githubHtml,
+  references,
+} from "../packages/github/src/html.ts";
 import icon, {
   components as iconComponents,
   createIcons,
@@ -44,8 +48,11 @@ const browserPlugins = () => [
   carousel(),
   code(),
   charts(),
+  chips(),
   embed(),
-  githubCallouts(),
+  callouts(),
+  references({ repo: "onmax/comark-plugins" }),
+  githubHtml(),
   icon(),
   tabs(),
   zoom(),
@@ -55,14 +62,19 @@ const contentPlugins = () => [
   include({ root: fileURLToPath(new URL("pages/", root)) }),
   ...browserPlugins(),
 ];
-const plugins = [...contentPlugins(), shiki({ themes: { light, dark } })];
+// The site's own links stay plain; chips show in the examples and the playground.
+const plugins = [
+  ...contentPlugins().filter((plugin) => plugin.name !== "comark-chips"),
+  shiki({ themes: { light, dark } }),
+];
 const components = {
   ...annotateComponents,
   ...carouselComponents,
   ...codeComponents,
   ...chartsComponents,
+  ...chipsComponents,
   ...embedComponents,
-  ...githubCalloutsComponents,
+  ...githubComponents,
   ...iconComponents,
   ...tabsComponents,
   ...zoomComponents,
@@ -76,13 +88,14 @@ const lucideNames = [
   "arrow-left",
   "arrow-right",
   "arrow-up-right",
+  "at-sign",
   "book-open",
   "chart-column",
   "file-input",
   "flask-conical",
   "gallery-horizontal-end",
+  "github",
   "list-checks",
-  "message-square-warning",
   "panels-top-left",
   "search",
   "shapes",
@@ -122,18 +135,26 @@ const packages = (
         'Laid out by Microsoft Research\'s <a href="https://github.com/microsoft/flint-chart">Flint</a> on its New York Times theme, and drawn by <a href="https://vega.github.io">Vega</a>.',
     },
     {
+      slug: "chips",
+      group: "Review blocks",
+      icon: "at-sign",
+      blurb: "Links and @mentions as chips",
+      credits:
+        'After <a href="https://antfu.me">Anthony Fu</a>\'s <a href="https://github.com/antfu/markdown-it-magic-link">markdown-it-magic-link</a>. Favicons from Google, avatars from GitHub.',
+    },
+    {
       slug: "embed",
       group: "Review blocks",
       icon: "tv-minimal-play",
       blurb: "Videos, audio, and live code",
     },
     {
-      slug: "github-callouts",
+      slug: "github",
       group: "Review blocks",
-      icon: "message-square-warning",
-      blurb: "GitHub's alerts as callouts",
+      icon: "github",
+      blurb: "GitHub's alerts, references, and HTML",
       credits:
-        'Syntax from <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts">GitHub\'s alerts</a>.',
+        'Syntax from <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax">GitHub\'s Markdown</a>, and the allowed HTML from its <a href="https://github.com/gjtorikian/html-pipeline">html-pipeline</a>.',
     },
     {
       slug: "icon",

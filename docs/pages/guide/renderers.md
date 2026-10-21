@@ -13,7 +13,7 @@ tagline: Register every plugin you use in one renderer. The same markup comes ou
 | [charts](/charts/) | `comark-charts/html` | | | |
 | [code](/code/) | `comark-code/html` | `comark-code/vue` | `comark-code/react` | `comark-code/svelte` |
 | [embed](/embed/) | `comark-embed/html` | `comark-embed/vue` | `comark-embed/react` | `comark-embed/svelte` |
-| [github-callouts](/github-callouts/) | `comark-github-callouts/html` | `comark-github-callouts/vue` | `comark-github-callouts/react` | `comark-github-callouts/svelte` |
+| [github](/github/) | `comark-github/html` | `comark-github/vue` | `comark-github/react` | `comark-github/svelte` |
 | [tabs](/tabs/) | `comark-tabs/html` | `comark-tabs/vue` | `comark-tabs/react` | `comark-tabs/svelte` |
 | [zoom](/zoom/) | `comark-zoom/html` | `comark-zoom/vue` | `comark-zoom/react` | `comark-zoom/svelte` |
 
@@ -29,22 +29,22 @@ import include from "comark-include";
 import annotate, { components as annotateComponents } from "comark-annotate/html";
 import carousel, { components as carouselComponents } from "comark-carousel/html";
 import embed, { components as embedComponents } from "comark-embed/html";
-import githubCallouts, { components as calloutComponents } from "comark-github-callouts/html";
+import { callouts, components as githubComponents } from "comark-github/html";
 import zoom, { components as zoomComponents } from "comark-zoom/html";
 
 const render = createHtmlRenderer({
-  plugins: [include(), annotate(), carousel(), embed(), githubCallouts(), zoom()],
+  plugins: [include(), annotate(), carousel(), embed(), callouts(), zoom()],
   components: {
     ...annotateComponents,
     ...carouselComponents,
     ...embedComponents,
-    ...calloutComponents,
+    ...githubComponents,
     ...zoomComponents,
   },
 });
 ```
 
-Put `include` first: it pastes files into the Markdown before the others read it. `githubCallouts()` is named `alert`, so it takes the place of Comark's built-in alert plugin wherever you list it. Annotate brings zoom and carousel with it, so screenshots and comparisons zoom without `zoom()`; add `zoom()` when content images and `::zoom` blocks should zoom too.
+Put `include` first: it pastes files into the Markdown before the others read it. `callouts()` is named `alert`, so it takes the place of Comark's built-in alert plugin wherever you list it. Annotate brings zoom and carousel with it, so screenshots and comparisons zoom without `zoom()`; add `zoom()` when content images and `::zoom` blocks should zoom too.
 
 ## Scripts and styles
 

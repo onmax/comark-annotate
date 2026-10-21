@@ -61,7 +61,7 @@ describe("comark-tabs", () => {
     expect(html).toContain('<div class="ct" data-tabs-code data-tabs-sync="pm">');
     expect(html).toContain('aria-selected="true" tabindex="0">pnpm</button>');
     expect(html).toContain('aria-selected="false" tabindex="-1">npm</button>');
-    expect(html).toContain('<div class="ct-caption">npm</div><pre language="bash">');
+    expect(html).toContain('<div class="ct-caption">npm</div><pre data-language="bash">');
     // The tab names the block, so the block's own chrome doesn't repeat it.
     expect(html).not.toContain("filename");
   });
