@@ -1384,7 +1384,7 @@ a.window-play:hover {
   }
 
   .search-open :is(.search-label, kbd),
-  .top-end .npmx span {
+  .top-end .npmx span,
   .github-label,
   .top-links {
     display: none;
