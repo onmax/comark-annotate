@@ -546,7 +546,10 @@ export function start(): () => void {
       const frame = target?.closest(".ca-frame");
       const figure = figureOf(frame ?? null);
       const ready = figure && made.get(figure);
-      if (!frame || !ready || target?.closest(SKIP) || ready.key !== keyOf(figure)) return;
+      // The copy may have been prepared just before a late font or image layout update. It is
+      // still the best available native-menu target; requiring an exact geometry key here can
+      // otherwise leave the browser's context-menu event with no replacement target at all.
+      if (!frame || !ready || target?.closest(SKIP)) return;
       armed = overlayOf(frame);
       if (armed.getAttribute("src") !== ready.url) armed.src = ready.url;
       armed.setAttribute("data-menu", "");
