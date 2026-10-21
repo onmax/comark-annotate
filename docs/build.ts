@@ -272,7 +272,7 @@ const thumbnails = new Map(
     presets.map(async (preset) => {
       const document = await parseMarkdown(preset.source, { plugins: browserPlugins() });
       const html = (await renderHtmlFromDocument(document, { components }))
-        .replace(/<style>[\s\S]*?<\/style>/g, (style) => (thumbnailStyles.add(style), ""))
+        .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, (style) => (thumbnailStyles.add(style), ""))
         .replace(/<script>[\s\S]*?<\/script>/g, "")
         .replace(
           /<iframe\b[^>]*><\/iframe>/g,
@@ -447,11 +447,13 @@ const update = async () => {
     return a;
   }));
   empty.hidden = results.length > 0;
-  input.setAttribute("aria-expanded", results.length > 0);
+  input.setAttribute("aria-expanded", String(dialog.open));
+  // Keep the combobox state synchronized when the dialog closes without another search.
   select(0);
 };
 const show = () => { dialog.showModal(); input.select(); update() };
 open.addEventListener("click", show);
+dialog.addEventListener("close", () => input.setAttribute("aria-expanded", "false"));
 open.addEventListener("pointerenter", load, { once: true });
 addEventListener("keydown", e => {
   const typing = e.target.closest("input, textarea, select, [contenteditable]");
