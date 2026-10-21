@@ -1,5 +1,5 @@
 {
-  "name": "comark-lint",
+  "name": "comark-linter",
   "version": "0.2.0",
   "description": "Finds unclosed blocks, unknown components, broken anchors, and plugin issues in Comark documents. A library, a CLI, and a Vite Doctor extension.",
   "keywords": [
@@ -39,7 +39,7 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
-    "prepack": "pnpm --filter comark-lint... build"
+    "prepack": "pnpm --filter comark-linter... build"
   },
   "devDependencies": {
     "comark": "catalog:",

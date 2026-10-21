@@ -31,7 +31,7 @@
     "@playwright/test": "catalog:",
     "@types/node": "catalog:",
     "comark": "catalog:",
-    "comark-lint": "workspace:*",
+    "comark-linter": "workspace:*",
     "geist": "catalog:",
     "pkg-pr-new": "catalog:",
     "publint": "catalog:",

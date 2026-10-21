@@ -86,9 +86,10 @@ const lucideNames = [
 ] as const;
 type IconName = (typeof lucideNames)[number] | keyof typeof ownIcons;
 const iconId = (name: IconName) => (name in ownIcons ? `site:${name}` : `lucide:${name}`);
-const siteIcons = await createIcons({ collections: { lucide, site: ownIcons }, fetch: false }).resolve(
-  [...lucideNames, ...Object.keys(ownIcons)].map((name) => iconId(name as IconName)),
-);
+const siteIcons = await createIcons({
+  collections: { lucide, site: ownIcons },
+  fetch: false,
+}).resolve([...lucideNames, ...Object.keys(ownIcons)].map((name) => iconId(name as IconName)));
 const siteIcon = (name: IconName, size = 18) => {
   const found = siteIcons.get(iconId(name));
   if (!found || "problem" in found) throw new Error(`docs/build.ts: no icon "${name}".`);
@@ -111,6 +112,8 @@ const packages = (
     { slug: "lint", group: "Authoring tools", icon: "list-checks" },
   ] satisfies { slug: string; group: string; icon: IconName }[]
 ).filter((pkg) => existsSync(new URL(`pages/${pkg.slug}/index.md`, root)));
+// npm refuses `comark-lint` as too close to `remark-lint`.
+const npmNames: Record<string, string> = { lint: "comark-linter" };
 const fileOf = (slug: string) =>
   existsSync(new URL(`pages/${slug || "index"}.md`, root))
     ? `${slug || "index"}.md`
@@ -144,7 +147,7 @@ const sections: Section[] = [
   ...packages.map((pkg) => ({
     ...pkg,
     label: pkg.slug,
-    npm: `comark-${pkg.slug}`,
+    npm: npmNames[pkg.slug] ?? `comark-${pkg.slug}`,
     // A package's pages, in this order when it has them.
     lists: [
       {

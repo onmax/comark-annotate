@@ -45,7 +45,7 @@ github-callouts and zoom have nothing to report: a quote that isn't a callout st
 
 ## Line numbers
 
-`meta.issues` can't say where a problem is, because Comark gives nodes no source positions. [comark-lint](/lint/) finds the line of each issue and adds what Comark forgives silently: blocks never closed, misspelled components, broken anchors, and unsafe URLs. Run it in CI and in [Vite Doctor](/lint/getting-started/#vite-doctor):
+`meta.issues` can't say where a problem is, because Comark gives nodes no source positions. [comark-linter](/lint/) finds the line of each issue and adds what Comark forgives silently: blocks never closed, misspelled components, broken anchors, and unsafe URLs. Run it in CI and in [Vite Doctor](/lint/getting-started/#vite-doctor):
 
 ```sh
 pnpm comark-lint "docs/**/*.md"

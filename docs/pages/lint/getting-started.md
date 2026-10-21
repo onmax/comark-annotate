@@ -1,7 +1,7 @@
 ---
 title: Getting started
-description: Run comark-lint from the command line, a script, or Vite Doctor.
-install: pnpm add -D comark-lint
+description: Run comark-linter from the command line, a script, or Vite Doctor.
+install: pnpm add -D comark-linter
 ---
 
 ## Command line
@@ -11,13 +11,15 @@ pnpm comark-lint "docs/**/*.md"
 pnpm comark-lint review.md --format json
 ```
 
+The package is `comark-linter`, since npm refuses `comark-lint` as too close to `remark-lint`. Its command and config file are `comark-lint`.
+
 It checks each file with the plugins and components of every comark-plugins package installed: annotate, carousel, github-callouts, and zoom. It prints one `file:line:column rule message` line per problem and exits with 1 if there are any, or 2 if a file can't be read.
 
 Components of your own go in a config, passed with `--config`:
 
 ```ts
 // comark-lint.config.ts
-import { defineConfig } from "comark-lint";
+import { defineConfig } from "comark-linter";
 import mermaid from "./mermaid.ts";
 
 export default defineConfig({
@@ -31,7 +33,7 @@ Its `plugins` and `components` are added to the installed packages'. `components
 ## Library
 
 ```ts
-import { lint } from "comark-lint";
+import { lint } from "comark-linter";
 import annotate, { components } from "comark-annotate/html";
 
 const diagnostics = await lint(markdown, { plugins: [annotate()], components });
@@ -42,11 +44,11 @@ const diagnostics = await lint(markdown, { plugins: [annotate()], components });
 
 ## Vite Doctor
 
-`comark-lint/doctor` is a [Vite Doctor](https://github.com/onmax/vite-doctor) extension. Vite Doctor loads extensions from an executable config, so register it in `doctor.config.ts`:
+`comark-linter/doctor` is a [Vite Doctor](https://github.com/onmax/vite-doctor) extension. Vite Doctor loads extensions from an executable config, so register it in `doctor.config.ts`:
 
 ```ts
 // doctor.config.ts
-import comark from "comark-lint/doctor";
+import comark from "comark-linter/doctor";
 import { defineDoctorConfig } from "vite-doctor/config";
 
 export default defineDoctorConfig({
