@@ -12,7 +12,9 @@ export function addStyles(): void {
 /** The inline style of an icon: its image and, when it isn't square, its width over its height. */
 export function iconStyle(src: string, ratio?: string | number): Record<string, string> {
   return {
-    "--ci": `url("${src}")`,
+    // The parse plugin writes safe URLs, but a component can be given any `src`: a quote, backslash, or line break
+    // would end the CSS string it goes in.
+    "--ci": `url("${src.replace(/["\\\n\r\f]/g, encodeURIComponent)}")`,
     ...(Number(ratio) && Number(ratio) !== 1 && { "--ci-ratio": String(Number(ratio)) }),
   };
 }
