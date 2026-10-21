@@ -4,7 +4,7 @@ description: The links embed reads, its props, and how to theme players and card
 ---
 
 ```md
-::embed{url="https://youtu.be/KCrXgy8qtjM" title="Vite in 100 Seconds" start=30}
+::embed{url="https://youtu.be/KCrXgy8qtjM" title="Watch before standup: Vite in 100 Seconds" start=30}
 ::
 ```
 

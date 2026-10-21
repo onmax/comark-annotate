@@ -16,14 +16,14 @@ An agent writes the Markdown and the plugins draw the page. A problem comes back
 
 ````md
 > [!TIP] Decision
-> Extra filters collapse into **+2 filters**.
+> Moon phase and vibes collapse into **+2 filters**.
 
 ::screenshot{src="/after.png" alt="Filter toolbar on one row"}
-:::annotation{x=67.9 y=34.8 w=13 h=14.2 mark="highlight"}
-Five filters now fit on one row.
+:::annotation{x=68 y=33.1 w=13.3 h=16 mark="highlight"}
+Moon phase and vibes live in here now.
 :::
 
-:::annotation{x=82.5 y=34.8 w=10.5 h=14.2 mark="check" color="green"}
+:::annotation{x=82.5 y=33.1 w=10.9 h=16 mark="check" color="green"}
 **Apply** lines up with the chips.
 :::
 ::

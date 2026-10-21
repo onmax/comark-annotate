@@ -22,9 +22,9 @@ Mark the change at its own size: the bar, field, or label that changed. What sta
 
 ```md
 ::compare
-:::screenshot{src="before.png" alt="Filter toolbar wrapping onto a second row" viewport="1440x900" href="https://pr12.preview.example.com/plan"}
+:::screenshot{src="before.png" alt="Filter toolbar wrapping onto a second row" viewport="1440x900" href="https://pr12.preview.example.com/correlations"}
 ::::annotation{x=3.6 y=20.6 w=92.9 h=31.4 color="red"}
-Five filters don't fit, so the toolbar wraps and pushes the table down.
+Moon phase and vibes don't fit, so the toolbar wraps and pushes the table down.
 ::::
 :::
 

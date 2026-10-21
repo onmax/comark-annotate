@@ -10,21 +10,21 @@ install: pnpm add comark @comark/html comark-annotate
 ```md
 ::compare
 :::screenshot{src="/before.png" alt="Filter toolbar wrapping onto a second row" viewport="640x250"}
-::::annotation{x=5 y=29.6 w=90 h=45.3 color="red"}
-Five filters don't fit, so the toolbar wraps and pushes the table down.
+::::annotation{x=4.5 y=28.7 w=90.9 h=44.4 color="red"}
+Moon phase and vibes don't fit, so the toolbar wraps and pushes the table down.
 ::::
 
-::::annotation{x=50.9 y=55.4 w=10.5 h=14.2 mark="circle" color="red"}
+::::annotation{x=23.6 y=52.7 w=10.9 h=16 mark="circle" color="red"}
 **Apply** sits 6px lower than the chips.
 ::::
 :::
 
 :::screenshot{src="/after.png" alt="Filter toolbar on one row" viewport="640x250"}
-::::annotation{x=67.9 y=34.8 w=13 h=14.2 mark="highlight" color="blue"}
-Extra filters collapse into **+2 filters**.
+::::annotation{x=68 y=33.1 w=13.3 h=16 mark="highlight" color="blue"}
+Moon phase and vibes collapse into **+2 filters**.
 ::::
 
-::::annotation{x=82.5 y=34.8 w=10.5 h=14.2 mark="check" color="green"}
+::::annotation{x=82.5 y=33.1 w=10.9 h=16 mark="check" color="green"}
 **Apply** lines up with the chips.
 ::::
 :::
@@ -36,13 +36,13 @@ Extra filters collapse into **+2 filters**.
 ```md
 ::compare{mode="slider"}
 :::screenshot{src="/before.png" alt="Filter toolbar wrapping onto a second row" viewport="640x250"}
-::::annotation{x=50.9 y=55.4 w=10.5 h=14.2 mark="circle" color="red"}
+::::annotation{x=23.6 y=52.7 w=10.9 h=16 mark="circle" color="red"}
 **Apply** sits 6px lower than the chips.
 ::::
 :::
 
 :::screenshot{src="/after.png" alt="Filter toolbar on one row" viewport="640x250"}
-::::annotation{x=82.5 y=34.8 w=10.5 h=14.2 mark="check" color="green"}
+::::annotation{x=82.5 y=33.1 w=10.9 h=16 mark="check" color="green"}
 **Apply** lines up with the chips.
 ::::
 :::
@@ -52,17 +52,17 @@ Extra filters collapse into **+2 filters**.
 
 :::example{label="Pointers"}
 ```md
-::screenshot{src="/dashboard.png" alt="Forecast planning dashboard"}
-:::annotation{x=37.6 y=31.9 w=11.9 h=3.3 mark="none" side="top"}
-Units fell below plan.
+::screenshot{src="/dashboard.png" alt="Office correlations dashboard"}
+:::annotation{x=37 y=33.1 w=16.4 h=5.2 mark="none" side="top"}
+Bugs fixed fell with the duck supply.
 :::
 
-:::annotation{x=66.4 y=16.4 w=29.4 h=22.2 mark="none" side="top"}
-Accuracy now counts returns.
+:::annotation{x=66.1 y=17 w=30.5 h=24.6 mark="none" side="top"}
+r now counts the office cat.
 :::
 
-:::annotation{x=53.1 y=74.7 w=21.2 h=8.4 mark="none" side="left"}
-Week 15 never loaded.
+:::annotation{x=61.2 y=76.6 w=18 h=9.7 mark="none" side="left"}
+The pigeons ate week 15.
 :::
 ::
 ```
@@ -70,21 +70,21 @@ Week 15 never loaded.
 
 :::example{label="Side notes"}
 ```md
-::screenshot{src="/dashboard.png" alt="Forecast planning dashboard"}
-:::annotation{x=37.6 y=31.9 w=11.9 h=3.3 mark="underline" side="left" color="red"}
-Units fall below plan for the first time this quarter.
+::screenshot{src="/dashboard.png" alt="Office correlations dashboard"}
+:::annotation{x=37 y=33.1 w=16.4 h=5.2 mark="underline" side="left" color="red"}
+Bugs fixed fall for the first time this quarter. So do the ducks.
 :::
 
-:::annotation{x=66.4 y=16.4 w=29.4 h=22.2 side="right"}
-Accuracy now counts returns.
+:::annotation{x=66.1 y=17 w=30.5 h=24.6 side="right"}
+r now counts the office cat.
 :::
 
-:::annotation{x=53.1 y=74.7 w=21.2 h=8.4 mark="highlight" side="left" color="amber"}
-Week 15 is missing for City sneaker.
+:::annotation{x=61.2 y=76.6 w=18 h=9.7 mark="highlight" side="left" color="amber"}
+Week 15 is missing for the pigeons.
 :::
 
-:::annotation{x=84.7 y=44.6 w=9.3 h=7.3 mark="circle"}
-Notes without a `side` stay in the list. **Apply** waits until every filter is set.
+:::annotation{x=85 y=46 w=9.7 h=9.3 mark="circle"}
+Notes without a `side` stay in the list. **Apply** waits until every filter is set, moon phase included.
 :::
 ::
 ```
@@ -92,28 +92,28 @@ Notes without a `side` stay in the list. **Apply** waits until every filter is s
 
 :::example{label="Marks"}
 ```md
-::screenshot{src="/dashboard.png" alt="Forecast planning dashboard"}
-:::annotation{x=81.8 y=5.3 w=14.1 h=7.3}
+::screenshot{src="/dashboard.png" alt="Office correlations dashboard"}
+:::annotation{x=82.4 y=5.3 w=14.2 h=8.8}
 `box` frames an element.
 :::
 
-:::annotation{x=37.6 y=31.9 w=11.9 h=3.3 mark="circle"}
+:::annotation{x=37 y=33.1 w=16.4 h=5.2 mark="circle"}
 `circle` rings a small detail.
 :::
 
-:::annotation{x=4.2 y=6.1 w=23.4 h=5.8 mark="underline" color="blue"}
+:::annotation{x=3.5 y=5.9 w=26.8 h=7.7 mark="underline" color="blue"}
 `underline` marks text.
 :::
 
-:::annotation{x=53.1 y=74.7 w=21.2 h=8.4 mark="highlight" color="amber"}
+:::annotation{x=61.2 y=76.6 w=18 h=9.7 mark="highlight" color="amber"}
 `highlight` washes over an area.
 :::
 
-:::annotation{x=6 y=44.6 w=45.2 h=7.3 mark="cross" color="red"}
+:::annotation{x=5.3 y=46 w=21.7 h=9.3 mark="cross" color="red"}
 `cross` strikes something out.
 :::
 
-:::annotation{x=84.7 y=44.6 w=9.3 h=7.3 mark="check" color="green"}
+:::annotation{x=85 y=46 w=9.7 h=9.3 mark="check" color="green"}
 `check` approves and sits beside its target.
 :::
 ::

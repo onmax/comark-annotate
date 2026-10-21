@@ -7,21 +7,21 @@ install: pnpm add comark @comark/html comark-annotate comark-carousel
 
 ::example
 ```md
-::carousel{title="Exporting a forecast"}
-:::screenshot{src="/dashboard.png" alt="Forecast planning dashboard" title="1. Find the export"}
-::::annotation{x=81.8 y=5.3 w=14.1 h=7.3}
+::carousel{title="Exporting the pigeon data"}
+:::screenshot{src="/dashboard.png" alt="Office correlations dashboard" title="1. Find the export"}
+::::annotation{x=82.4 y=5.3 w=14.2 h=8.8}
 **Export CSV** sits in the page header.
 ::::
 :::
 
-:::screenshot{src="/before.png" alt="Filter toolbar with five filters" title="2. Set the filters" viewport="640x250"}
-::::annotation{x=5 y=29.6 w=90 h=45.3 color="amber"}
-The export includes only the rows these filters show.
+:::screenshot{src="/before.png" alt="Filter toolbar with five filters, moon phase included" title="2. Set the filters" viewport="640x250"}
+::::annotation{x=4.5 y=28.7 w=90.9 h=44.4 color="amber"}
+The export includes only the rows these filters show. Set the moon phase.
 ::::
 :::
 
 :::screenshot{src="/after.png" alt="Filter toolbar on one row" title="3. Apply" viewport="640x250"}
-::::annotation{x=82.5 y=34.8 w=10.5 h=14.2 mark="check" color="green"}
+::::annotation{x=82.5 y=33.1 w=10.9 h=16 mark="check" color="green"}
 **Apply** updates the table, and the export follows it.
 ::::
 :::
@@ -40,8 +40,8 @@ Use a carousel for a sequence: the steps of a flow, or one view at several sizes
 `columns=2` shows two steps side by side on a wide page and one at a time on a narrow one:
 
 ```md
-::carousel{title="Exporting a forecast" columns=2}
-:::screenshot{src="/dashboard.png" alt="Forecast planning dashboard" title="1. Find the export"}
+::carousel{title="Exporting the pigeon data" columns=2}
+:::screenshot{src="/dashboard.png" alt="Office correlations dashboard" title="1. Find the export"}
 :::
 
 :::screenshot{src="/after.png" alt="Filter toolbar on one row" title="2. Apply"}

@@ -78,3 +78,34 @@ Fixed.
 | --- | --- |
 | `title` | What the comparison shows, read out by screen readers. Defaults to "Comparison". |
 | `mode` | `columns` (default) puts the screenshots side by side; `slider` lays them over each other with a divider to drag. |
+
+## diff
+
+A code change, shown the way a pull request review shows a suggested change. Write the code before and after as two ordinary fenced blocks; the diff marks removed lines red and added lines green, and within a pair of changed lines, the words that changed. The header shows the file and how many lines were added and removed. Leave the first block empty for a new file, or the second for a deleted one.
+
+::example
+````md
+::diff{line=12 label="Suggested change"}
+```ts [src/roof.ts]
+function countPigeons(roof) {
+  const birds = roof.birds;
+  return birds.length;
+}
+```
+```ts
+function countPigeons(roof) {
+  const birds = roof.birds.filter((bird) => bird.kind === "pigeon");
+  return birds.length;
+}
+```
+::
+````
+::
+
+| Prop | |
+| --- | --- |
+| `file` | The file's path. Defaults to the name on the first block, like `` ```ts [src/a.ts] ``; one of the two is required. |
+| `line` | The file's line number for the first line of both blocks. Without it, the diff has no line numbers. |
+| `label` | A heading before the file name, such as "Suggested change". |
+
+Keep both blocks to the lines around the change; the plugin reports a block over 200 lines, two blocks in different languages or files, and a diff with no change. The line numbers and the `+` and `−` come from CSS, so copying a selection copies only the code. With Comark's `shiki` plugin, both blocks keep their highlighting, and a line a block highlights, like `` ```ts {2} ``, stays highlighted. One diff shows one file and takes no unified diff: it's for a change a reader should see, which a few lines before and after show best.

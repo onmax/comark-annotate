@@ -14,13 +14,13 @@ install: pnpm add comark comark-include
 
 :::example{label="Region"}
 ```md
-:include{src="./partials/greet.ts" region="message"}
+:include{src="./partials/ducks.ts" region="estimate"}
 ```
 :::
 
 :::example{label="Lines"}
 ```md
-:include{src="./partials/greet.ts" lines="1:3"}
+:include{src="./partials/ducks.ts" lines="1:3"}
 ```
 :::
 
