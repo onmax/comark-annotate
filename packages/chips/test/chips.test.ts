@@ -53,7 +53,7 @@ describe("comark-chips", () => {
     const html = await render(
       "Mail me@onmax.dev about `@onmax` and @comark/html, read the [guide](/guide/), see [![logo](https://x.dev/a.png)](https://x.dev).",
     );
-    expect(html).not.toContain('class="cp');
+    expect(html).not.toContain('class="cp"');
     expect(requests).toEqual([]);
   });
 

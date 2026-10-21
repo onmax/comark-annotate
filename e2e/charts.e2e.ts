@@ -2,6 +2,7 @@ import { createHtmlRenderer } from "@comark/html";
 import { expect, test } from "@playwright/test";
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
 import charts, { components } from "../packages/charts/src/html.ts";
+import chips, { components as chipsComponents } from "../packages/chips/src/html.ts";
 
 // Worst-case tables a review really holds: file paths and test names, other scripts and emoji, one-letter names,
 // a single row and sixty, two years of months and three days of hours, numbers from thousandths to millions, negatives,
@@ -202,4 +203,31 @@ test("hundreds of worst-case charts draw with no text colliding, clipped, or pas
     return found;
   });
   expect(problems).toEqual([]);
+});
+
+test("a chart beside a link keeps its own card, light and dark", async ({ page }) => {
+  const render = createHtmlRenderer({
+    plugins: [charts(), chips({ download: false })],
+    components: { ...components, ...chipsComponents },
+  });
+  const body = await render(
+    '::chart{title="Pigeons"}\n| day | pigeons |\n| --- | --: |\n| Monday | 3 |\n| Friday | 14 |\n::\n\nSee [Vite](https://vite.dev).',
+  );
+  await page.route("**/fixture/", (route) =>
+    route.fulfill({
+      contentType: "text/html",
+      body: `<!doctype html><meta charset="utf-8"><main>${body}</main>`,
+    }),
+  );
+  await page.goto("/fixture/", { waitUntil: "domcontentloaded" });
+  const figure = page.locator("figure.cch");
+  await expect(page.locator("main a").first()).toHaveCSS("border-top-left-radius", "999px");
+  for (const [scheme, background] of [
+    ["light", "rgb(255, 255, 255)"],
+    ["dark", "rgb(10, 10, 10)"],
+  ] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    await expect(figure).toHaveCSS("background-color", background);
+    await expect(figure).toHaveCSS("border-top-left-radius", "10px");
+  }
 });
