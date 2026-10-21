@@ -1,3 +1,5 @@
+import { toNativeAttributes } from "comark/utils";
+
 /** One of your actions as the parse plugin writes it on a code block. */
 export type ActionButton = { id: string; label: string };
 
@@ -18,6 +20,16 @@ declare global {
   interface WindowEventMap {
     "comark-code-action": CustomEvent<CodeActionDetail>;
   }
+}
+
+/**
+ * The attributes a component's `pre` gets, written as Comark writes them on a `pre` of its own: a fence's `language`
+ * and `filename` become `data-language` and `data-filename`.
+ */
+export function preAttributes<T extends Record<string, unknown>>(attributes: T): T {
+  // Components get the attributes without their node, so an HTML `<pre language>`, which Comark leaves alone, is
+  // treated as a fence too. Authors don't write those.
+  return toNativeAttributes("pre", ["pre", {}], attributes);
 }
 
 /**
@@ -97,7 +109,7 @@ export function start(css: string): () => void {
         const detail: CodeActionDetail = {
           action: button.getAttribute("data-code-action") ?? "",
           code: code.textContent ?? "",
-          language: pre.getAttribute("language") ?? "",
+          language: pre.getAttribute("data-language") ?? "",
         };
         root.dispatchEvent(new CustomEvent("comark-code-action", { bubbles: true, detail }));
       }

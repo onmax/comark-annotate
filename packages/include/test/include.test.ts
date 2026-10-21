@@ -81,10 +81,10 @@ describe("comark-include", () => {
       ],
     ]);
     expect(await render(':include{src="src/index.ts" region="setup"}', { read })).toBe(
-      '<pre language="ts"><code class="language-ts">const a = 1\nconst b = 2</code></pre>',
+      '<pre data-language="ts"><code class="language-ts">const a = 1\nconst b = 2</code></pre>',
     );
     expect(await render(':include{src="src/index.ts" lines="1:1" lang="js"}', { read })).toBe(
-      `<pre language="js"><code class="language-js">import { x } from 'x'</code></pre>`,
+      `<pre data-language="js"><code class="language-js">import { x } from 'x'</code></pre>`,
     );
   });
 
@@ -124,7 +124,7 @@ describe("comark-include", () => {
   it("indents pasted lines like the include, so a partial stays in its list item", async () => {
     const read = files({ "step.md": "Run it:\n\n```sh\npnpm i\n```" });
     expect(await render('- One\n\n  :include{src="step.md"}\n- Two', { read })).toBe(
-      '<ul>\n  <li>\n    <p>One</p>\n    <p>Run it:</p>\n    <pre language="sh"><code class="language-sh">pnpm i</code></pre>\n  </li>\n  <li>Two</li>\n</ul>',
+      '<ul>\n  <li>\n    <p>One</p>\n    <p>Run it:</p>\n    <pre data-language="sh"><code class="language-sh">pnpm i</code></pre>\n  </li>\n  <li>Two</li>\n</ul>',
     );
   });
 
@@ -166,7 +166,9 @@ describe("comark-include", () => {
     const source = ["# #region setup", 'end = "#endregion setup"', "# #endregion setup"].join("\n");
     expect(
       await render(':include{src="a.py" region="setup"}', { read: files({ "a.py": source }) }),
-    ).toBe('<pre language="py"><code class="language-py">end = "#endregion setup"</code></pre>');
+    ).toBe(
+      '<pre data-language="py"><code class="language-py">end = "#endregion setup"</code></pre>',
+    );
   });
 
   it("drops a failing include and names it with the fix", async () => {
