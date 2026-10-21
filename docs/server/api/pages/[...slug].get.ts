@@ -11,6 +11,7 @@ import { components as zoomComponents } from "comark-zoom/html";
 import type { ElementNode, Node, NodeHandler } from "comark";
 import { parseMarkdown } from "comark";
 import { escapeHtml, textContent } from "comark/utils";
+import { deflateRawSync } from "node:zlib";
 import { createError, defineEventHandler, getQuery, getRouterParam } from "nuxt/server";
 import type { Page } from "#shared/pages";
 import { content, plugins } from "../../content";
@@ -62,6 +63,8 @@ const str = (value: unknown) =>
     : // SAFETY: undefined, null, objects, and arrays returned above, so only a string, number, or boolean is left.
       String(value as string | number | boolean);
 const isPre = (node: Node): node is ElementNode => isElement(node) && node[0] === "pre";
+const playgroundMarkdown = (source: string) =>
+  `/play/#md=${deflateRawSync(source.trimEnd()).toString("base64url")}`;
 
 // An example shows the Markdown in its code block twice: rendered, and as source.
 const example: NodeHandler = async ([, attrs, ...children], state) => {
@@ -70,10 +73,11 @@ const example: NodeHandler = async ([, attrs, ...children], state) => {
   const preview = await parseMarkdown(textContent(pre), { plugins: plugins() });
   if (preview.meta.issues.length)
     throw new Error(`Example "${str(attrs.label)}":\n${preview.meta.issues.join("\n")}`);
+  const source = textContent(pre);
   return (
     `<div class="example"><div class="example-bar"><div class="seg" role="group" aria-label="View">` +
     `<button type="button" data-view="preview" aria-pressed="true">Preview</button><button type="button" data-view="code" aria-pressed="false">Code</button></div></div>` +
-    `<a class="example-play" href="/play/">Open in playground</a>` +
+    `<a class="example-play" href="${playgroundMarkdown(source)}">Open in playground</a>` +
     `<div class="example-body"><div class="example-preview">${await state.flow(["div", {}, ...preview.nodes], state)}</div>` +
     `<div class="example-code" hidden>${await state.one(pre, state)}</div></div></div>`
   );
@@ -111,7 +115,8 @@ const pluginCards: NodeHandler = async () => {
       .filter((page) => page.npm)
       .map(async (page) => {
         const { data } = await read(page.slug);
-        return `<a class="card" href="/${page.slug}/"><strong>${escapeHtml(str(data.title))}</strong><span>${escapeHtml(str(data.description))}</span><code>${escapeHtml(str(data.install).replace(/^pnpm add (comark @comark\/html )?/, "pnpm add "))}</code></a>`;
+        const command = str(data.install).replace(/^pnpm add (comark @comark\/html )?/, "pnpm add ");
+        return `<a class="card" href="/${page.slug}/"><strong>${escapeHtml(str(data.title))}</strong><span>${escapeHtml(str(data.description))}</span><code>${escapeHtml(command)}</code><button type="button" class="card-copy" aria-label="Copy ${escapeHtml(command)}" data-copy="${escapeHtml(command)}">Copy</button></a>`;
       }),
   );
   return `<div class="cards">${cards.join("")}</div>`;

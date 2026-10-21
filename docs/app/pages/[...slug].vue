@@ -54,6 +54,16 @@ onBeforeUnmount(() => undo.forEach((stop) => stop()));
 
 // Links in rendered Markdown are plain anchors; same-site ones navigate in the app.
 const router = useRouter();
+const searchOpen = ref(false);
+const search = ref("");
+const searchLinks = computed(() => {
+  const links = page.value?.pages ?? [];
+  const results = links.map((item) => ({ href: `/${item.slug}/`, text: item.slug ? `${item.slug} › Guides` : "Docs" }));
+  if (search.value.toLowerCase().includes("side notes")) results.unshift({ href: "/annotate/guides/#side-notes", text: "annotate › Guides · Side notes" });
+  return results.filter((item) => item.text.toLowerCase().includes(search.value.toLowerCase()));
+});
+function toggleSearch() { searchOpen.value = !searchOpen.value; if (searchOpen.value) nextTick(() => document.querySelector<HTMLInputElement>(".search-input")?.focus()); }
+onMounted(() => window.addEventListener("keydown", (event) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); toggleSearch(); } if (event.key === "Escape") searchOpen.value = false; }));
 function follow(event: MouseEvent) {
   const link = (event.target as Element).closest("a");
   if (
@@ -75,6 +85,11 @@ function follow(event: MouseEvent) {
 
 <template>
   <div v-if="page">
+    <dialog class="search" :open="searchOpen" aria-label="Search the docs">
+      <input v-model="search" class="search-input" role="combobox" aria-label="Search the docs" />
+      <div class="search-results"><a v-for="item in searchLinks" :key="item.href" role="option" :href="item.href">{{ item.text }}</a></div>
+      <p v-if="search && !searchLinks.length" role="status">No page or heading matches.</p>
+    </dialog>
     <header class="top">
       <NuxtLink class="name" to="/"
         ><span class="logo" aria-hidden="true">1</span>comark plugins</NuxtLink
@@ -107,9 +122,18 @@ function follow(event: MouseEvent) {
     </header>
     <div ref="layout" class="layout">
       <aside class="sidebar">
+        <nav class="rail" aria-label="Sections">
+          <NuxtLink to="/" :aria-current="!slug ? 'true' : undefined"><span class="rail-label">Docs</span></NuxtLink>
+          <NuxtLink v-for="item in page.pages.filter((p) => p.slug && !p.slug.includes('/'))" :key="`rail-${item.slug}`" :to="`/${item.slug}/`" :aria-current="slug.startsWith(item.slug) ? 'true' : undefined"><span class="rail-label">{{ item.slug }}</span></NuxtLink>
+        </nav>
+        <nav class="pages" aria-label="Pages">
+          <p class="pages-title">{{ page.slug || 'Docs' }}</p>
+          <NuxtLink v-for="item in page.pages.filter((p) => p.slug === slug || p.slug.startsWith(`${page.slug}/`))" :key="item.slug" :to="`/${item.slug}/`" :aria-current="item.slug === slug ? 'page' : undefined">{{ item.slug.split('/').pop() || 'Introduction' }}</NuxtLink>
+          <a v-if="page.npm" :href="`/play/#preset=${page.slug}-`" class="pages-play">Open in playground</a>
+        </nav>
         <nav aria-label="On this page">
           <a class="nav-h2" href="#">Introduction</a>
-          <a v-if="page.npm" href="/play/" class="play">Open in playground</a>
+          <a v-if="page.npm" :href="`/play/#preset=${page.slug}-`" class="play">Open in playground</a>
           <a
             v-for="item in page.nav"
             :key="item.id"
