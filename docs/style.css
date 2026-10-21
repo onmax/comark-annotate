@@ -658,6 +658,33 @@ kbd {
   border-top: 1px solid var(--line);
 }
 
+.rail .rail-drop {
+  height: 2.75rem;
+  margin-top: auto;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.rail-drop .rail-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  line-height: 1.2;
+}
+
+.rail-drop strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.rail-drop .rail-label span {
+  font-size: 0.6875rem;
+  font-weight: 400;
+}
+
+.menu-panel .rail .rail-drop {
+  grid-column: 1 / -1;
+}
+
 .rail-label {
   overflow: hidden;
   font-size: 0.8125rem;
