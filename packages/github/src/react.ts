@@ -2,8 +2,8 @@ import { createElement, type ReactNode, useEffect } from "react";
 import { addStyles } from "./client.ts";
 import { icon, typeOf } from "./icons.ts";
 
-export { CALLOUT_TAG, default } from "./index.ts";
-export type { CalloutType, GithubCalloutsOptions } from "./index.ts";
+export { CALLOUT_TAG, callouts, html, references } from "./index.ts";
+export type { CalloutsOptions, CalloutType, ReferencesOptions } from "./index.ts";
 
 /** A callout for `@comark/react`. */
 export function GithubCallout(props: { type?: string; title?: string; children?: ReactNode }) {

@@ -1,25 +1,27 @@
 {
-  "name": "comark-github-callouts",
+  "name": "comark-github",
   "version": "0.2.0",
-  "description": "GitHub's alerts, > [!NOTE] through > [!CAUTION], as shadcn-style callouts with an icon and a title. A Comark plugin.",
+  "description": "GitHub's Markdown in Comark: alerts as shadcn-style callouts, @user and #123 references as links, and raw HTML limited to what GitHub allows.",
   "keywords": [
     "admonition",
     "alert",
     "callout",
     "comark",
+    "gfm",
     "github",
     "markdown",
     "mdc",
-    "plugin"
+    "plugin",
+    "sanitize"
   ],
-  "homepage": "https://comark.onmax.me/github-callouts",
+  "homepage": "https://comark.onmax.me/github",
   "bugs": "https://github.com/onmax/comark-plugins/issues",
   "license": "MIT",
   "author": "onmax",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/onmax/comark-plugins.git",
-    "directory": "packages/github-callouts"
+    "directory": "packages/github"
   },
   "files": [
     "dist"
@@ -50,7 +52,7 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
-    "prepack": "pnpm --filter comark-github-callouts... build"
+    "prepack": "pnpm --filter comark-github... build"
   },
   "devDependencies": {
     "@comark/html": "catalog:",

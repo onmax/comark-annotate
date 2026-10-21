@@ -18,9 +18,12 @@ import carousel, { components as carouselComponents } from "../packages/carousel
 import code, { components as codeComponents } from "../packages/code/src/html.ts";
 import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
-import githubCallouts, {
-  components as githubCalloutsComponents,
-} from "../packages/github-callouts/src/html.ts";
+import {
+  callouts,
+  components as githubComponents,
+  html as githubHtml,
+  references,
+} from "../packages/github/src/html.ts";
 import icon, {
   components as iconComponents,
   createIcons,
@@ -45,7 +48,9 @@ const browserPlugins = () => [
   code(),
   charts(),
   embed(),
-  githubCallouts(),
+  callouts(),
+  references({ repo: "onmax/comark-plugins" }),
+  githubHtml(),
   icon(),
   tabs(),
   zoom(),
@@ -62,7 +67,7 @@ const components = {
   ...codeComponents,
   ...chartsComponents,
   ...embedComponents,
-  ...githubCalloutsComponents,
+  ...githubComponents,
   ...iconComponents,
   ...tabsComponents,
   ...zoomComponents,
@@ -81,8 +86,8 @@ const lucideNames = [
   "file-input",
   "flask-conical",
   "gallery-horizontal-end",
+  "github",
   "list-checks",
-  "message-square-warning",
   "panels-top-left",
   "search",
   "shapes",
@@ -128,12 +133,12 @@ const packages = (
       blurb: "Videos, audio, and live code",
     },
     {
-      slug: "github-callouts",
+      slug: "github",
       group: "Review blocks",
-      icon: "message-square-warning",
-      blurb: "GitHub's alerts as callouts",
+      icon: "github",
+      blurb: "GitHub's alerts, references, and HTML",
       credits:
-        'Syntax from <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts">GitHub\'s alerts</a>.',
+        'Syntax from <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax">GitHub\'s Markdown</a>, and the allowed HTML from its <a href="https://github.com/gjtorikian/html-pipeline">html-pipeline</a>.',
     },
     {
       slug: "icon",

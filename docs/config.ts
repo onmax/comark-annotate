@@ -1,25 +1,28 @@
 // The playground's Config tab: each package's options as JSON, keyed by its npm name. Only the packages that take
 // options are listed; the build writes this text into the tab and the playground reads every edit of it.
 import type { CodeOptions } from "../packages/code/src/index.ts";
-import type { GithubCalloutsOptions } from "../packages/github-callouts/src/index.ts";
+import type { CalloutsOptions, ReferencesOptions } from "../packages/github/src/index.ts";
 import type { ZoomOptions } from "../packages/zoom/src/index.ts";
 
 export interface PlayConfig {
   "comark-code"?: CodeOptions;
-  "comark-github-callouts"?: GithubCalloutsOptions;
+  "comark-github"?: { callouts?: CalloutsOptions; references?: ReferencesOptions };
   "comark-zoom"?: ZoomOptions;
 }
 
 const defaults: Required<PlayConfig> = {
   "comark-code": { actions: [] },
-  "comark-github-callouts": {
-    titles: {
-      note: "Note",
-      tip: "Tip",
-      important: "Important",
-      warning: "Warning",
-      caution: "Caution",
+  "comark-github": {
+    callouts: {
+      titles: {
+        note: "Note",
+        tip: "Tip",
+        important: "Important",
+        warning: "Warning",
+        caution: "Caution",
+      },
     },
+    references: { repo: "onmax/comark-plugins" },
   },
   "comark-zoom": { images: true },
 };

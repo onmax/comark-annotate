@@ -44,7 +44,7 @@ include "./x.md": file not found. It resolved to "guide/x.md" under the root; ch
 | [tabs](/tabs/guides/#validation) | Tabs without a label or with the same label, content outside every tab, anything but code blocks in a code group, empty blocks, and stray `:::tabs-item` |
 | [include](/include/guides/#validation) | Missing files, paths that leave the root, cycles, and bad `lines` or `region` |
 
-code, github-callouts, and zoom have nothing to report: every code block gets its buttons, a quote that isn't a callout stays a quote, and anything can zoom.
+code and zoom have nothing to report: every code block gets its buttons, and anything can zoom. github reports only a `repo` that isn't `owner/name`: a quote that isn't a callout stays a quote, and HTML GitHub doesn't allow is dropped as GitHub drops it.
 
 ## Line numbers
 
