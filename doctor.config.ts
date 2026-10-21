@@ -1,7 +1,7 @@
-import comark from "lint-comark/doctor";
+import comark from "comark-linter/doctor";
 import { defineDoctorConfig } from "vite-doctor/config";
 
-// The packages run their own Doctor configs; this one only lints the docs pages with lint-comark.
+// The packages run their own Doctor configs; this one only lints the docs pages with comark-linter.
 export default defineDoctorConfig({
   extends: ["comark/recommended"],
   extensions: [
