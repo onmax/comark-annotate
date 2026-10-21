@@ -8,51 +8,51 @@ install: pnpm add comark @comark/html comark-charts
 ::examples
 :::example{label="Bars"}
 ```md
-::chart{title="Bundle size by package"}
-| package | size (kB) |
+::chart{title="Pigeons on the roof, by weekday"}
+| weekday | pigeons (average) |
 | --- | --: |
-| annotate | 41.2 |
-| carousel | 9.8 |
-| embed | 12.4 |
-| zoom | 18.1 |
-| lint | 27.5 |
+| Monday | 3.2 |
+| Tuesday | 4.1 |
+| Wednesday | 2.8 |
+| Thursday | 6.5 |
+| Friday | 14.7 |
 ::
 ```
 :::
 
 :::example{label="Lines"}
 ```md
-::chart{title="Build time, before and after the cache (ms)"}
-| month | before | after |
+::chart{title="Coffee cups and commits, per month (r = 0.98)"}
+| month | coffee cups | commits |
 | --- | --: | --: |
 | 2026-04 | 820 | 610 |
-| 2026-05 | 890 | 622 |
-| 2026-06 | 905 | 640 |
-| 2026-07 | 960 | 575 |
-| 2026-08 | 975 | 590 |
-| 2026-09 | 1,030 | 601 |
-| 2026-10 | 1,025 | 540 |
+| 2026-05 | 890 | 640 |
+| 2026-06 | 905 | 652 |
+| 2026-07 | 960 | 715 |
+| 2026-08 | 975 | 720 |
+| 2026-09 | 1,030 | 768 |
+| 2026-10 | 1,025 | 760 |
 ::
 ```
 :::
 
 :::example{label="Marked"}
 ```md
-::chart{title="Build time, before and after the cache (ms)"}
-| month | before | after |
+::chart{title="Coffee cups and commits, per month (r = 0.98)"}
+| month | coffee cups | commits |
 | --- | --: | --: |
 | 2026-04 | 820 | 610 |
-| 2026-05 | 890 | 622 |
-| 2026-06 | 905 | 640 |
-| 2026-07 | 960 | 575 |
-| 2026-08 | 975 | 590 |
-| 2026-09 | 1,030 | 601 |
-| 2026-10 | 1,025 | 540 |
-::::annotation{at="2026-07" series="after" mark="circle" color="green"}
-The cache lands, and builds drop below 600 ms.
+| 2026-05 | 890 | 640 |
+| 2026-06 | 905 | 652 |
+| 2026-07 | 960 | 715 |
+| 2026-08 | 975 | 720 |
+| 2026-09 | 1,030 | 768 |
+| 2026-10 | 1,025 | 760 |
+::::annotation{at="2026-07" series="commits" mark="circle" color="green"}
+The new espresso machine arrives, and commits pass 700.
 ::::
-::::annotation{at="2026-09" series="before" mark="none" side="top" color="red"}
-The slowest build without it.
+::::annotation{at="2026-09" series="coffee cups" mark="none" side="top" color="red"}
+Peak coffee.
 ::::
 ::
 ```
@@ -60,27 +60,27 @@ The slowest build without it.
 
 :::example{label="Before / after"}
 ```md
-::chart{type="dumbbell" title="Page speed, before and after the refactor (ms)"}
-| metric | before | after |
+::chart{type="dumbbell" title="Minutes lost per week, before and after the rubber ducks"}
+| activity | before | after |
 | --- | --: | --: |
-| first paint | 820 | 540 |
-| largest paint | 1,450 | 980 |
-| time to interactive | 2,100 | 1,320 |
-| total blocking | 380 | 160 |
+| waiting for review | 820 | 540 |
+| debugging alone | 1,450 | 980 |
+| meetings about bugs | 2,100 | 1,320 |
+| standup | 380 | 160 |
 ::
 ```
 :::
 
 :::example{label="Waterfall"}
 ```md
-::chart{type="waterfall" title="Bundle size through this release (kB)"}
-| step | size |
+::chart{type="waterfall" title="Rubber ducks in the office this quarter"}
+| step | ducks |
 | --- | --: |
-| v0.1 | 412 |
-| add charts | 38 |
-| drop moment | -24 |
-| split zoom | -11 |
-| v0.2 | 415 |
+| July | 41 |
+| bulk order | 12 |
+| taken home | -4 |
+| behind the radiator | -3 |
+| October | 46 |
 ::
 ```
 :::

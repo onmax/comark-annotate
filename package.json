@@ -12,6 +12,7 @@
   "scripts": {
     "build": "pnpm -r --filter \"./packages/*\" run build",
     "docs:build": "pnpm build && node docs/build.ts",
+    "docs:images": "node docs/images.ts",
     "lint": "vp lint",
     "typecheck": "tsc --noEmit",
     "test": "vp test",

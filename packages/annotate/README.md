@@ -27,7 +27,7 @@ const render = createHtmlRenderer({ plugins: [annotate()], components });
 ::compare
 :::screenshot{src="before.png" alt="Filter toolbar wrapping" viewport="900x360"}
 ::::annotation{x=3.6 y=20.6 w=92.9 h=31.4 color="red"}
-Five filters don't fit, so the toolbar wraps onto a second row.
+Moon phase and vibes don't fit, so the toolbar wraps onto a second row.
 ::::
 :::
 
