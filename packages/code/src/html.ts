@@ -27,7 +27,7 @@ const pre: NodeHandler = async ([tag, { actions, ...attrs }, ...children], state
   try {
     return (
       `<div class="ck">${(await state.handlers.html([tag, attrs, ...children], state, parent)).trimEnd()}` +
-      `<div class="ck-bar">${buttons(actions)}</div>${runtime(state)}</div>`
+      `<div class="ck-bar">${buttons(actions, attrs)}</div>${runtime(state)}</div>`
     );
   } finally {
     state.renderData = outer;
