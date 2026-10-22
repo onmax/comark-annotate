@@ -5,7 +5,7 @@ import { escapeHtml } from "comark/utils";
 import type { draw } from "./draw.ts";
 import { readChart } from "./read.ts";
 
-export type { Chart, ChartType, XKind } from "./read.ts";
+export type { Chart, ChartType, SpecChart, XKind } from "./read.ts";
 
 export type ChartsMeta = {
   /** One readable sentence per problem with a `::chart`. Other plugins add theirs too. */
@@ -68,24 +68,36 @@ export default defineComarkPlugin<ChartsOptions | void, ChartsMeta>((options) =>
         node[1] = {};
         continue;
       }
+      const spec = chart.type === "vega-lite";
       const label =
-        chart.title || `${chart.type} chart of ${chart.series.join(", ")} by ${chart.x}`;
+        chart.title ||
+        (spec
+          ? `chart of ${chart.columns.join(", ")}`
+          : `${chart.type} chart of ${chart.series.join(", ")} by ${chart.x}`);
       let drawn: Awaited<ReturnType<typeof draw>>;
       try {
         // Flint and Vega take hundreds of milliseconds to load, so a document with no chart never loads them.
-        drawn = await (await import("./draw.ts")).draw(chart);
+        const module = await import("./draw.ts");
+        drawn = spec
+          ? { ...(await module.drawSpec(chart)), boxes: new Map() }
+          : await module.draw(chart);
       } catch (error) {
+        const fix = spec
+          ? "Check its Vega-Lite spec against https://vega.github.io/vega-lite/docs/"
+          : "Check the table, or report it at https://github.com/onmax/comark-plugins/issues";
         issues.push(
-          `\`::chart\` ${number} couldn't be drawn (${error instanceof Error ? error.message : String(error)}), so it shows its table alone. Check the table, or report it at https://github.com/onmax/comark-plugins/issues.`,
+          `\`::chart\` ${number} couldn't be drawn (${error instanceof Error ? error.message : String(error)}), so it shows its table alone. ${fix}.`,
         );
         node.splice(1, node.length - 1, {}, table);
         continue;
       }
       // Marks the chart couldn't place, such as one on an empty cell, are left out rather than drawn in a corner.
-      const marks = chart.marks.flatMap((mark) => {
-        const box = drawn.boxes.get(mark.n);
-        return box ? [{ ...mark, ...box }] : [];
-      });
+      const marks = spec
+        ? []
+        : chart.marks.flatMap((mark) => {
+            const box = drawn.boxes.get(mark.n);
+            return box ? [{ ...mark, ...box }] : [];
+          });
       const attrs: DrawnChart = {
         type: chart.type,
         title: chart.title,

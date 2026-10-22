@@ -5,7 +5,15 @@ import type { DrawnChart } from "./index.ts";
 import { css } from "./styles.ts";
 
 export { default } from "./index.ts";
-export type { Chart, ChartsMeta, ChartsOptions, ChartType, DrawnChart, XKind } from "./index.ts";
+export type {
+  Chart,
+  ChartsMeta,
+  ChartsOptions,
+  ChartType,
+  DrawnChart,
+  SpecChart,
+  XKind,
+} from "./index.ts";
 export { css };
 
 // Each render gets a fresh `state.context`, so a document carries the styles once.

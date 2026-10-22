@@ -39,6 +39,17 @@ export interface ChartMark extends Omit<Annotation, "x" | "y" | "w" | "h"> {
   series?: string;
 }
 
+/** A chart drawn from a Vega-Lite spec over the table: any chart Vega-Lite draws, with the table as its data. */
+export interface SpecChart {
+  type: "vega-lite";
+  title: string;
+  /** The table's headers, in order. */
+  columns: string[];
+  /** One object per row, keyed by header: a number where the cell reads as one, else its text, and null when empty. */
+  values: Record<string, number | string | null>[];
+  spec: Record<string, unknown>;
+}
+
 export const TYPES: readonly ChartType[] = [
   "bar",
   "stacked",
@@ -64,6 +75,8 @@ const NUMBER = /^[+-]?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?$/;
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
 const childrenOf = ([, , ...rest]: ElementNode): Node[] => rest;
 const isContent = (node: Node) => (Array.isArray(node) ? node[0] !== null : node.trim() !== "");
+const isSpec = (node: Node): node is ElementNode =>
+  isElement(node) && node[0] === "pre" && node[1].language === "vega-lite";
 const elements = (node: ElementNode, tag: string) =>
   childrenOf(node).filter((child): child is ElementNode => isElement(child) && child[0] === tag);
 const text = (value: unknown) =>
@@ -90,11 +103,17 @@ function kindOf(values: string[]): XKind {
  * Reads a `::chart` node, its props and the Markdown table inside it. Returns undefined when there's nothing to draw;
  * every problem goes to `issues` as one sentence that names the block and the fix.
  */
-export function readChart(node: ElementNode, number: number, issues: string[]): Chart | undefined {
+export function readChart(
+  node: ElementNode,
+  number: number,
+  issues: string[],
+): Chart | SpecChart | undefined {
   const name = `\`::chart\` ${number}`;
   const attrs = node[1];
+  // A chart drawn from a spec checks its props itself.
+  const spec = childrenOf(node).find(isSpec);
   for (const key of Object.keys(attrs))
-    if (!PROPS.has(key))
+    if (!spec && !PROPS.has(key))
       issues.push(
         `${name}: ${code(key)} isn't a prop of \`::chart\`. Valid props: type, x, y, title.`,
       );
@@ -112,6 +131,8 @@ export function readChart(node: ElementNode, number: number, issues: string[]): 
   const annotations = content.filter(
     (child): child is ElementNode => isElement(child) && child[0] === "annotation",
   );
+  if (spec)
+    return readSpec(name, attrs, table, spec, content.length - 2, annotations.length, issues);
   if (content.length > 1 + annotations.length)
     issues.push(
       `${name} drops everything inside it but its table and annotations. Name the chart with \`title\`, and write other text outside the block.`,
@@ -302,5 +323,113 @@ export function readChart(node: ElementNode, number: number, issues: string[]): 
     series,
     rows: points.map((row) => ({ x: row.x, values: row.values.slice(0, series.length) })),
     marks,
+  };
+}
+
+/** Every value of `key` in an object, however deep: the fields a spec reads, or the ones its transforms make. */
+function collect(value: unknown, key: string, found: string[] = []): string[] {
+  if (Array.isArray(value)) for (const item of value) collect(item, key, found);
+  else if (value instanceof Object)
+    for (const [name, item] of Object.entries(value)) {
+      if (name === key)
+        for (const part of [item].flat()) {
+          const field = text(part);
+          if (field) found.push(field);
+        }
+      collect(item, key, found);
+    }
+  return found;
+}
+
+function readSpec(
+  name: string,
+  attrs: ElementNode[1],
+  table: ElementNode,
+  pre: ElementNode,
+  others: number,
+  annotations: number,
+  issues: string[],
+): SpecChart | undefined {
+  for (const key of Object.keys(attrs))
+    if (key !== "title" && key !== "class" && key !== "id")
+      issues.push(
+        `${name}: ${code(key)} doesn't apply to a chart drawn from a Vega-Lite spec. Name the columns in the spec's \`encoding\` instead.`,
+      );
+  if (annotations)
+    issues.push(
+      `${name}: annotations mark charts comark-charts lays out, not one drawn from a Vega-Lite spec. Remove them, or draw the note with a \`text\` or \`rule\` layer in the spec.`,
+    );
+  if (others > annotations)
+    issues.push(
+      `${name} drops everything inside it but its table and its Vega-Lite spec. Name the chart with \`title\`, and write other text outside the block.`,
+    );
+  let spec: unknown;
+  try {
+    spec = JSON.parse(textContent(pre));
+  } catch (error) {
+    issues.push(
+      `${name}: its Vega-Lite spec isn't valid JSON (${error instanceof Error ? error.message : String(error)}). Fix it, or remove the \`vega-lite\` block to let comark-charts choose the chart.`,
+    );
+    return;
+  }
+  if (!(spec instanceof Object) || Array.isArray(spec)) {
+    issues.push(
+      `${name}: its Vega-Lite spec must be one JSON object, such as \`{"mark": "bar", "encoding": {...}}\`.`,
+    );
+    return;
+  }
+  const head = elements(table, "thead")[0];
+  const body = elements(table, "tbody")[0];
+  const columns = (head ? elements(head, "tr").flatMap((row) => elements(row, "th")) : []).map(
+    (cell) => textContent(cell).trim(),
+  );
+  const rows = (body ? elements(body, "tr") : []).map((row) =>
+    elements(row, "td").map((cell) => textContent(cell).trim()),
+  );
+  const unnamed = columns.findIndex((column) => !column);
+  const repeated = columns.find((column, index) => columns.indexOf(column) !== index);
+  if (unnamed !== -1 || repeated || !rows.length) {
+    issues.push(
+      unnamed !== -1
+        ? `${name}: column ${unnamed + 1} of its table has no header. Name it, since the spec reads columns by name.`
+        : repeated
+          ? `${name}: its table has two columns named ${code(repeated)}. Give each column its own name.`
+          : `${name}: its table has no rows. Add one row per data point; the spec draws the table.`,
+    );
+    return;
+  }
+  if ("data" in spec)
+    issues.push(
+      `${name}: its Vega-Lite spec has \`data\`, but a chart's data is its table, so the table replaces it. Remove \`data\` from the spec.`,
+    );
+  // Fields made by transforms, such as a fold's `key` and `value`, are as real as the table's.
+  const made = new Set([
+    ...collect(spec, "as"),
+    ...(collect(spec, "fold").length ? ["key", "value"] : []),
+  ]);
+  // A dot or a bracket reaches into nested data, which a table has none of, so only plain names are checked.
+  const unknown = [...new Set(collect(spec, "field"))].filter(
+    (field) => !columns.includes(field) && !made.has(field) && !/[.[\\]/.test(field),
+  );
+  if (unknown.length)
+    issues.push(
+      `${name}: its Vega-Lite spec reads ${unknown.length > 1 ? "fields" : "field"} ${list(unknown.map(code))}, but its table has ${list(columns.map(code))}. Use the table's headers as field names.`,
+    );
+  // SAFETY: JSON.parse returned an object that isn't an array, so its keys are strings.
+  const rest = { ...(spec as Record<string, unknown>) };
+  delete rest.data;
+  return {
+    type: "vega-lite",
+    title: text(attrs.title),
+    columns,
+    values: rows.map((row) =>
+      Object.fromEntries(
+        columns.map((column, index) => {
+          const cell = row[index] ?? "";
+          return [column, cell ? (readNumber(cell) ?? cell) : null];
+        }),
+      ),
+    ),
+    spec: rest,
   };
 }

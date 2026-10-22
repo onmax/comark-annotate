@@ -46,7 +46,7 @@ The espresso machine arrives.
 :::
 ```
 
-Bars turn sideways when their labels are long, so file paths and test names stay whole. The [docs](https://comark.onmax.me/charts/) show the table each type expects.
+Bars turn sideways when their labels are long, so file paths and test names stay whole. For any other chart, put a [Vega-Lite](https://vega.github.io/vega-lite/) spec after the table in a `vega-lite` block; the table is its data. The [docs](https://comark.onmax.me/charts/syntax/) show the table each type expects.
 
 The plugin adds every problem to `meta.issues`, so a host can reject a document before publishing it. Each issue names its chart and says how to fix it.
 
