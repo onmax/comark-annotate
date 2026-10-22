@@ -46,7 +46,3 @@ Copy takes the code's text as written, without the highlighting. A check confirm
 ## Wrap
 
 Wrap breaks long lines in its own block and stays on until it's pressed again, and it isn't saved for the next visit.
-
-## Theming
-
-The header sits on the code block's own background, so it takes your `pre` styles and Shiki's theme. Its title is `--comark-muted`, and the buttons are `--comark-muted` until they turn `--comark-accent` on hover and while Wrap is on; see [Theming](/guide/theming/). Two rules sit outside the `comark` layer so they beat a page's own `pre` styles: the one that gives the block `padding-top` to make room for the header, and Wrap's `white-space`. Line the title up with your code's left padding with a plain rule, such as `.ck-bar { padding-left: 1.25rem }`.
