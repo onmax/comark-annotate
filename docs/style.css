@@ -1390,6 +1390,10 @@ a.window-play:hover {
     display: none;
   }
 
+  .top-end > nav > .link {
+    display: none;
+  }
+
   .top-end .npmx {
     width: 2.5rem;
     justify-content: center;
