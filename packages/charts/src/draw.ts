@@ -202,7 +202,8 @@ function input(chart: Chart): ChartAssemblyInput {
   // A bar, a step, or a dot row per value, so a numeric x on those is a name.
   const banded =
     type === "bar" || type === "stacked" || type === "waterfall" || type === "dumbbell";
-  const kind = banded && chart.xKind === "number" ? "name" : chart.xKind;
+  // Flint joins a dumbbell's dots per row only over names; over dates its connector runs through every row.
+  const kind = type === "dumbbell" || (banded && chart.xKind === "number") ? "name" : chart.xKind;
   const xValue = (value: string) => (kind === "number" ? Number(value.replaceAll(",", "")) : value);
   // `row` lets a mark find the shapes drawn for its row once the chart is laid out.
   const values = chart.rows.flatMap((row, number) =>
@@ -344,6 +345,102 @@ function boxes(chart: Chart, view: vega.View, width: number, height: number): Ma
     });
   }
   return found;
+}
+
+const format = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 12 });
+
+/** Ticks from a round step that end at the first one past the data, among as many as fit `width`. */
+function ticks(low: number, high: number, width: number) {
+  const span = high - low || Math.abs(high) || 1;
+  const magnitude = 10 ** Math.floor(Math.log10(span));
+  let best: number[] = [];
+  for (const scale of [magnitude / 10, magnitude])
+    for (const factor of [1, 2, 2.5, 3, 4, 5]) {
+      const step = factor * scale;
+      const first = Math.floor(low / step) * step;
+      const count = Math.round((Math.ceil(high / step) * step - first) / step);
+      const values = Array.from({ length: count + 1 }, (_, index) =>
+        Number((first + index * step).toPrecision(12)),
+      );
+      const room = Math.max(...values.map((value) => guess(format(value), 12))) + 12;
+      if (count < 3 || values.length * room > width) continue;
+      const reach = (list: number[]) => list.at(-1)! - list[0]!;
+      if (!best.length || reach(values) < reach(best)) best = values;
+    }
+  return best.length ? best : [low, high];
+}
+
+/**
+ * A dumbbell reads as rows of changes: a grid line at every tick and a guide along every row, rows close together, a
+ * connector heavier than the grid, and each row's extremes printed beside its outer dots.
+ */
+function dumbbell(chart: Chart, spec: TopLevelSpec) {
+  if (!("layer" in spec) || !spec.encoding) return;
+  const { x } = spec.encoding;
+  if (!x || !("field" in x)) return;
+  const rows = chart.rows.map((row) => row.values.filter((value) => value !== undefined));
+  const all = rows.flat();
+  const width = Number(spec.config?.view?.continuousWidth) || layout(chart).width;
+  const values = ticks(Math.min(...all), Math.max(...all), width);
+  let [low, high] = [values[0]!, values.at(-1)!];
+  // A row's lowest value prints left of its dot, so the scale starts early enough that the number clears the names.
+  for (const row of rows) {
+    if (!row.length) continue;
+    const least = Math.min(...row);
+    const need = (guess(format(least), 12) + 10) / width;
+    const from = (least - need * high) / (1 - need);
+    if (need < 1 && from < low) low = from;
+  }
+  x.scale = { domain: [low, high], nice: false, zero: false };
+  // Vega thins given values down to the tick count Flint sets, so the count is the values'.
+  const grid = { grid: true, gridColor: INK.grid, gridWidth: 1 };
+  x.axis = {
+    ...("axis" in x && x.axis),
+    ...grid,
+    values,
+    tickCount: values.length,
+    labelFlush: false,
+  };
+  const { y } = spec.encoding;
+  if (y) spec.encoding.y = { ...y, axis: { ...("axis" in y && y.axis), ...grid } };
+  spec.height = { step: 36 };
+  const [line, dots] = spec.layer;
+  if (line && "mark" in line)
+    line.mark = {
+      type: "line",
+      color: INK.muted,
+      strokeWidth: 4,
+      strokeOpacity: 0.55,
+      strokeCap: "round",
+      interpolate: "linear",
+    };
+  if (dots && "mark" in dots && dots.mark instanceof Object && dots.mark.type === "point")
+    dots.mark = { ...dots.mark, size: 100 };
+  const label = (side: "lo" | "hi") => ({
+    transform: [
+      {
+        joinaggregate: [
+          { op: "min" as const, field: "y", as: "lo" },
+          { op: "max" as const, field: "y", as: "hi" },
+        ],
+        groupby: ["x"],
+      },
+      {
+        filter:
+          side === "lo" ? "datum.y === datum.lo" : "datum.y === datum.hi && datum.hi > datum.lo",
+      },
+    ],
+    mark: {
+      type: "text" as const,
+      align: side === "lo" ? ("right" as const) : ("left" as const),
+      baseline: "middle" as const,
+      dx: side === "lo" ? -10 : 10,
+      fontSize: 12,
+      fill: INK.muted,
+    },
+    encoding: { text: { field: "y", type: "quantitative" as const, format: ",.12~g" } },
+  });
+  spec.layer.push(label("lo"), label("hi"));
 }
 
 /**
@@ -586,6 +683,7 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
       spec.layer.push({ mark: { type: "point", opacity: 0 }, encoding });
     }
   }
+  if (chart.type === "dumbbell") dumbbell(chart, spec);
   // Vega compiles its expressions with `new Function` unless told to interpret them, and Cloudflare Workers, where
   // documents like these often render, forbid that.
   const view = new View(parse(compile(spec, { logger: quiet }).spec, undefined, { ast: true }), {
