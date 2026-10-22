@@ -6,7 +6,7 @@
 [![license](https://npmx.dev/api/registry/badge/license/comark-charts)](https://npmx.dev/package/comark-charts)
 [![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/charts/)
 
-Charts from a Markdown table, drawn to SVG with no script. The table stays under the chart, so people see the chart and agents read the numbers. A [Comark](https://comark.dev) plugin for HTML.
+Charts from a Markdown table, drawn to SVG with no script. The table stays under the chart, so people see the chart and agents read the numbers. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 
 ```sh
 pnpm add comark @comark/html comark-charts
@@ -46,13 +46,13 @@ The espresso machine arrives.
 :::
 ```
 
-Bars turn sideways when their labels are long, so file paths and test names stay whole. The [docs](https://comark.onmax.me/charts/) show the table each type expects.
+Bars turn sideways when their labels are long, so file paths and test names stay whole. For any other chart, put a [Vega-Lite](https://vega.github.io/vega-lite/) spec after the table in a `vega-lite` block; the table is its data. The [docs](https://comark.onmax.me/charts/syntax/) show the table each type expects.
 
 The plugin adds every problem to `meta.issues`, so a host can reject a document before publishing it. Each issue names its chart and says how to fix it.
 
 ## How it renders
 
-[Flint](https://github.com/microsoft/flint-chart) turns the table into a Vega-Lite spec with a house theme, and [Vega](https://vega.github.io) draws it to SVG while rendering, on the server or at build time, so the browser runs no chart code. The parse plugin only checks the table, so parsing stays light.
+[Flint](https://github.com/microsoft/flint-chart) turns the table into a Vega-Lite spec with a house theme, and [Vega](https://vega.github.io) draws it to SVG while parsing, on the server or at build time, so the browser runs no chart code. `comark-charts/vue`, `/react`, and `/svelte` place the same SVG; marks, which come from comark-annotate, show only in `@comark/html`.
 
 The page holds a `figure.cch` with the title, the SVG, and the table folded into **Data**. Text, axes, and grid follow shadcn/ui's variables and the shared `--comark-*` tokens, so charts switch with the page's dark mode. Series take `--comark-chart-1` to `-6`, then shadcn/ui's `--chart-1` to `-6`. The rules sit in a `comark` CSS layer, so any plain rule of your own wins; see the charts' [Theming page](https://comark.onmax.me/charts/theming/).
 

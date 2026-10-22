@@ -22,7 +22,7 @@ const render = createHtmlRenderer({ plugins: [chips()], components });
 Write links and mentions as usual:
 
 ```md
-Built with [Vite](https://vite.dev) by @antfu.
+Moves the build to [Vite](https://vite.dev). Reviewed by @antfu.
 ```
 
 Every web link becomes a chip with its site's favicon, and every `@user` a chip with their GitHub avatar that links to their profile. A link into a GitHub account or repository shows the account's avatar. Relative links, links around images, and links written as HTML stay plain.
