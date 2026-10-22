@@ -2,7 +2,7 @@
 // the annotated screenshot at the top of annotate's README; the site's Open Graph image; and the README banner. Run it
 // after changing any of them with `pnpm docs:images`. It prints the box of each marked element in the app, as
 // annotation props, so the examples can point at it.
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { renderHtmlFromDocument } from "@comark/html";
 import { chromium, type Browser } from "@playwright/test";
 import { parseMarkdown } from "comark";
@@ -14,6 +14,17 @@ const root = new URL("./", import.meta.url);
 const pub = new URL("public/", root);
 const fonts = new URL("../node_modules/geist/dist/fonts/", root);
 const red = "#e5484d";
+// The banner counts the packages instead of naming one.
+const plugins = (
+  await Promise.all(
+    (await readdir(new URL("../packages/", root))).map((dir) =>
+      readFile(new URL(`../packages/${dir}/package.json`, root)).then(
+        () => true,
+        () => false,
+      ),
+    ),
+  )
+).filter(Boolean).length;
 
 // The pages are set as content, with no origin to load files from, so fonts and images go in as data URLs.
 const font = async (family: string, file: string) =>
@@ -183,7 +194,11 @@ The pigeons ate week 15.
 
   await mkdir(new URL("og/", pub), { recursive: true });
   const index = await readFile(new URL("pages/index.md", root), "utf8");
-  const hero = /::hero[\s\S]*?````md\n([\s\S]*?)````/.exec(index)?.[1];
+  // The hero shows a broken block first and its fix last; the banner draws the fix.
+  const hero = [
+    ...(/^::hero\n([\s\S]*?^````)\n::$/m.exec(index)?.[1].matchAll(/````md\n([\s\S]*?)````/g) ??
+      []),
+  ].at(-1)?.[1];
   if (!hero) throw new Error("docs/pages/index.md needs a ::hero with a ````md block.");
   const example = await render(hero, darkScreens);
   for (const [file, width, height, scale] of [
@@ -244,7 +259,7 @@ body{--fg:#f5f5f5;--muted:#a3a3a3;--line:#262626;background:#0a0a0a;color:var(--
 <div class="brand">${logo}comark plugins</div>
 <h1>Review documents,<br>written in <span class="marked">Markdown.${underline}</span></h1>
 <p>Annotated screenshots, charts, tabs, icons,<br>and more. Plugins for Comark.</p>
-<div class="install"><span>$</span> pnpm add comark-annotate</div>
+<div class="install"><span>+</span>${plugins} plugins</div>
 </div>
 <div class="window"><div class="bar"><i></i><i></i><i></i><b>review.md, rendered</b></div><div class="page">${example}</div></div>`,
   );
