@@ -536,15 +536,10 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
       Number.isFinite(preceding) &&
       Number.isFinite(values.at(-1)) &&
       Math.abs(values.at(-1)! - preceding) <= Math.max(1e-6, 0.005 * Math.abs(preceding));
-    const widest = Math.max(
-      ...chart.rows.map((row, index) => {
-        const value = row.values[0] ?? 0;
-        const signed =
-          index > 0 && !(index === values.length - 1 && finalIsTotal) && value > 0 ? "+" : "";
-        return guess(`${signed}${Math.round(value).toLocaleString("en-US")}`, 12);
-      }),
-    );
-    const numbers = widest + 6 <= step;
+    // Flint's label gate is based on the category step alone. The inner label
+    // layer applies its own data-height filter, so measuring the rendered
+    // string here would incorrectly remove outer totals on narrow steps.
+    const numbers = step >= 18;
     spec.layer = spec.layer.filter((layer) => !isText(layer) || (numbers && !inside(layer)));
     // Flint pads the value axis for the labels from levels that add the end total to the sum it closes, so it runs
     // to twice the top and below zero. The levels here stop at the end total, and only a side with a label is padded.
