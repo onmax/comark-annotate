@@ -12,7 +12,16 @@ const packages = [
   ["comark-annotate/html", () => import("comark-annotate/html"), []],
   ["comark-carousel/html", () => import("comark-carousel/html"), []],
   ["comark-code/html", () => import("comark-code/html"), []],
-  ["comark-charts/html", () => import("comark-charts/html"), []],
+  [
+    "comark-charts/html",
+    // Linting reads no drawings, so it loads no Vega.
+    () =>
+      import("comark-charts/html").then((module) => ({
+        ...module,
+        default: () => module.default({ draw: false }),
+      })),
+    [],
+  ],
   ["comark-embed/html", () => import("comark-embed/html"), []],
   [
     "comark-github/html",
