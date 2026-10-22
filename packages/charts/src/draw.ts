@@ -347,30 +347,6 @@ function boxes(chart: Chart, view: vega.View, width: number, height: number): Ma
   return found;
 }
 
-/** Draws a compiled Vega spec to an SVG string, and returns the view for finding where its marks sit. */
-async function render(compiled: vega.Spec, loader?: vega.Loader) {
-  // Vega compiles its expressions with `new Function` unless told to interpret them, and Cloudflare Workers, where
-  // documents like these often render, forbid that.
-  const options: vega.ViewOptions = {
-    renderer: "none",
-    logLevel: None,
-    expr: expressionInterpreter,
-  };
-  if (loader) options.loader = loader;
-  const view = new View(parse(compiled, undefined, { ast: true }), options);
-  // Vega gives every group a role for screen readers, which the one `role="img"` hides anyway, an empty foreground
-  // path, and float noise such as `10.000000000000021`. Only tags change, since text holds the table's own numbers,
-  // and Vega escapes `>` in attributes.
-  const svg = (await view.toSVG())
-    .replace(/<path class="foreground"[^>]* d=""[^>]*\/>/g, "")
-    .replace(/<[^>]+>/g, (tag) =>
-      tag
-        .replace(/ (?:role|aria-roledescription|aria-hidden)="[^"]*"/g, "")
-        .replace(/(\.\d\d)\d+/g, "$1"),
-    );
-  return { view, svg };
-}
-
 const format = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 12 });
 
 /** Ticks from a round step that end at the first one past the data, among as many as fit `width`. */
@@ -689,7 +665,7 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
     // Flint pads the value axis for the labels from levels that add the end total to the sum it closes, so it runs
     // to twice the top and below zero. The levels here stop at the end total, and only a side with a label is padded.
     const levels = [0];
-    for (const [index, row] of chart.rows.entries()) {
+    for (const [index] of chart.rows.entries()) {
       const value = values[index];
       const last = levels.at(-1)!;
       levels.push(
