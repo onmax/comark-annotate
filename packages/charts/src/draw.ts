@@ -383,13 +383,17 @@ function dumbbell(chart: Chart, spec: TopLevelSpec) {
   const width = Number(spec.config?.view?.continuousWidth) || layout(chart).width;
   const values = ticks(Math.min(...all), Math.max(...all), width);
   let [low, high] = [values[0]!, values.at(-1)!];
-  // A row's lowest value prints left of its dot, so the scale starts early enough that the number clears the names.
+  // Endpoint labels sit just outside their dots, so leave enough scale room at either edge for the text.
   for (const row of rows) {
     if (!row.length) continue;
     const least = Math.min(...row);
     const need = (guess(format(least), 12) + 10) / width;
     const from = (least - need * high) / (1 - need);
     if (need < 1 && from < low) low = from;
+    const most = Math.max(...row);
+    const highNeed = (guess(format(most), 12) + 10) / width;
+    const to = (most - highNeed * low) / (1 - highNeed);
+    if (highNeed < 1 && to > high) high = to;
   }
   x.scale = { domain: [low, high], nice: false, zero: false };
   // Vega thins given values down to the tick count Flint sets, so the count is the values'.
@@ -420,14 +424,14 @@ function dumbbell(chart: Chart, spec: TopLevelSpec) {
     transform: [
       {
         joinaggregate: [
-          { op: "min" as const, field: "y", as: "lo" },
-          { op: "max" as const, field: "y", as: "hi" },
+          { op: "min" as const, field: "x", as: "lo" },
+          { op: "max" as const, field: "x", as: "hi" },
         ],
-        groupby: ["x"],
+        groupby: ["y"],
       },
       {
         filter:
-          side === "lo" ? "datum.y === datum.lo" : "datum.y === datum.hi && datum.hi > datum.lo",
+          side === "lo" ? "datum.x === datum.lo" : "datum.x === datum.hi && datum.hi > datum.lo",
       },
     ],
     mark: {
@@ -438,7 +442,7 @@ function dumbbell(chart: Chart, spec: TopLevelSpec) {
       fontSize: 12,
       fill: INK.muted,
     },
-    encoding: { text: { field: "y", type: "quantitative" as const, format: ",.12~g" } },
+    encoding: { text: { field: "x", type: "quantitative" as const, format: ",.12~g" } },
   });
   spec.layer.push(label("lo"), label("hi"));
 }
