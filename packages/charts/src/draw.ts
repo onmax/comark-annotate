@@ -379,21 +379,31 @@ function dumbbell(chart: Chart, spec: TopLevelSpec) {
   const { x } = spec.encoding;
   if (!x || !("field" in x)) return;
   const rows = chart.rows.map((row) => row.values.filter((value) => value !== undefined));
-  const all = rows.flat();
+  const all = rows.flat().filter((value): value is number => Number.isFinite(value));
+  if (!all.length) return;
   const width = Number(spec.config?.view?.continuousWidth) || layout(chart).width;
   const values = ticks(Math.min(...all), Math.max(...all), width);
   let [low, high] = [values[0]!, values.at(-1)!];
+  if (low === high) {
+    const room = Math.max(1, Math.abs(low) * 0.1);
+    low -= room;
+    high += room;
+  }
   // Endpoint labels sit just outside their dots, so leave enough scale room at either edge for the text.
-  for (const row of rows) {
-    if (!row.length) continue;
-    const least = Math.min(...row);
-    const need = (guess(format(least), 12) + 10) / width;
-    const from = (least - need * high) / (1 - need);
-    if (need < 1 && from < low) low = from;
-    const most = Math.max(...row);
-    const highNeed = (guess(format(most), 12) + 10) / width;
-    const to = (most - highNeed * low) / (1 - highNeed);
-    if (highNeed < 1 && to > high) high = to;
+  for (let pass = 0; pass < 3; pass++) {
+    let nextLow = low;
+    let nextHigh = high;
+    for (const row of rows) {
+      if (!row.length) continue;
+      const least = Math.min(...row);
+      const need = (guess(format(least), 12) + 10) / width;
+      if (need < 1) nextLow = Math.min(nextLow, (least - need * high) / (1 - need));
+      const most = Math.max(...row);
+      const highNeed = (guess(format(most), 12) + 10) / width;
+      if (highNeed < 1) nextHigh = Math.max(nextHigh, (most - highNeed * low) / (1 - highNeed));
+    }
+    low = nextLow;
+    high = nextHigh;
   }
   x.scale = { domain: [low, high], nice: false, zero: false };
   // Vega thins given values down to the tick count Flint sets, so the count is the values'.
@@ -420,18 +430,22 @@ function dumbbell(chart: Chart, spec: TopLevelSpec) {
     };
   if (dots && "mark" in dots && dots.mark instanceof Object && dots.mark.type === "point")
     dots.mark = { ...dots.mark, size: 100 };
+  const valueField = x && "field" in x && typeof x.field === "string" ? x.field : "y";
+  const rowField = y && "field" in y && typeof y.field === "string" ? y.field : "x";
   const label = (side: "lo" | "hi") => ({
     transform: [
       {
         joinaggregate: [
-          { op: "min" as const, field: "x", as: "lo" },
-          { op: "max" as const, field: "x", as: "hi" },
+          { op: "min" as const, field: valueField, as: "lo" },
+          { op: "max" as const, field: valueField, as: "hi" },
         ],
-        groupby: ["y"],
+        groupby: [rowField],
       },
       {
         filter:
-          side === "lo" ? "datum.x === datum.lo" : "datum.x === datum.hi && datum.hi > datum.lo",
+          side === "lo"
+            ? `datum[${JSON.stringify(valueField)}] === datum.lo`
+            : `datum[${JSON.stringify(valueField)}] === datum.hi && datum.hi > datum.lo`,
       },
     ],
     mark: {
@@ -442,7 +456,7 @@ function dumbbell(chart: Chart, spec: TopLevelSpec) {
       fontSize: 12,
       fill: INK.muted,
     },
-    encoding: { text: { field: "x", type: "quantitative" as const, format: ",.12~g" } },
+    encoding: { text: { field: valueField, type: "quantitative" as const, format: ",.12~g" } },
   });
   spec.layer.push(label("lo"), label("hi"));
 }
