@@ -61,6 +61,9 @@ describe("comark-code", () => {
     const style = /<style data-comark-code>(.*?)<\/style>/s.exec(await render(sh))?.[1];
     expect(style).toContain("div.ck>pre{padding-top:var(--_ck-bar)}");
     expect(style).toContain("height:var(--_ck-bar)");
+    expect(style).toContain(
+      ".ck-title{min-width:0;margin-right:auto;overflow:hidden;color:var(--_comark-muted);font:.75rem/1 var(--ck-title-font,ui-monospace,SFMono-Regular,Menlo,monospace);",
+    );
   });
 
   it("keeps Shiki's highlighting and the block's filename", async () => {

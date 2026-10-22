@@ -3,7 +3,7 @@ import { theme } from "comark-zoom/theme";
 
 /**
  * The header's styles, on the shared `--comark-*` tokens, with `--ck-inset` and `--ck-button-size` for how far the
- * buttons sit from the block's top right corner and how big they are. The script adds them to the page once. The rules sit in the
+ * buttons sit from the block's top right corner and how big they are, and `--ck-title-font` for the title. The script adds them to the page once. The rules sit in the
  * `comark` layer, so any unlayered rule of the host's wins, except the two after it that make room for the header and
  * wrap the lines.
  */
@@ -15,7 +15,7 @@ export const css = `${icons}@layer comark{${[
   // The header sits on the block's own background, in room the block makes above its first line, so it never covers
   // the code.
   ".ck-bar{position:absolute;inset:0 0 auto;display:flex;align-items:center;justify-content:flex-end;gap:.125rem;height:var(--_ck-bar);padding:var(--_ck-inset) var(--_ck-inset) 0 1rem;box-sizing:border-box;user-select:none}",
-  ".ck-title{min-width:0;margin-right:auto;overflow:hidden;color:var(--_comark-muted);font:.75rem/1 ui-monospace,SFMono-Regular,Menlo,monospace;text-overflow:ellipsis;white-space:nowrap}",
+  ".ck-title{min-width:0;margin-right:auto;overflow:hidden;color:var(--_comark-muted);font:.75rem/1 var(--ck-title-font,ui-monospace,SFMono-Regular,Menlo,monospace);text-overflow:ellipsis;white-space:nowrap}",
   ".ck-bar>button{display:inline-flex;align-items:center;justify-content:center;gap:.25rem;min-width:var(--_ck-size);height:var(--_ck-size);margin:0;padding:0;border:1px solid transparent;border-radius:calc(var(--_comark-radius) - 4px);background:transparent;color:var(--_comark-muted);font:500 .75rem/1 var(--_comark-font);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background-color .15s ease,color .15s ease;visibility:hidden}",
   "[data-code-ready] .ck-bar>button{visibility:visible}",
   // Only an icon-only action carries `aria-label`.

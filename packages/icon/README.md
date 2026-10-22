@@ -36,7 +36,7 @@ The plugin adds every problem to `meta.issues` and leaves the icon out: an icon 
 
 Each entry exports the parse plugin as `default` and the renderer's `components`. Import `comark-icon/style.css` with your styles when you render on a server.
 
-An icon is a `.ci`, `1em` tall; set `--comark-icon-size` to change it. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
+An icon is a `.ci`, `1em` tall; set `--comark-icon-size` to change it. The rules sit in a `comark` CSS layer, so any plain rule of your own wins; see the icon's [Theming page](https://comark.onmax.me/icon/theming/).
 
 ## For other plugins
 
