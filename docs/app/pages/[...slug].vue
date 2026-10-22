@@ -19,6 +19,7 @@ const [{ data: page }] = await Promise.all([
   import.meta.client && !hydrating ? nuxtApp.$loadBody(slug.value).catch(() => {}) : undefined,
 ]);
 if (!page.value) throw createError({ status: 404, message: `No page at /${slug.value}.` });
+const pageSlug = computed(() => page.value?.slug ?? "");
 
 useHead(() => ({
   title: `${page.value!.title} · ${page.value!.description}`,
@@ -85,7 +86,10 @@ onMounted(() =>
 );
 function follow(event: MouseEvent) {
   const target = event.target as Element;
-  if (target.closest(".card-copy")) return;
+  if (target.closest(".card-copy")) {
+    event.preventDefault();
+    return;
+  }
   const link = target.closest("a");
   if (
     !link ||
@@ -163,7 +167,7 @@ function follow(event: MouseEvent) {
           <p class="pages-title">{{ page.slug || "Docs" }}</p>
           <NuxtLink
             v-for="item in page.pages.filter(
-              (p) => p.slug === slug || p.slug.startsWith(`${page.slug}/`),
+              (p) => p.slug === slug || p.slug.startsWith(`${pageSlug}/`),
             )"
             :key="item.slug"
             :to="`/${item.slug}/`"
