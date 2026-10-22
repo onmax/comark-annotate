@@ -60,9 +60,6 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # The generated site imports workspace package output during Nuxt prerendering.
-      - name: Build packages
-        run: pnpm build
       - name: Docs
         run: pnpm docs:build
       - name: Chromium

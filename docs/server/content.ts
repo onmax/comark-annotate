@@ -22,7 +22,7 @@ import light from "shiki/themes/vitesse-light.mjs";
 const { pagesDir, packagesDir } = useRuntimeConfig();
 
 // Only comark-include's examples include files, so includes resolve from its docs, where their partials sit.
-export const plugins = (): any[] => [
+export const plugins = () => [
   include({ root: join(packagesDir, "include/docs") }),
   annotate(),
   carousel(),

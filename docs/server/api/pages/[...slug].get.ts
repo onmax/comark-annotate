@@ -22,51 +22,12 @@ import { content, plugins } from "../../content";
 type PageLink = { slug: string; npm: string };
 
 async function listPages(): Promise<PageLink[]> {
-  const listed = (await content.list()) as unknown;
-  const items = Array.isArray(listed)
-    ? listed
-    : listed && typeof listed === "object" && "items" in listed && Array.isArray(listed.items)
-      ? listed.items
-      : [];
-  return (
-    await Promise.all(
-      items.map(async (item) => {
-        if (!item || typeof item !== "object") return null;
-        const value = item as {
-          id?: unknown;
-          path?: unknown;
-          _id?: unknown;
-          _path?: unknown;
-          data?: { install?: unknown };
-        };
-        const raw =
-          typeof value.id === "string"
-            ? value.id
-            : typeof value.path === "string"
-              ? value.path
-              : typeof value._id === "string"
-                ? value._id
-                : typeof value._path === "string"
-                  ? value._path
-                  : "";
-        const normalized = raw
-          .replace(/^\//, "")
-          .replace(/^packages\/([^/]+)\/docs\//, "$1/")
-          .replace(/^([^/]+)\/docs\//, "$1/")
-          .replace(/\.md$/, "")
-          .replace(/\/index$/, "");
-        const slug = normalized === "index" ? "" : normalized;
-        let install = typeof value.data?.install === "string" ? value.data.install : "";
-        if (!install && slug) {
-          const page = await content.get(`/${slug}`);
-          install = typeof page?.data?.install === "string" ? page.data.install : "";
-        }
-        const match = install.match(/(?:^|\s)(comark-[\w-]+)/);
-        return { slug, npm: match?.[1] ?? "" };
-      }),
-    )
-  )
-    .filter((page): page is PageLink => page !== null)
+  const files = await content.list();
+  return files
+    .map(({ path, data }) => ({
+      slug: path.replace(/^\/|\/$/g, ""),
+      npm: str(data.install).match(/(?:^|\s)(comark-[\w-]+)/)?.[1] ?? "",
+    }))
     .sort((a, b) => (a.slug === "" ? -1 : b.slug === "" ? 1 : a.slug.localeCompare(b.slug)));
 }
 
