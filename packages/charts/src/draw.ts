@@ -652,15 +652,28 @@ sealed.load = () =>
 // An empty href loads no image and makes no link.
 sealed.sanitize = () => Promise.resolve({ href: "" });
 
+// Composed Vega-Lite views can carry their own data declarations. The table is the sole data source,
+// so remove those declarations at every depth before injecting the table values at the root.
+function withoutData(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(withoutData);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => key !== "data")
+      .map(([key, child]) => [key, withoutData(child)]),
+  );
+}
+
 /** Draws a Vega-Lite spec over the chart's table, in the house look wherever the spec sets none. */
 export async function drawSpec(chart: SpecChart): Promise<{ svg: string }> {
   const { config, ...rest } = chart.spec;
+  const sanitized = withoutData(rest) as Record<string, unknown>;
   // The spec came from JSON, and compile() checks it at runtime and throws on what it can't draw.
   const spec: TopLevelSpec = JSON.parse(
     JSON.stringify({
       background: "transparent",
       padding: PADDING,
-      ...rest,
+      ...sanitized,
       data: { values: chart.values },
       config: Object.assign({}, SPEC_CONFIG, config),
     }),

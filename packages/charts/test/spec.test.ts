@@ -100,12 +100,18 @@ describe("comark-charts with a Vega-Lite spec", () => {
       chart({
         layer: [
           { ...boxplot, encoding: { ...boxplot.encoding, href: { value: "javascript:alert(1)" } } },
+          {
+            data: { values: [{ endpoint: "SECRET", ms: 999 }] },
+            mark: "text",
+            encoding: { text: { field: "endpoint" } },
+          },
           { data: { url: "https://example.com/secret.csv" }, mark: "point" },
           { mark: { type: "image", url: "file:///etc/passwd" } },
         ],
       }),
     );
     expect(html).not.toContain("javascript:");
+    expect(html).not.toContain("SECRET");
     expect(html).not.toContain("<a ");
     expect(html).not.toContain("passwd");
   });
