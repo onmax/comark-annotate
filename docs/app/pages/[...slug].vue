@@ -121,7 +121,13 @@ function follow(event: MouseEvent) {
 <template>
   <div v-if="page">
     <dialog class="search" :open="searchOpen" aria-label="Search the docs">
-      <input v-model="search" class="search-input" role="combobox" aria-label="Search the docs" @keydown="chooseSearch" />
+      <input
+        v-model="search"
+        class="search-input"
+        role="combobox"
+        aria-label="Search the docs"
+        @keydown="chooseSearch"
+      />
       <div class="search-results">
         <a v-for="item in searchLinks" :key="item.href" role="option" :href="item.href">{{
           item.text
