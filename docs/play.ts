@@ -3,6 +3,7 @@
 import { renderHtmlFromDocument } from "@comark/html";
 import { parseMarkdown } from "comark";
 import { defaultConfig, readConfig } from "./config.ts";
+import { defaultTheme, readTheme, themeCss, themePresets, type Theme } from "./play-theme.ts";
 import { browserPlugins, components } from "./plugins.ts";
 import { previewDocument } from "./preview.ts";
 
@@ -18,6 +19,13 @@ const preview = find(".play-preview", HTMLIFrameElement);
 const issues = find(".play-issues", HTMLUListElement);
 const share = find(".play-share", HTMLButtonElement);
 const copy = find(".play-copy", HTMLButtonElement);
+const tools = find(".play-tools", HTMLDivElement);
+const themePane = find(".play-theme", HTMLDivElement);
+const schemes = find(".play-scheme", HTMLDivElement);
+const themeButtons = find(".play-theme-presets", HTMLDivElement);
+const themeReset = find(".play-theme-reset", HTMLButtonElement);
+const themeCopy = find(".play-theme-copy", HTMLButtonElement);
+const extraCss = find("#play-theme-css", HTMLTextAreaElement);
 const reset = find(".play-reset", HTMLButtonElement);
 const confirmReset = find(".play-confirm", HTMLDialogElement);
 const npmx = find(".top a.npmx", HTMLAnchorElement);
@@ -68,26 +76,43 @@ void import("./highlight.ts").then((module) => {
   repaint(configEditor);
 });
 
-// The Markdown and the config share the editor's column; the bar's switch shows one of them.
+// The Markdown, the config, and the theme share the editor's column; the bar's switch shows one of them. The theme
+// has its own Reset and Copy, so the corner's are for the code panes.
 panes.addEventListener("click", (event) => {
   const button = event.target instanceof Element ? event.target.closest("button") : null;
   if (!button?.dataset.pane) return;
   for (const other of panes.querySelectorAll("button"))
     other.setAttribute("aria-pressed", String(other === button));
-  for (const code of document.querySelectorAll<HTMLElement>(".play-code"))
-    code.hidden = code.dataset.pane !== button.dataset.pane;
+  for (const pane of document.querySelectorAll<HTMLElement>(".play-code, .play-theme"))
+    pane.hidden = pane.dataset.pane !== button.dataset.pane;
+  tools.hidden = button.dataset.pane === "theme";
   copy.setAttribute(
     "aria-label",
     button.dataset.pane === "config" ? "Copy the config" : "Copy the Markdown",
   );
 });
 
-// Each still in the presets' column is a page laid out at full width. It's scaled to show all of itself, unless that
-// would fill less than most of its card's width; then it fills that much and shows its top.
+// Each still in the presets' column is a page scaled to show all of itself, unless that would fill less than most of
+// its card's width; then it fills that much and shows its top. A page that fits whole lays out at whichever width
+// shows it largest, so a sentence wraps narrow and stays legible. A chart or a screenshot, whose height follows its
+// width, gains nothing narrower and keeps the page's width.
+const NARROWER = [448, 320, 224];
 function fit(thumb: HTMLElement) {
   const page = thumb.firstElementChild;
   if (!(page instanceof HTMLElement) || !thumb.clientWidth || !page.offsetWidth) return;
   const { clientWidth: width, clientHeight: height } = thumb;
+  const whole = (pageWidth: number) => {
+    page.style.width = `${pageWidth}px`;
+    return Math.min(width / pageWidth, height / page.offsetHeight);
+  };
+  let best = 640;
+  let largest = whole(best);
+  // Only a clearly larger still is worth a narrower layout.
+  for (const pageWidth of NARROWER) {
+    const scale = whole(pageWidth);
+    if (scale > largest * 1.15) [best, largest] = [pageWidth, scale];
+  }
+  whole(best);
   const scale = Math.min(
     width / page.offsetWidth,
     Math.max(height / page.offsetHeight, (width * 0.7) / page.offsetWidth),
@@ -150,6 +175,170 @@ function pointNpmx(npm?: string) {
   );
 }
 
+// The Theme pane. Its tokens and CSS go in the preview's #play-theme and its scheme on the preview's root, so a change
+// shows without rendering the Markdown again.
+let theme = defaultTheme();
+const systemDark = matchMedia("(prefers-color-scheme: dark)");
+const scheme = () => theme.scheme ?? (systemDark.matches ? "dark" : "light");
+const tokenFields = [...themePane.querySelectorAll<HTMLInputElement>("input[data-token]")];
+const field = (token: string) => tokenFields.find((input) => input.dataset.token === token);
+const swatches = [...themePane.querySelectorAll<HTMLInputElement>("input[data-swatch]")];
+const radius = find('.play-theme input[data-slider="radius"]', HTMLInputElement);
+const shadcnNames: Record<string, string> = { muted: "muted-foreground" };
+
+// Each swatch shows the color the preview draws now, flattened onto its background: a canvas pixel turns any CSS
+// color, oklch or translucent, into the hex a color input takes.
+const pixel = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+function hex(...layers: string[]) {
+  if (!pixel) return "#000000";
+  pixel.clearRect(0, 0, 1, 1);
+  for (const layer of layers) {
+    pixel.fillStyle = layer;
+    pixel.fillRect(0, 0, 1, 1);
+  }
+  const [red = 0, green = 0, blue = 0] = pixel.getImageData(0, 0, 1, 1).data;
+  return `#${[red, green, blue].map((byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+}
+
+function showTheme() {
+  const doc = preview.contentDocument;
+  const view = doc?.defaultView;
+  if (!doc?.body || !view) return;
+  doc.documentElement.className = scheme();
+  const style =
+    doc.getElementById("play-theme") ??
+    doc.head.appendChild(Object.assign(doc.createElement("style"), { id: "play-theme" }));
+  style.textContent = themeCss(theme);
+  const probe = doc.body.appendChild(doc.createElement("i"));
+  probe.hidden = true;
+  const color = (value: string) => {
+    probe.style.color = value;
+    return view.getComputedStyle(probe).color;
+  };
+  const background = color("var(--comark-background, var(--background))");
+  for (const swatch of swatches) {
+    const token = swatch.dataset.swatch ?? "";
+    const fallback = `var(--${shadcnNames[token] ?? token})`;
+    swatch.value = hex(background, color(`var(--comark-${token}, ${fallback})`));
+    const input = field(token);
+    if (input) input.placeholder = hex(background, color(fallback));
+  }
+  probe.style.borderRadius = "var(--comark-radius, var(--radius, 0.625rem))";
+  radius.value = String(parseFloat(view.getComputedStyle(probe).borderTopLeftRadius) / 16);
+  probe.style.fontFamily =
+    "var(--comark-font, var(--font-sans, ui-sans-serif, system-ui, sans-serif))";
+  const font = field("font");
+  if (font && !theme.tokens.font) font.placeholder = view.getComputedStyle(probe).fontFamily;
+  const radiusField = field("radius");
+  if (radiusField) radiusField.placeholder = "0.625rem";
+  probe.remove();
+}
+
+// The switches show the theme's preset and scheme, and Reset appears once the theme differs from its preset. A click
+// on a switch moves its sliding indicator, so one is sent when the script changes it.
+function markTheme() {
+  for (const [group, pressed] of [
+    [themeButtons, theme.preset],
+    [schemes, scheme()],
+  ] as const) {
+    for (const button of group.querySelectorAll<HTMLButtonElement>("button"))
+      button.setAttribute(
+        "aria-pressed",
+        String((button.dataset.theme ?? button.dataset.scheme) === pressed),
+      );
+    group.dispatchEvent(new Event("click"));
+  }
+  const preset = themePresets.find((preset) => preset.id === theme.preset);
+  themeReset.hidden =
+    !preset ||
+    (preset.css === theme.css &&
+      tokenFields.every(({ dataset: { token = "" } }) => {
+        const key = token as keyof Theme["tokens"];
+        return (preset.tokens[key] ?? "") === (theme.tokens[key] ?? "");
+      }));
+}
+
+function setTheme(next: Theme) {
+  theme = next;
+  for (const input of tokenFields)
+    input.value = theme.tokens[(input.dataset.token ?? "") as keyof Theme["tokens"]] ?? "";
+  extraCss.value = theme.css;
+  showTheme();
+  markTheme();
+}
+
+let themeTimer: ReturnType<typeof setTimeout> | undefined;
+function themeChanged() {
+  showTheme();
+  markTheme();
+  clearTimeout(themeTimer);
+  themeTimer = setTimeout(async () => {
+    try {
+      history.replaceState(null, "", await link());
+    } catch (error) {
+      showIssues([error instanceof Error ? error.message : String(error)]);
+    }
+  }, 200);
+}
+
+function setToken(token: string, value: string) {
+  const key = token as keyof Theme["tokens"];
+  if (value.trim()) theme.tokens[key] = value.trim();
+  else delete theme.tokens[key];
+  themeChanged();
+}
+
+function pickPreset(id: string) {
+  const preset = themePresets.find((preset) => preset.id === id);
+  if (!preset) return;
+  setTheme({ preset: id, tokens: { ...preset.tokens }, css: preset.css, scheme: theme.scheme });
+  themeChanged();
+}
+
+themePane.addEventListener("input", (event) => {
+  const input = event.target;
+  if (input === extraCss) {
+    theme.css = extraCss.value;
+    themeChanged();
+  }
+  if (!(input instanceof HTMLInputElement)) return;
+  const { token, swatch, slider } = input.dataset;
+  const target = field(swatch ?? slider ?? "");
+  if (target) target.value = slider ? `${input.value}rem` : input.value;
+  if (token ?? target?.dataset.token)
+    setToken(token ?? target?.dataset.token ?? "", target?.value ?? input.value);
+});
+themeButtons.addEventListener("click", (event) => {
+  const id = event.target instanceof Element && event.target.closest("button")?.dataset.theme;
+  if (id) pickPreset(id);
+});
+schemes.addEventListener("click", (event) => {
+  const value = event.target instanceof Element && event.target.closest("button")?.dataset.scheme;
+  if (value !== "light" && value !== "dark") return;
+  theme.scheme = value;
+  themeChanged();
+});
+themeReset.addEventListener("click", () => pickPreset(theme.preset));
+themeCopy.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(
+      themeCss(theme) || "/* The default theme: nothing to set. */",
+    );
+    themeCopy.textContent = "Copied";
+    setTimeout(() => (themeCopy.textContent = "Copy CSS"), 1500);
+  } catch (error) {
+    showIssues([error instanceof Error ? error.message : String(error)]);
+  }
+});
+systemDark.addEventListener("change", () => {
+  if (theme.scheme) return;
+  showTheme();
+  markTheme();
+});
+preview.addEventListener("load", showTheme);
+showTheme();
+markTheme();
+
 let run = 0;
 let loadIssues: string[] = [];
 async function render() {
@@ -174,14 +363,18 @@ async function render() {
   if (current !== run) return;
   const top = preview.contentWindow?.scrollY ?? 0;
   preview.addEventListener("load", () => preview.contentWindow?.scrollTo(0, top), { once: true });
-  preview.srcdoc = previewDocument(html);
+  preview.srcdoc = previewDocument(html, { scheme: scheme(), css: themeCss(theme) });
   showIssues(problems);
 }
 
 async function link() {
   const config =
     configEditor.value === defaultConfig ? "" : `&config=${await pack(configEditor.value)}`;
-  return `#md=${await pack(editor.value)}${config}`;
+  const themed =
+    themeCss(theme) || theme.preset !== "shadcn" || theme.scheme
+      ? `&theme=${await pack(JSON.stringify(theme))}`
+      : "";
+  return `#md=${await pack(editor.value)}${config}${themed}`;
 }
 
 let loadRun = 0;
@@ -191,6 +384,7 @@ async function load() {
   const hash = new URLSearchParams(location.hash.slice(1));
   const code = hash.get("md");
   const config = hash.get("config");
+  const sharedTheme = hash.get("theme");
   // A preset keeps whatever config is in the tab, so one config can be tried across them.
   if (config !== null) {
     const decodedConfig = await unpack(config).catch(() => {
@@ -201,6 +395,18 @@ async function load() {
     configEditor.value = decodedConfig;
     repaint(configEditor);
   } else if (code !== null) configEditor.value = defaultConfig;
+  // The theme rides along like the config.
+  let nextTheme: Theme | undefined;
+  if (sharedTheme !== null)
+    nextTheme = await unpack(sharedTheme)
+      .then((text) => readTheme(JSON.parse(text)))
+      .catch(() => {
+        navigationIssues.push("The link's theme is cut off or changed; using the default theme.");
+        return defaultTheme();
+      });
+  else if (code !== null) nextTheme = defaultTheme();
+  if (run !== loadRun) return;
+  if (nextTheme) setTheme(nextTheme);
   const preset =
     presets.find((preset) => preset.id === hash.get("preset")) ??
     (code === null ? presets[0] : undefined);

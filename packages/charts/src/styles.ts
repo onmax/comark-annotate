@@ -15,13 +15,18 @@ export const css = `@layer comark{${[
   ":where(.cch){--cch-padding:1.5rem}",
   // A card, as shadcn/ui frames its charts: the title on top, the chart, and the data as its footer.
   ".cch{margin:1.5rem 0;padding:1.25rem var(--cch-padding) 0;border:1px solid var(--_comark-border);border-radius:var(--_comark-radius);background:var(--_comark-background);color:var(--_comark-foreground);font-family:var(--_comark-font)}",
-  ".cch figcaption{margin-bottom:1rem;font-weight:600;font-size:1rem;line-height:1.5rem}",
+  // Only the card's own caption: a marked chart's notes sit in comark-annotate's figcaption inside it.
+  ".cch>figcaption{margin-bottom:1rem;font-weight:600;font-size:1rem;line-height:1.5rem}",
   // Scaled, the SVG's text would shrink past reading or swell past its labels, so a narrow column scrolls it instead.
   // Only the chart's own SVG: a mark's circle and arrow are SVGs too, and `height:auto` would stretch them to their viewBox.
-  ".cch-plot{overflow-x:auto}:is(.cch-plot,.cch-marked .ca-frame)>svg{display:block;max-width:none;height:auto}",
+  // A chart narrower than its card, such as one with few bars, sits in the middle rather than against one side.
+  ".cch-plot{overflow-x:auto}:is(.cch-plot,.cch-marked .ca-frame)>svg{display:block;max-width:none;height:auto;margin-inline:auto}",
   ".cch-plot text{font-family:var(--_comark-font)}",
   // Marks sit at percentages of the SVG, so a marked chart shrinks to fit rather than scrolling under them.
-  ".cch-marked{overflow:visible}.cch-marked .ca-frame{width:fit-content;max-width:100%}.cch-marked .ca-frame>svg{max-width:100%}",
+  ".cch-marked{overflow:visible}.cch-marked .ca-frame{width:fit-content;max-width:100%;margin-inline:auto}.cch-marked .ca-frame>svg{max-width:100%}",
+  // A narrow column outlines a mark that draws nothing, which on a screenshot shows its area; on a chart it marks a
+  // point, so it would be a broken ring under the letter, which marks the point alone.
+  ".cch-marked .ca .ca-mark.ca-none{outline:none}",
   swap(INK.foreground, "var(--_comark-foreground)"),
   swap(INK.muted, "var(--_comark-muted)"),
   swap(INK.border, "var(--_comark-border)"),

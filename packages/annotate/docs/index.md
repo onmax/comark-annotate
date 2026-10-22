@@ -18,7 +18,7 @@ credits: 'Marks from <a href="https://annotationkit.vercel.app">AnnotationKit</a
 Moon phase and vibes don't fit, so the toolbar wraps and pushes the table down.
 ::::
 
-::::annotation{x=23.6 y=52.7 w=10.9 h=16 mark="circle" color="red"}
+::::annotation{x=22.4 y=50.4 w=13.3 h=20.6 mark="circle" color="red"}
 **Apply** sits 6px lower than the chips.
 ::::
 :::
@@ -36,11 +36,11 @@ Moon phase and vibes collapse into **+2 filters**.
 ```
 :::
 
-:::example{label="Slider"}
+:::example{label="Before / after slider"}
 ```md
 ::compare{mode="slider"}
 :::screenshot{src="/before.png" alt="Filter toolbar wrapping onto a second row" viewport="640x250"}
-::::annotation{x=23.6 y=52.7 w=10.9 h=16 mark="circle" color="red"}
+::::annotation{x=22.4 y=50.4 w=13.3 h=20.6 mark="circle" color="red"}
 **Apply** sits 6px lower than the chips.
 ::::
 :::
@@ -54,7 +54,7 @@ Moon phase and vibes collapse into **+2 filters**.
 ```
 :::
 
-:::example{label="Pointers"}
+:::example{label="Arrows only"}
 ```md
 ::screenshot{src="/dashboard.png" alt="Office correlations dashboard"}
 :::annotation{x=37 y=33.1 w=16.4 h=5.2 mark="none" side="top"}
@@ -65,7 +65,7 @@ Bugs fixed fell with the duck supply.
 r now counts the office cat.
 :::
 
-:::annotation{x=61.2 y=76.6 w=18 h=9.7 mark="none" side="left"}
+:::annotation{x=4 y=77.3 w=92 h=8.2 mark="none" side="left"}
 The pigeons ate week 15.
 :::
 ::
@@ -75,7 +75,7 @@ The pigeons ate week 15.
 :::example{label="Side notes"}
 ```md
 ::screenshot{src="/dashboard.png" alt="Office correlations dashboard"}
-:::annotation{x=37 y=33.1 w=16.4 h=5.2 mark="underline" side="left" color="red"}
+:::annotation{x=37 y=33.1 w=16.4 h=5.2 mark="underline" side="top" color="red"}
 Bugs fixed fall for the first time this quarter. So do the ducks.
 :::
 
@@ -83,12 +83,12 @@ Bugs fixed fall for the first time this quarter. So do the ducks.
 r now counts the office cat.
 :::
 
-:::annotation{x=61.2 y=76.6 w=18 h=9.7 mark="highlight" side="left" color="amber"}
+:::annotation{x=4 y=77.3 w=75.5 h=8.2 mark="highlight" side="left" color="amber"}
 Week 15 is missing for the pigeons.
 :::
 
 :::annotation{x=85 y=46 w=9.7 h=9.3 mark="circle"}
-Notes without a `side` stay in the list. **Apply** waits until every filter is set, moon phase included.
+**Apply** waits until every filter is set, moon phase included.
 :::
 ::
 ```
@@ -101,7 +101,7 @@ Notes without a `side` stay in the list. **Apply** waits until every filter is s
 `box` frames an element.
 :::
 
-:::annotation{x=37 y=33.1 w=16.4 h=5.2 mark="circle"}
+:::annotation{x=35.8 y=32.3 w=18.8 h=6.6 mark="circle"}
 `circle` rings a small detail.
 :::
 

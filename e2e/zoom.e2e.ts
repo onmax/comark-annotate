@@ -142,6 +142,51 @@ test("a group leaves out the items in a closed tab, and its strip is a group", a
   await expect(page.locator(".cz-thumb").nth(1)).toHaveAttribute("aria-current", "true");
 });
 
+test("grouped blocks stand apart, and their view fits the item between the arrows and centers each thumbnail", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 700, height: 900 });
+  const item = (title: string, src: string) =>
+    `::zoom{group="tour" title="${title}"}\n![${title}](${src})\n::`;
+  await fixture(
+    page,
+    await render([item("Before", "/before.png"), item("Tall", "/dashboard.png")].join("\n\n")),
+  );
+  const blocks = page.locator("[data-zoom-group='tour']");
+  const [first, second] = await blocks.evaluateAll((nodes) =>
+    nodes.map((node) => node.getBoundingClientRect().toJSON() as DOMRect),
+  );
+  expect(second!.top - first!.bottom).toBeGreaterThanOrEqual(24);
+
+  await blocks.first().click();
+  await expect(page.locator(".cz-nav svg")).toHaveCount(2);
+  const zoomed = await rect(page, ".cz-item");
+  expect(zoomed.left).toBeGreaterThan((await rect(page, ".cz-prev")).right);
+  expect(zoomed.right).toBeLessThan((await rect(page, ".cz-next")).left);
+  const offsets = await page.locator(".cz-thumb").evaluateAll((thumbs) =>
+    thumbs.map((thumb) => {
+      const outer = thumb.getBoundingClientRect();
+      const inner = thumb.firstElementChild!.getBoundingClientRect();
+      return [
+        inner.left + inner.width / 2 - (outer.left + outer.width / 2),
+        inner.top + inner.height / 2 - (outer.top + outer.height / 2),
+      ];
+    }),
+  );
+  for (const offset of offsets.flat()) expect(Math.abs(offset)).toBeLessThan(1);
+});
+
+test("a zoomed block has the background behind it, so the page doesn't show between its rows", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await fixture(page, await render("::zoom\n| A | B |\n| - | - |\n| 1 | 2 |\n::"));
+  await page.locator(".cz").click();
+  const copy = page.locator(".cz-item > .cz");
+  await expect(copy).toHaveCSS("background-color", "rgb(255, 255, 255)");
+});
+
 test("data-zoom-src shows the page's image until the larger one loads, then fits it", async ({
   page,
 }) => {

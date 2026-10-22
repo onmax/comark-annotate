@@ -25,7 +25,7 @@ Set these on `.ct` or any ancestor, such as `:root`:
 | Variable | Default | Used for |
 | --- | --- | --- |
 | `--ct-surface` | `--comark-accent` at 50% | Behind the strip, and a code group's captions without the script |
-| `--ct-active` | `--comark-background` | The open tab |
+| `--ct-active` | `--comark-background`, a little lighter when it is dark | The open tab |
 | `--ct-active-text` | `--comark-foreground` | The open tab's label |
 | `--ct-gap` | `0.75rem` | The space between the strip and the open panel, except in a code group, whose block hangs from its strip |
 | `--ct-font-size` | `0.8125rem` | The labels and captions |
@@ -55,3 +55,5 @@ An open tab in the page's brand color:
   --ct-active-text: white;
 }
 ```
+
+To try it, paste it into Extra CSS in the [playground's Theme pane](/play/#preset=tabs-tabs).
