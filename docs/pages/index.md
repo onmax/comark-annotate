@@ -11,11 +11,11 @@ install: pnpm add comark @comark/html comark-annotate
 ```md
 ::screenshot{src="/after.png" alt="Filter toolbar on one row"}
 ::::annotation{x=68 y=33.1 w=13.3 h=16 mark="highlight"}
-Moon phase and vibes live in here now.
+Moon and Vibes are in here now.
 ::::
 
 ::::annotation{x=82.5 y=33.1 w=10.9 h=16 mark="check" color="green"}
-**Apply** lines up with the chips.
+**Apply** fits on the first row.
 ::::
 ::
 ```
@@ -37,7 +37,7 @@ Moon phase and vibes live in here now.
 
 :::demo{package="chips" height=156}
 ```md
-Built with [Vite](https://vite.dev), [Vue](https://vuejs.org), and [Nuxt](https://nuxt.com). Thanks @antfu for the idea.
+Moves the build from [webpack](https://webpack.js.org) to [Vite](https://vite.dev), as the [Nuxt docs](https://nuxt.com/docs) recommend. Reviewed by @antfu.
 ```
 :::
 
@@ -164,22 +164,30 @@ Thanks @onmax: this fixes #51, and onmax/comark-plugins#73 builds on it.
 ::hero
 ## Made for agents. Read by people.
 
-Your agent writes the Markdown: PR evidence, reports, plans. A problem comes back as one sentence that names the block and the fix, so the agent fixes it before your team reads the page.
+Your agent writes the review as Markdown: a note, a screenshot with marks, a table, a suggested change. Your team reads the page, and the next agent reads the same Markdown back. When a block is wrong, the plugins name it and say how to fix it, so the agent fixes it before anyone reads the page.
 
 ````md
 > [!TIP] Decision
-> Moon phase and vibes fold into **+2 filters**.
-> Fixes #51, as @onmax asked.
+> Moon and Vibes move into **+2 filters**.
+> One row again. Fixes #51, as @onmax asked.
 
 ::screenshot{src="/after.png" alt="Filter toolbar on one row"}
 :::annotation{x=68 y=33.1 w=13.3 h=16 mark="highlight"}
-Moon phase and vibes live in here now.
+Moon and Vibes are in here now.
 :::
 
 :::annotation{x=92.5 y=33.1 w=10.9 h=16 mark="check" color="green"}
-**Apply** lines up with the chips.
+**Apply** fits on the first row.
 :::
 ::
+
+The numbers didn't move:
+
+| Pair | Before | After |
+| --- | --- | --- |
+| Pizzas vs. merged PRs | 0.95 | 0.95 |
+| Rubber ducks vs. bugs fixed | 0.97 | 0.97 |
+| Drizzle vs. standup minutes | 0.84 | 0.84 |
 
 ::diff{label="Suggested change"}
 ```css [toolbar.css]
@@ -193,18 +201,26 @@ Moon phase and vibes live in here now.
 
 ````md
 > [!TIP] Decision
-> Moon phase and vibes fold into **+2 filters**.
-> Fixes #51, as @onmax asked.
+> Moon and Vibes move into **+2 filters**.
+> One row again. Fixes #51, as @onmax asked.
 
 ::screenshot{src="/after.png" alt="Filter toolbar on one row"}
 :::annotation{x=68 y=33.1 w=13.3 h=16 mark="highlight"}
-Moon phase and vibes live in here now.
+Moon and Vibes are in here now.
 :::
 
 :::annotation{x=82.5 y=33.1 w=10.9 h=16 mark="check" color="green"}
-**Apply** lines up with the chips.
+**Apply** fits on the first row.
 :::
 ::
+
+The numbers didn't move:
+
+| Pair | Before | After |
+| --- | --- | --- |
+| Pizzas vs. merged PRs | 0.95 | 0.95 |
+| Rubber ducks vs. bugs fixed | 0.97 | 0.97 |
+| Drizzle vs. standup minutes | 0.84 | 0.84 |
 
 ::diff{label="Suggested change"}
 ```css [toolbar.css]

@@ -1,11 +1,15 @@
 import { expect, test } from "@playwright/test";
 
-test("the index's studio types the agent's draft, reports its problem, fixes it, and renders the page", async ({
+test("the index's studio rests on the fixed page with its issue, and plays while the pointer is on it", async ({
   page,
 }) => {
   await page.goto("/");
   const studio = page.locator(".studio");
   await studio.scrollIntoViewIfNeeded();
+  await expect(studio).not.toHaveAttribute("data-phase");
+  await expect(page.locator(".studio-issue")).toBeVisible();
+  await expect(page.locator(".studio-issue")).toContainText("runs past the image edge");
+  await studio.hover();
   await expect(studio).toHaveAttribute("data-phase", "check", { timeout: 8000 });
   await expect(page.locator(".studio-issue")).toContainText("runs past the image edge");
   await expect(page.locator(".studio-fix del")).toHaveText("92.5");
@@ -14,7 +18,7 @@ test("the index's studio types the agent's draft, reports its problem, fixes it,
   await expect(page.locator(".studio-page .ca-mark[data-fixed]")).toBeVisible();
   await expect(page.locator(".studio-steps [aria-current=step]")).toHaveText("Render");
 
-  await page.getByRole("button", { name: "Replay" }).click();
+  await page.getByRole("button", { name: "Play" }).click();
   await expect(studio).toHaveAttribute("data-phase", "write");
 });
 
@@ -32,9 +36,11 @@ test("the index's canvas drags, coasts, and opens the card it was clicked on", a
   await page.goto("/");
   const viewport = page.locator(".canvas-viewport");
   await viewport.scrollIntoViewIfNeeded();
-  await page.getByRole("button", { name: "Pause the animations" }).click();
   const stage = page.locator(".canvas-stage");
   const before = await stage.evaluate((el) => el.style.transform);
+  // It holds still until someone moves it.
+  await page.waitForTimeout(600);
+  expect(await stage.evaluate((el) => el.style.transform)).toBe(before);
   const box = (await viewport.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
