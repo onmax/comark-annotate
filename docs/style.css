@@ -218,6 +218,12 @@ body {
 }
 
 /* Search: a field-shaped button in the middle of the header, and a dialog under it. */
+html:not([data-search]) .search-open,
+html[data-mac] .kbd-other,
+html:not([data-mac]) .kbd-mac {
+  display: none !important;
+}
+
 .search-open {
   display: flex;
   align-items: center;
@@ -4089,4 +4095,9 @@ main img {
 /* A tab row that scrolls fades at its end, so the tabs past it read as more. */
 .tablist[data-overflow] {
   mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+}
+
+/* The docs app's wrappers around the generated header, search, and body, which the layout above doesn't expect. */
+.app {
+  display: contents;
 }
