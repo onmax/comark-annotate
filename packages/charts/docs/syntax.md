@@ -51,7 +51,7 @@ Bars turn sideways when their labels are long or there are many of them, so file
 ```
 :::
 
-:::example{label="Grouped"}
+:::example{label="Grouped bars"}
 ```md
 ::chart{title="Tabs-vs-spaces arguments per month"}
 | team | sunny | rainy |
@@ -63,7 +63,7 @@ Bars turn sideways when their labels are long or there are many of them, so file
 ```
 :::
 
-:::example{label="Stacked"}
+:::example{label="Stacked bars"}
 ```md
 ::chart{type="stacked" title="Standup by topic (min)"}
 | day | work | weekend | pigeons |
@@ -91,7 +91,7 @@ Bars turn sideways when their labels are long or there are many of them, so file
 
 :::example{label="Scatter"}
 ```md
-::chart{type="scatter" title="Failed deploys against pigeons on the roof (r = 0.96)"}
+::chart{type="scatter" title="Failed deploys against pigeons on the roof (r = 0.99)"}
 | pigeons | failed deploys | rollbacks |
 | --: | --: | --: |
 | 2 | 1 | 0 |

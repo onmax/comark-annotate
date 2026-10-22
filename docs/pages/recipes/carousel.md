@@ -14,9 +14,9 @@ install: pnpm add comark @comark/html comark-annotate comark-carousel
 ::::
 :::
 
-:::screenshot{src="/before.png" alt="Filter toolbar with five filters, moon phase included" title="2. Set the filters" viewport="640x250"}
-::::annotation{x=4.5 y=28.7 w=90.9 h=44.4 color="amber"}
-The export includes only the rows these filters show. Set the moon phase.
+:::screenshot{src="/after.png" alt="Filter toolbar on one row" title="2. Set the filters" viewport="640x250"}
+::::annotation{x=68 y=33.1 w=13.3 h=16 color="amber"}
+Open **+2 filters** and set the moon phase. The export includes only the rows the filters show.
 ::::
 :::
 

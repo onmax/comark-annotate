@@ -887,7 +887,8 @@ kbd {
   color: var(--fg);
 }
 
-.pages a {
+/* Not the links inside a preset's still, which keep the look the plugins give them. */
+.pages a:not(.preset-page *) {
   margin: 0 -0.5rem;
   padding: 0.3rem 0.5rem;
   border-radius: 6px;
@@ -898,7 +899,7 @@ kbd {
     background-color 150ms ease;
 }
 
-.pages a:hover,
+.pages a:not(.preset-page *):hover,
 .pages a[aria-current] {
   color: var(--fg);
 }
@@ -2277,7 +2278,7 @@ main img {
   color: var(--faint);
 }
 
-.pages .preset a {
+.pages .preset > a {
   display: block;
   overflow: hidden;
   margin: 0;
@@ -2291,14 +2292,14 @@ main img {
 }
 
 /* The link covers the card, so the still opens the preset too. */
-.pages .preset a::after {
+.pages .preset > a::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: 10px;
 }
 
-.pages .preset a:focus-visible {
+.pages .preset > a:focus-visible {
   outline: none;
 }
 

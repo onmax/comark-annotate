@@ -4,3 +4,7 @@ export function bugsFixed(ducks: number) {
   return bugs;
   // #endregion estimate
 }
+
+export function ducksNeeded(bugs: number) {
+  return Math.ceil(bugs / 0.94);
+}
