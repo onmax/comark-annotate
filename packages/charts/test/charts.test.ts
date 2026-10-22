@@ -114,6 +114,28 @@ describe("comark-charts", () => {
     expect(waterfall).toContain('data-type="waterfall"');
     expect(waterfall).toContain(">increase</text>");
     expect(waterfall).toContain(">decrease</text>");
+    // Each step prints its change and each total its value, once.
+    for (const value of ["412", "+38", "\u221224", "426"])
+      expect(waterfall.split(`>${value}</text>`)).toHaveLength(2);
+  });
+
+  it("names every month, with the year on the first and wherever it turns", async () => {
+    const html = await render(
+      chart(`
+| month | commits |
+| --- | --: |
+| 2026-10 | 610 |
+| 2026-11 | 640 |
+| 2026-12 | 652 |
+| 2027-01 | 715 |
+| 2027-02 | 720 |
+| 2027-03 | 768 |
+| 2027-04 | 760 |`),
+    );
+    const labels = [...html.matchAll(/>([A-Z][a-z]{2}(?: \d{4})?)<\/text>/g)].map(
+      ([, label]) => label,
+    );
+    expect(labels).toEqual(["Oct 2026", "Nov", "Dec", "Jan 2027", "Feb", "Mar", "Apr"]);
   });
 
   it("turns bars sideways when their labels are long, keeping every label whole", async () => {
@@ -150,6 +172,49 @@ Cache on.
     expect(html).toContain("The slow month.");
     // The data stays the table, marks or not.
     expect(html).toContain('<details class="cch-data"><summary>Data</summary><table>');
+  });
+
+  it("centers a mark on the point it names", async () => {
+    const html = await createHtmlRenderer({
+      plugins: [charts(), annotate()],
+      components: { ...annotateComponents, ...components },
+    })(`::chart{type="scatter"}
+| pigeons | deploys |
+| --: | --: |
+| 2 | 1 |
+| 5 | 3 |
+| 9 | 4 |
+:::annotation{at="5" mark="circle"}
+The second point.
+:::
+::`);
+    const svg = /<svg role="img"[\s\S]*?<\/svg>/.exec(html)?.[0] ?? "";
+    const [width = 0, height = 0] = (/viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg) ?? [])
+      .slice(1)
+      .map(Number);
+    // Each point sits at its own translation plus those of every group around it.
+    const points: number[][] = [];
+    const groups = [{ x: 0, y: 0, symbols: false }];
+    for (const [tag, close, name] of svg.matchAll(/<(\/?)(\w+)[^>]*>/g)) {
+      const [dx = 0, dy = 0] = (/translate\(([-\d.]+),([-\d.]+)\)/.exec(tag) ?? [])
+        .slice(1)
+        .map(Number);
+      const { x, y, symbols } = groups.at(-1)!;
+      if (name === "g" && close) groups.pop();
+      else if (name === "g")
+        groups.push({ x: x + dx, y: y + dy, symbols: tag.includes("mark-symbol") });
+      else if (name === "path" && symbols) points.push([x + dx, y + dy]);
+    }
+    const [left = 0, top = 0, w = 0, h = 0] = (
+      /class="ca-mark ca-circle"[^>]*left:([\d.]+)%;top:([\d.]+)%;width:([\d.]+)%;height:([\d.]+)%/.exec(
+        html,
+      ) ?? []
+    )
+      .slice(1)
+      .map(Number);
+    expect(points).toHaveLength(3);
+    expect(((left + w / 2) / 100) * width).toBeCloseTo(points[1]![0]!, 0);
+    expect(((top + h / 2) / 100) * height).toBeCloseTo(points[1]![1]!, 0);
   });
 
   it("places chart stamps using the SVG aspect ratio", async () => {
