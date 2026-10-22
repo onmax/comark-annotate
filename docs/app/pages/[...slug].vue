@@ -136,34 +136,38 @@ function follow(event: MouseEvent) {
       <p v-if="search && !searchLinks.length" role="status">No page or heading matches.</p>
     </dialog>
     <header class="top">
-      <NuxtLink class="name" to="/"
-        ><span class="logo" aria-hidden="true">1</span>comark plugins</NuxtLink
-      >
-      <nav>
-        <NuxtLink
-          v-for="link in page.pages.filter((p) => p.npm && p.slug && !p.slug.includes('/'))"
-          :key="link.slug"
-          class="link"
-          :to="pagePath(link.slug)"
-          :aria-current="link.slug === slug ? 'page' : undefined"
-          >{{ link.slug }}</NuxtLink
+      <div class="top-start">
+        <NuxtLink class="name" to="/"
+          ><span class="logo" aria-hidden="true">1</span>comark plugins</NuxtLink
         >
-        <a
-          v-if="page.npm"
-          class="icon"
-          :href="`https://npmx.dev/package/${page.npm}`"
-          :aria-label="`${page.npm} on npmx`"
-          title="npmx"
-          v-html="npmx"
-        />
-        <a
-          class="icon"
-          href="https://github.com/onmax/comark-plugins"
-          aria-label="comark-plugins on GitHub"
-          title="GitHub"
-          v-html="github"
-        />
-      </nav>
+      </div>
+      <div class="top-end">
+        <nav>
+          <NuxtLink
+            v-for="link in page.pages.filter((p) => p.npm && p.slug && !p.slug.includes('/'))"
+            :key="link.slug"
+            class="link"
+            :to="pagePath(link.slug)"
+            :aria-current="link.slug === slug ? 'page' : undefined"
+            >{{ link.slug }}</NuxtLink
+          >
+          <a
+            v-if="page.npm"
+            class="icon"
+            :href="`https://npmx.dev/package/${page.npm}`"
+            :aria-label="`${page.npm} on npmx`"
+            title="npmx"
+            v-html="npmx"
+          />
+          <a
+            class="icon"
+            href="https://github.com/onmax/comark-plugins"
+            aria-label="comark-plugins on GitHub"
+            title="GitHub"
+            v-html="github"
+          />
+        </nav>
+      </div>
     </header>
     <div ref="layout" class="layout">
       <aside class="sidebar">
