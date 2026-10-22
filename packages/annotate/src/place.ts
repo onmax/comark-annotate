@@ -50,18 +50,19 @@ export interface Placement {
 }
 
 /**
- * Puts each stamp outside a corner of its mark: the first corner, in order, where it covers no earlier stamp, then
- * the one that covers the least of the marks, their ticks, and their arrows. Against the image's edge a stamp slides
- * along it, and in a corner of the image it moves inside its mark.
+ * Centers each stamp on a corner of its mark: the first corner, in order, where it covers no earlier stamp, then the
+ * one that covers the least of the other marks, the ticks, and the arrows. Where that would push it past the image's
+ * edge it lines up with the mark's edge instead, and in a corner of the image it moves inside its mark.
  */
 export function place(annotations: Annotation[], aspect = ASPECT): Placement {
   const height = WIDTH * aspect;
   const box = (annotation: Annotation) => pixels(annotation, aspect);
-  const covered = annotations.flatMap((annotation) => {
+  // A stamp on its own mark's corner always covers some of that mark, so only its tick and arrow count against it.
+  const covered = annotations.flatMap((annotation, owner) => {
     const { x, y, w, h } = box(annotation);
     const [cx, cy] = [x + w / 2, y + h / 2];
     return [
-      { x, y, w, h },
+      { x, y, w, h, owner, own: true },
       ...(annotation.mark === "check" ? [{ x: x + w + GAP, y: cy - 10, w: 20, h: 20 }] : []),
       ...(annotation.side === "right" ? [{ x: x + w, y: cy - 8, w: WIDTH - x - w, h: 16 }] : []),
       ...(annotation.side === "left" ? [{ x: 0, y: cy - 8, w: x, h: 16 }] : []),
@@ -86,30 +87,42 @@ export function place(annotations: Annotation[], aspect = ASPECT): Placement {
     }
     let best: { rect: Rect; css: string; hits: typeof placed; cost: [number, number] } | undefined;
     for (const [right, bottom] of CORNERS) {
-      let x = right ? b.x + b.w + GAP : b.x - GAP - w;
-      let y = bottom ? b.y + b.h + GAP : b.y - GAP - SIZE;
-      const slideX = right ? x + w > WIDTH : x < 0;
-      const slideY = bottom ? y + SIZE > height : y < 0;
+      // Centered on the corner, the stamp sits on its mark's stroke and reaches only a few pixels past it, so it can't
+      // be read as the number of whatever sits next to the mark.
+      const cornerX = right ? b.x + b.w : b.x;
+      const cornerY = bottom ? b.y + b.h : b.y;
+      let x = cornerX - w / 2;
+      let y = cornerY - SIZE / 2;
+      const slideX = right ? x + w > WIDTH + GAP : x < -GAP;
+      const slideY = bottom ? y + SIZE > height + GAP : y < -GAP;
       const inside = slideX && slideY;
-      if (inside) x = right ? b.x + b.w - 3 - w : b.x + 3;
-      else if (slideX) x = right ? b.x + b.w + GAP - w : b.x - GAP;
-      if (inside) y = bottom ? b.y + b.h - 3 - SIZE : b.y + 3;
-      else if (slideY) y = bottom ? b.y + b.h + GAP - SIZE : b.y - GAP;
-      const [near, far] = right ? ["right", "left"] : ["left", "right"];
-      const [edge, away] = bottom ? ["bottom", "top"] : ["top", "bottom"];
-      const offset = (inner: boolean, slide: boolean, side: string, other: string) =>
-        inner ? `${side}:3px` : slide ? `${side}:-${GAP}px` : `${other}:calc(100% + ${GAP}px)`;
+      if (inside) x = right ? cornerX - 3 - w : cornerX + 3;
+      else if (slideX) x = right ? cornerX + GAP - w : cornerX - GAP;
+      if (inside) y = bottom ? cornerY - 3 - SIZE : cornerY + 3;
+      else if (slideY) y = bottom ? cornerY + GAP - SIZE : cornerY - GAP;
+      const [near, far] = [right ? "right" : "left", right ? "50%" : "-50%"];
+      const [edge, down] = [bottom ? "bottom" : "top", bottom ? "50%" : "-50%"];
+      const offset = (inner: boolean, slide: boolean) =>
+        inner ? "3px" : slide ? `-${GAP}px` : "0";
+      const shift = (slide: boolean, half: string) => (slide ? "0" : half);
       const rect = { x, y, w, h: SIZE };
       const ring = { x: x - CLEAR, y: y - CLEAR, w: w + 2 * CLEAR, h: SIZE + 2 * CLEAR };
       const hits = placed.filter((stamp) => overlap(ring, stamp.rect) > 0);
       const cost: [number, number] = [
         hits.reduce((sum, stamp) => sum + overlap(ring, stamp.rect), 0),
-        covered.reduce((sum, area) => sum + overlap(rect, area), 0),
+        covered.reduce(
+          (sum, area) => ("own" in area && area.owner === index ? sum : sum + overlap(rect, area)),
+          0,
+        ),
       ];
       if (!best || cost[0] < best.cost[0] || (cost[0] === best.cost[0] && cost[1] < best.cost[1]))
         best = {
           rect,
-          css: `${offset(inside, slideX, near, far)};${offset(inside, slideY, edge, away)}`,
+          css: [
+            `${near}:${offset(inside, slideX)}`,
+            `${edge}:${offset(inside, slideY)}`,
+            ...(inside ? [] : [`translate:${shift(slideX, far)} ${shift(slideY, down)}`]),
+          ].join(";"),
           hits,
           cost,
         };

@@ -157,23 +157,23 @@ describe("comark-annotate", () => {
     );
     expect(html).toContain('aria-label="Side note: Beside"');
     expect(html).toContain(
-      '<span class="ca-stamp" style="right:calc(100% + 4px);bottom:calc(100% + 4px)">1</span></span>',
+      '<span class="ca-stamp" style="left:0;top:0;translate:-50% -50%">1</span></span>',
     );
     expect(html).toMatch(/<ol class="ca-notes"><li id="ca-[a-z0-9]+-2" data-n="2">.*Listed/);
   });
 
-  it("puts each number at a corner clear of the other numbers and marks", async () => {
+  it("puts each number on a corner of its mark, clear of the other numbers and marks", async () => {
     const { issues, html } = await run(
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=10 y=20 w=20 h=10}\nFirst\n:::\n:::annotation{x=10 y=26 w=20 h=10}\nJust under it\n:::\n:::annotation{x=0 y=60 w=10 h=10}\nAgainst the left edge\n:::\n::`,
     );
     expect(issues).toEqual([]);
     const stamps = [...html.matchAll(/<span class="ca-stamp" style="([^"]*)">(\d)<\/span>/g)];
     expect(stamps.map(([, css, number]) => [number, css])).toEqual([
-      ["1", "right:calc(100% + 4px);bottom:calc(100% + 4px)"],
-      // Above-left would touch number 1, so it moves above-right.
-      ["2", "left:calc(100% + 4px);bottom:calc(100% + 4px)"],
-      // No room left of the mark, so it slides along the edge above it.
-      ["3", "left:-4px;bottom:calc(100% + 4px)"],
+      ["1", "left:0;top:0;translate:-50% -50%"],
+      // The top left would touch number 1 and the top right would sit on mark 1, so it takes the bottom left.
+      ["2", "left:0;bottom:0;translate:-50% 50%"],
+      // Centered on the corner it would hang past the image, so it lines up with the mark's left edge.
+      ["3", "left:-4px;top:0;translate:0 -50%"],
     ]);
   });
 
@@ -400,7 +400,7 @@ describe("comark-annotate", () => {
     await expect(cli("check", join(dir, "bad.md"))).rejects.toMatchObject({ code: 1 });
     await cli("render", join(dir, "ok.md"));
     expect(await readFile(join(dir, "ok.html"), "utf8")).toContain(
-      '<span class="ca-stamp" style="left:calc(100% + 4px);top:-4px">1</span>',
+      '<span class="ca-stamp" style="left:0;top:-4px;translate:-50% 0">1</span>',
     );
 
     // Every file is checked, and each issue says which file it's in.
