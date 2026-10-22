@@ -56,3 +56,5 @@ Wider gaps, no panels, and bigger arrows:
   --cc-button-size: 2.5rem;
 }
 ```
+
+To try it, paste it into Extra CSS in the [playground's Theme pane](/play/#preset=carousel-images).

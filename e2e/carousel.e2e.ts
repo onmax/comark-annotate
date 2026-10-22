@@ -212,3 +212,17 @@ test("without the script, the scrollbar reaches the other slides", async ({ page
   await open(page, three);
   expect(await track.evaluate(bar)).toBe(0);
 });
+
+test("a short slide starts at the top, where a taller one does", async ({ page }) => {
+  await open(page, '::carousel{title="Tour"}\nShort\n\n- One\n- Two\n- Three\n- Four\n::');
+  const starts = await parts(page)
+    .track.locator(".cc-slide")
+    .evaluateAll((slides) =>
+      slides.map(
+        (slide) =>
+          slide.firstElementChild!.getBoundingClientRect().top - slide.getBoundingClientRect().top,
+      ),
+    );
+  expect(starts).toHaveLength(2);
+  expect(starts[0]).toBe(starts[1]);
+});

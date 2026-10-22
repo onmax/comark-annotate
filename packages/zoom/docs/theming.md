@@ -66,3 +66,5 @@ A dark backdrop that lets the page show through:
   --comark-muted: #a1a1a1;
 }
 ```
+
+To try it, paste it into Extra CSS in the [playground's Theme pane](/play/#preset=zoom-image).

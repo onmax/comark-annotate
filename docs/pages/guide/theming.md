@@ -32,6 +32,8 @@ Set the `--comark-*` tokens to theme annotate, carousel, charts, chips, code, di
 }
 ```
 
+Try them in the [playground's Theme pane](/play/): it shows them in light and dark and copies the CSS for what you change.
+
 To theme one part only, set the tokens on its root instead: `.ca` for annotate, `.cc` for a carousel, `.cch` for charts, `.cp` for chips, `.ck` for code headers, `.cd` for diffs, `.ce` and `.ce-card` for embeds, `.cgc` for callouts, `.ct` for tabs, and `.cz-dialog` for the zoomed view.
 
 ## Your own rules
