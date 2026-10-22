@@ -207,6 +207,26 @@ function showTheme() {
   const currentScheme = scheme();
   doc.documentElement.className = currentScheme;
   doc.documentElement.style.colorScheme = currentScheme;
+  const fallback =
+    currentScheme === "dark"
+      ? {
+          background: "#0a0a0a",
+          foreground: "#fafafa",
+          "muted-foreground": "#a1a1a1",
+          border: "rgb(255 255 255 / 0.1)",
+          accent: "#262626",
+          ring: "#737373",
+        }
+      : {
+          background: "#fff",
+          foreground: "#0a0a0a",
+          "muted-foreground": "#737373",
+          border: "#e5e5e5",
+          accent: "#f5f5f5",
+          ring: "#a1a1a1",
+        };
+  for (const [name, value] of Object.entries(fallback))
+    doc.documentElement.style.setProperty(`--${name}`, value);
   const style =
     doc.getElementById("play-theme") ??
     doc.head.appendChild(Object.assign(doc.createElement("style"), { id: "play-theme" }));
