@@ -834,6 +834,10 @@ kbd {
   opacity: 1;
 }
 
+.sidebar .rail:not(:hover):not(:has(:focus-visible)) .rail-label {
+  opacity: 0;
+}
+
 @media (hover: none) {
   .sidebar .rail:hover {
     width: 3.25rem;
@@ -910,6 +914,7 @@ kbd {
 .page {
   display: grid;
   grid-template-columns: minmax(0, 48rem) 10rem;
+  min-width: 0;
   justify-content: center;
   gap: 3rem;
   padding: 0 2rem;

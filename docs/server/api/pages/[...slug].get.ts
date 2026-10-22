@@ -30,13 +30,23 @@ async function listPages(): Promise<PageLink[]> {
     await Promise.all(
       items.map(async (item) => {
         if (!item || typeof item !== "object") return null;
-        const value = item as { id?: unknown; path?: unknown; data?: { install?: unknown } };
+        const value = item as {
+          id?: unknown;
+          path?: unknown;
+          _id?: unknown;
+          _path?: unknown;
+          data?: { install?: unknown };
+        };
         const raw =
           typeof value.id === "string"
             ? value.id
             : typeof value.path === "string"
               ? value.path
-              : "";
+              : typeof value._id === "string"
+                ? value._id
+                : typeof value._path === "string"
+                  ? value._path
+                  : "";
         const normalized = raw
           .replace(/^\//, "")
           .replace(/\.md$/, "")
