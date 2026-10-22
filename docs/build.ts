@@ -775,7 +775,8 @@ for (const canvas of document.querySelectorAll(".canvas")) {
     canvas.dataset.view = name;
     for (const b of canvas.querySelectorAll(".canvas-bar [data-view]")) b.setAttribute("aria-pressed", b.dataset.view === name);
     if (keep) try { localStorage.setItem("comark-view", name) } catch {}
-    if (name === "canvas") { draw(); run() } else halt();
+    // Measure during view activation so navigation can draw with the viewport size before its first paint.
+    if (name === "canvas") { vw = viewport.clientWidth; vh = viewport.clientHeight; draw(); run() } else halt();
   };
   new ResizeObserver(([e]) => { vw = e.contentRect.width; vh = e.contentRect.height; draw() }).observe(viewport);
   viewport.addEventListener("pointerdown", e => {
@@ -1090,7 +1091,7 @@ ${body}
 }
 
 const footer = (credits?: string) =>
-  `<footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>.${credits ? ` ${credits}` : ""}</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>`;
+  `<footer><span>Built on <a href="https://comark.dev">Comark</a>.${credits ? ` ${credits}` : ""}</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>`;
 
 // The landing page, as on vitehub.dev: the headline beside the install command, the packages, the example, and Drop.
 await writeFile(
