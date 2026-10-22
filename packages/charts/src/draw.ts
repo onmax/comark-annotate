@@ -539,7 +539,8 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
     const widest = Math.max(
       ...chart.rows.map((row, index) => {
         const value = row.values[0] ?? 0;
-        const signed = index > 0 && !(index === values.length - 1 && finalIsTotal) && value > 0 ? "+" : "";
+        const signed =
+          index > 0 && !(index === values.length - 1 && finalIsTotal) && value > 0 ? "+" : "";
         return guess(`${signed}${Math.round(value).toLocaleString("en-US")}`, 12);
       }),
     );
