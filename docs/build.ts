@@ -701,10 +701,15 @@ for (const box of document.querySelectorAll(".installer")) {
   box.addEventListener("click", e => { const b = e.target.closest("[data-audience],[data-pm]"); if (!b) return; if (b.dataset.audience) audience = b.dataset.audience; if (b.dataset.pm) pm = b.dataset.pm; update() });
   field.addEventListener("click", async () => { await navigator.clipboard.writeText(field.dataset.copy); field.classList.add("copied"); setTimeout(() => field.classList.remove("copied"), 1200) });
 }
+const copyTokens = new WeakMap<Element, number>();
 const copied = async button => {
   await navigator.clipboard.writeText(button.dataset.copy);
+  const token = (copyTokens.get(button) ?? 0) + 1;
+  copyTokens.set(button, token);
   button.classList.add("copied");
-  setTimeout(() => button.classList.remove("copied"), 1200);
+  setTimeout(() => {
+    if (copyTokens.get(button) === token) button.classList.remove("copied");
+  }, 1200);
 };
 for (const button of document.querySelectorAll(".grid-copy")) button.addEventListener("click", () => copied(button));
 // The index's canvas: columns of package cards without end, each running through every card from its own start, so
@@ -742,6 +747,10 @@ for (const canvas of document.querySelectorAll(".canvas")) {
           seen.add(key);
           if (live.has(key)) continue;
           const el = pools[i].pop() ?? cards[i].cloneNode(true);
+          for (const button of el.querySelectorAll(".demo-copy")) {
+            button.classList.remove("copied");
+            copyTokens.set(button, (copyTokens.get(button) ?? 0) + 1);
+          }
           el.style.left = c * pitch + "px"; el.style.top = at + "px";
           stage.append(el); live.set(key, { el, i });
         }
