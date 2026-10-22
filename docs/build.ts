@@ -775,7 +775,8 @@ for (const canvas of document.querySelectorAll(".canvas")) {
     canvas.dataset.view = name;
     for (const b of canvas.querySelectorAll(".canvas-bar [data-view]")) b.setAttribute("aria-pressed", b.dataset.view === name);
     if (keep) try { localStorage.setItem("comark-view", name) } catch {}
-    if (name === "canvas") { draw(); run() } else halt();
+    // Measure during view activation so navigation can draw with the viewport size before its first paint.
+    if (name === "canvas") { vw = viewport.clientWidth; vh = viewport.clientHeight; draw(); run() } else halt();
   };
   new ResizeObserver(([e]) => { vw = e.contentRect.width; vh = e.contentRect.height; draw() }).observe(viewport);
   viewport.addEventListener("pointerdown", e => {
