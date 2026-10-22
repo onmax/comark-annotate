@@ -16,6 +16,7 @@ import { icons as lucide } from "@iconify-json/lucide";
 import { deflateRawSync } from "node:zlib";
 import { readFile } from "node:fs/promises";
 import { access } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { createError, defineEventHandler, getQuery, getRouterParam } from "nuxt/server";
 import { copyIcon } from "#shared/chrome";
 import type { Page } from "#shared/pages";
@@ -177,7 +178,10 @@ export default defineEventHandler(async (event): Promise<Page> => {
   // its generated body for the Nuxt island when the docs build has produced it.
   if (slug === "" && getQuery(event).body !== "0") {
     try {
-      const path = `${process.cwd()}/docs/dist/index.html`;
+      // Nuxt runs this handler from `docs/`, while the build script runs from
+      // the repository root. Resolve the generated file from this module so
+      // both entry points reuse the same landing body.
+      const path = fileURLToPath(new URL("../../../dist/index.html", import.meta.url));
       await access(path);
       const source = await readFile(path, "utf8");
       const start = source.indexOf('<div class="landing">');
