@@ -333,6 +333,10 @@ importers:
         version: 3.5.44(typescript@6.0.3)
 
   packages/code:
+    dependencies:
+      comark-icon:
+        specifier: workspace:^
+        version: link:../icon
     devDependencies:
       '@comark/html':
         specifier: 'catalog:'
@@ -370,6 +374,18 @@ importers:
       vue:
         specifier: 'catalog:'
         version: 3.5.44(typescript@6.0.3)
+
+  packages/diff:
+    devDependencies:
+      '@comark/html':
+        specifier: 'catalog:'
+        version: 0.8.1(shiki@4.5.0)
+      comark:
+        specifier: 'catalog:'
+        version: 0.8.1(shiki@4.5.0)
+      comark-zoom:
+        specifier: workspace:*
+        version: link:../zoom
 
   packages/embed:
     devDependencies:
@@ -512,6 +528,9 @@ importers:
       comark-code:
         specifier: workspace:*
         version: link:../code
+      comark-diff:
+        specifier: workspace:*
+        version: link:../diff
       comark-embed:
         specifier: workspace:*
         version: link:../embed

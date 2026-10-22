@@ -1,7 +1,16 @@
 import { toNativeAttributes } from "comark/utils";
+import { iconStyle } from "comark-icon/client";
 
-/** One of your actions as the parse plugin writes it on a code block. */
-export type ActionButton = { id: string; label: string };
+/**
+ * One of your actions as the parse plugin writes it on a code block: an empty `label` shows only the icon, and `title`
+ * is the tooltip and the icon-only button's name.
+ */
+export type ActionButton = {
+  id: string;
+  label: string;
+  title: string;
+  icon?: { src: string; ratio: number; mask: boolean };
+};
 
 /** What the `comark-code-action` event carries: the action's `id`, the block's code, and its language. */
 export type CodeActionDetail = { action: string; code: string; language: string };
@@ -131,6 +140,18 @@ export function start(css: string): () => void {
   return state.stop;
 }
 
+/**
+ * Calls `callback` with the block's code and language whenever a button of the action `id` is clicked, on any code
+ * block of the page, and returns a function that stops it. The parse plugin's `actions` put the buttons there.
+ */
+export function onCodeAction(id: string, callback: (detail: CodeActionDetail) => void): () => void {
+  const listener = (event: CustomEvent<CodeActionDetail>) => {
+    if (event.detail.action === id) callback(event.detail);
+  };
+  document.addEventListener("comark-code-action", listener);
+  return () => document.removeEventListener("comark-code-action", listener);
+}
+
 const escape = (value: string) =>
   value.replace(
     /[&<>"]/g,
@@ -140,17 +161,38 @@ const escape = (value: string) =>
 const icon = (name: string, path: string) =>
   `<svg class="ck-${name}" viewBox="0 0 24 24" aria-hidden="true">${path}</svg>`;
 
-/**
- * The inside of a block's button bar, the same in every renderer: your actions, then Wrap and Copy, then the status
- * line that says whether the copy worked. Hidden until the script starts, since nothing works without it.
- */
-export function buttons(actions: unknown): string {
-  // SAFETY: the parse plugin is the only writer of `actions`, always as `{ id, label }` strings.
-  const own = (Array.isArray(actions) ? (actions as ActionButton[]) : []).map(
-    (action) =>
-      `<button type="button" class="ck-action" data-code-action="${escape(`${action.id}`)}">${escape(`${action.label}`)}</button>`,
-  );
+function action({ id, label, title, icon: image }: ActionButton) {
+  const style = image
+    ? Object.entries(iconStyle(image.src, image.ratio))
+        .map(([property, value]) => `${property}:${value}`)
+        .join(";")
+    : "";
+  const named = label
+    ? title === label
+      ? ""
+      : ` title="${escape(title)}"`
+    : ` aria-label="${escape(title)}" title="${escape(title)}"`;
   return (
+    `<button type="button" class="ck-action" data-code-action="${escape(id)}"${named}>` +
+    (image
+      ? `<span class="ci"${image.mask ? " data-mask" : ""} aria-hidden="true" style="${escape(style)}"></span>`
+      : "") +
+    `${escape(label)}</button>`
+  );
+}
+
+/**
+ * The inside of a block's header, the same in every renderer: the file's name or the language, your actions, Wrap and
+ * Copy, then the status line that says whether the copy worked. The buttons stay hidden until the script starts, since
+ * nothing works without it.
+ */
+export function buttons(actions: unknown, attributes: Record<string, unknown> = {}): string {
+  // SAFETY: Comark writes a fence's filename and language as strings.
+  const title = `${(attributes.filename || attributes.language || "") as string}`;
+  // SAFETY: the parse plugin is the only writer of `actions`, always as `ActionButton`s.
+  const own = (Array.isArray(actions) ? (actions as ActionButton[]) : []).map(action);
+  return (
+    (title ? `<span class="ck-title">${escape(title)}</span>` : "") +
     own.join("") +
     `<button type="button" class="ck-wrap" aria-label="Wrap lines" aria-pressed="false" title="Wrap lines">` +
     icon(

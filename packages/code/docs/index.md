@@ -20,7 +20,7 @@ pnpm exec spurious correlate --x "rubber ducks bought" --y "bugs fixed" --office
 
 The `spurious` command above is fictional sample code used to demonstrate a long shell line.
 
-Point at a code block to show its buttons, which stay visible on touch screens. Wrap breaks long lines in that block only, and Copy puts its code on the clipboard. Without a script, the block shows as it would without the plugin, with no buttons.
+Each code block gets a header above its first line, with the file's name or the language on the left and the buttons on the right, so they never cover the code. Wrap breaks long lines in that block only, and Copy puts its code on the clipboard. Without a script the header keeps its title and hides the buttons, which couldn't work.
 
 ## Credits
 

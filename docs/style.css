@@ -1500,7 +1500,7 @@ code {
   overflow-x: auto;
 }
 
-.table-scroll > table:not(.ca-code) {
+.table-scroll > table:not(.cd-code) {
   margin: 0;
 }
 
@@ -1518,7 +1518,7 @@ pre .line {
   display: inline !important;
 }
 
-table:not(.ca-code) {
+table:not(.cd-code) {
   width: 100%;
   margin: 1rem 0;
   border-collapse: collapse;
@@ -1532,8 +1532,8 @@ th {
 }
 
 /* The table rules are for prop tables; a diff's table is code, in the page's mono font. */
-.ca-diff {
-  --ca-code-font: var(--mono);
+.cd {
+  --cd-font: var(--mono);
 }
 
 /* A prop table's two columns need no header. Wider tables compare columns, so they keep theirs, and so do tables in
@@ -1542,17 +1542,17 @@ main thead:not(:has(th:nth-child(3))) th:not(.example-preview th) {
   display: none;
 }
 
-td:not(.ca-code td) {
+td:not(.cd-code td) {
   padding: 0.6rem 1rem 0.6rem 0;
   border-top: 1px solid var(--line);
   vertical-align: baseline;
 }
 
-tr:last-child td:not(.ca-code td) {
+tr:last-child td:not(.cd-code td) {
   border-bottom: 1px solid var(--line);
 }
 
-td:first-child:not(.ca-code td) {
+td:first-child:not(.cd-code td) {
   width: 9rem;
   white-space: nowrap;
 }
@@ -1804,19 +1804,19 @@ blockquote {
   padding: 1.75rem 1.5rem;
 }
 
-.example-preview > :is(.ca, .ce, .ce-card, .cch) {
+.example-preview > :is(.ca, .cd, .ce, .ce-card, .cch) {
   margin: 0;
 }
 
 /* A chart, a link card, or a diff draws its own card, so a preview of only that, after its styles, drops the frame rather than nest one card in another. */
 .example-body:has(
   > .example-preview:not([hidden])
-    > :is(.cch, .ce-card, .ca-diff):last-child:not(:not(style, script) ~ *)
+    > :is(.cch, .ce-card, .cd):last-child:not(:not(style, script) ~ *)
 ) {
   box-shadow: none;
 }
 
-.example-preview:has(> :is(.cch, .ce-card, .ca-diff):last-child:not(:not(style, script) ~ *)) {
+.example-preview:has(> :is(.cch, .ce-card, .cd):last-child:not(:not(style, script) ~ *)) {
   padding: 0;
 }
 

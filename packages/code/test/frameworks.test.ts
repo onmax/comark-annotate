@@ -36,13 +36,34 @@ describe("comark-code renderers", () => {
   it("renders the same code blocks and buttons in every renderer", async () => {
     const value = await parseMarkdown(
       "```sh [install.sh]\npnpm add comark-code\n```\n\n```ts\nconst a = 1\n```",
-      { plugins: [code({ actions: [{ id: "run", label: "Run", languages: ["sh"] }] })] },
+      {
+        plugins: [
+          code({
+            actions: [
+              { id: "run", label: "Run", languages: ["sh"] },
+              { id: "share", icon: "test:share", title: "Share" },
+            ],
+            iconResolver: {
+              resolve: async (values) =>
+                new Map(
+                  [...values].map((name) => [
+                    name,
+                    { name, src: "data:image/svg+xml,x", ratio: 1, mask: true },
+                  ]),
+                ),
+            },
+          }),
+        ],
+      },
     );
     const expected = normalize(await renderers.html(value));
     expect(expected).toContain(
-      '<div class="ck"><pre data-language="sh" data-filename="install.sh"><code class="language-sh">pnpm add comark-code</code></pre><div class="ck-bar"><button type="button" class="ck-action" data-code-action="run">Run</button>',
+      '<div class="ck"><pre data-language="sh" data-filename="install.sh"><code class="language-sh">pnpm add comark-code</code></pre><div class="ck-bar"><span class="ck-title">install.sh</span><button type="button" class="ck-action" data-code-action="run">Run</button>',
     );
     expect(expected.match(/class="ck-copy"/g)).toHaveLength(2);
+    expect(
+      expected.match(/aria-label="Share" title="Share"><span class="ci" data-mask/g),
+    ).toHaveLength(2);
     for (const name of ["vue", "react"] as const) {
       const html = normalize(await renderers[name](value));
       expect(html, name).toContain(expected);
