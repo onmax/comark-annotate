@@ -26,7 +26,7 @@ Close the block with `::` on the next line; anything inside it is dropped.
 | StackBlitz | `stackblitz.com/edit/<project>`, `stackblitz.com/github/<owner>/<repo>` | The project, keeping options such as `file` and `view`. |
 | Figma | `figma.com/design`, `proto`, `board`, `slides`, and `deck` links | Figma's embed, keeping `node-id`. |
 
-A StackBlitz project that runs in WebContainers, such as a Node or Vite starter, needs the page that embeds it to be cross-origin isolated; elsewhere StackBlitz shows "Unable to run Embedded Project" in place of its preview. A project that runs in the browser alone, such as the `typescript` starter, embeds anywhere.
+A StackBlitz project that runs in WebContainers, such as a Node or Vite starter, needs a cross-origin-isolated embedding page and a supported browser/runtime configuration ([WebContainers browser support](https://developer.stackblitz.com/platform/webcontainers/browser-support) and [browser configuration](https://developer.stackblitz.com/platform/webcontainers/browser-config)); without those requirements, its embedded preview may fail with “Unable to run Embedded Project”. A project that runs in the browser alone, such as the `typescript` starter, does not need WebContainer isolation, but it still depends on StackBlitz’s [supported embedding environments](https://developer.stackblitz.com/guides/integration/embedding).
 
 Any other `https://` link renders as a card with its `title` and host. Cards don't fetch the page's title yet, so give each one a `title`.
 
