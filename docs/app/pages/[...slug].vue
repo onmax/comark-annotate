@@ -20,6 +20,7 @@ const [{ data: page }] = await Promise.all([
 ]);
 if (!page.value) throw createError({ status: 404, message: `No page at /${slug.value}.` });
 const pageSlug = computed(() => page.value?.slug ?? "");
+const pagePath = (value: string) => (value ? `/${value}/` : "/");
 
 useHead(() => ({
   title: `${page.value!.title} · ${page.value!.description}`,
@@ -60,7 +61,7 @@ const search = ref("");
 const searchLinks = computed(() => {
   const links = page.value?.pages ?? [];
   const results = links.map((item) => ({
-    href: `/${item.slug}/`,
+    href: pagePath(item.slug),
     text: item.slug ? `${item.slug} › Guides` : "Docs",
   }));
   if (search.value.toLowerCase().includes("side notes"))
@@ -128,7 +129,7 @@ function follow(event: MouseEvent) {
           v-for="link in page.pages.filter((p) => p.npm && p.slug && !p.slug.includes('/'))"
           :key="link.slug"
           class="link"
-          :to="`/${link.slug}/`"
+          :to="pagePath(link.slug)"
           :aria-current="link.slug === slug ? 'page' : undefined"
           >{{ link.slug }}</NuxtLink
         >
@@ -158,7 +159,7 @@ function follow(event: MouseEvent) {
           <NuxtLink
             v-for="item in page.pages.filter((p) => p.slug && !p.slug.includes('/'))"
             :key="`rail-${item.slug}`"
-            :to="`/${item.slug}/`"
+            :to="pagePath(item.slug)"
             :aria-current="slug.startsWith(item.slug) ? 'true' : undefined"
             ><span class="rail-label">{{ item.slug }}</span></NuxtLink
           >
@@ -170,7 +171,7 @@ function follow(event: MouseEvent) {
               (p) => p.slug === slug || p.slug.startsWith(`${pageSlug}/`),
             )"
             :key="item.slug"
-            :to="`/${item.slug}/`"
+            :to="pagePath(item.slug)"
             :aria-current="item.slug === slug ? 'page' : undefined"
             >{{ item.slug.split("/").pop() || "Introduction" }}</NuxtLink
           >

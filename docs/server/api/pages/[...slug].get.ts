@@ -119,7 +119,8 @@ const pluginCards: NodeHandler = async () => {
           /^pnpm add (comark @comark\/html )?/,
           "pnpm add ",
         );
-        return `<a class="card" href="/${page.slug}/"><strong>${escapeHtml(str(data.title))}</strong><span>${escapeHtml(str(data.description))}</span><code>${escapeHtml(command)}</code><button type="button" class="card-copy" aria-label="Copy ${escapeHtml(command)}" data-copy="${escapeHtml(command)}">Copy</button></a>`;
+        const href = page.slug ? `/${page.slug}/` : "/";
+        return `<a class="card" href="${href}"><strong>${escapeHtml(str(data.title))}</strong><span>${escapeHtml(str(data.description))}</span><code>${escapeHtml(command)}</code><button type="button" class="card-copy" aria-label="Copy ${escapeHtml(command)}" data-copy="${escapeHtml(command)}">Copy</button></a>`;
       }),
   );
   return `<div class="cards">${cards.join("")}</div>`;
