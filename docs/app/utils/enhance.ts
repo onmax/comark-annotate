@@ -26,7 +26,8 @@ export function enhance(root: HTMLElement): () => void {
     );
     win.querySelector(".window-tabs")?.addEventListener(
       "keydown",
-      (event: KeyboardEvent) => {
+      (event) => {
+        if (!(event instanceof KeyboardEvent)) return;
         if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
         const current = tabs.indexOf(document.activeElement as HTMLElement);
         if (current < 0) return;
