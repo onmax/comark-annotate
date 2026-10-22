@@ -24,6 +24,19 @@ export function enhance(root: HTMLElement): () => void {
       },
       { signal },
     );
+    win.querySelector(".window-tabs")?.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        const current = tabs.indexOf(document.activeElement as HTMLElement);
+        if (current < 0) return;
+        event.preventDefault();
+        const next = (current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+        tabs[next]?.focus();
+        show(next);
+      },
+      { signal },
+    );
     const delay = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 2200;
     const timer = setTimeout(() => show(1), delay);
     signal.addEventListener("abort", () => clearTimeout(timer), { once: true });
