@@ -25,3 +25,21 @@ test("client navigation preserves the app and reinitializes page scripts", async
     ),
   ).toBe(marker);
 });
+
+test("the landing canvas paints its cards centered after a client navigation", async ({ page }) => {
+  await page.goto("/zoom/");
+  // Every frame's position of the first card, from the click until the canvas has settled.
+  const positions = await page.evaluate(async () => {
+    const seen: number[] = [];
+    document.querySelector<HTMLAnchorElement>('header a[href="/"]')!.click();
+    const start = performance.now();
+    while (performance.now() - start < 1500) {
+      await new Promise(requestAnimationFrame);
+      const card = document.querySelector(".canvas-stage .demo");
+      if (card) seen.push(Math.round(card.getBoundingClientRect().x));
+    }
+    return seen;
+  });
+  expect(positions.length).toBeGreaterThan(0);
+  expect(new Set(positions).size).toBe(1);
+});
