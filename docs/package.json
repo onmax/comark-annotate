@@ -18,6 +18,7 @@
     "comark-charts": "workspace:*",
     "comark-code": "workspace:*",
     "comark-content": "0.4.1",
+    "comark-diff": "workspace:*",
     "comark-embed": "workspace:*",
     "comark-github": "workspace:*",
     "comark-icon": "workspace:*",

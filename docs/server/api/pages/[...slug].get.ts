@@ -3,6 +3,7 @@ import { components as annotateComponents } from "comark-annotate/html";
 import { components as carouselComponents } from "comark-carousel/html";
 import { components as chartsComponents } from "comark-charts/html";
 import { components as codeComponents } from "comark-code/html";
+import { components as diffComponents } from "comark-diff/html";
 import { components as embedComponents } from "comark-embed/html";
 import { components as githubCalloutsComponents } from "comark-github/html";
 import { components as iconComponents } from "comark-icon/html";
@@ -60,6 +61,7 @@ const components = {
   ...carouselComponents,
   ...chartsComponents,
   ...codeComponents,
+  ...diffComponents,
   ...embedComponents,
   ...githubCalloutsComponents,
   ...iconComponents,

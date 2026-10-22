@@ -177,6 +177,9 @@ importers:
       comark-content:
         specifier: 0.4.1
         version: 0.4.1(aws4fetch@1.0.20)(db0@0.3.4(@libsql/client@0.18.0)(drizzle-orm@0.45.4(@libsql/client@0.18.0)))(ioredis@5.11.1(supports-color@10.2.2))(shiki@4.5.0)
+      comark-diff:
+        specifier: workspace:*
+        version: link:../packages/diff
       comark-embed:
         specifier: workspace:*
         version: link:../packages/embed

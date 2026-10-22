@@ -6,6 +6,7 @@ import annotate from "comark-annotate";
 import carousel from "comark-carousel";
 import charts from "comark-charts";
 import code from "comark-code";
+import diff from "comark-diff";
 import type { Source } from "comark-content";
 import fs from "comark-content/sources/fs";
 import embed from "comark-embed";
@@ -27,6 +28,7 @@ export const plugins = (): any[] => [
   carousel(),
   charts(),
   code(),
+  diff(),
   embed(),
   githubCallouts(),
   tabs(),
