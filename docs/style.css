@@ -958,6 +958,7 @@ nav > .nav-group:first-child {
 
 .content {
   min-width: 0;
+  overflow-x: clip;
   padding: 3.5rem 0 4rem;
 }
 

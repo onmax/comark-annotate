@@ -49,6 +49,8 @@ async function listPages(): Promise<PageLink[]> {
                   : "";
         const normalized = raw
           .replace(/^\//, "")
+          .replace(/^packages\/([^/]+)\/docs\//, "$1/")
+          .replace(/^([^/]+)\/docs\//, "$1/")
           .replace(/\.md$/, "")
           .replace(/\/index$/, "");
         const slug = normalized === "index" ? "" : normalized;

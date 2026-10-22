@@ -36,6 +36,12 @@ const layout = useTemplateRef<HTMLElement>("layout");
 const body = useTemplateRef<HTMLElement>("body");
 let undo: (() => void)[] = [];
 onMounted(() => {
+  // Nuxt can restore focus to the current rail link during a route render;
+  // leave the rail collapsed until the user intentionally focuses it.
+  const active = document.activeElement;
+  const sidebar = layout.value?.querySelector(".sidebar");
+  if (active instanceof HTMLElement && sidebar?.contains(active))
+    active.blur();
   // PageBody is a server island and may arrive after the page shell mounts.
   // Enhance it once its HTML is present so generated controls work on both
   // the initial render and client navigations.
