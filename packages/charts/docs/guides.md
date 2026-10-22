@@ -33,4 +33,15 @@ A chart keeps the size its text was set for, sized to fit its card with room for
 
 ## Renderers
 
-Only `@comark/html` has a renderer, `comark-charts/html`, which inlines the styles once per document. Vega draws on the server, and a Vue, React, or Svelte component would ship it to the browser. Charts are static: there are no tooltips, and the **Data** table holds every number.
+The parse plugin draws every chart, so Vega runs where you parse, on the server or at build time, and never in the browser. Each renderer only places the SVG it wrote:
+
+| Renderer | Entry |
+| --- | --- |
+| `@comark/html` | `comark-charts/html`, which inlines the styles once per document |
+| `@comark/vue` | `comark-charts/vue` |
+| `@comark/react` | `comark-charts/react` |
+| `@comark/svelte` | `comark-charts/svelte` |
+
+The Vue, React, and Svelte components add the styles when they mount; to load them with your CSS instead, so a server-rendered page doesn't shift, import `comark-charts/style.css`. Marks come from comark-annotate, which renders only to HTML, so the other renderers draw the chart without them.
+
+Charts are static: there are no tooltips, and the **Data** table holds every number. To check documents without drawing them, as comark-linter does, pass `charts({ draw: false })`.
