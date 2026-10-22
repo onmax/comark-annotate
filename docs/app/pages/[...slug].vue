@@ -76,6 +76,15 @@ function toggleSearch() {
   if (searchOpen.value)
     nextTick(() => document.querySelector<HTMLInputElement>(".search-input")?.focus());
 }
+function chooseSearch(event: KeyboardEvent) {
+  if (event.key !== "Enter") return;
+  const item = searchLinks.value[0];
+  if (!item) return;
+  event.preventDefault();
+  const url = new URL(item.href, location.href);
+  searchOpen.value = false;
+  void router.push(url.pathname + url.search + url.hash);
+}
 onMounted(() =>
   window.addEventListener("keydown", (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
@@ -112,7 +121,7 @@ function follow(event: MouseEvent) {
 <template>
   <div v-if="page">
     <dialog class="search" :open="searchOpen" aria-label="Search the docs">
-      <input v-model="search" class="search-input" role="combobox" aria-label="Search the docs" />
+      <input v-model="search" class="search-input" role="combobox" aria-label="Search the docs" @keydown="chooseSearch" />
       <div class="search-results">
         <a v-for="item in searchLinks" :key="item.href" role="option" :href="item.href">{{
           item.text
