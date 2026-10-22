@@ -22,7 +22,7 @@ export function Pre({ actions, children, ...attrs }: PreProps) {
     // The bar is static markup built from escaped text, the same string every renderer uses.
     createElement("div", {
       className: "ck-bar",
-      dangerouslySetInnerHTML: { __html: buttons(actions) },
+      dangerouslySetInnerHTML: { __html: buttons(actions, attrs) },
     }),
   );
 }
