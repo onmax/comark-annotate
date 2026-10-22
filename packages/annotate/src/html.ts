@@ -5,14 +5,7 @@ import { runtime as zoomRuntime } from "comark-zoom/html";
 import { start } from "./script.ts";
 import { draw } from "./marks.ts";
 import { pixels, place } from "./place.ts";
-import {
-  type Annotation,
-  PALETTE,
-  readCompare,
-  readDiff,
-  readScreenshot,
-  type Screenshot,
-} from "./read.ts";
+import { type Annotation, PALETTE, readCompare, readScreenshot, type Screenshot } from "./read.ts";
 import { css } from "./styles.ts";
 
 export { default } from "./index.ts";
@@ -284,43 +277,10 @@ const compare: NodeHandler = async (node, state) => {
   return `${styles(state)}<div class="ca ca-compare">${carouselHtml(figures, { columns: 2, title: title ?? "Comparison" }, state)}</div>${runtime(state)}`;
 };
 
-// Lucide's file-diff (ISC).
-const FILE_DIFF = `<svg class="ca-diff-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M9 10h6"/><path d="M12 13V7"/><path d="M9 17h6"/></svg>`;
-
-// A table, so the line numbers stay beside their lines however long the code is. The numbers and the + and − come
-// from CSS, so a copied selection holds only the code. The table keeps the first block's Shiki class for the token
-// colors. Each line renders as a paragraph's children, which the renderer keeps on one line, where a cell would indent
-// its `ins` and `del`. The header uses spans, since a host's rules for `code` and `strong` would beat the plugin's.
-const diff: NodeHandler = async (node, state) => {
-  const { file, label, line, rows, code } = readDiff(node, [], state.renderData);
-  const count = (kind: string) => rows.filter((row) => row.kind === kind).length;
-  const number = (value?: number) =>
-    `<td class="ca-num"${value === undefined ? "" : ` data-line="${value}"`}></td>`;
-  const body = await each(
-    rows,
-    async (row) =>
-      `<tr class="ca-${row.kind}"${row.highlight ? " data-highlight" : ""}>${line === undefined ? "" : number(row.old) + number(row.new)}<td class="ca-line">${await state.flow(["p", {}, ...row.nodes], state)}</td></tr>`,
-  );
-  const header = [
-    FILE_DIFF,
-    label && `<span class="ca-diff-label">${escapeHtml(label)}</span>`,
-    file && `<span class="ca-file">${escapeHtml(file)}</span>`,
-    `<span class="ca-counts"><span class="ca-added">+${count("add")}</span> <span class="ca-removed">−${count("del")}</span></span>`,
-  ]
-    .filter(Boolean)
-    .join("");
-  const classes = ["ca-code", code.class].filter(Boolean).join(" ");
-  return (
-    `${styles(state)}<figure class="ca ca-diff"><figcaption>${header}</figcaption>` +
-    `<div class="ca-scroll" tabindex="0"><table class="${attr(classes)}"${code.style ? ` style="${attr(code.style)}"` : ""}><tbody>${body}</tbody></table></div></figure>`
-  );
-};
-
-/** HTML renderers for `::screenshot`, `::compare`, `::diff`, and `::annotation`. Pass them as `components`; the styles are inlined once per document. */
-export const components: Record<"screenshot" | "compare" | "diff" | "annotation", NodeHandler> = {
+/** HTML renderers for `::screenshot`, `::compare`, and `::annotation`. Pass them as `components`; the styles are inlined once per document. */
+export const components: Record<"screenshot" | "compare" | "annotation", NodeHandler> = {
   screenshot,
   compare,
-  diff,
   // An annotation outside a screenshot has nothing to point at.
   annotation: () => "",
 };

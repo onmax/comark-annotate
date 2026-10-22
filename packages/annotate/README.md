@@ -6,7 +6,7 @@
 [![license](https://npmx.dev/api/registry/badge/license/comark-annotate)](https://npmx.dev/package/comark-annotate)
 [![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/annotate/)
 
-Hand-drawn marks, numbered notes, and arrows on screenshots, and code changes shown as suggested changes, written in Markdown. A [Comark](https://comark.dev) plugin that renders static HTML.
+Hand-drawn marks, numbered notes, and arrows on screenshots, written in Markdown. A [Comark](https://comark.dev) plugin that renders static HTML.
 
 [![A dashboard screenshot with handwritten notes above and beside it, each pointing at a value with a hand-drawn arrow](https://comark.onmax.me/readme.png)](https://comark.onmax.me/annotate/)
 
@@ -40,23 +40,6 @@ Moon phase and vibes don't fit, so the toolbar wraps onto a second row.
 ```
 
 Coordinates are percentages of the image, written as numbers without `%`. Props can be inline, in a YAML props block, or bound with `:x`. Marks: `box`, `circle`, `underline`, `highlight`, `cross`, `check`. Colors: `blue` (default), `red`, `amber`, `green`, `gray`, or a 3- or 6-digit hex. Add `side="left"`, `side="right"`, or `side="top"` to put a note beside or above the image with a hand-drawn arrow, and `mark="none"` to let the arrow do the pointing. A screenshot takes a `title` above the image and an `href` to the captured page; a compare takes a `title` for screen readers. `::compare{mode="slider"}` lays the two screenshots over each other with a divider the reader drags, and lists side notes under it; side by side, a compare lists notes beside an image and keeps notes above it. A screenshot's Copy button, or Ctrl+C or ⌘C while it's focused, copies it as a PNG with its marks and notes. An image from another origin needs CORS headers for that, and an iframe needs `allow="clipboard-write"`. Side notes and labels are handwritten in Caveat, inlined with the styles; set `--ca-note-font: inherit` for the page font.
-
-`::diff` shows a code change the way a pull request review shows a suggested change: removed lines red, added lines green, and the changed words marked within a pair of lines. Write the code before and after as two fenced blocks:
-
-````md
-::diff{line=12 label="Suggested change"}
-```ts [src/zoom/client.ts]
-const gap = 8
-history.back()
-```
-```ts
-const gap = 8
-if (opened) history.back()
-```
-::
-````
-
-The file comes from the first block's name or a `file` prop. `line` is the file's line number for the first line and turns on line numbers; `label` is optional. Leave a block empty for a file that's added or deleted. With Comark's `shiki` plugin, the code keeps its highlighting, and a line a block highlights, like `` ```ts {2} ``, stays highlighted.
 
 The plugin adds every problem to `meta.issues`, one sentence each naming the block and the fix, so a host can reject a document before publishing it.
 
