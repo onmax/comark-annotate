@@ -12,7 +12,7 @@ credits: 'After <a href="https://antfu.me">Anthony Fu</a>''s <a href="https://gi
 ::examples
 :::example{label="Links"}
 ```md
-Built with [Vite](https://vite.dev), [Vue](https://vuejs.org), and [Nuxt](https://nuxt.com).
+Moves the build from [webpack](https://webpack.js.org) to [Vite](https://vite.dev), as the [Nuxt docs](https://nuxt.com/docs) recommend.
 ```
 :::
 

@@ -10,14 +10,14 @@ tagline: Register every plugin you use in one renderer. The same markup comes ou
 | --- | --- | --- | --- | --- |
 | [annotate](/annotate/) | `comark-annotate/html` | | | |
 | [carousel](/carousel/) | `comark-carousel/html` | `comark-carousel/vue` | `comark-carousel/react` | `comark-carousel/svelte` |
-| [charts](/charts/) | `comark-charts/html` | | | |
+| [charts](/charts/) | `comark-charts/html` | `comark-charts/vue` | `comark-charts/react` | `comark-charts/svelte` |
 | [code](/code/) | `comark-code/html` | `comark-code/vue` | `comark-code/react` | `comark-code/svelte` |
 | [embed](/embed/) | `comark-embed/html` | `comark-embed/vue` | `comark-embed/react` | `comark-embed/svelte` |
 | [github](/github/) | `comark-github/html` | `comark-github/vue` | `comark-github/react` | `comark-github/svelte` |
 | [tabs](/tabs/) | `comark-tabs/html` | `comark-tabs/vue` | `comark-tabs/react` | `comark-tabs/svelte` |
 | [zoom](/zoom/) | `comark-zoom/html` | `comark-zoom/vue` | `comark-zoom/react` | `comark-zoom/svelte` |
 
-Each entry exports the parse plugin as `default` and the renderer's `components`. Annotate renders only to HTML: a screenshot's notes are Markdown, and a Vue, React, or Svelte version would each copy the whole figure. [include](/include/) has no components, since what it pastes renders like the rest of the page, so it works with any renderer. [lint](/lint/) checks documents and doesn't render them.
+Each entry exports the parse plugin as `default` and the renderer's `components`. Annotate renders only to HTML: a screenshot's notes are Markdown, and a Vue, React, or Svelte version would each copy the whole figure. So marks on a chart, which annotate draws, show only in `@comark/html`; the other renderers draw the chart without them. [include](/include/) has no components, since what it pastes renders like the rest of the page, so it works with any renderer. [lint](/lint/) checks documents and doesn't render them.
 
 ## Several plugins
 

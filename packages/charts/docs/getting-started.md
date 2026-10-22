@@ -15,7 +15,7 @@ import charts, { components } from "comark-charts/html";
 const render = createHtmlRenderer({ plugins: [charts()], components });
 ```
 
-Charts are drawn while rendering, on the server or at build time, by [Flint](https://github.com/microsoft/flint-chart) and [Vega](https://vega.github.io), which the package installs. The parse plugin only checks the table, so it stays light.
+Charts are drawn while parsing, on the server or at build time, by [Flint](https://github.com/microsoft/flint-chart) and [Vega](https://vega.github.io), which the package installs, so the browser runs no chart code. Vue, React, and Svelte have renderers too; see [Renderers](/charts/guides/#renderers).
 
 ## Agents
 

@@ -1,6 +1,6 @@
 ---
 title: Syntax
-description: The table each chart type reads, and the marks you can draw on a chart.
+description: The table each chart type reads, Vega-Lite specs for any other chart, and the marks you can draw on a chart.
 ---
 
 ```md
@@ -116,6 +116,33 @@ Bars turn sideways when their labels are long or there are many of them, so file
 ```
 :::
 ::
+
+## Any chart
+
+For a chart the types don't cover, such as a box plot, a heatmap, or error bands, put a [Vega-Lite](https://vega.github.io/vega-lite/) spec after the table in a `vega-lite` block. The table is still its data, so it stays in the page: each row becomes one data point, with a field per column named by its header.
+
+````md
+::chart{title="Latency per request (ms)"}
+| endpoint | ms |
+| --- | --: |
+| /search | 120 |
+| /search | 410 |
+| /login | 40 |
+| /login | 61 |
+
+```vega-lite
+{
+  "mark": "boxplot",
+  "encoding": {
+    "x": { "field": "endpoint", "type": "nominal" },
+    "y": { "field": "ms", "type": "quantitative" }
+  }
+}
+```
+::
+````
+
+Leave `data` out of the spec; the table replaces it. Cells that read as numbers become numbers, empty ones null, and the rest stay text. The chart takes the same colors and type as the others wherever the spec sets none, and its own `config` wins. `type`, `x`, `y`, and marks don't apply: name the columns in the spec's `encoding`, and draw notes with a `text` or `rule` layer. The plugin reports a spec that isn't JSON, a `data` it replaced, and a field that's neither a column nor made by a transform. The spec can't load files or URLs, and links in it are dropped.
 
 ## Marks
 
