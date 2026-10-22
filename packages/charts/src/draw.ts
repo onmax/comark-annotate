@@ -526,10 +526,20 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
       "field" in layer.encoding.text &&
       layer.encoding.text.field === "__wf_delta_text";
     // Numbers wider than their step would run into their neighbors', so a crowded waterfall leaves them to the axis.
+    const values = chart.rows.map((row) => row.values[0] ?? 0);
+    // Keep the inferred final-total rule in sync with Flint: a final value is a
+    // total when it reconciles with the preceding cumulative within 0.5%.
+    let preceding = 0;
+    for (const value of values.slice(0, -1)) preceding += value;
+    const finalIsTotal =
+      values.length > 1 &&
+      Number.isFinite(preceding) &&
+      Number.isFinite(values.at(-1)) &&
+      Math.abs(values.at(-1)! - preceding) <= Math.max(1e-6, 0.005 * Math.abs(preceding));
     const widest = Math.max(
       ...chart.rows.map((row, index) => {
         const value = row.values[0] ?? 0;
-        const signed = index > 0 && index < chart.rows.length - 1 && value > 0 ? "+" : "";
+        const signed = index > 0 && !(index === values.length - 1 && finalIsTotal) && value > 0 ? "+" : "";
         return guess(`${signed}${Math.round(value).toLocaleString("en-US")}`, 12);
       }),
     );
@@ -539,10 +549,10 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
     // to twice the top and below zero. The levels here stop at the end total, and only a side with a label is padded.
     const levels = [0];
     for (const [index, row] of chart.rows.entries()) {
-      const value = row.values[0] ?? 0;
+      const value = values[index];
       const last = levels.at(-1)!;
       levels.push(
-        index === chart.rows.length - 1 && index > 0 && value === last ? last : last + value,
+        index === chart.rows.length - 1 && index > 0 && finalIsTotal ? last : last + value,
       );
     }
     const [low, high] = [Math.min(...levels), Math.max(...levels)];
@@ -557,6 +567,9 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
         };
       if ("mark" in layer && layer.mark instanceof Object && layer.mark.type === "text") {
         layer.mark = { ...layer.mark, fill: INK.foreground };
+        // Flint's inner delta layer has an encoding-level color, which takes
+        // precedence over mark.fill. Remove it so all values use the theme ink.
+        delete layer.encoding.color;
         layer.encoding.text = { field: "__wf_delta_text", type: "nominal" };
       }
     }
