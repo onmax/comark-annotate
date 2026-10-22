@@ -225,12 +225,13 @@ function showTheme() {
           accent: "#f5f5f5",
           ring: "#a1a1a1",
         };
-  for (const [name, value] of Object.entries(fallback))
-    doc.documentElement.style.setProperty(`--${name}`, value);
   const style =
     doc.getElementById("play-theme") ??
     doc.head.appendChild(Object.assign(doc.createElement("style"), { id: "play-theme" }));
-  style.textContent = themeCss(theme);
+  const fallbackCss = `:root {\n${Object.entries(fallback)
+    .map(([name, value]) => `  --${name}: ${value};`)
+    .join("\n")}\n}`;
+  style.textContent = [fallbackCss, themeCss(theme)].filter(Boolean).join("\n\n");
   const probe = doc.body.appendChild(doc.createElement("i"));
   probe.hidden = true;
   const color = (value: string) => {
