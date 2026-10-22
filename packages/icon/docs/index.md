@@ -11,19 +11,19 @@ blurb: Iconify icons in Markdown
 ::examples
 :::example{label="Inline"}
 ```md
-Press :icon{name="lucide:command"} K to search, or :icon{name="lucide:star"} a page to keep it.
+Merge the :icon{name="lucide:git-pull-request"} pull request once its :icon{name="lucide:circle-check"} checks pass.
 ```
 :::
 
 :::example{label="Logos"}
 ```md
-Built with :icon{name="logos:vue" label="Vue"} and :icon{name="logos:vitejs" label="Vite"}, deployed to :icon{name="logos:cloudflare-icon" label="Cloudflare"}.
+Built with :icon{name="logos:vue"} Vue and :icon{name="logos:vitejs"} Vite, deployed to :icon{name="logos:cloudflare-icon"} Cloudflare.
 ```
 :::
 
-:::example{label="Nuxt UI names"}
+:::example{label="Nuxt UI spelling"}
 ```md
-:icon{name="i-simple-icons-github"} Star the repository.
+:icon{name="simple-icons:github"} and :icon{name="i-simple-icons-github"}, as Nuxt UI writes it, draw the same icon.
 ```
 :::
 ::

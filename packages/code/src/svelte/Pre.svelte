@@ -11,5 +11,5 @@
 <div class="ck">
   <pre {...preAttributes(attrs)}>{@render children?.()}</pre>
   <!-- Static markup built from escaped text, the same string every renderer uses. -->
-  <div class="ck-bar">{@html buttons(actions)}</div>
+  <div class="ck-bar">{@html buttons(actions, attrs)}</div>
 </div>

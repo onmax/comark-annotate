@@ -14,9 +14,9 @@ export interface ZoomDetail {
   index: number;
   items: HTMLElement[];
   /** The copy in the zoomed view of an element of the item or its aside, or null when it isn't one of them. */
-  copyOf(node: Element): Element | null;
+  copyOf: (node: Element) => Element | null;
   /** The element on the page that a node of the zoomed copy or the aside copies, or null when it isn't one of them. */
-  originalOf(node: Element): Element | null;
+  originalOf: (node: Element) => Element | null;
 }
 
 declare global {
@@ -282,6 +282,9 @@ export function script(css: string): () => void {
     current.frame.style.width = `${width}px`;
     const height = current.frame.offsetHeight || 1;
     const box = current.stage.getBoundingClientRect();
+    // A group's arrows sit over the sides of the stage, so the item fits between them.
+    const next = current.stage.querySelector(".cz-next");
+    const arrows = next ? 2 * (box.right - next.getBoundingClientRect().left + 8) : 0;
     // An image grows no larger than its file. While a data-zoom-src file loads, the page's image may stretch, since
     // the larger file will take its place.
     const image = current.frame.firstElementChild;
@@ -295,7 +298,12 @@ export function script(css: string): () => void {
         : 4;
     current.scale = Math.max(
       0.1,
-      Math.min((box.width * 0.92) / width, (box.height * 0.92) / height, natural, 4),
+      Math.min(
+        Math.min(box.width * 0.92, box.width - arrows) / width,
+        (box.height * 0.92) / height,
+        natural,
+        4,
+      ),
     );
     current.frame.style.transform = `scale(${current.scale})`;
   }
@@ -358,24 +366,25 @@ export function script(css: string): () => void {
     place(current);
   }
 
+  // Runs once the dialog is on the page, so each thumbnail has its size to fit a copy into.
   function thumbs(current: View) {
     if (current.items.length < 2) return;
     const strip = el("div", "cz-strip", { role: "group", "aria-label": "Items" });
+    current.footer.append(strip);
     for (const [index, item] of current.items.entries()) {
       const thumb = el("button", "cz-thumb", {
         type: "button",
         "aria-label": titleOf(item) || `Item ${index + 1}`,
       });
+      strip.append(thumb);
       const { width, height } = measure(item);
       const inner = el("div", "");
       inner.style.width = `${width}px`;
-      inner.style.transform = `scale(${Math.min(96 / width, 64 / height)})`;
+      inner.style.transform = `scale(${Math.min(thumb.clientWidth / width, thumb.clientHeight / height)})`;
       copy(item, inner);
       thumb.append(inner);
       thumb.addEventListener("click", () => go(index));
-      strip.append(thumb);
     }
-    current.footer.append(strip);
   }
 
   function go(index: number) {
@@ -475,14 +484,15 @@ export function script(css: string): () => void {
         ["cz-next", 1, "Next"],
       ] as const) {
         const button = el("button", `cz-nav ${name}`, { type: "button", "aria-label": label });
-        button.textContent = step < 0 ? "‹" : "›";
+        // Lucide's chevrons, as in comark-carousel.
+        button.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${step < 0 ? "m15 18-6-6 6-6" : "m9 18 6-6-6-6"}"/></svg>`;
         button.addEventListener("click", () => go(current.index + step));
         stage.append(button);
       }
     }
     view = current;
-    thumbs(current);
     document.body.append(dialog);
+    thumbs(current);
     lock();
     render(current);
     close.addEventListener("click", () => void shut());

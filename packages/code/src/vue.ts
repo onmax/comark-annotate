@@ -18,7 +18,7 @@ export const Pre = defineComponent({
     return () =>
       h("div", { class: "ck" }, [
         h("pre", preAttributes(attrs), slots.default?.()),
-        h("div", { class: "ck-bar", innerHTML: buttons(props.actions) }),
+        h("div", { class: "ck-bar", innerHTML: buttons(props.actions, attrs) }),
       ]);
   },
 });

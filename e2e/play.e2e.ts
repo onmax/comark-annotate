@@ -83,7 +83,10 @@ test("the playground puts comark-code's buttons on code blocks, and actions from
 
 test("a package's Open in playground link opens its first example", async ({ page }) => {
   await page.goto("/annotate/");
-  await page.locator(".sidebar").getByRole("link", { name: "Open in playground" }).click();
+  await page
+    .getByRole("navigation", { name: "Pages" })
+    .getByRole("link", { name: "Open in playground" })
+    .click();
   await expect(page).toHaveURL(/\/play\/#preset=annotate-/);
   await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("Before / after");
 });
@@ -102,4 +105,52 @@ test("search opens with Ctrl+K and goes to the heading you pick", async ({ page 
   await expect(page.getByRole("status")).toHaveText("No page or heading matches.");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toBeHidden();
+});
+
+test("the Theme pane themes the preview without rendering it again, light or dark, and a link keeps it", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.goto("/play/#preset=carousel-images");
+  const preview = page.frameLocator(".play-preview");
+  const next = preview.locator(".cc").first().getByRole("button", { name: "Next slide" });
+  await expect(next).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await preview.locator("body").evaluate((body) => (body.dataset.rendered = "once"));
+
+  await page.getByRole("button", { name: "Theme", exact: true }).click();
+  await page.getByRole("textbox", { name: "Background", exact: true }).fill("rgb(1 2 3)");
+  await expect(next).toHaveCSS("background-color", "rgb(1, 2, 3)");
+  await expect(preview.locator("body")).toHaveAttribute("data-rendered", "once");
+
+  await page.getByRole("button", { name: "Dark", exact: true }).click();
+  await expect(next).toHaveCSS("border-top-color", "rgba(255, 255, 255, 0.1)");
+  await page.getByRole("button", { name: "Copy CSS" }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+    ":root {\n  --comark-background: rgb(1 2 3);\n}",
+  );
+
+  // The link is written a moment after the last change, deflated like the Markdown.
+  const linkedTheme = () =>
+    page.evaluate(async () => {
+      const code = new URLSearchParams(location.hash.slice(1)).get("theme") ?? "";
+      const binary = atob(code.replaceAll("-", "+").replaceAll("_", "/"));
+      const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+      return new Response(stream).text().catch(() => "");
+    });
+  await expect.poll(linkedTheme).toContain('"scheme":"dark"');
+  const shared = page.url();
+  await page.goto("/");
+  await page.goto(shared);
+  await expect(next).toHaveCSS("background-color", "rgb(1, 2, 3)");
+  await page.getByRole("button", { name: "Theme", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Dark", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await page.getByRole("button", { name: "Reset", exact: true }).click();
+  await expect(next).toHaveCSS("background-color", "rgb(10, 10, 10)");
+  await expect(page.getByRole("textbox", { name: "Background", exact: true })).toHaveValue("");
 });

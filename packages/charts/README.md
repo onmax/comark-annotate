@@ -20,7 +20,7 @@ const render = createHtmlRenderer({ plugins: [charts()], components });
 ```
 
 ```md
-::chart{title="Coffee cups and commits, per month (r = 0.98)"}
+::chart{title="Coffee cups and commits, per month (r = 0.99)"}
 | month | coffee cups | commits |
 | --- | --: | --: |
 | 2026-04 | 820 | 610 |
@@ -54,7 +54,7 @@ The plugin adds every problem to `meta.issues`, so a host can reject a document 
 
 [Flint](https://github.com/microsoft/flint-chart) turns the table into a Vega-Lite spec with a house theme, and [Vega](https://vega.github.io) draws it to SVG while rendering, on the server or at build time, so the browser runs no chart code. The parse plugin only checks the table, so parsing stays light.
 
-The page holds a `figure.cch` with the title, the SVG, and the table folded into **Data**. Text, axes, and grid follow shadcn/ui's variables and the shared `--comark-*` tokens, so charts switch with the page's dark mode. Series take `--comark-chart-1` to `-6`, then shadcn/ui's `--chart-1` to `-6`. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
+The page holds a `figure.cch` with the title, the SVG, and the table folded into **Data**. Text, axes, and grid follow shadcn/ui's variables and the shared `--comark-*` tokens, so charts switch with the page's dark mode. Series take `--comark-chart-1` to `-6`, then shadcn/ui's `--chart-1` to `-6`. The rules sit in a `comark` CSS layer, so any plain rule of your own wins; see the charts' [Theming page](https://comark.onmax.me/charts/theming/).
 
 Only `@comark/html` has a renderer: Vega draws on the server, and a framework component would ship it to the browser.
 

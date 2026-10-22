@@ -12,7 +12,7 @@ shadcn/ui before Tailwind 4 stores colors as bare HSL numbers, so map those thro
 
 ## Tokens
 
-Set the `--comark-*` tokens to theme annotate, carousel, charts, chips, code, embed, github, tabs, and zoom at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
+Set the `--comark-*` tokens to theme annotate, carousel, charts, chips, code, diff, embed, github, tabs, and zoom at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
 
 | Token | Falls back to | Used for |
 | --- | --- | --- |
@@ -32,7 +32,9 @@ Set the `--comark-*` tokens to theme annotate, carousel, charts, chips, code, em
 }
 ```
 
-To theme one part only, set the tokens on its root instead: `.ca` for annotate, `.cc` for a carousel, `.cp` for chips, `.ck` for code buttons, `.ce` and `.ce-card` for embeds, `.cgc` for callouts, `.ct` for tabs, and `.cz-dialog` for the zoomed view.
+Try them in the [playground's Theme pane](/play/): it shows them in light and dark and copies the CSS for what you change.
+
+To theme one part only, set the tokens on its root instead: `.ca` for annotate, `.cc` for a carousel, `.cch` for charts, `.cp` for chips, `.ck` for code headers, `.cd` for diffs, `.ce` and `.ce-card` for embeds, `.cgc` for callouts, `.ct` for tabs, and `.cz-dialog` for the zoomed view.
 
 ## Your own rules
 
@@ -56,4 +58,4 @@ The rules sit in a `comark` CSS layer, so any plain rule of your own wins withou
 
 ## Each plugin's own
 
-Each package's own variables and class names are on its Theming page: [annotate](/annotate/theming/), [carousel](/carousel/theming/), [charts](/charts/theming/), [chips](/chips/theming/), [code](/code/theming/), [embed](/embed/theming/), [github](/github/theming/), [icon](/icon/theming/), [tabs](/tabs/theming/), and [zoom](/zoom/theming/).
+Each package's own variables and class names are on its Theming page: [annotate](/annotate/theming/), [carousel](/carousel/theming/), [charts](/charts/theming/), [chips](/chips/theming/), [code](/code/theming/), [diff](/diff/theming/), [embed](/embed/theming/), [github](/github/theming/), [icon](/icon/theming/), [tabs](/tabs/theming/), and [zoom](/zoom/theming/).

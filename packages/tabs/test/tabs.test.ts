@@ -43,6 +43,7 @@ describe("comark-tabs", () => {
     for (const variable of [
       "background:var(--ct-surface,color-mix(",
       "background:var(--ct-active,var(--_comark-background))",
+      "background:var(--ct-active,oklch(from var(--_comark-background) ",
       "color:var(--ct-active-text,var(--_comark-foreground))",
       "margin-top:var(--ct-gap,.75rem)",
       "font:500 var(--ct-font-size,.8125rem)/",

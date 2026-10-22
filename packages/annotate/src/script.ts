@@ -545,7 +545,9 @@ export function start(): () => void {
       const frame = target?.closest(".ca-frame");
       const figure = figureOf(frame ?? null);
       const ready = figure && made.get(figure);
-      if (!frame || !ready || target?.closest(SKIP) || ready.key !== keyOf(figure)) return;
+      if (!frame || !ready || target?.closest(SKIP)) return;
+      // A copy from before a late layout change still beats the menu on the bare image; the next one gets a fresh copy.
+      if (ready.key !== keyOf(figure)) prepare(figure).catch(() => {});
       armed = overlayOf(frame);
       if (armed.getAttribute("src") !== ready.url) armed.src = ready.url;
       armed.setAttribute("data-menu", "");

@@ -119,6 +119,18 @@ const sideways = (chart: Chart) =>
 
 const longest = (chart: Chart) => Math.max(...chart.rows.map((row) => row.x.length));
 
+/** A label broken between words into lines no wider than `room`, as far as a long word allows. */
+function wrap(text: string, room: number) {
+  const lines: string[] = [];
+  for (const word of text.split(" ")) {
+    const last = lines.at(-1);
+    if (last !== undefined && guess(`${last} ${word}`, 12) <= room)
+      lines[lines.length - 1] += ` ${word}`;
+    else lines.push(word);
+  }
+  return lines;
+}
+
 // A top legend is one row unless told otherwise, so it wraps into as many columns as fit the card.
 function legendColumns(chart: Chart, room = 520) {
   const names =
@@ -230,7 +242,8 @@ function input(chart: Chart): ChartAssemblyInput {
       // Flint packs a band's bars together when some rows lack a series, but it finds the band from the column's
       // type, so over dates it sorts bars into lanes by their value, and some draw zero wide. Every band gets a lane per
       // series instead, as in most grouped bar charts.
-      chartProperties: { dodge: "global" },
+      // A waterfall prints its numbers itself, apart from the theme's value labels, and only when asked.
+      chartProperties: { dodge: "global", ...(type === "waterfall" && { showTextLabels: true }) },
     },
     options: { maxColorValues: SERIES.length },
     theme_spec: {
@@ -238,6 +251,9 @@ function input(chart: Chart): ChartAssemblyInput {
       ...((crowded || (legend && type === "area")) && {
         dataLabels: { ...theme.dataLabels, show: "never" },
       }),
+      // The New York Times theme dots a line's ends, and on a dumbbell, which is all ends, that layer repaints some dots
+      // in the first series' color.
+      ...(type === "dumbbell" && { annotation: { ...theme.annotation, pointEmphasis: "never" } }),
       legend: {
         ...theme.legend,
         maxSwatches: SERIES.length,
@@ -266,6 +282,7 @@ const SHAPES = new Set(["rect", "symbol", "arc"]);
 // A mark keeps clear of the shape it circles, and a point gets a box big enough to draw around. A mark that draws
 // nothing only leaves its arrow a hair short of the point, so the arrow reaches the data.
 const PAD = 6;
+const PADDING = { left: 12, right: 12, top: 12, bottom: 12 };
 const SMALLEST = 18;
 const BARE = 3;
 
@@ -280,7 +297,9 @@ interface SceneItem {
 
 function boxes(chart: Chart, view: vega.View, width: number, height: number): Map<number, Box> {
   const found = new Map<number, Box>();
-  const [left, top] = view.origin();
+  // Vega draws the scene at its origin plus its padding, and origin() leaves the padding out.
+  const [x0, y0] = view.origin();
+  const [left, top] = [x0 + PADDING.left, y0 + PADDING.top];
   // Vega types its scenegraph as a bare Scene, but at runtime it holds the root group, whose items carry the fields
   // SceneItem names.
   const scene: SceneItem = Reflect.get(view.scenegraph(), "root");
@@ -337,7 +356,7 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
   spec.background = "transparent";
   // Flint leaves room above for a headline; the figure's caption is the title, so only the axis title and legend
   // need it, and Vega-Lite's autosize makes room for those.
-  spec.padding = { left: 12, right: 12, top: 12, bottom: 12 };
+  spec.padding = PADDING;
   // With several series no one header names the numbers, and Flint would title the axis with the field, `y`. A
   // waterfall's legend sits where its axis title would, and its layers draw running totals rather than `y`.
   const waterfall = chart.type === "waterfall";
@@ -354,7 +373,18 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
   const step =
     Number(Reflect.get(Object(planned), "step")) ||
     (Number(planned) || layout(chart).width) / chart.rows.length;
-  const flat = longest(chart) * 7 + 12 <= step;
+  // A step's few words wrap onto up to three lines under it before its labels turn sideways.
+  const wrapped = chart.rows.map((row) => wrap(row.x, step - 12));
+  const flat = wrapped.every(
+    (lines) => lines.length <= 3 && lines.every((line) => guess(line, 12) <= step - 12),
+  );
+  const labelExpr = wrapped.reduceRight(
+    (rest, lines, index) =>
+      lines.length > 1
+        ? `datum.label === ${JSON.stringify(chart.rows[index]!.x)} ? ${JSON.stringify(lines)} : ${rest}`
+        : rest,
+    "datum.label",
+  );
   // Flint scales its type with the plot, from 13.5px down to 8px when long labels leave the plot narrow, and ignores
   // the theme's sizes, so text is set to shadcn/ui's 12px here. Labels that don't fit are thinned or cut instead.
   const TYPE = { labelFontSize: 12, titleFontSize: 12 };
@@ -376,7 +406,13 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
       // Flint anchors a waterfall's labels at their end, for angled text; flat ones center under their step.
       ...(waterfall &&
         (flat
-          ? { labelAngle: 0, labelAlign: "center", labelBaseline: "top", labelLimit: 160 }
+          ? {
+              labelAngle: 0,
+              labelAlign: "center",
+              labelBaseline: "top",
+              labelLimit: 160,
+              labelExpr,
+            }
           : { labelLimit: 140 })),
     },
     axisY: {
@@ -396,14 +432,49 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
     },
     // An area is outlined along its top, so overlapping series stay readable through the translucent fill.
     area: { ...spec.config?.area, line: { strokeWidth: 2 } },
+    // Vega-Lite draws points at 0.7 opacity, which muddies their colors on a dark page.
+    point: { ...spec.config?.point, opacity: 1 },
+    circle: { ...spec.config?.circle, opacity: 1 },
   };
+  // Flint names its ticks when it labels every point, and leaves Vega to pick them otherwise.
+  const pinned = units(spec).some(
+    (unit) =>
+      "encoding" in unit &&
+      unit.encoding?.x &&
+      "axis" in unit.encoding.x &&
+      unit.encoding.x.axis &&
+      "values" in unit.encoding.x.axis,
+  );
   // Flint also sets axes and legends on the encodings, which win over the config, so the same rules go there. A
   // waterfall's first step gets room from the axis corner, where its label would meet the value axis's 0.
   for (const unit of units(spec)) {
+    const text = "mark" in unit && unit.mark instanceof Object && unit.mark.type === "text";
     if ("mark" in unit && unit.mark instanceof Object && unit.mark.type === "text")
       unit.mark = { ...unit.mark, fontSize: TYPE.labelFontSize };
     if (!("encoding" in unit) || !unit.encoding) continue;
+    // Flint writes an area's names in white, which fades on its translucent fill. The color field stays, since it
+    // stacks the names in the order of the areas they sit in.
+    const named = unit.encoding.color;
+    if (text && chart.type === "area" && named && "scale" in named && named.scale)
+      unit.encoding.color = { ...named, scale: { ...named.scale, range: [INK.foreground] } };
+    // Flint orders a pie's slices by name and its legend by row, so the slices take the table's order too, clockwise
+    // from twelve o'clock.
+    if (chart.type === "pie" && unit.encoding.order)
+      unit.encoding.order = { field: "row", type: "quantitative" };
     const { color, x, y } = unit.encoding;
+    // Vega-Lite pulls the end labels of a time axis inside the plot, off the points they name. Where Flint labels
+    // every point, they center under their points instead, and the points keep clear of the plot's ends by about half
+    // a label so the first doesn't meet the value axis's 0 in the corner. Padding a scale whose ticks Vega picks would
+    // add one before the first point, in that corner.
+    const time =
+      (chart.type === "line" || chart.type === "area") &&
+      pinned &&
+      x &&
+      "type" in x &&
+      x.type === "temporal"
+        ? x
+        : undefined;
+    if (time) time.scale = { ...("scale" in time && time.scale), padding: 24 };
     if (color && "legend" in color && color.legend)
       color.legend = { ...color.legend, columns: legendColumns(chart, layout(chart).width) };
     for (const channel of [x, y])
@@ -413,6 +484,16 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
           labelPadding: 8,
           labelOverlap: "greedy",
           labelSeparation: 6,
+          ...(channel === time && {
+            labelFlush: false,
+            // "Apr 2026" under every month is too wide for its step, so overlap hides some; the year is said once,
+            // and again where it turns.
+            ...(chart.xKind === "month" && {
+              format: undefined,
+              labelExpr:
+                'utcFormat(datum.value, datum.index === 0 || utcmonth(datum.value) === 0 ? "%b %Y" : "%b")',
+            }),
+          }),
         };
     // Vega-Lite rounds a stack as a whole, which costs a clipped group per bar, so bars that stack nothing don't stack.
     // Rows that repeat an `x`, which the plugin reports, still stack rather than hide one behind the other.
@@ -433,6 +514,67 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
             range: [INK.muted, SERIES[2], SERIES[4]],
           },
         };
+  // Flint prints each step's running total over it and its change inside it, in white on the step, so a total reads
+  // twice and a short step loses its change. One number per step reads instead, outside it: a total's value, or a
+  // step's change.
+  if (waterfall && "layer" in spec) {
+    const isText = (layer: (typeof spec.layer)[number]) =>
+      "mark" in layer && layer.mark instanceof Object && layer.mark.type === "text";
+    const inside = (layer: (typeof spec.layer)[number]) =>
+      "encoding" in layer &&
+      layer.encoding?.text &&
+      "field" in layer.encoding.text &&
+      layer.encoding.text.field === "__wf_delta_text";
+    // Numbers wider than their step would run into their neighbors', so a crowded waterfall leaves them to the axis.
+    const values = chart.rows.map((row) => row.values[0] ?? 0);
+    // Keep the inferred final-total rule in sync with Flint: a final value is a
+    // total when it reconciles with the preceding cumulative within 0.5%.
+    let preceding = 0;
+    for (const value of values.slice(0, -1)) preceding += value;
+    const finalIsTotal =
+      values.length > 1 &&
+      Number.isFinite(preceding) &&
+      Number.isFinite(values.at(-1)) &&
+      Math.abs(values.at(-1)! - preceding) <= Math.max(1e-6, 0.005 * Math.abs(preceding));
+    const widest = Math.max(
+      ...chart.rows.map((row, index) => {
+        const value = row.values[0] ?? 0;
+        const signed =
+          index > 0 && !(index === values.length - 1 && finalIsTotal) && value > 0 ? "+" : "";
+        return guess(`${signed}${Math.round(value).toLocaleString("en-US")}`, 12);
+      }),
+    );
+    const numbers = widest + 6 <= step;
+    spec.layer = spec.layer.filter((layer) => !isText(layer) || (numbers && !inside(layer)));
+    // Flint pads the value axis for the labels from levels that add the end total to the sum it closes, so it runs
+    // to twice the top and below zero. The levels here stop at the end total, and only a side with a label is padded.
+    const levels = [0];
+    for (const [index, row] of chart.rows.entries()) {
+      const value = values[index];
+      const last = levels.at(-1)!;
+      levels.push(
+        index === chart.rows.length - 1 && index > 0 && finalIsTotal ? last : last + value,
+      );
+    }
+    const [low, high] = [Math.min(...levels), Math.max(...levels)];
+    const pad = numbers ? (high - low || 1) * 0.08 : 0;
+    for (const layer of spec.layer) {
+      if (!("encoding" in layer) || !layer.encoding) continue;
+      const { y } = layer.encoding;
+      if (y && "field" in y && y.field === "__wf_prev_sum")
+        layer.encoding.y = {
+          ...y,
+          scale: { domain: [low < 0 ? low - pad : 0, high + pad], nice: true },
+        };
+      if ("mark" in layer && layer.mark instanceof Object && layer.mark.type === "text") {
+        layer.mark = { ...layer.mark, fill: INK.foreground };
+        // Flint's inner delta layer has an encoding-level color, which takes
+        // precedence over mark.fill. Remove it so all values use the theme ink.
+        delete layer.encoding.color;
+        layer.encoding.text = { field: "__wf_delta_text", type: "nominal" };
+      }
+    }
+  }
   // A line or an area is one shape per series, so marks on them find their points in an invisible layer.
   if (chart.marks.length && (chart.type === "line" || chart.type === "area") && "layer" in spec) {
     const [first] = spec.layer;

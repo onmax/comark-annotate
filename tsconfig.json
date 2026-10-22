@@ -6,5 +6,15 @@
     "moduleResolution": "nodenext",
     "allowImportingTsExtensions": true,
     "skipLibCheck": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "docs/app",
+    "docs/server",
+    "docs/shared",
+    "docs/nuxt.config.ts",
+    "docs/.nuxt",
+    "docs/.output",
+    "docs/.generated"
+  ]
 }

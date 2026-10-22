@@ -18,7 +18,7 @@ blurb: Videos, audio, and live code
 
 :::example{label="Live code"}
 ```md
-::embed{url="https://stackblitz.com/edit/vitejs-vite?file=index.html" title="The pigeon tracker starts from this Vite starter"}
+::embed{url="https://stackblitz.com/edit/typescript?file=index.ts" title="The pigeon tracker starts from this TypeScript starter"}
 ::
 ```
 :::

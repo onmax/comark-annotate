@@ -97,7 +97,7 @@ export const css = `@layer comark{${[
   ".ca-check svg{left:calc(100% + 4px);top:50%;width:20px;height:20px;transform:translateY(-50%)}",
   ".ca-stamp{display:inline-grid;place-items:center;flex:none;min-width:15px;height:15px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:var(--ca-solid,var(--ca-color));color:var(--ca-ink);font-family:var(--_comark-font);font-size:9.5px;font-weight:600;line-height:1;letter-spacing:-.01em;font-variant-numeric:tabular-nums}",
   ".ca-letter{display:none}",
-  // place.ts sets which corner of the mark the number sits outside.
+  // place.ts sets which corner of the mark the number sits on.
   ".ca-mark .ca-stamp{position:absolute;box-shadow:0 0 0 2px var(--ca-ring,var(--_comark-background)),0 1px 3px rgb(0 0 0/.18);transform:scale(calc(1 + .1 * var(--ca-on,0)));transition:transform .15s ease}",
   // A numbered mark that draws nothing is only its number, so the number stays on the corner.
   ".ca-mark.ca-none .ca-stamp{left:-7.5px;top:-7.5px}",

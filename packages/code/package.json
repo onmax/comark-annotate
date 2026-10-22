@@ -50,6 +50,9 @@
     "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
     "prepack": "pnpm --filter comark-code... build"
   },
+  "dependencies": {
+    "comark-icon": "workspace:^"
+  },
   "devDependencies": {
     "@comark/html": "catalog:",
     "@comark/react": "catalog:",
