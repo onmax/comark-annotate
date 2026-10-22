@@ -204,7 +204,9 @@ function showTheme() {
   const doc = preview.contentDocument;
   const view = doc?.defaultView;
   if (!doc?.body || !view) return;
-  doc.documentElement.className = scheme();
+  const currentScheme = scheme();
+  doc.documentElement.className = currentScheme;
+  doc.documentElement.style.colorScheme = currentScheme;
   const style =
     doc.getElementById("play-theme") ??
     doc.head.appendChild(Object.assign(doc.createElement("style"), { id: "play-theme" }));
