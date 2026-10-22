@@ -25,24 +25,32 @@ async function listPages(): Promise<PageLink[]> {
     : listed && typeof listed === "object" && "items" in listed && Array.isArray(listed.items)
       ? listed.items
       : [];
-  return (await Promise.all(items.map(async (item) => {
-      if (!item || typeof item !== "object") return null;
-      const value = item as { id?: unknown; path?: unknown; data?: { install?: unknown } };
-      const raw =
-        typeof value.id === "string" ? value.id : typeof value.path === "string" ? value.path : "";
-      const normalized = raw
-        .replace(/^\//, "")
-        .replace(/\.md$/, "")
-        .replace(/\/index$/, "");
-      const slug = normalized === "index" ? "" : normalized;
-      let install = typeof value.data?.install === "string" ? value.data.install : "";
-      if (!install && slug) {
-        const page = await content.get(`/${slug}`);
-        install = typeof page?.data?.install === "string" ? page.data.install : "";
-      }
-      const match = install.match(/(?:^|\s)(comark-[\w-]+)/);
-      return { slug, npm: match?.[1] ?? "" };
-    })))
+  return (
+    await Promise.all(
+      items.map(async (item) => {
+        if (!item || typeof item !== "object") return null;
+        const value = item as { id?: unknown; path?: unknown; data?: { install?: unknown } };
+        const raw =
+          typeof value.id === "string"
+            ? value.id
+            : typeof value.path === "string"
+              ? value.path
+              : "";
+        const normalized = raw
+          .replace(/^\//, "")
+          .replace(/\.md$/, "")
+          .replace(/\/index$/, "");
+        const slug = normalized === "index" ? "" : normalized;
+        let install = typeof value.data?.install === "string" ? value.data.install : "";
+        if (!install && slug) {
+          const page = await content.get(`/${slug}`);
+          install = typeof page?.data?.install === "string" ? page.data.install : "";
+        }
+        const match = install.match(/(?:^|\s)(comark-[\w-]+)/);
+        return { slug, npm: match?.[1] ?? "" };
+      }),
+    )
+  )
     .filter((page): page is PageLink => page !== null)
     .sort((a, b) => (a.slug === "" ? -1 : b.slug === "" ? 1 : a.slug.localeCompare(b.slug)));
 }
