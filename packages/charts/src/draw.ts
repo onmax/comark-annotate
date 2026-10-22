@@ -347,6 +347,31 @@ function boxes(chart: Chart, view: vega.View, width: number, height: number): Ma
   return found;
 }
 
+/** Draws a compiled Vega spec to an SVG string, and returns the view for finding where its marks sit. */
+async function render(compiled: vega.Spec, loader?: vega.Loader) {
+  // Vega compiles its expressions with `new Function` unless told to interpret them, and Cloudflare Workers, where
+  // documents like these often render, forbid that.
+  const options: vega.ViewOptions = {
+    renderer: "none",
+    logLevel: None,
+    expr: expressionInterpreter,
+  };
+  if (loader) options.loader = loader;
+  const view = new View(parse(compiled, undefined, { ast: true }), options);
+  // Vega gives every group a role for screen readers, which the one `role="img"` hides anyway, an empty foreground
+  // path, and float noise such as `10.000000000000021`. Only tags change, since text holds the table's own numbers,
+  // and Vega escapes `>` in attributes.
+  const svg = (await view.toSVG())
+    .replace(/<path class="foreground"[^>]* d=""[^>]*\/>/g, "")
+    .replace(/<[^>]+>/g, (tag) =>
+      tag
+        .replace(/ (?:role|aria-roledescription|aria-hidden)="[^"]*"/g, "")
+        .replace(/(\.\d\d)\d+/g, "$1"),
+    );
+  return { view, svg };
+}
+
+
 const format = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 12 });
 
 /** Ticks from a round step that end at the first one past the data, among as many as fit `width`. */
@@ -382,12 +407,13 @@ function dumbbell(chart: Chart, spec: TopLevelSpec) {
   const all = rows.flat().filter((value): value is number => Number.isFinite(value));
   if (!all.length) return;
   const width = Number(spec.config?.view?.continuousWidth) || layout(chart).width;
-  const values = ticks(Math.min(...all), Math.max(...all), width);
+  let values = ticks(Math.min(...all), Math.max(...all), width);
   let [low, high] = [values[0]!, values.at(-1)!];
   if (low === high) {
     const room = Math.max(1, Math.abs(low) * 0.1);
     low -= room;
     high += room;
+    values = ticks(low, high, width);
   }
   // Endpoint labels sit just outside their dots, so leave enough scale room at either edge for the text.
   for (let pass = 0; pass < 3; pass++) {

@@ -39,6 +39,8 @@ Props, all optional: `type` (below), `x` (the x column, default the first), `y` 
 | How changes add up to a total | `waterfall` | the start total, each change (negative for a drop), then the end total, in one column |
 | Shares of one whole, five or fewer | `pie` | names, then one column of non-negative numbers |
 
+When none of these fit, such as a box plot or a heatmap, put a Vega-Lite spec after the table in a fenced `vega-lite` block. The table is its data, so leave `data` out of the spec and name the table's headers as fields; marks don't apply.
+
 For a before and after of one or two metrics, grouped `bar` reads best; past three, use `dumbbell`. Keep the rows in the order the reader should read them: charts draw them in table order.
 
 ## Mark what matters

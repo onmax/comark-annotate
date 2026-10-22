@@ -78,11 +78,11 @@ The other two plugins draw the same chart from a JSON spec, and the page holds o
 | Frontmatter data *A spec bound with `:spec`* | — | ✓ | ✓ |
 | **Drawing** | | | |
 | Layout *Who picks the axes, scales, and labels* | Flint | You | Flint |
-| Chart types | Eight common ones | Any Vega chart | Flint's templates |
+| Chart types | Eight common ones, or any Vega-Lite chart over the table | Any Vega chart | Flint's templates |
 | Engine | Vega | Vega | Vega or ECharts |
 | **Output** | | | |
 | Format | SVG | SVG, image, or Vue component | SVG, image, or Vue component |
-| Renderers *SVG renders in any of them* | `@comark/html` | Any, or `@comark/vue` | Any, or `@comark/vue` |
+| Renderers *SVG renders in any of them* | HTML, Vue, React, and Svelte; marks in HTML | Any, or `@comark/vue` | Any, or `@comark/vue` |
 | **Checks** | | | |
 | Errors *What a broken block does* | ✓ An issue that says how to fix it | A `<pre>` for parse-time invalid JSON/assembly | `.flint-error` for Vue render failures; `<pre>` for parse-time invalid JSON/assembly |
 | Cloudflare Workers *Vega needs `vega-interpreter` there* | ✓ | — | Vega/Vega-Lite SVG path: —; ECharts SSR: ✓ |
@@ -90,8 +90,8 @@ The other two plugins draw the same chart from a JSON spec, and the page holds o
 
 ## Which to use
 
-Use comark-charts for documents that agents write or check, such as pull request evidence and reports: the table is the source, and it stays in the page. It draws the common chart types and nothing else.
+Use comark-charts for documents that agents write or check, such as pull request evidence and reports: the table is the source, and it stays in the page. It lays out the common chart types itself, and draws any other from a Vega-Lite spec over the same table.
 
-Use [comark-vega](https://github.com/miguelrk/comark-packages/tree/main/packages/comark-vega) for charts those types don't cover, such as box plots, maps, and error bands, or for interactive charts in a Vue app.
+Use [comark-vega](https://github.com/miguelrk/comark-packages/tree/main/packages/comark-vega) for full Vega specs, data that isn't a table, such as maps, or interactive charts in a Vue app.
 
 Use [comark-flint-chart](https://github.com/miguelrk/comark-packages/tree/main/packages/comark-flint-chart) for Flint's layouts in a Vue app, or for charts drawn with ECharts.
