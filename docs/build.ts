@@ -46,6 +46,7 @@ const ownIcons = {
 };
 // The site's chrome draws these; each package's own comes from its docs' frontmatter.
 const lucideNames = [
+  "code-xml",
   "arrow-left",
   "arrow-right",
   "arrow-up-right",
@@ -236,8 +237,8 @@ const matrix: NodeHandler = async ([, , ...children], state) =>
 
 // The index's studio: the agent's draft of the Markdown typed out a line at a time beside the page the plugins render,
 // each block appearing once its lines are typed. Then the plugins' first issue on the draft, the one value the fixed
-// Markdown changes, and the fixed block drawn. The script plays it once the studio scrolls into view; without it, or
-// with reduced motion, the studio shows the fixed Markdown and page.
+// Markdown changes, and the fixed block drawn. It rests on the fixed Markdown and page with the issue it fixed, and the
+// script plays it while the pointer is on it or on Play; without the script, or with reduced motion, it only rests.
 const hero: NodeHandler = async ([, , ...children], state) => {
   const [draftPre, pre] = children.filter(isPre);
   if (!draftPre || !pre)
@@ -356,10 +357,10 @@ const hero: NodeHandler = async ([, , ...children], state) => {
     `<div class="studio" style="--typed:${typed}ms"><div class="studio-bar">` +
     `<span class="studio-file">${siteIcon("file-input", 13)}review.md</span>` +
     `<ol class="studio-steps" aria-label="Steps">${steps.map((step) => `<li data-step="${step.toLowerCase()}">${step}</li>`).join("")}</ol>` +
-    `<button type="button" class="studio-replay" hidden>${resetIcon}<span>Replay</span></button>` +
+    `<button type="button" class="studio-replay" hidden>${resetIcon}<span>Play</span></button>` +
     `<a class="window-play" href="${escapeHtml(playLink(source))}">${siteIcon("flask-conical", 13)}<span>Open in playground</span></a></div>` +
     `<div class="studio-body"><div class="studio-source"><div class="studio-code"><div class="studio-gutter" aria-hidden="true">${gutter}</div>${highlighted}</div>` +
-    `<div class="studio-problems"><p class="studio-issue" aria-hidden="true"><span class="studio-dot" aria-hidden="true"></span><span><strong>${escapeHtml(issue.slice(0, issue.indexOf(": ") + 1))}</strong>${escapeHtml(issue.slice(issue.indexOf(": ") + 1))}</span></p>` +
+    `<div class="studio-problems"><p class="studio-issue" aria-hidden="true"><span class="studio-dot" aria-hidden="true"></span><span><span class="studio-fixed">Fixed</span><strong>${escapeHtml(issue.slice(0, issue.indexOf(": ") + 1))}</strong>${escapeHtml(issue.slice(issue.indexOf(": ") + 1))}</span></p>` +
     `<p class="studio-ok">${checkIcon}No problems</p></div></div>` +
     `<div class="studio-page"><div>${blocks.join("")}</div></div></div></div></section>`
   );
@@ -462,7 +463,6 @@ const thumbnails = new Map(
 );
 
 const playIcon = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86A1 1 0 0 0 8 5.14"/></svg>`;
-const pauseIcon = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M7 4h3.5v16H7zM13.5 4H17v16h-3.5z"/></svg>`;
 const canvasIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>`;
 const listIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/></svg>`;
 
@@ -515,8 +515,9 @@ const packageGrid: NodeHandler = async ([, , ...children]) => {
       return (
         `<article class="demo demo-${pkg.slug}${label ? ` demo-${pkg.slug}-${label}` : ""}" data-h="${height}" style="height:${height}px">` +
         `<a class="demo-link" href="${href(pkg.slug)}" draggable="false" tabindex="-1">${siteIcon(pkg.icon, 15)}<strong>${escapeHtml(pkg.label)}</strong>${label ? `<span>${escapeHtml(label)}</span>` : ""}${siteIcon("arrow-up-right", 14)}</a>` +
+        `<button type="button" class="demo-md" tabindex="-1" title="Show the Markdown" aria-label="Show the Markdown">${siteIcon("code-xml", 15)}</button>` +
         `<button type="button" class="demo-copy" data-copy="pnpm add ${escapeHtml(pkg.npm)}" tabindex="-1" title="Copy pnpm add ${escapeHtml(pkg.npm)}">${copyIcon}${checkIcon}</button>` +
-        // Hovering a card shows the Markdown it was drawn from.
+        // A card plays its loop while the pointer is on it; its Markdown button shows what it was drawn from.
         `<div class="demo-screen" inert><div class="demo-page">${stillOf(html, demoStyles)}</div><div class="demo-source">${highlight(source.trimEnd())}</div></div></article>`
       );
     }),
@@ -534,7 +535,7 @@ const packageGrid: NodeHandler = async ([, , ...children]) => {
     `<template class="canvas-cards">${demos.join("")}</template>` +
     `<ul class="grid">${list}</ul>` +
     `<div class="canvas-bar" hidden><div class="seg" role="group" aria-label="View"><button type="button" data-view="canvas" aria-pressed="false" aria-label="Canvas" title="Canvas">${canvasIcon}</button><button type="button" data-view="list" aria-pressed="true" aria-label="List" title="List">${listIcon}</button></div>` +
-    `<button type="button" class="canvas-pause" aria-pressed="false" aria-label="Pause the animations" title="Pause">${pauseIcon}${playIcon}</button></div>` +
+    `</div>` +
     // Before the first paint, so the list doesn't flash before the canvas.
     `<script>{const c=document.currentScript.parentElement;let v;try{v=localStorage.getItem("comark-view")}catch{}c.dataset.view=v==="list"?"list":"canvas"}</script></section>`
   );
@@ -637,7 +638,7 @@ const column = (section: Section, current: string) => {
     )
     .join(
       "",
-    )}${section.npm && preset ? `<a class="pages-play" href="/play/#preset=${preset.id}">${siteIcon("flask-conical", 15)}Open in playground</a>` : ""}</nav>`;
+    )}${section.npm && preset ? `<div class="pages-foot"><a class="pages-play" href="/play/#preset=${preset.id}">${siteIcon("flask-conical", 15)}Open in playground</a></div>` : ""}</nav>`;
 };
 // Previous and next page in the section.
 function pager(page: Page) {
@@ -657,7 +658,7 @@ const npmx = `<svg viewBox="0 0 153 153" width="16" height="16" aria-hidden="tru
 const npmxLink = (npm?: string) =>
   `<a class="npmx" href="https://npmx.dev/${npm ? `package/${npm}` : "~onmax_"}" title="${npm ? `${npm} on npmx` : "Every package on npmx"}">${npmx}<span>${npm || "npmx"}</span></a>`;
 // Markdown's # in a hand-drawn loop, the mark comark-annotate draws around what a reviewer should look at.
-const logo = `<svg class="logo" viewBox="0 0 32 32" width="24" height="24" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="currentColor" stroke-width="2.6" d="M13.6 9.5 11.8 22.5M20.2 9.5 18.4 22.5M9.6 13.6H23.2M8.8 18.4H22.4"/><path stroke="#e5484d" stroke-width="2.2" d="M9.3 7.3C15.3 3.7 27.1 4.5 28.7 11.5 30.4 19.1 22 26.7 12.8 27.2 5.9 27.6 2 23.5 3.5 18.1 4.8 13.3 11.1 9.7 18.1 9.6"/></g></svg>`;
+const logo = `<svg class="logo" viewBox="0 0 32 32" width="24" height="24" aria-hidden="true"><rect stroke="currentColor" x="6.5" y="11.4" width="19" height="10.2" fill="none" stroke-width="1.3"/><path fill="currentColor" d="M7.87 20.24V12.76H10.07L12.26 15.51 14.46 12.76H16.66V20.24H14.46V15.95L12.26 18.7 10.07 15.95V20.24ZM18.64 12.98h2.19v2.12h-2.19ZM18.64 17.9h2.19v2.12h-2.19ZM21.94 12.98h2.19v2.12h-2.19ZM21.94 17.9h2.19v2.12h-2.19Z"/><path d="M9.3 7.3C15.3 3.7 27.1 4.5 28.7 11.5 30.4 19.1 22 26.7 12.8 27.2 5.9 27.6 2 23.5 3.5 18.1 4.8 13.3 11.1 9.7 18.1 9.6" fill="none" stroke="#e5484d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const menuIcon = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>`;
 
 // The example tabs, the Preview/Code switch, the install command's copy button, and the active sidebar link. Without it the page still reads top to bottom.
@@ -716,12 +717,12 @@ const copied = async button => {
 for (const button of document.querySelectorAll(".grid-copy")) button.addEventListener("click", () => copied(button));
 // The index's canvas: columns of package cards without end, each running through every card from its own start, so
 // neighbours differ from column to column. Only the cards in view are in the page, cloned from the template as they
-// come in, and each card's height is in its markup, so nothing is measured. It drifts, follows a drag and coasts
-// after it, pans sideways with a trackpad, and stops while the pointer is on a card or it's out of view.
+// come in, and each card's height is in its markup, so nothing is measured. It holds still: it follows a drag and
+// coasts to rest after it, and pans sideways with a trackpad.
 const mod = (a, n) => ((a % n) + n) % n;
 for (const canvas of document.querySelectorAll(".canvas")) {
   const viewport = canvas.querySelector(".canvas-viewport"), stage = canvas.querySelector(".canvas-stage"), dots = canvas.querySelector(".canvas-dots");
-  const pause = canvas.querySelector(".canvas-pause"), list = canvas.querySelector(".grid");
+  const list = canvas.querySelector(".grid");
   const cards = [...canvas.querySelector(".canvas-cards").content.children];
   const n = cards.length, heights = cards.map(c => Number(c.dataset.h)), gap = 20, pitch = 300 + gap, pad = 160;
   const period = heights.reduce((sum, h) => sum + h + gap, 0);
@@ -729,7 +730,7 @@ for (const canvas of document.querySelectorAll(".canvas")) {
   let step = Math.max(1, Math.round(n * 0.4));
   while (gcd(step, n) !== 1) step++;
   const live = new Map(), pools = cards.map(() => []);
-  let x = 0, y = -48, vw = 0, vh = 0, vx = 0, vy = 0, last = 0, frame = 0, hovering = false, visible = false, down, dragging = false, moved = false, samples = [];
+  let x = 0, y = -48, vw = 0, vh = 0, vx = 0, vy = 0, last = 0, frame = 0, down, dragging = false, moved = false, samples = [];
   let placed = false;
   const draw = () => {
     // Centered on the first column, once there's a width to center in.
@@ -759,16 +760,16 @@ for (const canvas of document.querySelectorAll(".canvas")) {
     }
     for (const [key, slot] of live) if (!seen.has(key)) { slot.el.remove(); pools[slot.i].push(slot.el); live.delete(key) }
   };
-  // The velocity eases toward the drift, or toward rest, so a fling coasts into it. The loop stops once at rest.
+  // A fling's velocity eases to rest, and the loop stops there.
   const tick = now => {
     const dt = Math.min(64, now - (last || now)); last = now;
-    const still = canvas.hasAttribute("data-paused") || hovering || !visible, k = 1 - Math.exp(-dt / 450);
-    vx += ((still ? 0 : 0.016) - vx) * k; vy += ((still ? 0 : 0.011) - vy) * k;
+    const k = 1 - Math.exp(-dt / 450);
+    vx -= vx * k; vy -= vy * k;
     x += vx * dt; y += vy * dt; draw();
-    if (still && Math.abs(vx) + Math.abs(vy) < 0.003) { vx = vy = 0; frame = last = 0; return }
+    if (Math.abs(vx) + Math.abs(vy) < 0.003) { vx = vy = 0; frame = last = 0; return }
     frame = requestAnimationFrame(tick);
   };
-  const run = () => { if (!frame && !dragging && canvas.dataset.view === "canvas") frame = requestAnimationFrame(tick) };
+  const run = () => { if (!frame && !dragging && (vx || vy) && canvas.dataset.view === "canvas") frame = requestAnimationFrame(tick) };
   const halt = () => { cancelAnimationFrame(frame); frame = last = 0 };
   const view = (name, keep) => {
     canvas.dataset.view = name;
@@ -776,25 +777,13 @@ for (const canvas of document.querySelectorAll(".canvas")) {
     if (keep) try { localStorage.setItem("comark-view", name) } catch {}
     if (name === "canvas") { draw(); run() } else halt();
   };
-  const paused = on => {
-    canvas.toggleAttribute("data-paused", on);
-    pause.setAttribute("aria-pressed", on);
-    pause.title = on ? "Play" : "Pause";
-    run();
-  };
   new ResizeObserver(([e]) => { vw = e.contentRect.width; vh = e.contentRect.height; draw() }).observe(viewport);
-  new IntersectionObserver(([e]) => {
-    visible = e.isIntersecting;
-    canvas.toggleAttribute("data-offscreen", !visible);
-    run();
-  }).observe(viewport);
   viewport.addEventListener("pointerdown", e => {
     if (e.button !== 0 || e.target.closest(".demo-copy")) return;
     down = { id: e.pointerId, px: e.clientX, py: e.clientY, x, y }; moved = false;
     samples = [[e.timeStamp, e.clientX, e.clientY]];
   });
   viewport.addEventListener("pointermove", e => {
-    if (e.pointerType === "mouse") { const over = !!e.target.closest(".demo"); if (over !== hovering) { hovering = over; run() } }
     if (!down || e.pointerId !== down.id) return;
     const dx = e.clientX - down.px, dy = e.clientY - down.py;
     if (!dragging) {
@@ -818,7 +807,6 @@ for (const canvas of document.querySelectorAll(".canvas")) {
   };
   viewport.addEventListener("pointerup", release);
   viewport.addEventListener("pointercancel", e => { release(e); moved = false });
-  viewport.addEventListener("pointerleave", e => { if (e.pointerType === "mouse" && hovering) { hovering = false; run() } });
   // A drag that ends on a card isn't a click on it.
   viewport.addEventListener("click", e => {
     if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; return }
@@ -832,20 +820,18 @@ for (const canvas of document.querySelectorAll(".canvas")) {
   }, { passive: false });
   canvas.querySelector(".canvas-bar").hidden = false;
   canvas.querySelector(".canvas-bar .seg").addEventListener("click", e => { const b = e.target.closest("[data-view]"); if (b) view(b.dataset.view, true) });
-  pause.addEventListener("click", () => paused(!canvas.hasAttribute("data-paused")));
   // The canvas is for pointers; a keyboard reaching the list shows it.
   list.addEventListener("focusin", () => { if (canvas.dataset.view === "canvas") view("list") });
-  paused(reduce.matches);
   view(canvas.dataset.view);
 }
-// The index's studio plays once it's in view: data-phase steps through writing, checking, fixing, and rendering, and
-// the stylesheet animates each. Replay plays it again.
+// The index's studio plays while the pointer is on it, or on Play: data-phase steps through writing, checking, fixing,
+// and rendering, and the stylesheet animates each.
 for (const studio of document.querySelectorAll(".studio")) {
   if (reduce.matches) continue;
   const typed = parseFloat(getComputedStyle(studio).getPropertyValue("--typed")), replay = studio.querySelector(".studio-replay");
   const steps = [...studio.querySelectorAll(".studio-steps li")], issue = studio.querySelector(".studio-issue"), ok = studio.querySelector(".studio-ok");
   for (const el of studio.querySelectorAll("[data-at]:not([data-fixed])")) el.style.setProperty("--at", el.dataset.at + "ms");
-  let timers = [];
+  let timers = [], playing = false;
   const phase = name => {
     studio.dataset.phase = name;
     // Only the line that shows is read out.
@@ -857,13 +843,12 @@ for (const studio of document.querySelectorAll(".studio")) {
     for (const t of timers) clearTimeout(t);
     studio.dataset.phase = "waiting"; void studio.offsetWidth;
     phase("write");
-    timers = [[typed + 500, "check"], [typed + 2900, "fix"], [typed + 3700, "render"]].map(([ms, name]) => setTimeout(() => phase(name), ms));
+    playing = true;
+    timers = [[typed + 500, "check"], [typed + 2900, "fix"], [typed + 3700, "render"], [typed + 5200, ""]].map(([ms, name]) => setTimeout(() => name ? phase(name) : (playing = false), ms));
   };
-  studio.dataset.phase = "waiting";
   replay.hidden = false;
   replay.addEventListener("click", play);
-  const seen = new IntersectionObserver(([e]) => { if (e.isIntersecting) { seen.disconnect(); play() } }, { threshold: 0.35 });
-  seen.observe(studio);
+  studio.addEventListener("pointerenter", e => { if (e.pointerType === "mouse" && !playing) play() });
 }
 
 const links = [...document.querySelectorAll(".toc a")];

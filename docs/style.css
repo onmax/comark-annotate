@@ -652,8 +652,7 @@ kbd {
   background: none;
 }
 
-.canvas-bar .seg button,
-.canvas-pause {
+.canvas-bar .seg button {
   display: grid;
   place-items: center;
   width: 2.25rem;
@@ -666,70 +665,7 @@ kbd {
   border-radius: 9px;
 }
 
-.canvas-pause {
-  position: relative;
-  border: 0;
-  background: none;
-  color: var(--muted);
-  cursor: pointer;
-  transition:
-    color 150ms ease,
-    background-color 150ms ease,
-    scale 160ms var(--ease-out);
-}
-
-.canvas-pause::before {
-  content: "";
-  position: absolute;
-  left: -0.25rem;
-  top: 0.5rem;
-  bottom: 0.5rem;
-  width: 1px;
-  background: var(--line);
-}
-
-.canvas-pause:hover {
-  background: var(--soft);
-  color: var(--fg);
-}
-
-.canvas-pause:active {
-  scale: 0.96;
-}
-
-.canvas-pause:focus-visible {
-  outline: 2px solid var(--fg);
-  outline-offset: -2px;
-}
-
-/* The pause and play icons swap with a blur, in one place. */
-.canvas-pause svg {
-  grid-area: 1 / 1;
-  transition:
-    opacity 200ms cubic-bezier(0.2, 0, 0, 1),
-    scale 200ms cubic-bezier(0.2, 0, 0, 1),
-    filter 200ms cubic-bezier(0.2, 0, 0, 1);
-}
-
-.canvas-pause svg:last-child,
-.canvas-pause[aria-pressed="true"] svg:first-child {
-  opacity: 0;
-  scale: 0.25;
-  filter: blur(4px);
-}
-
-.canvas-pause[aria-pressed="true"] svg:last-child {
-  opacity: 1;
-  scale: 1;
-  filter: none;
-}
-
-.canvas-pause svg:last-child {
-  width: 15px;
-  height: 15px;
-}
-
-.canvas[data-view="list"] :is(.canvas-viewport, .canvas-pause) {
+.canvas[data-view="list"] .canvas-viewport {
   display: none;
 }
 
@@ -781,7 +717,7 @@ kbd {
   align-items: center;
   gap: 0.5rem;
   height: 2.5rem;
-  padding: 0 2.5rem 0 0.5rem;
+  padding: 0 4.5rem 0 0.5rem;
   color: var(--fg);
   font: 500 0.8125rem/1 var(--mono);
   text-decoration: none;
@@ -811,6 +747,7 @@ kbd {
   border-radius: inherit;
 }
 
+.demo-md,
 .demo-copy {
   position: absolute;
   top: 0.25rem;
@@ -831,6 +768,10 @@ kbd {
     color 150ms ease,
     background-color 150ms ease,
     scale 160ms var(--ease-out);
+}
+
+.demo-md {
+  right: 2.375rem;
 }
 
 .demo-copy svg {
@@ -855,11 +796,13 @@ kbd {
   color: #16a34a;
 }
 
+.demo-md:hover,
 .demo-copy:hover {
   background: var(--soft);
   color: var(--fg);
 }
 
+.demo-md:active,
 .demo-copy:active {
   scale: 0.96;
 }
@@ -872,6 +815,7 @@ kbd {
       0 24px 40px -16px rgb(0 0 0 / 0.26);
   }
 
+  .demo:hover .demo-md,
   .demo:hover .demo-copy,
   .demo:hover .demo-link .ci:last-child {
     opacity: 1;
@@ -880,6 +824,7 @@ kbd {
 }
 
 @media (hover: none) {
+  .demo-md,
   .demo-copy {
     opacity: 1;
   }
@@ -946,14 +891,14 @@ kbd {
   height: auto;
 }
 
-/* Paused by the bar, and whenever no one can see them. */
-.canvas:is([data-paused], [data-offscreen]) .demo *,
-.canvas:is([data-paused], [data-offscreen]) .demo *::before,
-.canvas:is([data-paused], [data-offscreen]) .demo *::after {
-  animation-play-state: paused !important;
+/* A card rests on its page as rendered, and plays its loop from the start while the pointer is on it. */
+.demo:not(:hover) *,
+.demo:not(:hover) *::before,
+.demo:not(:hover) *::after {
+  animation: none !important;
 }
 
-/* The Markdown a card was drawn from, over its screen while the pointer is on the card. */
+/* The Markdown a card was drawn from, over its screen while the pointer is on its Markdown button. */
 .demo-source {
   position: absolute;
   inset: 0;
@@ -979,7 +924,7 @@ kbd {
 }
 
 @media (hover: hover) {
-  .demo:hover .demo-source {
+  .demo:has(.demo-md:hover) .demo-source {
     opacity: 1;
     filter: none;
   }
@@ -2116,11 +2061,16 @@ kbd {
 }
 
 /* Opens the section's first example in the playground. */
+/* At the foot of the column, clear of the last page. */
+.pages-foot {
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
 .pages a.pages-play {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 1.25rem;
   padding: 0.5rem 0.625rem;
   box-shadow: inset 0 0 0 1px var(--line);
   color: var(--muted);
@@ -2713,8 +2663,9 @@ a.window-play:hover {
   font-weight: 500;
 }
 
-/* Out of view until its step; the page shows the fixed state, so it's the one without the script. */
+/* Out of view until its step. At rest, before anything plays, the issue shows, fixed. */
 .studio-issue,
+.studio:not([data-phase]) .studio-ok,
 .studio[data-phase]:is([data-phase="fix"], [data-phase="render"]) .studio-issue,
 .studio:is([data-phase="waiting"], [data-phase="write"], [data-phase="check"]) .studio-ok {
   opacity: 0;
@@ -2723,6 +2674,7 @@ a.window-play:hover {
   pointer-events: none;
 }
 
+.studio:not([data-phase]) .studio-issue,
 .studio[data-phase="check"] .studio-issue {
   opacity: 1;
   translate: 0;
@@ -2756,6 +2708,32 @@ a.window-play:hover {
 
 .studio-ghost {
   display: none;
+}
+
+/* At rest: the issue the plugins reported, marked fixed, and the value the agent changed for it. */
+.studio:not([data-phase]) .studio-dot {
+  background: #16a34a;
+  box-shadow: 0 0 0 3px color-mix(in oklch, #16a34a 22%, transparent);
+}
+
+.studio-fixed {
+  display: none;
+}
+
+.studio:not([data-phase]) .studio-fixed {
+  display: inline;
+  margin-right: 0.5rem;
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.studio:not([data-phase]) .studio-fix ins {
+  background: color-mix(in oklch, #16a34a 18%, transparent);
+}
+
+.studio:not([data-phase]) .studio-gutter [data-fix] {
+  color: #16a34a;
+  opacity: 1;
 }
 
 /* Waiting to scroll into view: nothing typed, nothing drawn. */

@@ -60,13 +60,11 @@ Thanks @onmax: this fixes #51, and onmax/comark-plugins#73 builds on it.
 ```md
 Press <kbd>⌘</kbd> <kbd>K</kbd> to search. Water is H<sub>2</sub>O.
 
-<p align="center">
-  <img src="/after.png" width="240" alt="The dashboard after the fix">
-</p>
+<img src="/dashboard.png" width="480" alt="Office correlations: ducks vs. bugs, r = 0.94">
 
-<details open>
-<summary>Why no script?</summary>
-GitHub drops it, and so does this: <script>alert("hi")</script>
+<details>
+<summary>Where did the script go?</summary>
+The source has a <code>&lt;script&gt;</code> after this sentence. GitHub drops it, and so does <code>html()</code>. <script>alert("hi")</script>
 </details>
 ```
 :::
