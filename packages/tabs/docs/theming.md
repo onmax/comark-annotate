@@ -55,3 +55,5 @@ An open tab in the page's brand color:
   --ct-active-text: white;
 }
 ```
+
+To try it, paste it into Extra CSS in the [playground's Theme pane](/play/#preset=tabs-tabs).
