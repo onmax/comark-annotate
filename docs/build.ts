@@ -775,8 +775,7 @@ for (const canvas of document.querySelectorAll(".canvas")) {
     canvas.dataset.view = name;
     for (const b of canvas.querySelectorAll(".canvas-bar [data-view]")) b.setAttribute("aria-pressed", b.dataset.view === name);
     if (keep) try { localStorage.setItem("comark-view", name) } catch {}
-    // Measured now rather than left to the ResizeObserver, which reports after a client-side navigation has painted
-    // the cards uncentered.
+    // Measure during view activation so navigation can draw with the viewport size before its first paint.
     if (name === "canvas") { vw = viewport.clientWidth; vh = viewport.clientHeight; draw(); run() } else halt();
   };
   new ResizeObserver(([e]) => { vw = e.contentRect.width; vh = e.contentRect.height; draw() }).observe(viewport);
