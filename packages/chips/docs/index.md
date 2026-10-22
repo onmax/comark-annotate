@@ -22,11 +22,9 @@ Built with [Vite](https://vite.dev), [Vue](https://vuejs.org), and [Nuxt](https:
 ```
 :::
 
-:::example{label="Props"}
+:::example{label="Overrides"}
 ```md
-Ask [Anthony](https://antfu.me){avatar="@antfu"}, or read the [guide](https://vite.dev/guide/){chip=false}.
-
-:chip[Comark]{href="https://comark.dev"}
+Ask [Anthony](https://antfu.me){avatar="@antfu"}, or read the [guide](https://vite.dev/guide/){chip=false}. The pages render with :chip[Comark]{href="https://comark.dev"}.
 ```
 :::
 ::

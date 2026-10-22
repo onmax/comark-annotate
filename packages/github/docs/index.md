@@ -36,13 +36,13 @@ credits: 'Syntax from <a href="https://docs.github.com/en/get-started/writing-on
 ```
 :::
 
-:::example{label="Callout with any content"}
+:::example{label="Lists and code"}
 ```md
 > [!WARNING] Breaking change in v2
-> The `render` option moved:
+> `render(markdown)` is gone. Create a renderer once instead:
 >
-> - `render(markdown)` is now `createHtmlRenderer()(markdown)`
-> - `components` keys are tag names
+> - pass it your `plugins` and `components`
+> - key `components` by tag name
 >
 > ```ts
 > const render = createHtmlRenderer({ plugins, components });
@@ -64,7 +64,7 @@ Press <kbd>⌘</kbd> <kbd>K</kbd> to search. Water is H<sub>2</sub>O.
   <img src="/after.png" width="240" alt="The dashboard after the fix">
 </p>
 
-<details>
+<details open>
 <summary>Why no script?</summary>
 GitHub drops it, and so does this: <script>alert("hi")</script>
 </details>

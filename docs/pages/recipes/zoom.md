@@ -11,7 +11,7 @@ At 640px, moon phase and vibes push the filters onto a second row.
 
 ::zoom{group="toolbar" title="Before"}
 :::screenshot{src="/before.png" alt="Filter toolbar wrapping onto a second row" viewport="640x250"}
-::::annotation{x=23.6 y=52.7 w=10.9 h=16 mark="circle" color="red"}
+::::annotation{x=22.4 y=50.4 w=13.3 h=20.6 mark="circle" color="red"}
 **Apply** sits 6px lower than the chips.
 ::::
 :::
