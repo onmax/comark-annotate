@@ -37,7 +37,7 @@ Moon and Vibes are in here now.
 
 :::demo{package="chips" height=156}
 ```md
-Built with [Vite](https://vite.dev), [Vue](https://vuejs.org), and [Nuxt](https://nuxt.com). Thanks @antfu for the idea.
+Moves the build from [webpack](https://webpack.js.org) to [Vite](https://vite.dev), as the [Nuxt docs](https://nuxt.com/docs) recommend. Reviewed by @antfu.
 ```
 :::
 

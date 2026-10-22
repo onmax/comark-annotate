@@ -656,7 +656,15 @@ sealed.sanitize = () => Promise.resolve({ href: "" });
 // so remove those declarations at every depth before injecting the table values at the root.
 function withoutData(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(withoutData);
-  if (!value || typeof value !== "object") return value;
+  if (!(value instanceof Object)) return value;
+  // SAFETY: JSON objects have string keys, and this value is known to be a non-array object.
+  const record = value as Record<string, unknown>;
+  const from = record.from;
+  if ("lookup" in record && from instanceof Object && "data" in from) {
+    throw new Error(
+      "lookup transforms with from.data are unsupported because the table is the only data source",
+    );
+  }
   return Object.fromEntries(
     Object.entries(value)
       .filter(([key]) => key !== "data")
@@ -667,6 +675,7 @@ function withoutData(value: unknown): unknown {
 /** Draws a Vega-Lite spec over the chart's table, in the house look wherever the spec sets none. */
 export async function drawSpec(chart: SpecChart): Promise<{ svg: string }> {
   const { config, ...rest } = chart.spec;
+  // SAFETY: chart.spec is parsed JSON, so rest is always a plain object and the sanitizer preserves that shape.
   const sanitized = withoutData(rest) as Record<string, unknown>;
   // The spec came from JSON, and compile() checks it at runtime and throws on what it can't draw.
   const spec: TopLevelSpec = JSON.parse(
