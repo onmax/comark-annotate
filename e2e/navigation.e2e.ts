@@ -31,17 +31,20 @@ test("the landing canvas paints its cards centered after a client navigation", a
   // Every frame's position of the first card, from the click until the canvas has settled.
   const positions = await page.evaluate(async () => {
     const seen: number[] = [];
-    const view = document.querySelector<HTMLElement>(".canvas-viewport")!;
-    const expected = ((view.clientWidth - 300) % 320 + 320) % 320 / 2;
     document.querySelector<HTMLAnchorElement>('header a[href="/"]')!.click();
     const start = performance.now();
     while (performance.now() - start < 1500) {
       await new Promise(requestAnimationFrame);
+      const view = document.querySelector<HTMLElement>(".canvas-viewport");
+      if (!view) continue;
       const card = [...document.querySelectorAll<HTMLElement>(".canvas-stage .demo")].find(
-        card => Number.parseFloat(card.style.left) === 0,
+        (card) => Number.parseFloat(card.style.left) === 0,
       );
-      if (card) seen.push(Math.round(card.getBoundingClientRect().x - view.getBoundingClientRect().x));
+      if (card)
+        seen.push(Math.round(card.getBoundingClientRect().x - view.getBoundingClientRect().x));
     }
+    const view = document.querySelector<HTMLElement>(".canvas-viewport")!;
+    const expected = ((((view.clientWidth - 300) % 320) + 320) % 320) / 2;
     return { seen, expected: Math.round(expected) };
   });
   expect(positions.seen.length).toBeGreaterThan(0);
