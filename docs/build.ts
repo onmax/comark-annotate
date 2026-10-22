@@ -437,6 +437,18 @@ const presets = parsed.flatMap((page) =>
     }))
     .filter((preset) => playable(preset.source)),
 );
+// The size of each PNG the pages show, read from its header, so a still reserves its room before the image loads.
+const publicDir = new URL("public/", root);
+const imageSizes = new Map(
+  await Promise.all(
+    (await readdir(publicDir))
+      .filter((file) => file.endsWith(".png"))
+      .map(async (file) => {
+        const head = await readFile(new URL(file, publicDir));
+        return [file, [head.readUInt32BE(16), head.readUInt32BE(20)]] as const;
+      }),
+  ),
+);
 // A still of a rendered document: no scripts, its plugins' styles collected into `styles` to go in the page once,
 // no ids, since a page holds many, and a chart without its data table, so the still is all plot.
 const stillOf = (html: string, styles: Set<string>) =>
@@ -445,6 +457,10 @@ const stillOf = (html: string, styles: Set<string>) =>
     .replace(/<script>[\s\S]*?<\/script>/g, "")
     .replace(/<details class="cch-data">[\s\S]*?<\/details>/g, "")
     .replace(/\s(id|for|aria-controls|aria-labelledby)="[^"]*"/g, "")
+    .replace(/<img\b([^>]*?) src="\/([\w-]+\.png)"/g, (tag, rest: string, file: string) => {
+      const size = imageSizes.get(file);
+      return size && !/\swidth=/.test(rest) ? `${tag} width="${size[0]}" height="${size[1]}"` : tag;
+    })
     .replace(/<img\b/g, '<img loading="lazy" draggable="false"');
 // A small still of each preset for the playground's column, with a gray box for each embedded player, so the column
 // loads nothing but the pages' own images. The playground scales each still to its card.
@@ -481,47 +497,116 @@ async function lintReport(source: string) {
   return `<div class="term">${lines.map((line, i) => `<span class="term-line" style="--i:${i}">${line}</span>`).join("")}</div>`;
 }
 
-// The index's packages, twice over: a canvas of cards, each drawn live by the plugins from the Markdown in its `demo`
-// and animated by the stylesheet, and the list it replaces without the script, for keyboards, and on request.
 const demoStyles = new Set<string>();
-const packageGrid: NodeHandler = async ([, , ...children]) => {
-  const demos = await Promise.all(
-    children.filter(isElement).map(async ([, attrs, ...content]) => {
-      const pkg = sections.find((section) => section.npm && section.slug === str(attrs.package));
-      if (!pkg?.npm) throw new Error(`A demo names no package: "${str(attrs.package)}".`);
-      const pre = content.find(isPre);
-      if (!pre) throw new Error(`The ${pkg.slug} demo needs a fenced code block.`);
-      const source = textContent(pre);
-      let html: string;
-      if (pkg.slug === "lint") html = await lintReport(source);
-      else {
-        const document = await parseMarkdown(source, { plugins: contentPlugins() });
-        if (document.meta.issues.length)
-          throw new Error(`The ${pkg.slug} demo:\n${document.meta.issues.join("\n")}`);
-        html = (await renderHtmlFromDocument(document, { components })).replace(
-          /<iframe\b[^>]*><\/iframe>/g,
-          `<span class="demo-player"><span class="demo-play">${playIcon}</span><span class="demo-progress"></span></span>`,
-        );
-      }
-      // The canvas stacks cards in columns from their heights, so it never measures one.
-      const height = Number(attrs.height);
-      if (!height) throw new Error(`The ${pkg.slug} demo needs a \`height\` in pixels.`);
-      const label = str(attrs.label);
-      // An include shows what it reads, since the page alone doesn't say.
-      // Tabs show their strip once their script runs, which a card doesn't have.
-      html = html.replaceAll('<div class="ct"', '<div class="ct" data-tabs-ready');
-      if (pkg.slug === "include")
-        html = `<p class="demo-directive"><code>${escapeHtml(source.trim())}</code></p>${html}`;
-      return (
-        `<article class="demo demo-${pkg.slug}${label ? ` demo-${pkg.slug}-${label}` : ""}" data-h="${height}" style="height:${height}px">` +
-        `<a class="demo-link" href="${href(pkg.slug)}" draggable="false" tabindex="-1">${siteIcon(pkg.icon, 15)}<strong>${escapeHtml(pkg.label)}</strong>${label ? `<span>${escapeHtml(label)}</span>` : ""}${siteIcon("arrow-up-right", 14)}</a>` +
-        `<button type="button" class="demo-md" tabindex="-1" title="Show the Markdown" aria-label="Show the Markdown">${siteIcon("code-xml", 15)}</button>` +
-        `<button type="button" class="demo-copy" data-copy="pnpm add ${escapeHtml(pkg.npm)}" tabindex="-1" title="Copy pnpm add ${escapeHtml(pkg.npm)}">${copyIcon}${checkIcon}</button>` +
-        // A card plays its loop while the pointer is on it; its Markdown button shows what it was drawn from.
-        `<div class="demo-screen" inert><div class="demo-page">${stillOf(html, demoStyles)}</div><div class="demo-source">${highlight(source.trimEnd())}</div></div></article>`
-      );
-    }),
+const slugify = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+// Every page's top examples, include's too, which the playground leaves out since it can't read files.
+const pageExamples = parsed.flatMap((page) =>
+  page.section.npm
+    ? page.document.nodes
+        .filter(isElement)
+        .filter(([tag]) => tag === "examples")
+        .flatMap(([, , ...panels]) => panels.filter(isElement))
+        .map(([, attrs, ...children]) => ({
+          pkg: page.section,
+          label: str(attrs.label),
+          source: textContent(children.find(isPre) ?? ["pre", {}]),
+        }))
+    : [],
+);
+async function renderDemo(slug: string, source: string) {
+  if (slug === "lint") return lintReport(source);
+  const document = await parseMarkdown(source, { plugins: contentPlugins() });
+  if (document.meta.issues.length)
+    throw new Error(`The ${slug} demo:\n${document.meta.issues.join("\n")}`);
+  let html = (await renderHtmlFromDocument(document, { components })).replace(
+    /<iframe\b[^>]*><\/iframe>/g,
+    `<span class="demo-player"><span class="demo-play">${playIcon}</span><span class="demo-progress"></span></span>`,
   );
+  // Tabs show their strip once their script runs, which a card doesn't have.
+  html = html.replaceAll('<div class="ct"', '<div class="ct" data-tabs-ready');
+  // An include shows what it reads, since the page alone doesn't say.
+  if (slug === "include")
+    html = `<p class="demo-directive"><code>${escapeHtml(source.trim())}</code></p>${html}`;
+  return stillOf(html, demoStyles);
+}
+interface Demo {
+  pkg: Section;
+  label: string;
+  source: string;
+  /** The card's height in pixels; without one, the canvas measures the card once. */
+  height?: number;
+  /** Stills the card turns through while the pointer is on it, after its own. */
+  variants?: string[];
+}
+async function demoCard({ pkg, label, source, height, variants = [] }: Demo) {
+  const page = await renderDemo(pkg.slug, source);
+  const screen = variants.length
+    ? `<div class="demo-variants">${[page, ...variants].map((still, i) => `<div class="demo-variant"${i ? "" : " data-on"}>${still}</div>`).join("")}</div>`
+    : page;
+  const tag = label ? ` demo-${pkg.slug}-${slugify(label)}` : "";
+  return (
+    `<article class="demo demo-${pkg.slug}${tag}" data-package="${pkg.slug}"${height ? ` data-h="${height}" style="height:${height}px"` : ""}>` +
+    `<a class="demo-link" href="${href(pkg.slug)}" draggable="false" tabindex="-1">${siteIcon(pkg.icon!, 15)}<strong>${escapeHtml(pkg.label)}</strong>${label ? `<span>${escapeHtml(label.toLowerCase())}</span>` : ""}${siteIcon("arrow-up-right", 14)}</a>` +
+    `<button type="button" class="demo-md" tabindex="-1" title="Show the Markdown" aria-label="Show the Markdown">${siteIcon("code-xml", 15)}</button>` +
+    `<button type="button" class="demo-copy" data-copy="pnpm add ${escapeHtml(pkg.npm!)}" tabindex="-1" title="Copy pnpm add ${escapeHtml(pkg.npm!)}">${copyIcon}${checkIcon}</button>` +
+    // A card plays its loop while the pointer is on it; its Markdown button shows what it was drawn from.
+    `<div class="demo-screen" inert><div class="demo-page">${screen}</div><div class="demo-source">${highlight(source.trimEnd())}</div></div></article>`
+  );
+}
+// The cards in a fixed shuffle, so neighbours on the canvas are mostly of different packages, and never two of one
+// package in a row.
+function deal(demos: Demo[]) {
+  let seed = 7;
+  const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const deck = demos
+    .map((demo) => ({ demo, key: random() }))
+    .sort((a, b) => a.key - b.key)
+    .map(({ demo }) => demo);
+  const dealt: Demo[] = [];
+  while (deck.length) {
+    const at = deck.findIndex((demo) => demo.pkg.slug !== dealt.at(-1)?.pkg.slug);
+    dealt.push(...deck.splice(Math.max(0, at), 1));
+  }
+  return dealt;
+}
+
+// The index's packages, twice over: a canvas of cards, each drawn live by the plugins from the Markdown in its `demo`
+// or in a page's examples and animated by the stylesheet, and the list it replaces without the script, for keyboards,
+// and on request.
+const packageGrid: NodeHandler = async ([, , ...children]) => {
+  const landingDemos: Demo[] = children.filter(isElement).map(([, attrs, ...content]) => {
+    const pkg = sections.find((section) => section.npm && section.slug === str(attrs.package));
+    if (!pkg?.npm) throw new Error(`A demo names no package: "${str(attrs.package)}".`);
+    const pre = content.find(isPre);
+    if (!pre) throw new Error(`The ${pkg.slug} demo needs a fenced code block.`);
+    return {
+      pkg,
+      label: str(attrs.label),
+      source: textContent(pre),
+      height: Number(attrs.height) || undefined,
+    };
+  });
+  // Charts don't get a card per example: the landing's chart cards turn through them instead, each its share.
+  const chartCards = landingDemos.filter((demo) => demo.pkg.slug === "charts");
+  const charts = pageExamples.filter((example) => example.pkg.slug === "charts");
+  const chartStills = await Promise.all(
+    charts.map((example) => renderDemo("charts", example.source)),
+  );
+  for (const [i, card] of chartCards.entries()) {
+    card.variants = chartStills.filter((_, j) => j % chartCards.length === i);
+    // Its height is the tallest chart it turns through, which the canvas measures.
+    card.height = undefined;
+  }
+  // An example the landing already shows, such as github's references, shows once.
+  const shown = new Set(landingDemos.map((demo) => demo.source.trim()));
+  const others: Demo[] = pageExamples.filter(
+    (example) => example.pkg.slug !== "charts" && !shown.has(example.source.trim()),
+  );
+  const demos = await Promise.all(deal([...landingDemos, ...others]).map(demoCard));
   const list = sections
     .filter((section) => section.npm)
     .map(
@@ -717,22 +802,42 @@ const copied = async button => {
 for (const button of document.querySelectorAll(".grid-copy")) button.addEventListener("click", () => copied(button));
 // The index's canvas: columns of package cards without end, each running through every card from its own start, so
 // neighbours differ from column to column. Only the cards in view are in the page, cloned from the template as they
-// come in, and each card's height is in its markup, so nothing is measured. It holds still: it follows a drag and
-// coasts to rest after it, and pans sideways with a trackpad.
+// come in, at heights known before any is shown. It holds still: it follows a drag and coasts to rest after it, and
+// pans sideways with a trackpad.
 const mod = (a, n) => ((a % n) + n) % n;
 for (const canvas of document.querySelectorAll(".canvas")) {
   const viewport = canvas.querySelector(".canvas-viewport"), stage = canvas.querySelector(".canvas-stage"), dots = canvas.querySelector(".canvas-dots");
   const list = canvas.querySelector(".grid");
   const cards = [...canvas.querySelector(".canvas-cards").content.children];
-  const n = cards.length, heights = cards.map(c => Number(c.dataset.h)), gap = 20, pitch = 300 + gap, pad = 160;
-  const period = heights.reduce((sum, h) => sum + h + gap, 0);
+  const n = cards.length, gap = 20, pitch = 300 + gap, pad = 160;
+  let heights = [], period = 0;
+  // A card without a height in its markup is measured off screen at the canvas's first draw, once per visit, so
+  // coming back to the page measures nothing. Its images carry their size, so it measures as it will show.
+  const measured = window.comarkCardHeights ??= [];
+  const measure = () => {
+    const probe = document.createElement("div");
+    probe.className = "canvas-probe";
+    const unsized = cards.flatMap((c, i) => c.dataset.h || measured[i] ? [] : [i]);
+    const clones = unsized.map(i => probe.appendChild(cards[i].cloneNode(true)));
+    stage.append(probe);
+    unsized.forEach((i, j) => measured[i] = Math.min(420, Math.max(120, Math.ceil(clones[j].getBoundingClientRect().height))));
+    probe.remove();
+    cards.forEach((card, i) => { if (!card.dataset.h) { card.dataset.h = measured[i]; card.style.height = measured[i] + "px" } });
+    heights = cards.map(c => Number(c.dataset.h));
+    period = heights.reduce((sum, h) => sum + h + gap, 0);
+  };
+  // Each column starts \`step\` cards on from the one before, so a card shows again in the columns k over, k*step cards
+  // away. The step that keeps those farthest apart over the columns a screen holds keeps copies off one screen.
   const gcd = (a, b) => b ? gcd(b, a % b) : a;
-  let step = Math.max(1, Math.round(n * 0.4));
-  while (gcd(step, n) !== 1) step++;
+  const apart = s => Math.min(...[1, 2, 3, 4, 5, 6].map(k => { const d = mod(k * s, n); return Math.min(d, n - d) }));
+  let step = 1;
+  for (let s = 2; s < n; s++) if (gcd(s, n) === 1 && apart(s) > apart(step)) step = s;
   const live = new Map(), pools = cards.map(() => []);
   let x = 0, y = -48, vw = 0, vh = 0, vx = 0, vy = 0, last = 0, frame = 0, down, dragging = false, moved = false, samples = [];
   let placed = false;
   const draw = () => {
+    if (!vw) return;
+    if (!period) measure();
     // Centered on the first column, once there's a width to center in.
     if (!placed && vw) { x = -mod(vw - 300, pitch) / 2; placed = true }
     stage.style.transform = "translate3d(" + -x + "px," + -y + "px,0)";
@@ -815,6 +920,22 @@ for (const canvas of document.querySelectorAll(".canvas")) {
     if (copy) copied(copy);
   }, true);
   viewport.addEventListener("dragstart", e => e.preventDefault());
+  // A chart card turns through its charts while the pointer is on it: the first turn soon, then one every few seconds.
+  let turning, turner = 0;
+  const turn = card => {
+    const variants = [...card.querySelectorAll(".demo-variant")], on = variants.findIndex(v => v.hasAttribute("data-on"));
+    variants[on].removeAttribute("data-on"); variants[(on + 1) % variants.length].setAttribute("data-on", "");
+  };
+  const settle = () => { clearTimeout(turner); clearInterval(turner); turning = undefined };
+  viewport.addEventListener("pointerover", e => {
+    const card = e.target.closest(".demo");
+    if (card === turning) return;
+    settle();
+    if (!card?.querySelector(".demo-variants") || reduce.matches) return;
+    turning = card;
+    turner = setTimeout(() => { turn(card); turner = setInterval(() => card.isConnected ? turn(card) : settle(), 2800) }, 700);
+  });
+  viewport.addEventListener("pointerleave", settle);
   viewport.addEventListener("wheel", e => {
     if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
     e.preventDefault(); x += e.deltaX * (e.deltaMode ? 16 : 1); canvas.dataset.dragged = ""; draw();

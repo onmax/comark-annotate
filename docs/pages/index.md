@@ -21,7 +21,7 @@ Moon and Vibes are in here now.
 ```
 :::
 
-:::demo{package="charts" height=360}
+:::demo{package="charts"}
 ```md
 ::chart{title="Pigeons on the roof"}
 | weekday | pigeons |
@@ -102,12 +102,6 @@ function countPigeons(roof) {
 ````
 :::
 
-:::demo{package="icon" height=176}
-```md
-Built with :icon{name="logos:vue" label="Vue"} :icon{name="logos:vitejs" label="Vite"} :icon{name="logos:cloudflare-icon" label="Cloudflare"} :icon{name="logos:pnpm" label="pnpm"} :icon{name="logos:typescript-icon" label="TypeScript"}
-```
-:::
-
 :::demo{package="carousel" height=224}
 ```md
 ::carousel{title="Filters"}
@@ -146,7 +140,7 @@ Thanks @onmax: this fixes #51, and onmax/comark-plugins#73 builds on it.
 ```
 :::
 
-:::demo{package="charts" label="line" height=372}
+:::demo{package="charts"}
 ```md
 ::chart{type="line" title="Coffee cups and commits"}
 | month | coffee cups | commits |

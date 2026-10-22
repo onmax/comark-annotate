@@ -72,6 +72,62 @@ test("the index's canvas drags, coasts, and opens the card it was clicked on", a
   await expect(page).toHaveURL(card!.href);
 });
 
+test("the index's canvas shows every example once on screen, each at its own height", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.locator(".canvas-viewport").scrollIntoViewIfNeeded();
+  const { cards, onScreen, unsized } = await page.evaluate(() => {
+    const view = document.querySelector(".canvas-viewport")!.getBoundingClientRect();
+    const live = [...document.querySelectorAll<HTMLElement>(".canvas-stage .demo")];
+    const seen = live.filter((demo) => {
+      const r = demo.getBoundingClientRect();
+      return (
+        r.right > view.left && r.left < view.right && r.bottom > view.top && r.top < view.bottom
+      );
+    });
+    return {
+      cards:
+        document.querySelector<HTMLTemplateElement>("template.canvas-cards")!.content.children
+          .length,
+      onScreen: seen.map((demo) => demo.querySelector(".demo-source")!.textContent),
+      unsized: live.filter((demo) => !demo.style.height).length,
+    };
+  });
+  // The landing's demos and every package page's examples.
+  expect(cards).toBeGreaterThan(40);
+  expect(onScreen.length).toBeGreaterThan(8);
+  expect(new Set(onScreen).size).toBe(onScreen.length);
+  expect(unsized).toBe(0);
+});
+
+test("a chart card turns through its charts while the pointer is on it", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".canvas-viewport").scrollIntoViewIfNeeded();
+  // A chart card in view, placed where the pointer can reach it.
+  const at = await page.evaluate(() => {
+    const stage = document.querySelector<HTMLElement>(".canvas-stage")!;
+    const card = document
+      .querySelector<HTMLTemplateElement>("template.canvas-cards")!
+      .content.querySelector(".demo-charts")!
+      .cloneNode(true) as HTMLElement;
+    const [, x, y] = /translate3d\((-?[\d.]+)px, ?(-?[\d.]+)px/
+      .exec(stage.style.transform)!
+      .map(Number);
+    card.style.left = `${-x + 400}px`;
+    card.style.top = `${-y + 40}px`;
+    card.style.zIndex = "5";
+    card.id = "turning";
+    stage.append(card);
+    const r = card.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + 80 };
+  });
+  const on = page.locator("#turning .demo-variant[data-on]");
+  const first = await on.innerHTML();
+  await page.mouse.move(at.x, at.y);
+  await expect.poll(() => on.innerHTML(), { timeout: 3000 }).not.toBe(first);
+});
+
 test("the index's canvas switches to the list, and remembers it", async ({ page }) => {
   await page.goto("/");
   const canvas = page.locator(".canvas");
