@@ -371,7 +371,6 @@ async function render(compiled: vega.Spec, loader?: vega.Loader) {
   return { view, svg };
 }
 
-
 const format = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 12 });
 
 /** Ticks from a round step that end at the first one past the data, among as many as fit `width`. */
