@@ -55,3 +55,5 @@ Bigger buttons further from the corner, and a title lined up with code that has 
   padding-left: 1.25rem;
 }
 ```
+
+To try it, paste it into Extra CSS in the [playground's Theme pane](/play/#preset=code-copy-and-wrap).

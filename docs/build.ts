@@ -18,6 +18,7 @@ import include from "../packages/include/src/index.ts";
 import { defaultConfig } from "./config.ts";
 import { highlight } from "./highlight.ts";
 import { browserPlugins, components } from "./plugins.ts";
+import { colorTokens, themePresets } from "./play-theme.ts";
 import { previewDocument } from "./preview.ts";
 
 const root = new URL("./", import.meta.url);
@@ -837,6 +838,22 @@ ${page.toc ? `<aside class="toc"><nav aria-label="On this page"><p class="nav-gr
   console.log(`docs/dist/${page.slug}/index.html written`);
 }
 
+// The playground's Theme pane: the shared tokens, each a text field the swatch or slider fills, and free CSS for the
+// rest. The script fills in each swatch and placeholder from the preview.
+const tokenRow = (token: string, label: string, control: string) =>
+  `<label for="play-token-${token}">${label}<code aria-hidden="true">--comark-${token}</code></label>${control}<input type="text" id="play-token-${token}" data-token="${token}" spellcheck="false" autocapitalize="off" autocomplete="off">`;
+const capitalize = (word: string) => word[0]?.toUpperCase() + word.slice(1);
+const themePane = `<div class="play-theme" data-pane="theme" hidden>
+<div class="play-theme-bar"><div class="seg play-scheme" role="group" aria-label="Preview colors"><button type="button" data-scheme="light" aria-pressed="true">Light</button><button type="button" data-scheme="dark" aria-pressed="false">Dark</button></div><div class="play-theme-actions"><button type="button" class="play-theme-reset" hidden>Reset</button><button type="button" class="play-theme-copy">Copy CSS</button></div></div>
+<div class="play-theme-field"><span id="play-theme-presets">Preset</span><div class="seg play-theme-presets" role="group" aria-labelledby="play-theme-presets">${themePresets.map((preset, index) => `<button type="button" data-theme="${preset.id}" aria-pressed="${index === 0}">${preset.label}</button>`).join("")}</div></div>
+<div class="play-tokens">
+${colorTokens.map((token) => tokenRow(token, capitalize(token), `<input type="color" data-swatch="${token}" aria-label="Pick the ${token} color">`)).join("\n")}
+${tokenRow("radius", "Radius", `<input type="range" data-slider="radius" min="0" max="1.5" step="0.125" value="0.625" aria-label="Radius in rem">`)}
+${tokenRow("font", "Font", "<span></span>")}
+</div>
+<div class="play-theme-field play-theme-extra"><label for="play-theme-css">Extra CSS</label><p>Each plugin's own variables, like <code>--cc-*</code> or <code>--ck-*</code>, or any rule, applied to the preview.</p><textarea id="play-theme-css" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder=":root { --cc-gap: 2rem; --ck-inset: 0.5rem }"></textarea></div>
+</div>`;
+
 // The playground opens on the first preset, rendered here so it shows before the script loads.
 const playSection = sections.find((section) => section.slug === "play");
 const first = presets[0];
@@ -855,11 +872,12 @@ if (playSection && first) {
       head: `\n<link rel="modulepreload" href="/play/play.js">\n${[...thumbnailStyles].join("")}`,
       body: `<div class="play">
 <div class="play-editor">
-<div class="play-bar"><div class="seg play-panes" role="group" aria-label="Editor"><button type="button" data-pane="markdown" aria-pressed="true">Markdown</button><button type="button" data-pane="config" aria-pressed="false">Config</button></div><button type="button" class="play-share">Copy link</button></div>
+<div class="play-bar"><div class="seg play-panes" role="group" aria-label="Editor"><button type="button" data-pane="markdown" aria-pressed="true">Markdown</button><button type="button" data-pane="config" aria-pressed="false">Config</button><button type="button" data-pane="theme" aria-pressed="false">Theme</button></div><button type="button" class="play-share">Copy link</button></div>
 <div class="play-tools"><button type="button" class="play-reset" aria-label="Reset to the example" title="Reset to the example" hidden>${resetIcon}</button><button type="button" class="play-copy" aria-label="Copy the Markdown" title="Copy">${copyIcon}${checkIcon}</button></div>
 <dialog class="play-confirm" aria-labelledby="play-confirm-title"><form method="dialog"><h2 id="play-confirm-title">Reset to the example?</h2><p>Your changes to the Markdown will be lost.</p><div><button value="cancel" autofocus>Cancel</button><button value="reset">Reset</button></div></form></dialog>
 <div class="play-code" data-pane="markdown"><div class="play-paint" aria-hidden="true">${highlight(`${first.source}\n `)}</div><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Markdown">${escapeHtml(first.source)}</textarea></div>
 <div class="play-code" data-pane="config" hidden><div class="play-paint" aria-hidden="true">${highlight(`${defaultConfig}\n `, "json")}</div><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Config">${escapeHtml(defaultConfig)}</textarea></div>
+${themePane}
 <ul class="play-issues" aria-label="Issues" aria-live="polite" hidden></ul>
 </div>
 <iframe class="play-preview" title="Preview" srcdoc="${escapeHtml(previewDocument(await renderHtmlFromDocument(document, { components })))}"></iframe>
