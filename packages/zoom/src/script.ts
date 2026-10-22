@@ -14,9 +14,9 @@ export interface ZoomDetail {
   index: number;
   items: HTMLElement[];
   /** The copy in the zoomed view of an element of the item or its aside, or null when it isn't one of them. */
-  copyOf(node: Element): Element | null;
+  copyOf: (node: Element) => Element | null;
   /** The element on the page that a node of the zoomed copy or the aside copies, or null when it isn't one of them. */
-  originalOf(node: Element): Element | null;
+  originalOf: (node: Element) => Element | null;
 }
 
 declare global {
