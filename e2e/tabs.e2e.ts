@@ -84,6 +84,31 @@ test("synced blocks switch together, keep the clicked tab still, and remember th
     await expect(root.getByRole("tab", { name: "B" })).toHaveAttribute("aria-selected", "true");
 });
 
+for (const colorScheme of ["light", "dark"] as const)
+  test(`the open tab's surface is lighter than its strip in ${colorScheme}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme });
+    await open(page, block("A"));
+    const [surface, strip] = await page.locator(".ct").evaluate((root) => {
+      // The strip is translucent, so it's measured over the background, as the page shows it.
+      const canvas = document.createElement("canvas").getContext("2d")!;
+      const paint = (...colors: string[]) => {
+        for (const color of colors) {
+          canvas.fillStyle = color;
+          canvas.fillRect(0, 0, 1, 1);
+        }
+        const [r, g, b] = canvas.getImageData(0, 0, 1, 1).data;
+        return r! + g! + b!;
+      };
+      const background = getComputedStyle(root).getPropertyValue("--_comark-background");
+      const tab = root.querySelector(".ct-tab[aria-selected='true']")!;
+      return [
+        paint(background, getComputedStyle(tab, "::before").backgroundColor),
+        paint(background, getComputedStyle(root.querySelector(".ct-list")!).backgroundColor),
+      ];
+    });
+    expect(surface).toBeGreaterThan(strip!);
+  });
+
 test("without the script, every panel shows under its label", async ({ page }) => {
   await open(page, block("A"), { script: false });
   await expect(page.getByRole("tablist")).toBeHidden();
