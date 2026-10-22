@@ -1,6 +1,6 @@
 ---
 title: Components
-description: screenshot, annotation, compare, and diff, and the props each takes.
+description: screenshot, annotation, and compare, and the props each takes.
 ---
 
 ## screenshot
@@ -9,9 +9,9 @@ An image with marks on it. Other content inside the block becomes the caption.
 
 ::example
 ```md
-::screenshot{src="/after.png" alt="Filter toolbar on one row" title="After" href="https://pr42.preview.example.com/correlations"}
-:::annotation{x=68 y=33.1 w=13.3 h=16}
-Moon phase and vibes collapse into **+2 filters**.
+::screenshot{src="/after.png" alt="Filter toolbar on one row" title="After" href="https://pr42.preview.example.com/plan"}
+:::annotation{x=67.9 y=34.8 w=13 h=14.2}
+Extra filters collapse into **+2 filters**.
 :::
 ::
 ```
@@ -31,13 +31,13 @@ A mark on the screenshot and its note. The content is the note. Props can be inl
 
 ::example
 ```md
-::screenshot{src="/dashboard.png" alt="Office correlations dashboard"}
-:::annotation{x=82.4 y=5.3 w=14.2 h=8.8 color="blue"}
-**Export CSV** keeps the filters you set, moon phase included.
+::screenshot{src="/dashboard.png" alt="Forecast planning dashboard"}
+:::annotation{x=81.8 y=5.3 w=14.1 h=7.3 color="blue"}
+**Export CSV** includes the filters you set.
 :::
 
-:::annotation{x=66.1 y=17 w=30.5 h=24.6 side="right" color="green"}
-r now counts the office cat.
+:::annotation{x=66.4 y=16.4 w=29.4 h=22.2 side="right" color="green"}
+Accuracy now counts returns.
 :::
 ::
 ```
@@ -60,13 +60,13 @@ With `mode="slider"`, the two screenshots share one frame: Before shows left of 
 ```md
 ::compare{title="Toolbar alignment"}
 :::screenshot{src="/before.png" alt="Toolbar wrapping" viewport="640x250"}
-::::annotation{x=23.6 y=52.7 w=10.9 h=16 mark="circle" color="red"}
+::::annotation{x=50.9 y=55.4 w=10.5 h=14.2 mark="circle" color="red"}
 **Apply** sits lower than the chips.
 ::::
 :::
 
 :::screenshot{src="/after.png" alt="Toolbar on one row" viewport="640x250"}
-::::annotation{x=82.5 y=33.1 w=10.9 h=16 mark="check" color="green"}
+::::annotation{x=82.5 y=34.8 w=10.5 h=14.2 mark="check" color="green"}
 Fixed.
 ::::
 :::

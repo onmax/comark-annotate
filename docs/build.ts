@@ -67,6 +67,7 @@ const packageOrder = [
   "annotate",
   "charts",
   "chips",
+  "diff",
   "embed",
   "github",
   "icon",

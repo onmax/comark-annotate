@@ -11,7 +11,7 @@ export type AnnotateMeta = {
 };
 
 /**
- * Checks `::screenshot`, `::compare`, `::diff`, and `::annotation` blocks while parsing and adds every problem to
+ * Checks `::screenshot`, `::compare`, and `::annotation` blocks while parsing and adds every problem to
  * `meta.issues`, so a host can reject a document before publishing it. Rendering does not depend on it.
  */
 export default defineComarkPlugin<void, AnnotateMeta>(() => ({

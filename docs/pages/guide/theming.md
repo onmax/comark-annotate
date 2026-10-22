@@ -12,7 +12,7 @@ shadcn/ui before Tailwind 4 stores colors as bare HSL numbers, so map those thro
 
 ## Tokens
 
-Set the `--comark-*` tokens to theme annotate, carousel, charts, code, embed, github, tabs, and zoom at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
+Set the `--comark-*` tokens to theme annotate, carousel, charts, chips, code, embed, github, tabs, and zoom at once. Each one wins over its shadcn variable, and works on `:root` or on any ancestor:
 
 | Token | Falls back to | Used for |
 | --- | --- | --- |
@@ -32,7 +32,7 @@ Set the `--comark-*` tokens to theme annotate, carousel, charts, code, embed, gi
 }
 ```
 
-To theme one part only, set the tokens on its root instead: `.ca` for annotate, `.cc` for a carousel, `.ck` for code buttons, `.ce` and `.ce-card` for embeds, `.cgc` for callouts, `.ct` for tabs, and `.cz-dialog` for the zoomed view.
+To theme one part only, set the tokens on its root instead: `.ca` for annotate, `.cc` for a carousel, `.cp` for chips, `.ck` for code buttons, `.ce` and `.ce-card` for embeds, `.cgc` for callouts, `.ct` for tabs, and `.cz-dialog` for the zoomed view.
 
 ## Your own rules
 
