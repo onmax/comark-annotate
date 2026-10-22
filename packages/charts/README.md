@@ -20,7 +20,7 @@ const render = createHtmlRenderer({ plugins: [charts()], components });
 ```
 
 ```md
-::chart{title="Coffee cups and commits, per month (r = 0.98)"}
+::chart{title="Coffee cups and commits, per month (r = 0.99)"}
 | month | coffee cups | commits |
 | --- | --: | --: |
 | 2026-04 | 820 | 610 |

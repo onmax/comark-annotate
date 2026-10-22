@@ -31,13 +31,13 @@ A mark on the screenshot and its note. The content is the note. Props can be inl
 
 ::example
 ```md
-::screenshot{src="/dashboard.png" alt="Forecast planning dashboard"}
-:::annotation{x=81.8 y=5.3 w=14.1 h=7.3 color="blue"}
+::screenshot{src="/dashboard.png" alt="Office correlations dashboard"}
+:::annotation{x=82.4 y=5.3 w=14.2 h=8.8 color="blue"}
 **Export CSV** includes the filters you set.
 :::
 
-:::annotation{x=66.4 y=16.4 w=29.4 h=22.2 side="right" color="green"}
-Accuracy now counts returns.
+:::annotation{x=66.1 y=17 w=30.5 h=24.6 side="right" color="green"}
+r now counts the office cat.
 :::
 ::
 ```
@@ -60,7 +60,7 @@ With `mode="slider"`, the two screenshots share one frame: Before shows left of 
 ```md
 ::compare{title="Toolbar alignment"}
 :::screenshot{src="/before.png" alt="Toolbar wrapping" viewport="640x250"}
-::::annotation{x=50.9 y=55.4 w=10.5 h=14.2 mark="circle" color="red"}
+::::annotation{x=22.4 y=50.4 w=13.3 h=20.6 mark="circle" color="red"}
 **Apply** sits lower than the chips.
 ::::
 :::

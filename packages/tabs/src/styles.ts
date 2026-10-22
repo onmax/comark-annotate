@@ -25,7 +25,12 @@ export const css = `@layer comark{${[
   // and the transparent outline shows instead.
   ".ct-tab[aria-selected='true']{color:var(--ct-active-text,var(--_comark-foreground));outline:1px solid transparent;outline-offset:-1px}",
   ".ct-tab[aria-selected='true']::before{background:var(--ct-active,var(--_comark-background));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--_comark-border),var(--_comark-foreground) 8%)}",
-  ".ct-tab:focus-visible,.ct-panel:focus-visible{outline:2px solid var(--_comark-ring);outline-offset:1px}",
+  // On a dark background the strip is lighter than the page, so the page's color would sink the open tab into it. As in
+  // shadcn/ui's dark tabs, it rises with a lighter surface. The background's own lightness decides, rather than the
+  // system setting, so a `.dark` class, or a light site on a dark system, gets the right one.
+  "@supports (color:oklch(from red l c h)){.ct-tab[aria-selected='true']::before{background:var(--ct-active,oklch(from var(--_comark-background) calc(l + .14 * clamp(0, (.5 - l) * 100, 1)) c h))}}",
+  // A panel has no padding, so its ring stands clear of the text that reaches its edge.
+  ".ct-tab:focus-visible,.ct-panel:focus-visible{outline:2px solid var(--_comark-ring);outline-offset:4px}",
   // The strip scrolls, so it clips whatever reaches past its padding: a tab's ring stays inside the tab.
   ".ct-tab:focus-visible{outline-offset:-2px}",
   ".ct-panel{border-radius:var(--_comark-radius)}",

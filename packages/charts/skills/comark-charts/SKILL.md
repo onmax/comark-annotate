@@ -10,7 +10,7 @@ You write a Markdown table inside `::chart`; comark-charts draws it as an SVG ch
 ## Write the table
 
 ```md
-::chart{title="Coffee cups and commits, per month (r = 0.98)"}
+::chart{title="Coffee cups and commits, per month (r = 0.99)"}
 | month | coffee cups | commits |
 | --- | --: | --: |
 | 2026-04 | 820 | 610 |

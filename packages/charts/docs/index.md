@@ -26,7 +26,7 @@ credits: 'Laid out by Microsoft Research''s <a href="https://github.com/microsof
 
 :::example{label="Lines"}
 ```md
-::chart{title="Coffee cups and commits, per month (r = 0.98)"}
+::chart{title="Coffee cups and commits, per month (r = 0.99)"}
 | month | coffee cups | commits |
 | --- | --: | --: |
 | 2026-04 | 820 | 610 |
@@ -40,9 +40,9 @@ credits: 'Laid out by Microsoft Research''s <a href="https://github.com/microsof
 ```
 :::
 
-:::example{label="Marked"}
+:::example{label="With notes"}
 ```md
-::chart{title="Coffee cups and commits, per month (r = 0.98)"}
+::chart{title="Coffee cups and commits, per month (r = 0.99)"}
 | month | coffee cups | commits |
 | --- | --: | --: |
 | 2026-04 | 820 | 610 |
