@@ -21,6 +21,7 @@ describe("comark-zoom", () => {
     expect(style).toContain(
       "background:var(--cz-backdrop,color-mix(in srgb,var(--_comark-background) var(--cz-backdrop-opacity,96%),transparent))",
     );
+    expect(style).toContain(".cz{margin:1.5rem 0}");
   });
 
   it("leaves linked images alone, and adds nothing when nothing zooms", async () => {
