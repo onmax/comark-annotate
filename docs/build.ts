@@ -1090,7 +1090,7 @@ ${body}
 }
 
 const footer = (credits?: string) =>
-  `<footer><span>Built on <a href="https://comark.dev">Comark</a> by the <a href="https://github.com/comarkdown">Comark team</a>.${credits ? ` ${credits}` : ""}</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>`;
+  `<footer><span>Built on <a href="https://comark.dev">Comark</a>.${credits ? ` ${credits}` : ""}</span><span>Made by <a href="https://onmax.me">Maxi García</a></span></footer>`;
 
 // The landing page, as on vitehub.dev: the headline beside the install command, the packages, the example, and Drop.
 await writeFile(
