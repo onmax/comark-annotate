@@ -14,6 +14,8 @@ import { parseMarkdown } from "comark";
 import { escapeHtml, textContent } from "comark/utils";
 import { icons as lucide } from "@iconify-json/lucide";
 import { deflateRawSync } from "node:zlib";
+import { readFile } from "node:fs/promises";
+import { access } from "node:fs/promises";
 import { createError, defineEventHandler, getQuery, getRouterParam } from "nuxt/server";
 import { copyIcon } from "#shared/chrome";
 import type { Page } from "#shared/pages";
@@ -151,7 +153,7 @@ export default defineEventHandler(async (event): Promise<Page> => {
   const file = await read(slug);
   const document = { nodes: file.nodes, frontmatter: file.data, meta: file.meta };
   // The page shell asks without the body, which the PageBody server component renders.
-  const html =
+  let html =
     getQuery(event).body === "0"
       ? ""
       : // A table wider than the column scrolls inside it instead of widening the page.
@@ -171,6 +173,20 @@ export default defineEventHandler(async (event): Promise<Page> => {
           /<table>[\s\S]*?<\/table>/g,
           (table) => `<div class="table-scroll">${table}</div>`,
         );
+  // The landing page has a richer build-time renderer (canvas and studio). Reuse
+  // its generated body for the Nuxt island when the docs build has produced it.
+  if (slug === "" && getQuery(event).body !== "0") {
+    try {
+      const path = `${process.cwd()}/docs/dist/index.html`;
+      await access(path);
+      const source = await readFile(path, "utf8");
+      const start = source.indexOf('<div class="landing">');
+      const end = source.lastIndexOf("<script>");
+      if (start >= 0 && end > start) html = source.slice(start, end);
+    } catch {
+      // Fall back to the server renderer when no static landing body exists.
+    }
+  }
   const nav = file.nodes
     .filter(isElement)
     .filter(([tag]) => tag === "h2" || tag === "h3")

@@ -703,9 +703,10 @@ for (const box of document.querySelectorAll(".installer")) {
 }
 const copyTokens = new WeakMap<Element, number>();
 const copied = async button => {
-  await navigator.clipboard.writeText(button.dataset.copy);
   const token = (copyTokens.get(button) ?? 0) + 1;
   copyTokens.set(button, token);
+  await navigator.clipboard.writeText(button.dataset.copy);
+  if (copyTokens.get(button) !== token) return;
   button.classList.add("copied");
   setTimeout(() => {
     if (copyTokens.get(button) === token) button.classList.remove("copied");
@@ -815,7 +816,7 @@ for (const canvas of document.querySelectorAll(".canvas")) {
     down = undefined;
   };
   viewport.addEventListener("pointerup", release);
-  viewport.addEventListener("pointercancel", release);
+  viewport.addEventListener("pointercancel", e => { release(e); moved = false });
   viewport.addEventListener("pointerleave", e => { if (e.pointerType === "mouse" && hovering) { hovering = false; run() } });
   // A drag that ends on a card isn't a click on it.
   viewport.addEventListener("click", e => {
