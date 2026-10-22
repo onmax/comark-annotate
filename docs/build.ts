@@ -186,27 +186,33 @@ const href = (slug: string) => `/${slug}${slug ? "/" : ""}`;
 const playable = (source: string) => !/^:+include\b/m.test(source);
 const playLink = (source: string) => `/play/#md=${deflateRawSync(source).toString("base64url")}`;
 
-// An example shows the Markdown in its code block twice: rendered, and as source.
-const example: NodeHandler = async ([, attrs, ...children], state) => {
-  const pre = children.find(isPre);
-  if (!pre) throw new Error(`Example "${str(attrs.label)}" needs a fenced code block.`);
-  const source = textContent(pre);
-  // Highlighted like the page, so a diff in an example keeps its colors.
-  const preview = await parseMarkdown(source, {
-    plugins: [...contentPlugins(), shiki({ themes: { light, dark } })],
-  });
-  if (preview.meta.issues.length)
-    throw new Error(`Example "${str(attrs.label)}":\n${preview.meta.issues.join("\n")}`);
-  const play = playable(source)
-    ? `<a class="example-play" href="${escapeHtml(playLink(source))}">${siteIcon("flask-conical", 13)}Playground</a>`
-    : "";
-  return (
-    `<div class="example"><div class="example-bar">${play}<div class="seg" role="group" aria-label="View">` +
-    `<button type="button" data-view="preview" aria-pressed="true">Preview</button><button type="button" data-view="code" aria-pressed="false">Code</button></div></div>` +
-    `<div class="example-body"><div class="example-preview">${await state.flow(["div", {}, ...preview.nodes], state)}</div>` +
-    `<div class="example-code" hidden>${await state.one(pre, state)}</div></div></div>`
-  );
-};
+// An example shows the Markdown in its code block twice: rendered, and as source. It runs every plugin but the ones
+// `without` names.
+const exampleWithout =
+  (without: string[]): NodeHandler =>
+  async ([, attrs, ...children], state) => {
+    const pre = children.find(isPre);
+    if (!pre) throw new Error(`Example "${str(attrs.label)}" needs a fenced code block.`);
+    const source = textContent(pre);
+    // Highlighted like the page, so a diff in an example keeps its colors.
+    const preview = await parseMarkdown(source, {
+      plugins: [
+        ...contentPlugins().filter((plugin) => !without.includes(plugin.name)),
+        shiki({ themes: { light, dark } }),
+      ],
+    });
+    if (preview.meta.issues.length)
+      throw new Error(`Example "${str(attrs.label)}":\n${preview.meta.issues.join("\n")}`);
+    const play = playable(source)
+      ? `<a class="example-play" href="${escapeHtml(playLink(source))}">${siteIcon("flask-conical", 13)}Playground</a>`
+      : "";
+    return (
+      `<div class="example"><div class="example-bar">${play}<div class="seg" role="group" aria-label="View">` +
+      `<button type="button" data-view="preview" aria-pressed="true">Preview</button><button type="button" data-view="code" aria-pressed="false">Code</button></div></div>` +
+      `<div class="example-body"><div class="example-preview">${await state.flow(["div", {}, ...preview.nodes], state)}</div>` +
+      `<div class="example-code" hidden>${await state.one(pre, state)}</div></div></div>`
+    );
+  };
 
 // The examples at the top of each page. Not comark-tabs: each example's Preview/Code switch shares the tab row.
 const examples: NodeHandler = async ([, , ...children], state) => {
@@ -826,7 +832,21 @@ for (const page of parsed) {
 <div class="content">
 <div class="hero enter">${subpage ? `<p class="eyebrow mono">${npm}</p>` : ""}<h1>${escapeHtml(page.title)}</h1><p>${escapeHtml(page.tagline)}</p>
 ${page.install ? installerFor(page.install, page.skill) : ""}</div>
-<main class="enter" style="--i:1">${(await renderHtmlFromDocument(page.document, { components: { ...components, example, examples, matrix } })).replace(/<table>[\s\S]*?<\/table>/g, (table) => `<div class="table-scroll">${table}</div>`)}</main>
+<main class="enter" style="--i:1">${(
+        await renderHtmlFromDocument(page.document, {
+          components: {
+            ...components,
+            // comark-chips would take the `@user` that comark-github's references draw, so GitHub's pages show them
+            // as GitHub does.
+            example: exampleWithout(page.section.slug === "github" ? ["comark-chips"] : []),
+            examples,
+            matrix,
+          },
+        })
+      ).replace(
+        /<table>[\s\S]*?<\/table>/g,
+        (table) => `<div class="table-scroll">${table}</div>`,
+      )}</main>
 ${pager(page)}
 ${footer(page.section.credits)}
 </div>

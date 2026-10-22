@@ -45,16 +45,16 @@ yarn add comark-tabs
 :::example{label="Icons"}
 ````md
 ::code-group{sync="pm"}
-```sh [pnpm] icon=vscode-icons:file-type-pnpm
+```sh [pnpm] icon=logos:pnpm
 pnpm add comark-tabs
 ```
 
-```sh [npm] icon=vscode-icons:file-type-npm
+```sh [npm] icon=logos:npm-icon
 npm install comark-tabs
 ```
 
-```sh [bun] icon=vscode-icons:file-type-bun
-bun add comark-tabs
+```sh [yarn] icon=logos:yarn
+yarn add comark-tabs
 ```
 ::
 ````

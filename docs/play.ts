@@ -92,12 +92,27 @@ panes.addEventListener("click", (event) => {
   );
 });
 
-// Each still in the presets' column is a page laid out at full width. It's scaled to show all of itself, unless that
-// would fill less than most of its card's width; then it fills that much and shows its top.
+// Each still in the presets' column is a page scaled to show all of itself, unless that would fill less than most of
+// its card's width; then it fills that much and shows its top. A page that fits whole lays out at whichever width
+// shows it largest, so a sentence wraps narrow and stays legible. A chart or a screenshot, whose height follows its
+// width, gains nothing narrower and keeps the page's width.
+const NARROWER = [448, 320, 224];
 function fit(thumb: HTMLElement) {
   const page = thumb.firstElementChild;
   if (!(page instanceof HTMLElement) || !thumb.clientWidth || !page.offsetWidth) return;
   const { clientWidth: width, clientHeight: height } = thumb;
+  const whole = (pageWidth: number) => {
+    page.style.width = `${pageWidth}px`;
+    return Math.min(width / pageWidth, height / page.offsetHeight);
+  };
+  let best = 640;
+  let largest = whole(best);
+  // Only a clearly larger still is worth a narrower layout.
+  for (const pageWidth of NARROWER) {
+    const scale = whole(pageWidth);
+    if (scale > largest * 1.15) [best, largest] = [pageWidth, scale];
+  }
+  whole(best);
   const scale = Math.min(
     width / page.offsetWidth,
     Math.max(height / page.offsetHeight, (width * 0.7) / page.offsetWidth),

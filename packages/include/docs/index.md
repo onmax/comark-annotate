@@ -24,11 +24,11 @@ credits: 'Arguments from <a href="https://github.com/unjs/automd">automd</a>.'
 
 :::example{label="Lines"}
 ```md
-:include{src="./partials/ducks.ts" lines="1:3"}
+:include{src="./partials/ducks.ts" lines="8:10"}
 ```
 :::
 
-:::example{label="Source"}
+:::example{label="As code"}
 ```md
 :include{src="./partials/install.md" code}
 ```

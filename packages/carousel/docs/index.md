@@ -21,7 +21,7 @@ blurb: Slides of any content
 ```
 :::
 
-:::example{label="Any content"}
+:::example{label="Titled slides"}
 ````md
 ::carousel{title="Setup"}
 :::slide{title="Install"}
@@ -35,7 +35,7 @@ Pass the plugin and its `components` to the renderer.
 :::
 
 :::slide{title="Write"}
-> Every block inside `::carousel` is a slide.
+> Each `:::slide` is one slide, however many blocks it holds.
 :::
 ::
 ````
