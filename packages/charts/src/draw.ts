@@ -7,7 +7,7 @@ import type { Field } from "vega-lite/types_unstable/channeldef.js";
 import type { LayerSpec, UnitSpec } from "vega-lite/types_unstable/spec/index.js";
 import { compile } from "vega-lite";
 import { INK, SERIES } from "./colors.ts";
-import type { Chart, XKind } from "./read.ts";
+import type { Chart, SpecChart, XKind } from "./read.ts";
 
 const { logger, None, parse, View } = vega;
 
@@ -346,6 +346,30 @@ function boxes(chart: Chart, view: vega.View, width: number, height: number): Ma
   return found;
 }
 
+/** Draws a compiled Vega spec to an SVG string, and returns the view for finding where its marks sit. */
+async function render(compiled: vega.Spec, loader?: vega.Loader) {
+  // Vega compiles its expressions with `new Function` unless told to interpret them, and Cloudflare Workers, where
+  // documents like these often render, forbid that.
+  const options: vega.ViewOptions = {
+    renderer: "none",
+    logLevel: None,
+    expr: expressionInterpreter,
+  };
+  if (loader) options.loader = loader;
+  const view = new View(parse(compiled, undefined, { ast: true }), options);
+  // Vega gives every group a role for screen readers, which the one `role="img"` hides anyway, an empty foreground
+  // path, and float noise such as `10.000000000000021`. Only tags change, since text holds the table's own numbers,
+  // and Vega escapes `>` in attributes.
+  const svg = (await view.toSVG())
+    .replace(/<path class="foreground"[^>]* d=""[^>]*\/>/g, "")
+    .replace(/<[^>]+>/g, (tag) =>
+      tag
+        .replace(/ (?:role|aria-roledescription|aria-hidden)="[^"]*"/g, "")
+        .replace(/(\.\d\d)\d+/g, "$1"),
+    );
+  return { view, svg };
+}
+
 /**
  * Draws a chart to an SVG string at the size Flint laid it out for, so its text reads at the size it was set, and
  * finds where each of its marks sits.
@@ -586,25 +610,63 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
       spec.layer.push({ mark: { type: "point", opacity: 0 }, encoding });
     }
   }
-  // Vega compiles its expressions with `new Function` unless told to interpret them, and Cloudflare Workers, where
-  // documents like these often render, forbid that.
-  const view = new View(parse(compile(spec, { logger: quiet }).spec, undefined, { ast: true }), {
-    renderer: "none",
-    logLevel: None,
-    expr: expressionInterpreter,
-  });
-  // Vega gives every group a role for screen readers, which the one `role="img"` hides anyway, an empty foreground
-  // path, and float noise such as `10.000000000000021`. Only tags change, since text holds the table's own numbers,
-  // and Vega escapes `>` in attributes.
-  const svg = (await view.toSVG())
-    .replace(/<path class="foreground"[^>]* d=""[^>]*\/>/g, "")
-    .replace(/<[^>]+>/g, (tag) =>
-      tag
-        .replace(/ (?:role|aria-roledescription|aria-hidden)="[^"]*"/g, "")
-        .replace(/(\.\d\d)\d+/g, "$1"),
-    );
+  const { view, svg } = await render(compile(spec, { logger: quiet }).spec);
   const [, width = "0", height = "0"] = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg) ?? [];
   const found = boxes(chart, view, Number(width), Number(height));
   view.finalize();
   return { svg, boxes: found };
+}
+
+// The house look, set where a spec leaves it: shadcn/ui's charts, in the inks the stylesheet swaps for the page's.
+const SPEC_CONFIG = {
+  aria: false,
+  font: "sans-serif",
+  view: { stroke: null },
+  range: { category: [...SERIES] },
+  mark: { color: SERIES[0] },
+  bar: { cornerRadiusEnd: 4 },
+  line: { strokeWidth: 2 },
+  axis: {
+    domain: false,
+    ticks: false,
+    grid: true,
+    gridColor: INK.border,
+    labelColor: INK.muted,
+    titleColor: INK.muted,
+    labelFontSize: 12,
+    titleFontSize: 12,
+    titleFontWeight: "normal",
+    labelPadding: 8,
+    titlePadding: 10,
+  },
+  axisX: { grid: false },
+  legend: { labelColor: INK.muted, titleColor: INK.muted, labelFontSize: 12, titleFontSize: 12 },
+  text: { color: INK.foreground, fontSize: 12 },
+  title: { color: INK.foreground },
+} as const;
+
+// A document's spec may not reach the network or the disk where it's parsed: the table is its only data.
+const sealed = vega.loader();
+sealed.load = () =>
+  Promise.reject(new Error("a chart's spec can't load files or URLs; its data is the table"));
+// An empty href loads no image and makes no link.
+sealed.sanitize = () => Promise.resolve({ href: "" });
+
+/** Draws a Vega-Lite spec over the chart's table, in the house look wherever the spec sets none. */
+export async function drawSpec(chart: SpecChart): Promise<{ svg: string }> {
+  const { config, ...rest } = chart.spec;
+  // The spec came from JSON, and compile() checks it at runtime and throws on what it can't draw.
+  const spec: TopLevelSpec = JSON.parse(
+    JSON.stringify({
+      background: "transparent",
+      padding: PADDING,
+      ...rest,
+      data: { values: chart.values },
+      config: Object.assign({}, SPEC_CONFIG, config),
+    }),
+  );
+  const { view, svg } = await render(compile(spec, { logger: quiet }).spec, sealed);
+  view.finalize();
+  // A link in the drawing would run whatever URL the spec gives it, `javascript:` included.
+  return { svg: svg.replace(/<\/?a\b[^>]*>/g, "") };
 }
