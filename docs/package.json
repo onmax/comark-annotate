@@ -12,7 +12,7 @@
     "@comark/html": "catalog:",
     "@fontsource-variable/caveat": "catalog:",
     "@iconify-json/lucide": "catalog:",
-    "@vite-hub/content": "https://pkg.pr.new/vite-hub/vitehub/@vite-hub/content@b9c35a8",
+    "@vite-hub/content": "https://pkg.pr.new/vite-hub/vitehub/@vite-hub/content@9c545f7",
     "comark": "catalog:",
     "comark-annotate": "workspace:*",
     "comark-carousel": "workspace:*",
