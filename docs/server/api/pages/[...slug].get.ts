@@ -14,6 +14,8 @@ import { parseMarkdown } from "comark";
 import { escapeHtml, textContent } from "comark/utils";
 import { icons as lucide } from "@iconify-json/lucide";
 import { deflateRawSync } from "node:zlib";
+import { readFile } from "node:fs/promises";
+import { access } from "node:fs/promises";
 import { createError, defineEventHandler, getQuery, getRouterParam } from "nuxt/server";
 import { copyIcon } from "#shared/chrome";
 import type { Page } from "#shared/pages";
@@ -128,12 +130,14 @@ const packageGrid: NodeHandler = async (_, state) => {
 // the Nuxt build preserves the interactive Markdown window from the legacy
 // builder.
 const hero: NodeHandler = async ([, , ...children], state) => {
-  const pre = children.find(isPre);
+  // The landing page keeps the intentionally broken draft beside the fixed
+  // document for the studio. The server-rendered page must use the latter.
+  const pre = children.filter(isPre).at(-1);
   if (!pre) throw new Error("The hero needs a fenced code block.");
   const source = textContent(pre).trimEnd();
   const rendered = await parseMarkdown(source, { plugins: plugins() });
   if (rendered.meta.issues.length) throw new Error(rendered.meta.issues.join("\n"));
-  const intro = children.filter((child) => child !== pre);
+  const intro = children.filter((child) => !isPre(child));
   return `<section class="showcase"><div class="split">${await state.flow(["div", {}, ...intro], state)}</div><div class="window"><div class="window-bar"><div class="window-tabs" role="tablist" aria-label="The example"><button type="button" role="tab" id="window-source-tab" aria-controls="window-source" aria-selected="true">review.md</button><button type="button" role="tab" id="window-page-tab" aria-controls="window-page" aria-selected="false" tabindex="-1">Rendered</button></div></div><div class="window-body"><div class="window-source" id="window-source" role="tabpanel" aria-labelledby="window-source-tab" data-active><pre>${escapeHtml(source)}</pre></div><div class="window-page" id="window-page" role="tabpanel" aria-labelledby="window-page-tab" inert>${await state.flow(["div", {}, ...rendered.nodes], state)}</div></div></div></section>`;
 };
 
@@ -149,7 +153,7 @@ export default defineEventHandler(async (event): Promise<Page> => {
   const file = await read(slug);
   const document = { nodes: file.nodes, frontmatter: file.data, meta: file.meta };
   // The page shell asks without the body, which the PageBody server component renders.
-  const html =
+  let html =
     getQuery(event).body === "0"
       ? ""
       : // A table wider than the column scrolls inside it instead of widening the page.
@@ -169,6 +173,20 @@ export default defineEventHandler(async (event): Promise<Page> => {
           /<table>[\s\S]*?<\/table>/g,
           (table) => `<div class="table-scroll">${table}</div>`,
         );
+  // The landing page has a richer build-time renderer (canvas and studio). Reuse
+  // its generated body for the Nuxt island when the docs build has produced it.
+  if (slug === "" && getQuery(event).body !== "0") {
+    try {
+      const path = `${process.cwd()}/docs/dist/index.html`;
+      await access(path);
+      const source = await readFile(path, "utf8");
+      const start = source.indexOf('<div class="landing">');
+      const end = source.lastIndexOf("<script>");
+      if (start >= 0 && end > start) html = source.slice(start, end);
+    } catch {
+      // Fall back to the server renderer when no static landing body exists.
+    }
+  }
   const nav = file.nodes
     .filter(isElement)
     .filter(([tag]) => tag === "h2" || tag === "h3")
