@@ -26,6 +26,8 @@ Close the block with `::` on the next line; anything inside it is dropped.
 | StackBlitz | `stackblitz.com/edit/<project>`, `stackblitz.com/github/<owner>/<repo>` | The project, keeping options such as `file` and `view`. |
 | Figma | `figma.com/design`, `proto`, `board`, `slides`, and `deck` links | Figma's embed, keeping `node-id`. |
 
+A StackBlitz project that runs in WebContainers, such as a Node or Vite starter, needs the page that embeds it to be cross-origin isolated; elsewhere StackBlitz shows "Unable to run Embedded Project" in place of its preview. A project that runs in the browser alone, such as the `typescript` starter, embeds anywhere.
+
 Any other `https://` link renders as a card with its `title` and host. Cards don't fetch the page's title yet, so give each one a `title`.
 
 The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes: a missing `url`, one that isn't `https://` (it renders nothing), a provider's link it can't read an ID from (it renders as a card), a card without a `title`, a `start` that isn't whole seconds or is set on a player that can't seek, and content inside the block. Each issue names its block and says how to fix it.
