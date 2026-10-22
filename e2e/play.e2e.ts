@@ -83,10 +83,7 @@ test("the playground puts comark-code's buttons on code blocks, and actions from
 
 test("a package's Open in playground link opens its first example", async ({ page }) => {
   await page.goto("/annotate/");
-  await page
-    .getByRole("navigation", { name: "Pages" })
-    .getByRole("link", { name: "Open in playground" })
-    .click();
+  await page.locator(".sidebar .pages").getByRole("link", { name: "Open in playground" }).click();
   await expect(page).toHaveURL(/\/play\/#preset=annotate-/);
   await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("Before / after");
 });

@@ -4,9 +4,6 @@ packages:
 
 catalogMode: prefer
 
-# @vite-hub/content comes from pkg.pr.new, whose packages depend on each other by URL, and pnpm has no per-package allowance.
-blockExoticSubdeps: false
-
 catalog:
   "@fontsource-variable/caveat": ^5.3.0
   "@iconify-json/lucide": ^1.2.100
@@ -41,8 +38,6 @@ catalog:
 
 overrides:
   vite: "catalog:"
-  # comark-content 0.4.1 asks for comark ^0.7, and the plugins need 0.8's parser.
-  "comark-content>comark": "catalog:"
 
 minimumReleaseAgeExclude:
   - vite-doctor@0.1.0

@@ -1,15 +1,15 @@
 import { expect, test } from "@playwright/test";
 
 test("client navigation preserves the app and reinitializes page scripts", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/guide/renderers/");
   const marker = await page.evaluate(() => {
     const w = window as typeof window & { __comarkNavigation?: number };
     return (w.__comarkNavigation ??= Math.random());
   });
-  await page.getByRole("banner").getByRole("link", { name: "tabs", exact: true }).click();
+  await page.locator(".sidebar").getByRole("link", { name: "tabs", exact: true }).click();
   await expect(page).toHaveURL(/\/tabs\/$/);
   await expect(page.locator("h1")).toHaveText("comark-tabs");
-  await page.getByRole("banner").getByRole("link", { name: "annotate", exact: true }).click();
+  await page.locator(".sidebar").getByRole("link", { name: "annotate", exact: true }).click();
   await expect(page).toHaveURL(/\/annotate\/$/);
   await expect(page.locator("h1")).toHaveText("comark-annotate");
   // The body came as island JSON, so its zoom script had to run again for a mark to open the zoom.

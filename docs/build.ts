@@ -661,7 +661,8 @@ const logo = `<svg class="logo" viewBox="0 0 32 32" width="24" height="24" aria-
 const menuIcon = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>`;
 
 // The example tabs, the Preview/Code switch, the install command's copy button, and the active sidebar link. Without it the page still reads top to bottom.
-const script = `
+// A block, so the docs app can run it again for each page it navigates to.
+const script = `{
 const reduce = matchMedia("(prefers-reduced-motion: reduce)");
 // One indicator per tab row or switch slides to the chosen item. A hidden row measures zero, so it's placed again,
 // without sliding, whenever its size changes.
@@ -701,7 +702,7 @@ for (const box of document.querySelectorAll(".installer")) {
   box.addEventListener("click", e => { const b = e.target.closest("[data-audience],[data-pm]"); if (!b) return; if (b.dataset.audience) audience = b.dataset.audience; if (b.dataset.pm) pm = b.dataset.pm; update() });
   field.addEventListener("click", async () => { await navigator.clipboard.writeText(field.dataset.copy); field.classList.add("copied"); setTimeout(() => field.classList.remove("copied"), 1200) });
 }
-const copyTokens = new WeakMap<Element, number>();
+const copyTokens = new WeakMap();
 const copied = async button => {
   const token = (copyTokens.get(button) ?? 0) + 1;
   copyTokens.set(button, token);
@@ -870,32 +871,35 @@ const spy = new IntersectionObserver(entries => {
   for (const e of entries) if (e.isIntersecting) for (const a of links) a.toggleAttribute("data-active", a.hash === "#" + e.target.id);
 }, { rootMargin: "0px 0px -70% 0px" });
 for (const h of document.querySelectorAll("main h2[id], main h3[id]")) spy.observe(h);
-`;
-
-// Search over every page and its headings, from /search.json, fetched the first time it's needed. Without the
-// script the button stays hidden.
-const searchScript = `
 // Escape folds the widened rail back without moving focus; it widens again once the pointer or focus leaves it.
 for (const rail of document.querySelectorAll(".sidebar .rail")) {
   rail.addEventListener("keydown", e => { if (e.key === "Escape") rail.dataset.dismissed = "" });
   rail.addEventListener("focusout", e => { if (!rail.contains(e.relatedTarget)) delete rail.dataset.dismissed });
   rail.addEventListener("pointerleave", () => delete rail.dataset.dismissed);
 }
-// The header's field on wide pages, and the menu's on narrow ones.
-const opens = document.querySelectorAll(".search-open"), menu = document.querySelector(".menu"), dialog = document.querySelector("dialog.search");
-const input = dialog.querySelector("input"), list = dialog.querySelector("[role=listbox]"), empty = dialog.querySelector(".search-empty");
-let entries, results = [], active = 0;
+}`;
+
+// Search over every page and its headings, from /search.json, fetched the first time it's needed. Without the
+// script the buttons stay hidden. It listens on the document and finds the dialog when it's used, so it runs once even
+// when the docs app swaps the page around it.
+const searchScript = `
+if (!window.comarkSearch) {
+window.comarkSearch = true;
+// On <html>, which the docs app leaves alone when it takes over the header.
+document.documentElement.dataset.search = "";
+if (/Mac|iP(hone|ad)/.test(navigator.platform)) document.documentElement.dataset.mac = "";
+let entries, results = [], active = 0, restoreMenuFocus = false;
 const load = () => entries ??= fetch("/search.json").then(r => r.json());
-for (const open of opens) open.hidden = false;
-if (/Mac|iP(hone|ad)/.test(navigator.platform)) document.querySelector(".search-open kbd").textContent = "⌘K";
+const parts = () => { const dialog = document.querySelector("dialog.search"); return { dialog, input: dialog.querySelector("input"), list: dialog.querySelector("[role=listbox]"), empty: dialog.querySelector(".search-empty") } };
 const select = i => {
+  const { input, list } = parts();
   active = i;
   for (const [j, a] of [...list.children].entries()) a.setAttribute("aria-selected", j === i);
   const a = list.children[i];
   if (a) { input.setAttribute("aria-activedescendant", a.id); a.scrollIntoView({ block: "nearest" }) } else input.removeAttribute("aria-activedescendant");
 };
 const update = async () => {
-  const all = await load(), q = input.value.trim().toLowerCase(), words = q.split(/\\s+/).filter(Boolean);
+  const all = await load(), { dialog, input, list, empty } = parts(), q = input.value.trim().toLowerCase(), words = q.split(/\\s+/).filter(Boolean);
   const rank = e => [e.t.toLowerCase().startsWith(q) ? 0 : e.t.toLowerCase().includes(q) ? 1 : 2, e.k === "page" ? 0 : 1];
   results = (q ? all.filter(e => words.every(w => (e.t + " " + e.p + " " + (e.d ?? "")).toLowerCase().includes(w)))
     .map((e, i) => [...rank(e), i, e]).sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]).map(x => x[3])
@@ -908,32 +912,37 @@ const update = async () => {
   }));
   empty.hidden = results.length > 0;
   input.setAttribute("aria-expanded", String(dialog.open));
-  // Keep the combobox state synchronized when the dialog closes without another search.
   select(0);
 };
-let restoreMenuFocus = false;
 const show = trigger => {
   restoreMenuFocus = trigger?.classList.contains("menu-search") ?? false;
-  menu.open = false; dialog.showModal(); input.select(); update()
+  const menu = document.querySelector(".menu"), { dialog, input } = parts();
+  if (menu) menu.open = false;
+  dialog.showModal(); input.select(); update();
 };
-for (const open of opens) { open.addEventListener("click", () => show(open)); open.addEventListener("pointerenter", load, { once: true }) }
-dialog.addEventListener("close", () => {
-  input.setAttribute("aria-expanded", "false");
-  if (restoreMenuFocus) { menu.querySelector("summary")?.focus(); restoreMenuFocus = false }
+document.addEventListener("pointerover", e => { if (e.target.closest?.(".search-open")) load() });
+document.addEventListener("click", e => {
+  const open = e.target.closest(".search-open"), dialog = e.target.closest("dialog.search");
+  if (open) show(open);
+  else if (dialog && (e.target === dialog || e.target.closest(".search-close, [role=option]"))) dialog.close();
 });
-dialog.querySelector(".search-close").addEventListener("click", () => dialog.close());
-addEventListener("keydown", e => {
-  const typing = e.target.closest("input, textarea, select, [contenteditable]");
+// close doesn't bubble, but it passes the document on its way down.
+document.addEventListener("close", e => {
+  if (!e.target.matches?.("dialog.search")) return;
+  parts().input.setAttribute("aria-expanded", "false");
+  if (restoreMenuFocus) { document.querySelector(".menu summary")?.focus(); restoreMenuFocus = false }
+}, true);
+document.addEventListener("input", e => { if (e.target.closest("dialog.search")) update() });
+document.addEventListener("pointermove", e => { const a = e.target.closest?.("dialog.search [role=option]"); if (a) select([...a.parentElement.children].indexOf(a)) });
+document.addEventListener("keydown", e => {
+  const { dialog, list } = parts(), typing = e.target.closest("input, textarea, select, [contenteditable]");
   if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing)) { e.preventDefault(); if (dialog.open) dialog.close(); else show() }
+  else if (!e.target.closest("dialog.search input")) return;
+  else if ((e.key === "ArrowDown" || e.key === "ArrowUp") && results.length) { e.preventDefault(); select((active + (e.key === "ArrowDown" ? 1 : -1) + results.length) % results.length) }
+  // A click, so the docs app opens the page without a reload.
+  else if (e.key === "Enter" && results[active]) { e.preventDefault(); list.children[active].click() }
 });
-input.addEventListener("input", update);
-input.addEventListener("keydown", e => {
-  if ((e.key === "ArrowDown" || e.key === "ArrowUp") && results.length) { e.preventDefault(); select((active + (e.key === "ArrowDown" ? 1 : -1) + results.length) % results.length) }
-  else if (e.key === "Enter" && results[active]) { e.preventDefault(); dialog.close(); location.href = results[active].h }
-});
-list.addEventListener("pointermove", e => { const a = e.target.closest("[role=option]"); if (a) select([...list.children].indexOf(a)) });
-list.addEventListener("click", () => dialog.close());
-dialog.addEventListener("click", e => { if (e.target === dialog) dialog.close() });
+}
 `;
 // One entry per page and per heading: its title, where it sits, and its link.
 const searchIndex = [
@@ -1030,6 +1039,13 @@ await writeFile(
 
 // The page around the content: header, rail, the section's column, and a menu that holds both on narrow screens. The
 // landing page has no sidebar, so its header links to the docs and the playground instead.
+const searchDialog = `<dialog class="search" aria-label="Search the docs">
+<div class="search-field">${siteIcon("search", 16)}<input type="text" enterkeyhint="search" role="combobox" aria-label="Search the docs" aria-controls="search-results" aria-expanded="false" aria-autocomplete="list" placeholder="Search the docs" autocomplete="off" spellcheck="false"><kbd>Esc</kbd><button type="button" class="search-close">Cancel</button></div>
+<div id="search-results" class="search-results" role="listbox" aria-label="Results"></div>
+<p class="search-empty" role="status" hidden>No page or heading matches.</p>
+</dialog>`;
+// Each page's title, description, and body, which the docs app (docs/app) serves, so its pages are this file's.
+const fragments = new Map<string, { title: string; description: string; body: string }>();
 function shell(options: {
   slug: string;
   section: Section;
@@ -1044,6 +1060,20 @@ function shell(options: {
   const { slug, section } = options;
   const npm = options.npm ?? section.npm;
   const nav = rail(section) + column(section, slug);
+  const header = `<div class="top-start"><a class="name" href="/">${logo}comark plugins</a>${options.landing ? `<nav class="top-links" aria-label="Site"><a href="/guide/renderers/">Docs</a><a href="/play/">Playground</a><a href="https://drop.vitehub.dev">Drop</a></nav>` : ""}</div>
+<button type="button" class="search-open" aria-haspopup="dialog">${siteIcon("search", 15)}<span class="search-label">Search docs</span><kbd><span class="kbd-mac">⌘K</span><span class="kbd-other">Ctrl K</span></kbd></button>
+<div class="top-end">
+<nav>${npmxLink(npm)}${githubLink}</nav>
+<details class="menu"><summary aria-label="Menu" title="Menu">${menuIcon}</summary><div class="menu-panel"><button type="button" class="search-open menu-search" aria-haspopup="dialog">${siteIcon("search", 15)}<span>Search docs</span></button>${nav}</div></details>
+</div>`;
+  const body = `<header class="top">
+${header}
+</header>
+${searchDialog}
+${options.landing ? options.body : `<div class="layout">\n<aside class="sidebar">${nav}</aside>\n${options.body}\n</div>`}
+<script>${searchScript.trim()}</script>`;
+  if (section.slug !== "play")
+    fragments.set(slug, { title: options.title, description: options.description, body });
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -1068,21 +1098,7 @@ function shell(options: {
 <style>${style}${iconCss}</style>${options.head ?? ""}
 </head>
 <body>
-<header class="top">
-<div class="top-start"><a class="name" href="/">${logo}comark plugins</a>${options.landing ? `<nav class="top-links" aria-label="Site"><a href="/guide/renderers/">Docs</a><a href="/play/">Playground</a><a href="https://drop.vitehub.dev">Drop</a></nav>` : ""}</div>
-<button type="button" class="search-open" aria-haspopup="dialog" hidden>${siteIcon("search", 15)}<span class="search-label">Search docs</span><kbd>Ctrl K</kbd></button>
-<div class="top-end">
-<nav>${npmxLink(npm)}${githubLink}</nav>
-<details class="menu"><summary aria-label="Menu" title="Menu">${menuIcon}</summary><div class="menu-panel"><button type="button" class="search-open menu-search" aria-haspopup="dialog" hidden>${siteIcon("search", 15)}<span>Search docs</span></button>${nav}</div></details>
-</div>
-</header>
-<dialog class="search" aria-label="Search the docs">
-<div class="search-field">${siteIcon("search", 16)}<input type="text" enterkeyhint="search" role="combobox" aria-label="Search the docs" aria-controls="search-results" aria-expanded="false" aria-autocomplete="list" placeholder="Search the docs" autocomplete="off" spellcheck="false"><kbd>Esc</kbd><button type="button" class="search-close">Cancel</button></div>
-<div id="search-results" class="search-results" role="listbox" aria-label="Results"></div>
-<p class="search-empty" role="status" hidden>No page or heading matches.</p>
-</dialog>
-${options.landing ? options.body : `<div class="layout">\n<aside class="sidebar">${nav}</aside>\n${options.body}\n</div>`}
-<script>${searchScript.trim()}</script>
+${body}
 </body>
 </html>
 `;
@@ -1203,3 +1219,15 @@ ${themePane}
   );
   console.log("docs/dist/play/index.html written");
 }
+
+// Read by the docs app's server, which runs after this and replaces dist.
+const generatedPages = new URL(".generated/pages/", root);
+await rm(generatedPages, { recursive: true, force: true });
+await mkdir(generatedPages, { recursive: true });
+await writeFile(new URL("site.json", generatedPages), JSON.stringify({ css: iconCss }));
+for (const [slug, fragment] of fragments)
+  await writeFile(
+    new URL(`${slug.replaceAll("/", "~") || "index"}.json`, generatedPages),
+    JSON.stringify(fragment),
+  );
+console.log(`docs/.generated/pages/ written (${fragments.size} pages)`);

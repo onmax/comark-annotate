@@ -61,6 +61,8 @@ async function writeAssets() {
   const playground = new URL("dist/play/", root);
   if (existsSync(playground))
     await cp(playground, new URL("play/", generated), { recursive: true });
+  const search = new URL("dist/search.json", root);
+  if (existsSync(search)) await cp(search, new URL("search.json", generated));
 }
 
 // Every page, so one that nothing links to still prerenders: docs/pages, and each package's docs/ under its name.
@@ -89,8 +91,7 @@ export default defineNuxtConfig({
   },
   css: ["~~/style.css"],
   runtimeConfig: {
-    pagesDir: fileURLToPath(new URL("pages/", root)),
-    packagesDir: fileURLToPath(new URL("../packages/", root)),
+    generatedPagesDir: fileURLToPath(new URL(".generated/pages/", root)),
   },
   app: {
     head: {
