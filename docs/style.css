@@ -874,6 +874,10 @@ kbd {
   opacity: 1;
 }
 
+.sidebar .rail:not(:hover):not(:has(:focus-visible)) .rail-label {
+  opacity: 0;
+}
+
 @media (hover: none) {
   .sidebar .rail:hover {
     width: 3.25rem;
@@ -951,6 +955,7 @@ kbd {
 .page {
   display: grid;
   grid-template-columns: minmax(0, 48rem) 10rem;
+  min-width: 0;
   justify-content: center;
   gap: 3rem;
   padding: 0 2rem;
@@ -1429,6 +1434,10 @@ a.window-play:hover {
   .top-end .npmx span,
   .github-label,
   .top-links {
+    display: none;
+  }
+
+  .top-end > nav > .link {
     display: none;
   }
 
@@ -1912,12 +1921,24 @@ footer a {
   }
 }
 
+/* After the first load, a page only fades in: the entrance above took 670 ms to settle on every click. */
+[data-navigated] .enter {
+  animation: fade 120ms ease-out both;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
 
-  .enter {
+  .enter,
+  [data-navigated] .enter {
     animation: none;
   }
 

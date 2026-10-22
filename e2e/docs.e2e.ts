@@ -37,6 +37,7 @@ test("hovering the rail shows every section's name over the pages, without movin
   await page.goto("/lint/");
   const label = page.locator(".sidebar .rail-label", { hasText: "carousel" });
   const pages = page.locator(".sidebar .pages");
+  await page.mouse.move(500, 0);
   const left = (await pages.boundingBox())?.x;
   await expect(label).toHaveCSS("opacity", "0");
   await page.locator(".sidebar .rail").hover();

@@ -204,11 +204,34 @@ function showTheme() {
   const doc = preview.contentDocument;
   const view = doc?.defaultView;
   if (!doc?.body || !view) return;
-  doc.documentElement.className = scheme();
+  const currentScheme = scheme();
+  doc.documentElement.className = currentScheme;
+  doc.documentElement.style.colorScheme = currentScheme;
+  const fallback =
+    currentScheme === "dark"
+      ? {
+          background: "#0a0a0a",
+          foreground: "#fafafa",
+          "muted-foreground": "#a1a1a1",
+          border: "rgb(255 255 255 / 0.1)",
+          accent: "#262626",
+          ring: "#737373",
+        }
+      : {
+          background: "#fff",
+          foreground: "#0a0a0a",
+          "muted-foreground": "#737373",
+          border: "#e5e5e5",
+          accent: "#f5f5f5",
+          ring: "#a1a1a1",
+        };
   const style =
     doc.getElementById("play-theme") ??
     doc.head.appendChild(Object.assign(doc.createElement("style"), { id: "play-theme" }));
-  style.textContent = themeCss(theme);
+  const fallbackCss = `:root {\n${Object.entries(fallback)
+    .map(([name, value]) => `  --${name}: ${value};`)
+    .join("\n")}\n}`;
+  style.textContent = [fallbackCss, themeCss(theme)].filter(Boolean).join("\n\n");
   const probe = doc.body.appendChild(doc.createElement("i"));
   probe.hidden = true;
   const color = (value: string) => {
