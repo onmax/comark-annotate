@@ -713,7 +713,7 @@ kbd {
   backdrop-filter: none;
 }
 
-/* A card: its package over a screen the plugins drew, concentric with the card at 6px in. The link covers it. */
+/* A card: its package over what the plugins drew, on the card itself. The link covers it. */
 .demo {
   position: absolute;
   display: flex;
@@ -845,14 +845,13 @@ kbd {
   min-height: 0;
   overflow: hidden;
   border-radius: 12px;
-  background: var(--bg);
-  box-shadow: inset 0 0 0 1px var(--line);
   pointer-events: none;
 }
 
-/* The plugins' output at a page's type, zoomed to the card, so it wraps as it would at that size. */
+/* The plugins' output at a page's type, zoomed to the card, so it wraps as it would at that size. It starts where the
+   card's name does. */
 .demo-page {
-  padding: 1.125rem;
+  padding: 0.25rem 0.625rem 0.75rem;
   font-size: 0.9375rem;
   line-height: 1.6;
   zoom: var(--z, 0.82);
@@ -876,6 +875,25 @@ kbd {
   display: none;
 }
 
+/* The card is the frame, so a chart or a diff drops its own. */
+.demo-page :is(.cch, .cd) {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.demo-page .cch {
+  --cch-padding: 0;
+  padding: 0;
+}
+
+.demo-page .cd figcaption {
+  padding-inline: 0;
+  background: none;
+}
+
 /* A chart's plot is drawn at a page's width; the card's is narrower. */
 .demo-page svg.marks {
   max-width: 100%;
@@ -894,7 +912,7 @@ kbd {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: var(--soft);
+  background: var(--card);
   opacity: 0;
   filter: blur(4px);
   transition:
@@ -925,7 +943,7 @@ kbd {
    renders, so a still frame never hides anything. */
 .demo-annotate .ca-mark,
 .demo-carousel .cc-track,
-.demo-chips .cch,
+.demo-chips .cp,
 .demo-icon .ci,
 .demo-github .cgc,
 .demo-lint .term-line,
@@ -939,8 +957,8 @@ kbd {
 .demo-include .ck,
 .demo-include .ck ~ *,
 .demo-include .demo-directive + p,
-.demo-annotate-diff tr,
-.demo-annotate-diff ins,
+.demo-diff tr,
+.demo-diff ins,
 .demo-charts .mark-rect path,
 .demo-charts .layer_1_marks text,
 .demo-charts-line .mark-line path,
@@ -1017,20 +1035,20 @@ kbd {
   }
 }
 
-/* annotate's diff: the old line fades, and the new one slides in with its change lit. */
-.demo-annotate-diff {
+/* diff: the old line fades, and the new one slides in with its change lit. */
+.demo-diff {
   --z: 0.72;
 }
 
-.demo-annotate-diff tr.ca-del {
+.demo-diff tr.cd-del {
   animation-name: demo-strike;
 }
 
-.demo-annotate-diff tr.ca-add {
+.demo-diff tr.cd-add {
   animation-name: demo-slide;
 }
 
-.demo-annotate-diff ins {
+.demo-diff ins {
   background-size: 200% 100%;
   animation-name: demo-light;
 }
@@ -1177,33 +1195,23 @@ kbd {
   }
 }
 
-/* comark-charts styles its figure as .cch too, so on this page its box would land on the chips. */
-.demo a.cch {
-  margin: 0;
-  padding: 0.0625em 0.5em 0.0625em 0.3125em;
-  border-radius: 999px;
-  background: var(--_comark-accent);
-  color: inherit;
-  font-family: inherit;
-}
-
 /* chips: each link turns into its chip in turn. */
-.demo-chips .cch,
+.demo-chips .cp,
 .demo-icon .ci {
   animation-name: demo-pop;
 }
 
-.demo-chips .cch:nth-of-type(2),
+.demo-chips .cp:nth-of-type(2),
 .demo-icon .ci:nth-of-type(2) {
   animation-delay: 120ms;
 }
 
-.demo-chips .cch:nth-of-type(3),
+.demo-chips .cp:nth-of-type(3),
 .demo-icon .ci:nth-of-type(3) {
   animation-delay: 240ms;
 }
 
-.demo-chips .cch:nth-of-type(4),
+.demo-chips .cp:nth-of-type(4),
 .demo-icon .ci:nth-of-type(4) {
   animation-delay: 360ms;
 }

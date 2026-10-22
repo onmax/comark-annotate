@@ -83,7 +83,7 @@ pnpm add comark @comark/html comark-code
 ````
 :::
 
-:::demo{package="annotate" label="diff" height=216}
+:::demo{package="diff" height=216}
 ````md
 ::diff{line=2 label="Suggested change"}
 ```ts [src/roof.ts]
@@ -162,13 +162,14 @@ Thanks @onmax: this fixes #51, and onmax/comark-plugins#73 builds on it.
 ::
 
 ::hero
-## Write Markdown. Get a review page.
+## Made for agents. Read by people.
 
-An agent writes the Markdown and the plugins draw the page. A problem comes back as one sentence that names the block and the fix.
+Your agent writes the Markdown: PR evidence, reports, plans. A problem comes back as one sentence that names the block and the fix, so the agent fixes it before your team reads the page.
 
 ````md
 > [!TIP] Decision
-> Moon phase and vibes collapse into **+2 filters**.
+> Moon phase and vibes fold into **+2 filters**.
+> Fixes #51, as @onmax asked.
 
 ::screenshot{src="/after.png" alt="Filter toolbar on one row"}
 :::annotation{x=68 y=33.1 w=13.3 h=16 mark="highlight"}
@@ -179,11 +180,21 @@ Moon phase and vibes live in here now.
 **Apply** lines up with the chips.
 :::
 ::
+
+::diff{label="Suggested change"}
+```css [toolbar.css]
+.filters { flex-wrap: wrap; }
+```
+```css
+.filters { flex-wrap: nowrap; }
+```
+::
 ````
 
 ````md
 > [!TIP] Decision
-> Moon phase and vibes collapse into **+2 filters**.
+> Moon phase and vibes fold into **+2 filters**.
+> Fixes #51, as @onmax asked.
 
 ::screenshot{src="/after.png" alt="Filter toolbar on one row"}
 :::annotation{x=68 y=33.1 w=13.3 h=16 mark="highlight"}
@@ -193,6 +204,15 @@ Moon phase and vibes live in here now.
 :::annotation{x=82.5 y=33.1 w=10.9 h=16 mark="check" color="green"}
 **Apply** lines up with the chips.
 :::
+::
+
+::diff{label="Suggested change"}
+```css [toolbar.css]
+.filters { flex-wrap: wrap; }
+```
+```css
+.filters { flex-wrap: nowrap; }
+```
 ::
 ````
 ::
