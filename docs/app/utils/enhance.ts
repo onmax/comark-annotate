@@ -1,4 +1,4 @@
-// The example tabs, the Preview/Code switch, the installer, copy buttons, and the active sidebar link. Without it the page still
+// The example tabs, the Preview/Code switch, the installer, copy buttons, and the active link on this page. Without it the page still
 // reads top to bottom. Returns a function that undoes it, since the page's elements outlive a client-side navigation.
 export function enhance(root: HTMLElement): () => void {
   const listeners = new AbortController();
@@ -119,17 +119,36 @@ export function enhance(root: HTMLElement): () => void {
     };
     pre.append(b);
   }
-  for (const button of root.querySelectorAll<HTMLButtonElement>(".card-copy"))
+  for (const button of root.querySelectorAll<HTMLButtonElement>(".grid-copy"))
     button.addEventListener(
       "click",
       async () => {
         await navigator.clipboard.writeText(button.dataset.copy!);
-        button.textContent = "Copied";
-        setTimeout(() => (button.textContent = "Copy"), 1200);
+        button.classList.add("copied");
+        setTimeout(() => button.classList.remove("copied"), 1200);
       },
       { signal },
     );
-  const links = [...root.querySelectorAll<HTMLAnchorElement>(".sidebar a")];
+  // Escape folds the widened rail back without moving focus; it widens again once the pointer or focus leaves it.
+  for (const rail of root.querySelectorAll<HTMLElement>(".sidebar .rail")) {
+    rail.addEventListener(
+      "keydown",
+      (event) => {
+        if (event instanceof KeyboardEvent && event.key === "Escape") rail.dataset.dismissed = "";
+      },
+      { signal },
+    );
+    rail.addEventListener(
+      "focusout",
+      (event) => {
+        if (!rail.contains((event as FocusEvent).relatedTarget as Node | null))
+          delete rail.dataset.dismissed;
+      },
+      { signal },
+    );
+    rail.addEventListener("pointerleave", () => delete rail.dataset.dismissed, { signal });
+  }
+  const links = [...root.querySelectorAll<HTMLAnchorElement>(".toc a")];
   const spy = new IntersectionObserver(
     (entries) => {
       for (const e of entries)

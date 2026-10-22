@@ -6,14 +6,16 @@ import { components as codeComponents } from "comark-code/html";
 import { components as diffComponents } from "comark-diff/html";
 import { components as embedComponents } from "comark-embed/html";
 import { components as githubCalloutsComponents } from "comark-github/html";
-import { components as iconComponents } from "comark-icon/html";
+import { createIcons, components as iconComponents, iconHtml, iconStyles } from "comark-icon/html";
 import { components as tabsComponents } from "comark-tabs/html";
 import { components as zoomComponents } from "comark-zoom/html";
 import type { ElementNode, Node, NodeHandler } from "comark";
 import { parseMarkdown } from "comark";
 import { escapeHtml, textContent } from "comark/utils";
+import { icons as lucide } from "@iconify-json/lucide";
 import { deflateRawSync } from "node:zlib";
 import { createError, defineEventHandler, getQuery, getRouterParam } from "nuxt/server";
+import { copyIcon } from "#shared/chrome";
 import type { Page } from "#shared/pages";
 import { content, plugins } from "../../content";
 
@@ -124,6 +126,9 @@ const examples: NodeHandler = async ([, , ...children], state) => {
   return `<div class="examples"><div class="tablist" role="tablist">${labels.join("")}</div>${bodies.join("")}</div>`;
 };
 
+const matrix: NodeHandler = async ([, , ...children], state) =>
+  `<div class="matrix">${(await Promise.all(children.map((child) => state.one(child, state)))).join("")}</div>`;
+
 async function read(slug: string) {
   const file = await content.get(`/${slug}`);
   if (!file) throw createError({ status: 404, message: `No page at /${slug}.` });
@@ -132,23 +137,29 @@ async function read(slug: string) {
   return file;
 }
 
-// The index lists every package from its own page's front matter.
-const pluginCards: NodeHandler = async () => {
-  const pages = await listPages();
-  const cards = await Promise.all(
-    pages
-      .filter((page) => page.npm)
-      .map(async (page) => {
-        const { data } = await read(page.slug);
-        const command = str(data.install).replace(
-          /^pnpm add (comark @comark\/html )?/,
-          "pnpm add ",
-        );
-        const href = page.slug ? `/${page.slug}/` : "/";
-        return `<a class="card" href="${href}"><strong>${escapeHtml(str(data.title))}</strong><span>${escapeHtml(str(data.description))}</span><code>${escapeHtml(command)}</code><button type="button" class="card-copy" aria-label="Copy ${escapeHtml(command)}" data-copy="${escapeHtml(command)}">Copy</button></a>`;
-      }),
+// The site's own icons, drawn the way `:icon` draws them: Lucide's, and annotate's, a hand-drawn loop like its marks.
+const ownIcons = {
+  "scribble-loop": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5.5C11.5 2.8 20.3 3.4 21.5 8.6 22.8 14.3 16.5 20 9.6 20.4 4.4 20.7 1.5 17.6 2.6 13.6 3.6 10 8.3 7.3 13.6 7.2"/></svg>`,
+};
+const siteIcons = createIcons({ collections: { lucide, site: ownIcons }, fetch: false });
+const iconId = (name: string) => (name in ownIcons ? `site:${name}` : `lucide:${name}`);
+
+// The index's grid: one tile per package, with the icon and blurb from its page's front matter.
+const packageGrid: NodeHandler = async (_, state) => {
+  const packages = await Promise.all(
+    (await listPages())
+      .filter((page) => page.npm && page.slug && !page.slug.includes("/"))
+      .map(async (page) => ({ ...page, data: (await read(page.slug)).data })),
   );
-  return `<div class="cards">${cards.join("")}</div>`;
+  const icons = await siteIcons.resolve(packages.map(({ data }) => iconId(str(data.icon))));
+  const tiles = packages.map(({ slug, npm, data }) => {
+    const icon = icons.get(iconId(str(data.icon)));
+    if (!icon || "problem" in icon)
+      throw new Error(`packages/${slug}/docs/index.md: no icon "${str(data.icon)}".`);
+    const command = escapeHtml(`pnpm add ${npm}`);
+    return `<li><a href="/${slug}/">${iconHtml(icon).replace('style="', 'style="--comark-icon-size:24px;')}<strong>${escapeHtml(slug)}</strong><span>${escapeHtml(str(data.blurb))}</span></a><button type="button" class="grid-copy" data-copy="${command}" aria-label="Copy ${command}">${copyIcon}</button></li>`;
+  });
+  return `${iconStyles(state)}<ul class="grid" aria-label="Packages">${tiles.join("")}</ul>`;
 };
 
 // The homepage uses two small layout components that are part of the docs
@@ -180,9 +191,23 @@ export default defineEventHandler(async (event): Promise<Page> => {
   const html =
     getQuery(event).body === "0"
       ? ""
-      : await renderHtmlFromDocument(document, {
-          components: { ...components, example, examples, plugins: pluginCards, hero, drop },
-        });
+      : // A table wider than the column scrolls inside it instead of widening the page.
+        (
+          await renderHtmlFromDocument(document, {
+            components: {
+              ...components,
+              example,
+              examples,
+              matrix,
+              packages: packageGrid,
+              hero,
+              drop,
+            },
+          })
+        ).replace(
+          /<table>[\s\S]*?<\/table>/g,
+          (table) => `<div class="table-scroll">${table}</div>`,
+        );
   const nav = file.nodes
     .filter(isElement)
     .filter(([tag]) => tag === "h2" || tag === "h3")

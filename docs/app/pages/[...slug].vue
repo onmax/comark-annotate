@@ -40,8 +40,7 @@ onMounted(() => {
   // leave the rail collapsed until the user intentionally focuses it.
   const active = document.activeElement;
   const sidebar = layout.value?.querySelector(".sidebar");
-  if (active instanceof HTMLElement && sidebar?.contains(active))
-    active.blur();
+  if (active instanceof HTMLElement && sidebar?.contains(active)) active.blur();
   // PageBody is a server island and may arrive after the page shell mounts.
   // Enhance it once its HTML is present so generated controls work on both
   // the initial render and client navigations.
@@ -101,12 +100,7 @@ onMounted(() =>
   }),
 );
 function follow(event: MouseEvent) {
-  const target = event.target as Element;
-  if (target.closest(".card-copy")) {
-    event.preventDefault();
-    return;
-  }
-  const link = target.closest("a");
+  const link = (event.target as Element).closest("a");
   if (
     !link ||
     event.defaultPrevented ||
@@ -204,37 +198,38 @@ function follow(event: MouseEvent) {
             >Open in playground</a
           >
         </nav>
-        <nav aria-label="On this page">
-          <a class="nav-h2" href="#">Introduction</a>
-          <a v-if="page.npm" :href="`/play/#preset=${page.slug}-`" class="play"
-            >Open in playground</a
-          >
-          <a
-            v-for="item in page.nav"
-            :key="item.id"
-            :class="`nav-${item.level}`"
-            :href="`#${item.id}`"
-            >{{ item.text }}</a
-          >
-        </nav>
       </aside>
-      <div class="content">
-        <div class="hero enter">
-          <h1>{{ page.title }}</h1>
-          <p>{{ page.tagline }}</p>
-          <div v-if="page.install" v-html="installerFor(page.install)" />
+      <div class="page">
+        <div class="content">
+          <div class="hero enter">
+            <h1>{{ page.title }}</h1>
+            <p>{{ page.tagline }}</p>
+            <div v-if="page.install" v-html="installerFor(page.install)" />
+          </div>
+          <main ref="body" class="enter" style="--i: 1" @click="follow">
+            <PageBody :slug="slug" />
+          </main>
+          <footer>
+            <span
+              >Built on <a href="https://comark.dev">Comark</a> by the
+              <a href="https://github.com/comarkdown">Comark team</a>. Marks from
+              <a href="https://annotationkit.vercel.app">AnnotationKit</a>.</span
+            >
+            <span>Made by <a href="https://onmax.me">Maxi García</a></span>
+          </footer>
         </div>
-        <main ref="body" class="enter" style="--i: 1" @click="follow">
-          <PageBody :slug="slug" />
-        </main>
-        <footer>
-          <span
-            >Built on <a href="https://comark.dev">Comark</a> by the
-            <a href="https://github.com/comarkdown">Comark team</a>. Marks from
-            <a href="https://annotationkit.vercel.app">AnnotationKit</a>.</span
-          >
-          <span>Made by <a href="https://onmax.me">Maxi García</a></span>
-        </footer>
+        <aside v-if="page.nav.length" class="toc">
+          <nav aria-label="On this page">
+            <p class="nav-group">On this page</p>
+            <a
+              v-for="item in page.nav"
+              :key="item.id"
+              :class="`nav-${item.level}`"
+              :href="`#${item.id}`"
+              >{{ item.text }}</a
+            >
+          </nav>
+        </aside>
       </div>
     </div>
   </div>

@@ -11,7 +11,8 @@
   "dependencies": {
     "@comark/html": "catalog:",
     "@fontsource-variable/caveat": "catalog:",
-    "@vite-hub/content": "https://pkg.pr.new/vite-hub/vitehub/@vite-hub/content@4611658",
+    "@iconify-json/lucide": "catalog:",
+    "@vite-hub/content": "https://pkg.pr.new/vite-hub/vitehub/@vite-hub/content@b9c35a8",
     "comark": "catalog:",
     "comark-annotate": "workspace:*",
     "comark-carousel": "workspace:*",
