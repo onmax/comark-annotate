@@ -431,8 +431,8 @@ function dumbbell(chart: Chart, spec: TopLevelSpec) {
     };
   if (dots && "mark" in dots && dots.mark instanceof Object && dots.mark.type === "point")
     dots.mark = { ...dots.mark, size: 100 };
-  const valueField = x && "field" in x && typeof x.field === "string" ? x.field : "y";
-  const rowField = y && "field" in y && typeof y.field === "string" ? y.field : "x";
+  const valueField = x && "field" in x ? x.field : "y";
+  const rowField = y && "field" in y ? y.field : "x";
   const label = (side: "lo" | "hi") => ({
     transform: [
       {
