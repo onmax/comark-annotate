@@ -15,9 +15,9 @@ export const css = `@layer comark{${[
   // Without the script there are no arrows, so the scrollbar is how a mouse reaches the other slides.
   "[data-carousel-ready] .cc-track{scrollbar-width:none}",
   "[data-carousel-ready] .cc-track::-webkit-scrollbar{display:none}",
-  // Every slide is a panel as tall as the tallest one, with its content in the middle, so a short screenshot next to
-  // a tall one sits on a stage rather than above a gap. Only slides in a track: the zoomed copy stays bare.
-  ".cc-track>.cc-slide{min-width:0;scroll-snap-align:start;align-content:center;padding:var(--cc-padding,1rem);border-radius:var(--_comark-radius);background:var(--cc-surface,color-mix(in srgb,var(--_comark-foreground) 4%,transparent))}",
+  // Every slide is a panel as tall as the tallest one, with its content at the top, so a slide's title stays put when
+  // the next slide is taller. Only slides in a track: the zoomed copy stays bare.
+  ".cc-track>.cc-slide{min-width:0;scroll-snap-align:start;align-content:start;padding:var(--cc-padding,1rem);border-radius:var(--_comark-radius);background:var(--cc-surface,color-mix(in srgb,var(--_comark-foreground) 4%,transparent))}",
   ".cc-slide>:first-child{margin-top:0}",
   ".cc-slide>:last-child{margin-bottom:0}",
   ".cc-slide img{max-width:100%;height:auto}",

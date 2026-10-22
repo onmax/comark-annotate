@@ -25,7 +25,7 @@ const box = {
 
 For a full-page screenshot, add the scroll offset and divide by the page size instead.
 
-Numbers place themselves. Each one sits outside a corner of its mark, so it doesn't cover what the mark points at. It takes the first corner, in the order top left, top right, bottom left, bottom right, that keeps it off the other numbers, marks, and arrows. Against the image's edge it slides along that edge. Set `viewport` on the screenshot so the corners are judged against the image's real shape. When marks crowd one spot so closely that two numbers overlap at every corner, the plugin reports both annotations.
+Numbers place themselves. Each one sits on a corner of its mark, so it reads as that mark's number and not as the number of whatever is next to it. It takes the first corner, in the order top left, top right, bottom left, bottom right, that keeps it off the other numbers, marks, and arrows. Where it would hang past the image's edge, it lines up with the mark's edge instead. Set `viewport` on the screenshot so the corners are judged against the image's real shape. When marks crowd one spot so closely that two numbers overlap at every corner, the plugin reports both annotations.
 
 ## Validation
 

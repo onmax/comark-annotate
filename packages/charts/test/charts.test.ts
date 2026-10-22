@@ -167,7 +167,7 @@ The first slice.
       components: { ...annotateComponents, ...components },
     })(markdown);
     expect(html).toContain('viewBox="0 0 544 376"');
-    expect(html).toContain('ca-stamp" style="right:calc(100% + 4px);bottom:calc(100% + 4px)"');
+    expect(html).toContain('ca-stamp" style="left:0;top:0;translate:-50% -50%"');
   });
 
   it("reports an annotation that points at no row or series", async () => {
