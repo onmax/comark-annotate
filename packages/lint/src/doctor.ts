@@ -65,11 +65,11 @@ export default function comark(options: DoctorOptions = {}) {
     if (!results) {
       results = resolveConfig(config).then((resolved) =>
         lintFiles(ctx.fs.glob(include, { exclude }), {
+          ...resolved,
           root: ctx.project.root,
           read: (path) => ctx.fs.readText(path),
           exists: (path) => ctx.fs.exists(path),
           list: (path) => ctx.fs.readDir(path)?.map((entry) => entry.name),
-          ...resolved,
         }),
       );
       ctx.cache.set(key, results);

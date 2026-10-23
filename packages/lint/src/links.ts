@@ -89,7 +89,7 @@ function builtIn(url: URL): Kind | undefined {
     /\.(?:local|internal)$/.test(host)
   )
     return "private";
-  if (TUNNELS.some((domain) => host.endsWith(`.${domain}`))) return "tunnel";
+  if (TUNNELS.some((domain) => under(host, domain))) return "tunnel";
   if (PREVIEWS.some((preview) => preview.test(host))) return "preview";
   return undefined;
 }
@@ -110,7 +110,7 @@ function matches(pattern: Pattern, written: string, url: URL | undefined): boole
   if (wildcard ? !hostname.endsWith(`.${host.toLowerCase()}`) : hostname !== host.toLowerCase())
     return false;
   if (port && port !== (url.port || (url.protocol === "https:" ? "443" : "80"))) return false;
-  return !path || url.pathname.startsWith(path);
+  return !path || url.pathname === path || url.pathname.startsWith(path.endsWith("/") ? path : `${path}/`);
 }
 
 const isMarkdown = (path: string) => /\.mdc?$/i.test(path);
