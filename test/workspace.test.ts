@@ -75,25 +75,12 @@ describe.each(withRenderer)("the renderer of packages/%s", (folder) => {
     expect(read("packages/lint/src/config.ts")).toContain(`import("${name}/html")`);
   });
 
-  it("renders the docs and the playground", () => {
-    const plugins = read("docs/plugins.ts");
-    expect(plugins).toContain(`from "../packages/${folder}/src/html.ts"`);
-
-    // Keep the import and both runtime registries in sync. The import alone can
-    // remain present after a plugin is accidentally removed from the site.
-    const imported =
-      folder === "github"
-        ? { plugin: "githubHtml", components: "githubComponents" }
-        : {
-            plugin: folder,
-            components: `${folder}Components`,
-          };
-    const browser = plugins.slice(
-      plugins.indexOf("export const browserPlugins"),
-      plugins.indexOf("export const components"),
-    );
-    const componentMap = plugins.slice(plugins.indexOf("export const components"));
-    expect(browser).toMatch(new RegExp(`${imported.plugin}\\s*\\(`));
-    expect(componentMap).toContain(`...${imported.components}`);
+  // The site renders through the preset, so a package in it is on the site and in the playground.
+  it("is in the preset, which renders the docs and the playground", () => {
+    expect(read("docs/plugins.ts")).toContain('from "../packages/preset/src/html.ts"');
+    if (folder === "preset") return;
+    const preset = read("packages/preset/src/html.ts");
+    expect(preset).toContain(`import * as ${folder} from "${name}/html"`);
+    expect(preset.slice(preset.indexOf("preset<"))).toMatch(new RegExp(`\\b${folder}\\b`));
   });
 });

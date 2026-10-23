@@ -1,0 +1,67 @@
+---
+title: "@onmax/comark"
+description: Every comark-plugins package in one install.
+tagline: onmax's preset, like @antfu/eslint-config for Comark. One import registers every plugin in the order they need, and each release brings their latest defaults.
+install: pnpm add comark @comark/html @onmax/comark
+group: Authoring tools
+icon: boxes
+blurb: Every plugin in one install
+---
+
+::examples
+:::example{label="Everything"}
+````md
+> [!TIP]
+> One import renders every block on this site.
+
+::steps
+### Install
+:::code-group
+```sh [pnpm]
+pnpm add comark @comark/html @onmax/comark
+```
+```sh [npm]
+npm install comark @comark/html @onmax/comark
+```
+:::
+
+### Render
+Pass `onmax()` to the renderer.
+::
+````
+:::
+::
+
+This site renders every page through the preset.
+
+## Usage
+
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(onmax());
+```
+
+`onmax()` returns the `plugins` and `components` for one renderer. Import it from `@onmax/comark/html`, `/vue`, `/react`, or `/svelte`. The Vue, React, and Svelte entries leave out [annotate](/annotate/) and [diff](/diff/), which render only to HTML.
+
+## Options
+
+Every plugin is on except [include](/include/), which reads files from disk. Pass `false` to turn a plugin off, which drops its components too, or an object to pass it options:
+
+```ts
+onmax({
+  zoom: false,
+  code: { actions: [{ id: "run", label: "Run" }] },
+  github: { callouts: false, references: { repo: "owner/name" } },
+  include: { root: "content" },
+});
+```
+
+The keys are the packages' names without `comark-`. `github` takes its three plugins by name: `callouts`, `references`, and `html`.
+
+The icon resolver from `icon`'s options also draws the icons of tabs and code actions, so `collections` and `fetch` apply to all three. When you parse in a browser, pass `chips: { download: false }`, since a browser may not download another site's images.
+
+## Versions
+
+The preset ships in lockstep with the plugins, so `@onmax/comark@X` holds every plugin at version `X`. [comark-linter](/lint/) finds the preset when it's installed and checks documents with its plugins.

@@ -80,6 +80,7 @@ const packageOrder = [
   "steps",
   "include",
   "lint",
+  "preset",
 ];
 const repo = new URL("../", root);
 // Paths from the repository's root, so an error names the file.

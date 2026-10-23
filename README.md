@@ -22,6 +22,7 @@
 | [`comark-steps`](./packages/steps) | Numbered steps from the headings of a tutorial or a numbered list, in Nuxt UI's `::steps` syntax, with no script. |
 | [`comark-tabs`](./packages/tabs) | Tabs and code groups that switch together across the page, and read without a script. |
 | [`comark-zoom`](./packages/zoom) | Zoom images and any block like medium-zoom, with Escape, Back, and click-outside to close. |
+| [`@onmax/comark`](./packages/preset) | onmax's preset: every package above in one install, like `@antfu/eslint-config`. |
 
 Docs and live demos: [comark.onmax.me](https://comark.onmax.me).
 

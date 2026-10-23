@@ -42,6 +42,7 @@
     "prepack": "pnpm --filter comark-linter... build"
   },
   "devDependencies": {
+    "@onmax/comark": "workspace:*",
     "comark": "catalog:",
     "comark-annotate": "workspace:*",
     "comark-carousel": "workspace:*",
@@ -58,6 +59,7 @@
     "vite-doctor": "catalog:"
   },
   "peerDependencies": {
+    "@onmax/comark": "workspace:^",
     "comark": "^0.8.0",
     "comark-annotate": "workspace:^",
     "comark-carousel": "workspace:^",
@@ -74,6 +76,9 @@
     "vite-doctor": "^0.1.0"
   },
   "peerDependenciesMeta": {
+    "@onmax/comark": {
+      "optional": true
+    },
     "comark-annotate": {
       "optional": true
     },
