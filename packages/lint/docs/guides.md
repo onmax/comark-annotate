@@ -88,4 +88,4 @@ export default defineDoctorConfig({
 }
 ```
 
-One report covers the code and the documents, and each lint-comark problem gets its own code, `COMARK0001` to `COMARK0007`, linked to its rule. Most lint-comark rules are warnings, and Vite Doctor exits with 0 on warnings alone, so `--max-warnings 0` is what fails the script. In a coding agent's terminal it prints a compact report with the fix for each problem, and `--format sarif` gives GitHub code scanning a file it can annotate a pull request with. [Vite Doctor](/lint/vite-doctor/) lists the options.
+One report covers the code and the documents, and each lint-comark problem gets its own code, linked to its rule's page in [Doctor](/doctor/). Most lint-comark rules are warnings, and Vite Doctor exits with 0 on warnings alone, so `--max-warnings 0` is what fails the script. In a coding agent's terminal it prints a compact report with the fix for each problem, and `--format sarif` gives GitHub code scanning a file it can annotate a pull request with. [Vite Doctor](/lint/vite-doctor/) lists the options.
