@@ -6,7 +6,11 @@ import { textContent } from "comark/utils";
 export type BadgeMeta = {
   /** One readable sentence per problem with a `:badge`. Empty when the document has none. Other plugins add theirs too. */
   issues: string[];
+  /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
+  issueRules: Record<string, string>;
 };
+
+type Issue = { rule: `comark/badge/${string}`; message: string };
 
 /** Nuxt UI's colors. */
 export const colors = [
@@ -43,22 +47,34 @@ const clip = (value: string) => {
 };
 const isColor = (value: string): value is BadgeColor => colors.some((color) => color === value);
 
-function badge(node: ElementNode, number: number, data: Data, issues: string[]) {
+function badge(node: ElementNode, number: number, data: Data, issues: Issue[]) {
   // A block badge's content is a paragraph, which a badge, drawn inline, can't hold.
   const content = childrenOf(node)
     .filter(isContent)
     .flatMap((child) => (isElement(child) && child[0] === "p" ? childrenOf(child) : [child]));
   const words = clip(textContent(["span", {}, ...content]));
   const name = `\`:badge\` ${number}${words ? ` ("${words}")` : ""}`;
+  for (const key of Object.keys(node[1])) {
+    const prop = key.replace(/^:/, "");
+    if (prop !== "color" && prop !== "id" && prop !== "class")
+      issues.push({
+        rule: "comark/badge/unknown-prop",
+        message: `${name}: \`${prop}\` isn't a prop of \`:badge\`, so it's ignored. Use \`color\`.`,
+      });
+  }
   const written = text(resolveAttributes(node[1], data, { parseJson: true }).color);
   let color: BadgeColor = "primary";
   if (isColor(written)) color = written;
   else if (written)
-    issues.push(
-      `${name}: \`color\` is "${clip(written)}", so it shows as primary. Write one of ${colors.join(", ")}.`,
-    );
+    issues.push({
+      rule: "comark/badge/invalid-color",
+      message: `${name}: \`color\` is "${clip(written)}", so it shows as primary. Write one of ${colors.join(", ")}.`,
+    });
   if (!content.length)
-    issues.push(`${name} is empty. Write its text in brackets: \`:badge[New]\`.`);
+    issues.push({
+      rule: "comark/badge/empty-badge",
+      message: `${name} is empty. Write its text in brackets: \`:badge[New]\`.`,
+    });
   node.splice(1, node.length - 1, { color }, ...content);
 }
 
@@ -71,7 +87,7 @@ export default defineComarkPlugin<void, BadgeMeta>(() => ({
   post(state) {
     const { tree } = state;
     const data: Data = { frontmatter: tree.frontmatter, meta: tree.meta, data: {}, props: {} };
-    const issues: string[] = [];
+    const issues: Issue[] = [];
     let count = 0;
     const walk = (nodes: Node[]) => {
       for (const node of nodes) {
@@ -81,6 +97,10 @@ export default defineComarkPlugin<void, BadgeMeta>(() => ({
       }
     };
     walk(tree.nodes);
-    tree.meta.issues = [...(tree.meta.issues ?? []), ...issues];
+    tree.meta.issues = [...(tree.meta.issues ?? []), ...issues.map((issue) => issue.message)];
+    tree.meta.issueRules = {
+      ...tree.meta.issueRules,
+      ...Object.fromEntries(issues.map((issue) => [issue.message, issue.rule])),
+    };
   },
 }));

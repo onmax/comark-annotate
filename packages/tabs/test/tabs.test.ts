@@ -136,6 +136,23 @@ describe("comark-tabs", () => {
     ]);
   });
 
+  it("names each issue's rule in meta.issueRules, with comark-icon's for icons", async () => {
+    const { meta } = await parseMarkdown(
+      '::tabs{sycn="os"}\nStray\n\n:::tabs-item{label="A" icon="lucide apple"}\nA\n:::\n\n:::tabs-item{label="A"}\nB\n:::\n::\n\n:::tabs-item\nC\n:::',
+      { plugins: [tabs({ iconResolver: createIcons({ fetch: false }) })] },
+    );
+    expect(meta.issues.map((issue: string) => meta.issueRules[issue])).toEqual([
+      "comark/tabs/unknown-prop",
+      "comark/tabs/content-outside-tab",
+      "comark/tabs/duplicate-label",
+      "comark/tabs/stray-tabs-item",
+      "comark/icon/invalid-name",
+    ]);
+    expect(meta.issues[0]).toBe(
+      "`::tabs` 1: `sycn` isn't a prop of `::tabs`, so it's ignored. Use `sync`.",
+    );
+  });
+
   it("reads bound labels and sync from the front matter", async () => {
     const html = await markup(
       '---\nkey: os\nname: Linux\n---\n::tabs{:sync="frontmatter.key"}\n:::tabs-item{:label="frontmatter.name"}\nOne\n:::\n::',

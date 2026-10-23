@@ -2,7 +2,13 @@ import type { ElementNode, Node } from "comark";
 import { defineComarkPlugin } from "comark";
 import { resolveAttributes } from "comark/render";
 import { textContent } from "comark/utils";
-import { createIcons, describeIconProblem, type IconData, type Icons } from "comark-icon";
+import {
+  createIcons,
+  describeIconProblem,
+  iconProblemRule,
+  type IconData,
+  type Icons,
+} from "comark-icon";
 import { defaultManagers, translate, type PackageManager } from "./npm2yarn.ts";
 
 export type { PackageManager };
@@ -27,7 +33,11 @@ export type TabsOptions = {
 export type TabsMeta = {
   /** One readable sentence per problem with a `::tabs`, `::code-group`, or `:::tabs-item`. Empty when there are none. */
   issues: string[];
+  /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
+  issueRules: Record<string, string>;
 };
+
+type Issue = { rule: `comark/tabs/${string}` | `comark/icon/${string}`; message: string };
 
 type Data = Parameters<typeof resolveAttributes>[1];
 
@@ -69,7 +79,7 @@ function describe(node: Node) {
 
 interface Walk {
   data: Data;
-  issues: string[];
+  issues: Issue[];
   labelIcons: Map<string, string>;
   icons: { block: ElementNode; index: number; value: string; name: string }[];
   tabs: number;
@@ -99,21 +109,23 @@ const resolve = (node: ElementNode, walk: Walk) =>
   resolveAttributes(node[1], walk.data, { parseJson: true });
 
 // A code group is `::tabs` with a code block in each tab, so every renderer handles one shape.
-function codeGroup(node: ElementNode, walk: Walk, name: string) {
+function codeGroup(node: ElementNode, name: string, walk: Walk) {
   const items: ElementNode[] = [];
   for (const child of childrenOf(node).filter(isContent)) {
     if (!isElement(child) || child[0] !== "pre") {
-      walk.issues.push(
-        `${name}: only code blocks go inside. Move ${describe(child)} out, or use \`::tabs\`.`,
-      );
+      walk.issues.push({
+        rule: "comark/tabs/content-in-code-group",
+        message: `${name}: only code blocks go inside. Move ${describe(child)} out, or use \`::tabs\`.`,
+      });
       continue;
     }
     let label = text(child[1].filename);
     if (!label) {
       label = text(child[1].language) || `Code ${items.length + 1}`;
-      walk.issues.push(
-        `${name}, block ${items.length + 1}: a code block needs a label. Put it in brackets after the language: \`\`\`bash [npm].`,
-      );
+      walk.issues.push({
+        rule: "comark/tabs/missing-label",
+        message: `${name}, block ${items.length + 1}: a code block needs a label. Put it in brackets after the language: \`\`\`bash [npm].`,
+      });
     }
     // The tab names the block, so its own title bar doesn't repeat it.
     delete child[1].filename;
@@ -132,42 +144,61 @@ function codeGroup(node: ElementNode, walk: Walk, name: string) {
   node[0] = "tabs";
   node[1].code = "true";
   node.splice(2, node.length - 2, ...items);
-  return name;
+}
+
+// A misspelled `sync` or `icon` is dropped without a trace, so each prop that isn't one is named.
+function unknownProps(node: ElementNode, name: string, block: string, walk: Walk) {
+  const props = block === ":::tabs-item" ? ["label", "icon"] : ["sync"];
+  const list = props.map((prop) => `\`${prop}\``).join(" or ");
+  for (const key of Object.keys(node[1])) {
+    const prop = key.replace(/^:/, "");
+    if (!props.includes(prop) && prop !== "id" && prop !== "class")
+      walk.issues.push({
+        rule: "comark/tabs/unknown-prop",
+        message: `${name}: \`${prop}\` isn't a prop of \`${block}\`, so it's ignored. Use ${list}.`,
+      });
+  }
 }
 
 function tabs(node: ElementNode, walk: Walk, name?: string) {
-  if (node[0] === "code-group")
-    name = codeGroup(node, walk, name ?? `\`::code-group\` ${++walk.groups}`);
-  name ??= `\`::tabs\` ${++walk.tabs}`;
+  const group = node[0] === "code-group";
+  name ??= group ? `\`::code-group\` ${++walk.groups}` : `\`::tabs\` ${++walk.tabs}`;
+  unknownProps(node, name, group ? "::code-group" : "::tabs", walk);
+  if (group) codeGroup(node, name, walk);
   const attrs = resolve(node, walk);
   const items: ElementNode[] = [];
   for (const child of childrenOf(node).filter(isContent)) {
     if (isElement(child) && child[0] === "tabs-item") items.push(child);
     else
-      walk.issues.push(
-        `${name}: put each tab in \`:::tabs-item{label="..."}\`. Found ${describe(child)} outside a tab, so it doesn't render.`,
-      );
+      walk.issues.push({
+        rule: "comark/tabs/content-outside-tab",
+        message: `${name}: put each tab in \`:::tabs-item{label="..."}\`. Found ${describe(child)} outside a tab, so it doesn't render.`,
+      });
   }
   if (!items.length)
-    walk.issues.push(
-      node[1].code
+    walk.issues.push({
+      rule: "comark/tabs/empty-tabs",
+      message: node[1].code
         ? `${name} has no code blocks. Put fenced code blocks inside it, or remove it.`
         : `${name} has no tabs. Put \`:::tabs-item{label="..."}\` blocks inside it, or remove it.`,
-    );
+    });
   const labels: string[] = [];
   for (const [index, item] of items.entries()) {
     const props = resolve(item, walk);
+    if (!node[1].code) unknownProps(item, `${name}, tab ${index + 1}`, ":::tabs-item", walk);
     let label = text(props.label);
     if (!label) {
       label = `Tab ${index + 1}`;
-      walk.issues.push(
-        `${name}, tab ${index + 1}: \`label\` is required. Write \`:::tabs-item{label="..."}\`.`,
-      );
+      walk.issues.push({
+        rule: "comark/tabs/missing-label",
+        message: `${name}, tab ${index + 1}: \`label\` is required. Write \`:::tabs-item{label="..."}\`.`,
+      });
     }
     if (labels.includes(label))
-      walk.issues.push(
-        `${name}: two tabs are labelled "${label}". Labels must differ, because \`sync\` matches tabs by label.`,
-      );
+      walk.issues.push({
+        rule: "comark/tabs/duplicate-label",
+        message: `${name}: two tabs are labelled "${label}". Labels must differ, because \`sync\` matches tabs by label.`,
+      });
     labels.push(label);
     item[1] = { label, index: String(index + 1) };
     const icon = text(props.icon) || walk.labelIcons.get(label.toLowerCase());
@@ -228,7 +259,10 @@ async function addIcons(walk: Walk, resolver: Icons) {
     const where = `${name}, tab ${index + 1}`;
     if (!icon) continue;
     if ("problem" in icon) {
-      walk.issues.push(`${where}, icon "${clip(value)}": ${describeIconProblem(value, icon)}`);
+      walk.issues.push({
+        rule: iconProblemRule(icon),
+        message: `${where}, icon "${clip(value)}": ${describeIconProblem(value, icon)}`,
+      });
       continue;
     }
     const icons = blocks.get(block) ?? childrenOf(block).map(() => null);
@@ -246,9 +280,10 @@ function normalize(nodes: Node[], walk: Walk, inTabs = false) {
     if (!isElement(node)) continue;
     if (node[0] === "tabs-item" && !inTabs) {
       const label = text(resolve(node, walk).label);
-      walk.issues.push(
-        `\`:::tabs-item\` ${++walk.strays}${label ? ` ("${label}")` : ""} sits outside \`::tabs\`, so it renders as plain content. Wrap it in \`::tabs\`, or remove the \`:::tabs-item\` fence.`,
-      );
+      walk.issues.push({
+        rule: "comark/tabs/stray-tabs-item",
+        message: `\`:::tabs-item\` ${++walk.strays}${label ? ` ("${label}")` : ""} sits outside \`::tabs\`, so it renders as plain content. Wrap it in \`::tabs\`, or remove the \`:::tabs-item\` fence.`,
+      });
       node[0] = "div";
       node[1] = {};
     }
@@ -286,7 +321,14 @@ export default defineComarkPlugin<TabsOptions, TabsMeta>((options = {}) => {
       };
       normalize(tree.nodes, walk);
       await addIcons(walk, resolver);
-      tree.meta.issues = [...(tree.meta.issues ?? []), ...walk.issues];
+      tree.meta.issues = [
+        ...(tree.meta.issues ?? []),
+        ...walk.issues.map((issue) => issue.message),
+      ];
+      tree.meta.issueRules = {
+        ...tree.meta.issueRules,
+        ...Object.fromEntries(walk.issues.map((issue) => [issue.message, issue.rule])),
+      };
     },
   };
 });
