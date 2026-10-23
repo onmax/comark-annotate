@@ -6,6 +6,7 @@ import charts from "./charts.ts";
 import chips from "./chips.ts";
 import code from "./code.ts";
 import core from "./core.ts";
+import details from "./details.ts";
 import diff from "./diff.ts";
 import embed from "./embed.ts";
 import fields from "./fields.ts";
@@ -13,6 +14,8 @@ import fileTree from "./file-tree.ts";
 import github from "./github.ts";
 import icon from "./icon.ts";
 import include from "./include.ts";
+import outline from "./outline.ts";
+import media from "./media.ts";
 import steps from "./steps.ts";
 import tabs from "./tabs.ts";
 import type { RuleInfo } from "./types.ts";
@@ -36,6 +39,9 @@ export const catalog = {
   ...steps,
   ...tabs,
   ...badge,
+  ...outline,
+  ...media,
   ...fields,
   ...fileTree,
+  ...details,
 } satisfies Record<string, RuleInfo>;

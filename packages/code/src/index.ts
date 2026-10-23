@@ -134,7 +134,6 @@ export default defineComarkPlugin<CodeOptions, CodeMeta>((options = {}) => {
     },
     async post(state) {
       const issues: Issue[] = [];
-      // Shiki redraws each block from its text, so lines rewritten before it runs would lose their highlighting.
       const order = (state.options.plugins ?? []).map((plugin) => plugin.name);
       const early = order.indexOf("shiki") > order.indexOf("comark-code");
       const unread = blocksOf(state.tree.nodes).filter((pre) => lines(pre, !early, issues));

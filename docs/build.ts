@@ -88,6 +88,7 @@ const packageOrder = [
   "carousel",
   "tabs",
   "code",
+  "details",
   "file-tree",
   "fields",
   "badge",
@@ -96,6 +97,7 @@ const packageOrder = [
   "deflist",
   "figure",
   "include",
+  "outline",
   "reading-time",
   "lint",
 ];

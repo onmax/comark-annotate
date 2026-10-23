@@ -39,9 +39,16 @@ const plugins = () => [
   ...browserPlugins({}, { download: false }).map((plugin) => offline[plugin.name] ?? plugin),
   include({ root: fileURLToPath(new URL("docs/doctor-include/", repo)) }),
 ];
-// comark-tabs turns `::code-group` into `::tabs` and comark-include replaces `:include` while parsing, so no renderer
-// has them.
-const known = [...Object.keys(components), "code-group", "tabs-item", "include"];
+// comark-tabs turns `::code-group` into `::tabs`, comark-include replaces `:include`, and comark-details turns its
+// items and collapsibles into `disclosure` while parsing, so no renderer has them.
+const known = [
+  ...Object.keys(components),
+  "code-group",
+  "tabs-item",
+  "include",
+  "accordion-item",
+  "collapsible",
+];
 
 // Links to files are checked only in a document with a path, so broken-link's examples lint as a page in
 // docs/doctor-include/, next to the files they link. The other examples have none, so their links aren't checked.
