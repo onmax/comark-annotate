@@ -220,8 +220,9 @@ function transform(nodes: Node[], walk: Walk, inAccordion = false) {
   for (const node of nodes) {
     if (!isElement(node)) continue;
     const [tag, attrs] = node;
-    // Raw `<details>` HTML parses to the same tag, marked `$.html`, and already has its own `<summary>`.
-    if (tag === "details" && !(attrs.$ instanceof Object && "html" in attrs.$)) details(node, walk);
+    // Raw HTML subtrees are opaque; preserve their contents and any nested Comark-like markup.
+    if (attrs.$?.html) continue;
+    if (tag === "details") details(node, walk);
     else if (tag === "collapsible") collapsible(node, walk);
     else if (tag === "accordion") accordion(node, walk);
     else if (tag === "accordion-item" && !inAccordion) stray(node, walk);
