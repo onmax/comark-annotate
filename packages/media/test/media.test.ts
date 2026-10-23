@@ -28,9 +28,35 @@ describe("comark-media", () => {
       expect(await render(`![Clip](${file})`), file).toContain('<video class="cm"');
     for (const file of ["a.mp3", "a.wav", "a.ogg", "a.m4a"])
       expect(await render(`![Clip](${file})`), file).toContain(
-        `<audio class="cm" src="${file}" controls preload="metadata" aria-label="Clip">`,
+        `<span class="cm cm-audio" role="group" aria-label="Clip"><audio src="${file}" controls preload="metadata" aria-label="Clip">`,
       );
     expect(await render("![Diagram](a.png)")).toContain('<img src="a.png" alt="Diagram"');
+  });
+
+  it("gives audio a player that keeps the browser's as a fallback, with the script once per document", async () => {
+    const html = await render("![Alert](alert.mp3)\n\n![Chime](chime.ogg)\n\n![Clip](clip.mp4)");
+    expect(html).toContain(
+      '<audio src="alert.mp3" controls preload="metadata" aria-label="Alert"><a href="alert.mp3">Alert</a></audio><span class="cm-bar"><button type="button" class="cm-play" aria-label="Play">',
+    );
+    expect(html).toContain(
+      '<input type="range" class="cm-seek" min="0" max="0" step="any" value="0" aria-label="Seek">',
+    );
+    expect(html.match(/<span class="cm-bar">/g)).toHaveLength(2);
+    expect(html.match(/<script>/g)).toHaveLength(1);
+    expect(await render("![Clip](clip.mp4)")).not.toContain("<script>");
+  });
+
+  it('keeps the browser\'s audio player with `audio: "native"`, and no script', async () => {
+    const native = createHtmlRenderer({ plugins: [media({ audio: "native" })], components });
+    const html = await native("![Alert](alert.mp3){loop}");
+    expect(html).toContain(
+      '<audio class="cm" src="alert.mp3" controls preload="metadata" loop aria-label="Alert"><a href="alert.mp3">Alert</a></audio>',
+    );
+    expect(html).not.toContain('class="cm-bar"');
+    expect(html).not.toContain("<script>");
+    expect(await issues("![Alert](alert.mp3){native}")).toEqual([
+      "`![Alert](alert.mp3)`: `native` isn't an audio option, so it was dropped. Use autoplay, loop, or muted.",
+    ]);
   });
 
   it("passes autoplay, loop, muted, and poster through", async () => {

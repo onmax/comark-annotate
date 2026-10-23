@@ -7,9 +7,18 @@ export type MediaMeta = {
   issues: string[];
 };
 
+export type MediaOptions = {
+  /**
+   * `styled` gives audio a player on the shared `--comark-*` tokens, which a small script runs; until it does, and when
+   * the file can't play, the browser's own player shows. `native` always uses the browser's player. Default `styled`.
+   * Videos always use the browser's player.
+   */
+  audio?: "styled" | "native";
+};
+
 /**
- * What a media file becomes, and all its renderers read. `kind` is `video` or `audio`; `label` is the image's alt. The
- * flags are only present when set.
+ * What a media file becomes, and all its renderers read. `kind` is `video` or `audio`; `label` is the image's alt.
+ * `native` marks audio that keeps the browser's player. The flags are only present when set.
  */
 export type MediaAttributes = {
   kind?: "video" | "audio";
@@ -19,6 +28,7 @@ export type MediaAttributes = {
   autoplay?: boolean;
   loop?: boolean;
   muted?: boolean;
+  native?: boolean;
 };
 
 type Data = Parameters<typeof resolveAttributes>[1];
@@ -81,7 +91,12 @@ function convert(tokens: ComarkParseTokensState["tokens"]) {
   }
 }
 
-function read(node: ElementNode, data: Data, issues: string[]): MediaAttributes {
+function read(
+  node: ElementNode,
+  data: Data,
+  issues: string[],
+  options: MediaOptions,
+): MediaAttributes {
   const attrs = resolveAttributes(node[1], data, { parseJson: true });
   const src = text(attrs.src);
   const alt = text(attrs.alt);
@@ -105,6 +120,7 @@ function read(node: ElementNode, data: Data, issues: string[]): MediaAttributes 
   if (poster && kind === "audio")
     issues.push(`${name}: audio has no picture, so \`poster\` was dropped. Remove it.`);
   else if (poster) result.poster = poster;
+  if (kind === "audio" && options.audio === "native") result.native = true;
   if (result.autoplay && !result.muted)
     issues.push(
       `${name}: browsers only start ${kind === "video" ? "a video" : "audio"} by itself when it's muted. Add \`muted\`, or remove \`autoplay\`.`,
@@ -112,7 +128,7 @@ function read(node: ElementNode, data: Data, issues: string[]): MediaAttributes 
   const unknown = Object.keys(attrs).filter((key) => !KNOWN.has(key));
   if (unknown.length)
     issues.push(
-      `${name}: ${unknown.map((key) => `\`${key}\``).join(", ")} ${unknown.length === 1 ? "isn't a" : "aren't"} ${kind} option${unknown.length === 1 ? "" : "s"}, so ${unknown.length === 1 ? "it was" : "they were"} dropped. Use autoplay, loop, muted${kind === "video" ? ", or poster" : ""}.`,
+      `${name}: ${unknown.map((key) => `\`${key}\``).join(", ")} ${unknown.length === 1 ? `isn't ${kind === "audio" ? "an" : "a"}` : "aren't"} ${kind} option${unknown.length === 1 ? "" : "s"}, so ${unknown.length === 1 ? "it was" : "they were"} dropped. Use autoplay, loop, ${kind === "video" ? "muted, or poster" : "or muted"}.`,
     );
   return result;
 }
@@ -122,7 +138,7 @@ function read(node: ElementNode, data: Data, issues: string[]): MediaAttributes 
  * with the alt as its label, as GitLab does. A GitHub `user-attachments` link alone in a paragraph plays too, as on
  * GitHub. Problems are added to `meta.issues`.
  */
-export default defineComarkPlugin<void, MediaMeta>(() => ({
+export default defineComarkPlugin<MediaOptions | undefined, MediaMeta>((options = {}) => ({
   name: "comark-media",
   markdownItPost(state) {
     convert(state.tokens);
@@ -134,7 +150,7 @@ export default defineComarkPlugin<void, MediaMeta>(() => ({
     const walk = (nodes: Node[]) => {
       for (const node of nodes) {
         if (!isElement(node)) continue;
-        if (node[0] === "media") node.splice(1, node.length - 1, read(node, data, issues));
+        if (node[0] === "media") node.splice(1, node.length - 1, read(node, data, issues, options));
         else walk(childrenOf(node));
       }
     };

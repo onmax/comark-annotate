@@ -1,19 +1,29 @@
 import { createElement, useEffect } from "react";
-import { addStyles } from "./client.ts";
+import { controls, css, start } from "./client.ts";
 import type { MediaAttributes } from "./index.ts";
 
 export { default } from "./index.ts";
-export type { MediaAttributes, MediaMeta } from "./index.ts";
+export type { MediaAttributes, MediaMeta, MediaOptions } from "./index.ts";
 
 /** Videos and audio for `@comark/react`. */
-export function Media({ kind, src, label, poster, autoplay, loop, muted }: MediaAttributes) {
-  useEffect(addStyles, []);
+export function Media({
+  kind,
+  src,
+  label,
+  poster,
+  autoplay,
+  loop,
+  muted,
+  native,
+}: MediaAttributes) {
+  useEffect(() => start(css), []);
   if ((kind !== "video" && kind !== "audio") || !src) return null;
   const video = kind === "video";
-  return createElement(
+  const player = !video && !native;
+  const element = createElement(
     kind,
     {
-      className: "cm",
+      className: player ? undefined : "cm",
       src,
       controls: true,
       playsInline: video || undefined,
@@ -25,6 +35,18 @@ export function Media({ kind, src, label, poster, autoplay, loop, muted }: Media
       "aria-label": label || undefined,
     },
     createElement("a", { href: src }, label || src),
+  );
+  if (!player) return element;
+  return createElement(
+    "span",
+    {
+      className: "cm cm-audio",
+      role: label ? "group" : undefined,
+      "aria-label": label || undefined,
+    },
+    element,
+    // The script updates the controls in place, so React doesn't own them.
+    createElement("span", { className: "cm-bar", dangerouslySetInnerHTML: { __html: controls } }),
   );
 }
 
