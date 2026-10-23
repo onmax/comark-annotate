@@ -202,7 +202,8 @@ function input(chart: Chart): ChartAssemblyInput {
   // A bar, a step, or a dot row per value, so a numeric x on those is a name.
   const banded =
     type === "bar" || type === "stacked" || type === "waterfall" || type === "dumbbell";
-  const kind = banded && chart.xKind === "number" ? "name" : chart.xKind;
+  // Flint joins a dumbbell's dots per row only over names; over dates its connector runs through every row.
+  const kind = type === "dumbbell" || (banded && chart.xKind === "number") ? "name" : chart.xKind;
   const xValue = (value: string) => (kind === "number" ? Number(value.replaceAll(",", "")) : value);
   // `row` lets a mark find the shapes drawn for its row once the chart is laid out.
   const values = chart.rows.flatMap((row, number) =>
@@ -344,6 +345,140 @@ function boxes(chart: Chart, view: vega.View, width: number, height: number): Ma
     });
   }
   return found;
+}
+
+const format = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 12 });
+
+/** Ticks from a round step that end at the first one past the data, among as many as fit `width`. */
+function ticks(low: number, high: number, width: number) {
+  const span = high - low || Math.abs(high) || 1;
+  const magnitude = 10 ** Math.floor(Math.log10(span));
+  let best: number[] = [];
+  for (const scale of [magnitude / 10, magnitude])
+    for (const factor of [1, 2, 2.5, 3, 4, 5]) {
+      const step = factor * scale;
+      const first = Math.floor(low / step) * step;
+      const count = Math.round((Math.ceil(high / step) * step - first) / step);
+      const values = Array.from({ length: count + 1 }, (_, index) =>
+        Number((first + index * step).toPrecision(12)),
+      );
+      const room = Math.max(...values.map((value) => guess(format(value), 12))) + 12;
+      if (count < 3 || values.length * room > width) continue;
+      const reach = (list: number[]) => list.at(-1)! - list[0]!;
+      if (!best.length || reach(values) < reach(best)) best = values;
+    }
+  return best.length ? best : [low, high];
+}
+
+/**
+ * A dumbbell reads as rows of changes: a grid line at every tick and a guide along every row, rows close together, a
+ * connector heavier than the grid, and each row's extremes printed beside its outer dots.
+ */
+function dumbbell(chart: Chart, spec: TopLevelSpec) {
+  if (!("layer" in spec) || !spec.encoding) return;
+  const { x } = spec.encoding;
+  if (!x || !("field" in x)) return;
+  const rows = chart.rows.map((row) => row.values.filter((value) => value !== undefined));
+  const all = rows.flat().filter((value): value is number => Number.isFinite(value));
+  if (!all.length) return;
+  const width = Number(spec.config?.view?.continuousWidth) || layout(chart).width;
+  let values = ticks(Math.min(...all), Math.max(...all), width);
+  let [low, high] = [values[0]!, values.at(-1)!];
+  if (low === high) {
+    const room = Math.max(1, Math.abs(low) * 0.1);
+    low -= room;
+    high += room;
+    values = ticks(low, high, width);
+  }
+  // Each row's least value is printed left of its dot and its most right of its dot, when the two differ, so the scale
+  // leaves each row room for its text, as a share of the span: the least sits `left` of the span in from the low
+  // edge, and the most `right` of it in from the high edge.
+  const ends = rows
+    .filter((row) => row.length)
+    .map((row) => {
+      const least = Math.min(...row);
+      const most = Math.max(...row);
+      return {
+        least,
+        most,
+        left: (guess(format(least), 12) + 24) / width,
+        right: most > least ? (guess(format(most), 12) + 24) / width : 0,
+      };
+    });
+  // On a plot too narrow for the text, padding for it would squeeze the dots into a sliver, so where the text would
+  // take more than 60% of the plot, the table under the chart carries the numbers instead.
+  const printed =
+    Math.max(...ends.map((end) => end.left)) + Math.max(...ends.map((end) => end.right)) <= 0.6;
+  if (printed) {
+    // The span depends on the room, and the room on the span, so the span is found by iterating; with the shares at
+    // most 60%, each pass cuts the shortfall to at most 60% of what it was.
+    const [tickLow, tickHigh] = [low, high];
+    for (let pass = 0; pass < 64; pass++) {
+      const span = high - low;
+      low = Math.min(tickLow, ...ends.map((end) => end.least - end.left * span));
+      high = Math.max(tickHigh, ...ends.map((end) => end.most + end.right * span));
+      if (high - low - span <= span * 1e-9) break;
+    }
+  }
+  x.scale = { domain: [low, high], nice: false, zero: false };
+  // Vega thins given values down to the tick count Flint sets, so the count is the values'.
+  const grid = { grid: true, gridColor: INK.grid, gridWidth: 1 };
+  x.axis = {
+    ...("axis" in x && x.axis),
+    ...grid,
+    values,
+    tickCount: values.length,
+    labelFlush: false,
+  };
+  const { y } = spec.encoding;
+  if (y) spec.encoding.y = { ...y, axis: { ...("axis" in y && y.axis), ...grid } };
+  spec.height = { step: 36 };
+  const [line, dots] = spec.layer;
+  if (line && "mark" in line)
+    line.mark = {
+      type: "line",
+      color: INK.muted,
+      strokeWidth: 4,
+      strokeOpacity: 0.55,
+      strokeCap: "round",
+      interpolate: "linear",
+    };
+  if (dots && "mark" in dots && dots.mark instanceof Object && dots.mark.type === "point")
+    dots.mark = { ...dots.mark, size: 100 };
+  // SAFETY: Vega-Lite field channels always carry a string field name when present.
+  const valueField = x.field as string;
+  // SAFETY: Vega-Lite row channels use the same string field-name contract.
+  const rowField = y && "field" in y ? (y.field as string) : "x";
+  const label = (side: "lo" | "hi") => ({
+    transform: [
+      {
+        joinaggregate: [
+          { op: "min" as const, field: valueField, as: "lo" },
+          { op: "max" as const, field: valueField, as: "hi" },
+        ],
+        groupby: [rowField],
+      },
+      {
+        filter:
+          side === "lo"
+            ? `datum[${JSON.stringify(valueField)}] === datum.lo`
+            : `datum[${JSON.stringify(valueField)}] === datum.hi && datum.hi > datum.lo`,
+      },
+      // Series that tie at a row's end share one dot, so the row prints that value once.
+      { window: [{ op: "row_number" as const, as: "nth" }], groupby: [rowField] },
+      { filter: "datum.nth === 1" },
+    ],
+    mark: {
+      type: "text" as const,
+      align: side === "lo" ? ("right" as const) : ("left" as const),
+      baseline: "middle" as const,
+      dx: side === "lo" ? -10 : 10,
+      fontSize: 12,
+      fill: INK.muted,
+    },
+    encoding: { text: { field: valueField, type: "quantitative" as const, format: ",.12~g" } },
+  });
+  if (printed) spec.layer.push(label("lo"), label("hi"));
 }
 
 /** Draws a compiled Vega spec to an SVG string, and returns the view for finding where its marks sit. */
@@ -573,7 +708,7 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
     // Flint pads the value axis for the labels from levels that add the end total to the sum it closes, so it runs
     // to twice the top and below zero. The levels here stop at the end total, and only a side with a label is padded.
     const levels = [0];
-    for (const [index, row] of chart.rows.entries()) {
+    for (const [index] of chart.rows.entries()) {
       const value = values[index];
       const last = levels.at(-1)!;
       levels.push(
@@ -610,6 +745,7 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
       spec.layer.push({ mark: { type: "point", opacity: 0 }, encoding });
     }
   }
+  if (chart.type === "dumbbell") dumbbell(chart, spec);
   const { view, svg } = await render(compile(spec, { logger: quiet }).spec);
   const [, width = "0", height = "0"] = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg) ?? [];
   const found = boxes(chart, view, Number(width), Number(height));

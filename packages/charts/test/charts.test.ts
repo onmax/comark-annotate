@@ -99,6 +99,8 @@ describe("comark-charts", () => {
     expect(dumbbell).toContain('data-type="dumbbell"');
     expect(dumbbell).toContain(">before</text>");
     expect(dumbbell).toContain(">after</text>");
+    // Months are rows like any name, each with its own connector rather than one line through them all.
+    expect(dumbbell.match(/class="mark-line role-mark/g)).toHaveLength(3);
     const waterfall = await render(
       chart(
         `
@@ -117,6 +119,47 @@ describe("comark-charts", () => {
     // Each step prints its change and each total its value, once.
     for (const value of ["412", "+38", "\u221224", "426"])
       expect(waterfall.split(`>${value}</text>`)).toHaveLength(2);
+  });
+
+  it("grids a dumbbell, ends its axis at the data, and prints each row's ends beside its dots", async () => {
+    const html = await render(
+      chart(
+        `
+| activity | before | after |
+| --- | --: | --: |
+| waiting for review | 820 | 540 |
+| debugging alone | 1,450 | 980 |
+| meetings about bugs | 2,100 | 1,320 |
+| standup | 380 | 160 |`,
+        '{type="dumbbell"}',
+      ),
+    );
+    const group = (role: string) =>
+      [...html.matchAll(new RegExp(`class="mark-[a-z]+ role-${role}"[^>]*>(.*?)</g>`, "gs"))].map(
+        ([, inside]) => inside!,
+      );
+    const [ticks, names] = group("axis-label");
+    expect([...ticks!.matchAll(/>([^<]+)<\/text>/g)].map(([, text]) => text)).toEqual([
+      "0",
+      "300",
+      "600",
+      "900",
+      "1,200",
+      "1,500",
+      "1,800",
+      "2,100",
+    ]);
+    expect(names).toContain(">standup</text>");
+    // A grid line at every tick and a guide along every row.
+    const [columns, rows] = group("axis-grid");
+    expect(columns!.match(/<line/g)).toHaveLength(8);
+    expect(rows!.match(/<line[^>]*stroke-width="1"/g)).toHaveLength(4);
+    const printed = [...html.matchAll(/class="mark-text role-mark[^"]*"[^>]*>(.*?)<\/g>/gs)]
+      .flatMap(([, inside]) => [...inside!.matchAll(/<text[^>]*>([^<]+)<\/text>/g)])
+      .map(([, text]) => text);
+    expect(printed.sort()).toEqual(
+      ["1,320", "1,450", "160", "2,100", "380", "540", "820", "980"].sort(),
+    );
   });
 
   it("names every month, with the year on the first and wherever it turns", async () => {
