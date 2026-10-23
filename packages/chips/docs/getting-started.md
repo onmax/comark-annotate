@@ -15,7 +15,7 @@ import chips, { components } from "comark-chips/html";
 const render = createHtmlRenderer({ plugins: [chips()], components });
 ```
 
-Parsing downloads each favicon and avatar once per process and inlines it, so a site that builds many pages asks once per image.
+Parsing downloads each favicon and avatar and inlines it. Each image is kept in `node_modules/.cache/comark-chips` for a week, so a site that builds many pages, or builds again, asks once per image.
 
 ## Options
 
@@ -27,10 +27,16 @@ chips({
   favicon: (host) => `https://${host}/favicon.ico`,
   // An account's image, by its GitHub login. Its GitHub avatar by default.
   avatar: (login) => `https://unavatar.io/github/${login}`,
+  // The folder that keeps images between builds. `false` keeps them in memory only.
+  cache: ".comark/chips",
 });
 ```
 
 Pass `download: false` where parsing runs in a browser: most sites don't let a page download their images, so each chip would try and then fall back to its URL anyway.
+
+## Rate limits
+
+Avatars from X, Bluesky, YouTube, GitLab, and `avatar="provider:name"` come from [unavatar.io](https://unavatar.io), which answers 25 downloads a day for each IP address without a plan. Each image counts once a week, thanks to the cache. When it says no, the chip keeps the URL for the reader's browser and `meta.issues` says to build again. A CI that starts with no `node_modules` downloads everything every time; set `cache` to a folder you commit, such as `.comark/chips`, and it downloads only the images that are new. GitHub avatars and favicons have no such limit.
 
 An avatar that answers with an HTTP error, such as an `@user` with no GitHub account, is reported in `meta.issues`. A site without a favicon gets a chip with no image.
 
