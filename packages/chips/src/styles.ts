@@ -17,6 +17,6 @@ export const css = `@layer comark{${[
   ".cp-img{display:inline-block;width:min(var(--cp-image-size,1em),1em);height:min(var(--cp-image-size,1em),1em);margin-right:.3125em;border-radius:.1875em;outline:1px solid color-mix(in oklab,var(--_comark-foreground) 10%,transparent);outline-offset:-1px;vertical-align:middle;object-fit:cover}",
   '.cp[data-kind="avatar"]{padding:0;background:none;box-shadow:none;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:.2em;transition:text-decoration-color .15s ease-out}',
   '.cp[data-kind="avatar"]:hover{background:none;text-decoration-color:currentColor}',
-  '.cp[data-kind="avatar"] .cp-img{border-radius:50%}',
+  '.cp[data-kind="avatar"] .cp-img{border-radius:50%;outline:none}',
   "@media (prefers-reduced-motion:reduce){.cp{transition:none}}",
 ].join("")}}`;
