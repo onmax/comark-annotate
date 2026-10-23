@@ -390,21 +390,35 @@ function dumbbell(chart: Chart, spec: TopLevelSpec) {
     high += room;
     values = ticks(low, high, width);
   }
-  // Endpoint labels sit just outside their dots, so leave enough scale room at either edge for the text.
-  for (let pass = 0; pass < 3; pass++) {
-    let nextLow = low;
-    let nextHigh = high;
-    for (const row of rows) {
-      if (!row.length) continue;
+  // Each row's least value is printed left of its dot and its most right of its dot, when the two differ, so the scale
+  // leaves each row room for its text, as a share of the span: the least sits `left` of the span in from the low
+  // edge, and the most `right` of it in from the high edge.
+  const ends = rows
+    .filter((row) => row.length)
+    .map((row) => {
       const least = Math.min(...row);
-      const need = Math.min(0.9, (guess(format(least), 12) + 24) / width);
-      nextLow = Math.min(nextLow, (least - need * high) / (1 - need));
       const most = Math.max(...row);
-      const highNeed = Math.min(0.9, (guess(format(most), 12) + 24) / width);
-      nextHigh = Math.max(nextHigh, (most - highNeed * low) / (1 - highNeed));
+      return {
+        least,
+        most,
+        left: (guess(format(least), 12) + 24) / width,
+        right: most > least ? (guess(format(most), 12) + 24) / width : 0,
+      };
+    });
+  // On a plot too narrow for the text, padding for it would squeeze the dots into a sliver, so where the text would
+  // take more than 60% of the plot, the table under the chart carries the numbers instead.
+  const printed =
+    Math.max(...ends.map((end) => end.left)) + Math.max(...ends.map((end) => end.right)) <= 0.6;
+  if (printed) {
+    // The span depends on the room, and the room on the span, so the span is found by iterating; with the shares at
+    // most 60%, each pass cuts the shortfall to at most 60% of what it was.
+    const [tickLow, tickHigh] = [low, high];
+    for (let pass = 0; pass < 64; pass++) {
+      const span = high - low;
+      low = Math.min(tickLow, ...ends.map((end) => end.least - end.left * span));
+      high = Math.max(tickHigh, ...ends.map((end) => end.most + end.right * span));
+      if (high - low - span <= span * 1e-9) break;
     }
-    low = nextLow;
-    high = nextHigh;
   }
   x.scale = { domain: [low, high], nice: false, zero: false };
   // Vega thins given values down to the tick count Flint sets, so the count is the values'.
@@ -450,6 +464,9 @@ function dumbbell(chart: Chart, spec: TopLevelSpec) {
             ? `datum[${JSON.stringify(valueField)}] === datum.lo`
             : `datum[${JSON.stringify(valueField)}] === datum.hi && datum.hi > datum.lo`,
       },
+      // Series that tie at a row's end share one dot, so the row prints that value once.
+      { window: [{ op: "row_number" as const, as: "nth" }], groupby: [rowField] },
+      { filter: "datum.nth === 1" },
     ],
     mark: {
       type: "text" as const,
@@ -461,7 +478,7 @@ function dumbbell(chart: Chart, spec: TopLevelSpec) {
     },
     encoding: { text: { field: valueField, type: "quantitative" as const, format: ",.12~g" } },
   });
-  spec.layer.push(label("lo"), label("hi"));
+  if (printed) spec.layer.push(label("lo"), label("hi"));
 }
 
 /** Draws a compiled Vega spec to an SVG string, and returns the view for finding where its marks sit. */
