@@ -9,7 +9,7 @@ export type TocMeta = {
 };
 
 /** What a `::toc` becomes, and all its renderers read. Its children are the nested list of links. */
-export type TocAttributes = { title?: string };
+export type TocAttributes = { title?: string; empty?: boolean };
 
 type Data = Parameters<typeof resolveAttributes>[1];
 interface Heading {
@@ -78,14 +78,14 @@ function toc(
     issues.push(
       `${name}: \`depth\` must be a whole number from 2 to 6, such as \`depth=3\` for h2 and h3 headings.`,
     );
-    return ["toc", {}];
+    return ["toc", { empty: true }];
   }
   const listed = headings.filter((heading) => heading.level >= 2 && heading.level <= depth);
   if (!listed.length) {
     issues.push(
       `${name} has no headings from h2 to h${depth} to list. Add \`##\` headings, or remove the block.`,
     );
-    return ["toc", {}];
+    return ["toc", { empty: true }];
   }
   const title = text(attrs.title);
   return ["toc", title ? { title } : {}, list(listed)];
