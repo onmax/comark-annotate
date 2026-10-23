@@ -27,14 +27,16 @@ It runs whenever the extension is registered, and the `comark/recommended` prese
 
 ## Options
 
-It takes the same `plugins` and `components` as the [command line's config](/lint/getting-started/#command-line), plus two of its own:
+It takes the same options as the [command line's config](/lint/getting-started/#command-line), plus two of its own:
 
 | Option | |
 | --- | --- |
 | `include` | The Markdown to check, relative to the project root. Default `**/*.{md,mdc}`. |
 | `exclude` | Globs to skip. Default `**/node_modules/**` and `**/dist/**`. |
 
-This site lints its own pages this way. Its `docs/build.ts` renders a few components itself, so the config names them:
+Links resolve from the project root, and files are read through Vite Doctor's read-only `ctx.fs`, so its cache knows which files a result depends on. `comark/dead-url` is marked `env-dependent`, since its result depends on the network; the URL cache is still written to `node_modules/.cache/comark-linter/` with node:fs, because `ctx.fs` can't write.
+
+This site lints its own pages this way. Its `docs/build.ts` renders a few components itself, so the config names them, and its routes mirror the pages' URLs:
 
 ```ts
 // doctor.config.ts
@@ -42,8 +44,18 @@ export default defineDoctorConfig({
   extends: ["comark/recommended"],
   extensions: [
     comark({
-      include: "docs/pages/**/*.md",
-      components: ["cards", "example", "examples", "hero", "matrix"],
+      include: "{docs/pages,packages/*/docs}/**/*.md",
+      components: ["demo", "drop", "example", "examples", "hero", "matrix", "packages"],
+      links: {
+        // A package's pages come from its docs/, the rest from docs/pages, and files from docs/public.
+        routes(path) {
+          const [first = "", ...rest] = path.split("/").filter(Boolean);
+          if (first === "play") return true;
+          if (existsSync(`packages/${first}/docs/index.md`))
+            return `packages/${first}/docs/${rest.join("/")}`;
+          return /\.\w+$/.test(path) ? `docs/public${path}` : `docs/pages${path}`;
+        },
+      },
     }),
   ],
 });
