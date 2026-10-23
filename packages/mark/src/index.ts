@@ -76,6 +76,23 @@ function pairAll(state: StateInline) {
   renameTokens(state.tokens, { mark: SPAN });
 }
 
+function restoreUnresolvedFootnoteRefs(state: { tree: { nodes: unknown[] }; footnote?: Map<string, unknown> }) {
+  const definitions = state.footnote;
+  const rewrite = (value: unknown): unknown => {
+    if (!Array.isArray(value)) return value;
+    if (
+      value[0] === "span" &&
+      value.length === 3 &&
+      typeof value[2] === "string" &&
+      /^\^[^\s\]^]+$/.test(value[2]) &&
+      (!definitions || !definitions.has(value[2].slice(1)))
+    )
+      return `[${value[2]}]`;
+    return value.map(rewrite);
+  };
+  state.tree.nodes = state.tree.nodes.map(rewrite);
+}
+
 // The same as markdown's escapable characters, plus a space.
 const UNESCAPE = /\\([ \\!"#$%&'()*+,./:;<=>?@[\]^_`{|}~-])/g;
 
@@ -84,7 +101,16 @@ function superscript(state: StateInline, silent: boolean) {
   const start = state.pos;
   if (state.src.charCodeAt(start) !== CARET || silent || start + 2 >= max) return false;
   // `[^1]` is a footnote reference, here or in a footnotes plugin, not the start of a superscript.
-  if (state.src.charCodeAt(start - 1) === BRACKET) return false;
+  // The link/reference rule may consume `[` before this rule runs, so inspect the
+  // pending text and most recently emitted token as well as the raw source.
+  const previous = state.tokens[state.tokens.length - 1];
+  const pending = (state as StateInline & { pending?: string }).pending;
+  if (
+    state.src.charCodeAt(start - 1) === BRACKET ||
+    pending?.endsWith("[") ||
+    (previous?.type === "text" && previous.content.endsWith("["))
+  )
+    return false;
   state.pos = start + 1;
   let found = false;
   while (state.pos < max) {
@@ -119,4 +145,5 @@ const markdownIt = (md: MarkdownExit) => {
 export default defineComarkPlugin(() => ({
   name: "comark-mark",
   markdownItPlugins: [markdownIt],
+  post: restoreUnresolvedFootnoteRefs,
 }));

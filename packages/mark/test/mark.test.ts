@@ -41,6 +41,7 @@ describe("comark-mark", () => {
     const options = { plugins: [footnotes()] };
     expect(await render(markdown, options)).toBe(flat(await createHtmlRenderer(options)(markdown)));
     expect(await render("x[^1][^2]", { registerDefaultPlugins: false })).toBe("<p>x[^1][^2]</p>");
+    expect(await render("x[^1]")).toBe("<p>x[^1]</p>");
   });
 
   it("renders without Comark's default plugins", async () => {
