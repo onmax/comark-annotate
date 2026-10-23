@@ -6,6 +6,7 @@ import charts, { components as chartsComponents } from "../packages/charts/src/h
 import chips, { components as chipsComponents } from "../packages/chips/src/html.ts";
 import code, { components as codeComponents } from "../packages/code/src/html.ts";
 import deflist from "../packages/deflist/src/index.ts";
+import figure from "../packages/figure/src/index.ts";
 import diff, { components as diffComponents } from "../packages/diff/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
 import {
@@ -25,6 +26,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   carousel(),
   code(config["comark-code"]),
   deflist(),
+  figure(),
   charts(),
   chips({ download }),
   diff(),

@@ -45,6 +45,11 @@ const packages = [
     () => import("comark-deflist").then((module) => ({ ...module, components: {} })),
     [],
   ],
+  [
+    "comark-figure",
+    () => import("comark-figure").then((module) => ({ ...module, components: {} })),
+    [],
+  ],
   ["comark-diff/html", () => import("comark-diff/html"), []],
   ["comark-icon/html", () => import("comark-icon/html"), []],
   ["comark-tabs/html", () => import("comark-tabs/html"), ["code-group", "tabs-item"]],

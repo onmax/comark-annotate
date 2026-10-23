@@ -78,6 +78,7 @@ const packageOrder = [
   "tabs",
   "code",
   "deflist",
+  "figure",
   "include",
   "lint",
 ];
