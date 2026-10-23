@@ -50,11 +50,6 @@ const packages = [
     () => import("comark-details/html"),
     ["details", "accordion-item", "collapsible"],
   ],
-  [
-    "comark-details/html",
-    () => import("comark-details/html"),
-    ["details", "accordion-item", "collapsible"],
-  ],
   ["comark-tabs/html", () => import("comark-tabs/html"), ["code-group", "tabs-item"]],
   ["comark-zoom/html", () => import("comark-zoom/html"), []],
 ] as const;
