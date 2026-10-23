@@ -106,4 +106,4 @@ The playground opens the editor right away, so it stays slow.
 :::
 ::
 
-The chart's source is a plain Markdown table, so anyone reading the Markdown, a person or an agent, reads the numbers rather than a chart spec. The page shows the chart with the same table under it, folded into **Data**, so a tool that turns the page into text keeps the numbers too. Without the plugin, the table still renders as a table.
+The chart's source is a plain Markdown table. A person or an agent reading the Markdown reads the numbers, not a chart spec. The page shows the chart with the same table under it, folded into **Data**, so a tool that turns the page into text keeps the numbers too. Without the plugin, the table still renders as a table.
