@@ -24,9 +24,10 @@ createServer(async (request, response) => {
   const path = normalize(
     decodeURIComponent(new URL(request.url ?? "/", "http://x").pathname),
   ).replace(/^(\.\.[/\\])+/, "");
-  const relatives = path.endsWith("/")
-    ? [`${path}index.html`, `${path.slice(0, -1)}.html`]
-    : [path, `${path}.html`];
+  const relativePath = path.replace(/^[/\\]+/, "");
+  const relatives = relativePath.endsWith("/")
+    ? [`${relativePath}index.html`, `${relativePath.slice(0, -1)}.html`]
+    : [relativePath, `${relativePath}.html`];
   // Try each known Nitro root and route layout so the test server mirrors the
   // generated output rather than depending on one Nuxt version's structure.
   for (const root of roots) {
