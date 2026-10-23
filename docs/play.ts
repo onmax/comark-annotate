@@ -298,6 +298,8 @@ function setTheme(next: Theme) {
   for (const input of tokenFields)
     input.value = theme.tokens[(input.dataset.token ?? "") as keyof Theme["tokens"]] ?? "";
   extraCss.value = theme.css;
+  // Extra CSS stays folded until there is some to show.
+  extraCss.closest("details")?.toggleAttribute("open", Boolean(theme.css));
   showTheme();
   markTheme();
 }

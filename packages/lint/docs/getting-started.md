@@ -29,7 +29,7 @@ export default defineConfig({
 });
 ```
 
-Its `plugins` and `components` are added to the installed packages', and it takes every [library option](#library) but `file`. `components` takes a list of names or the components map you give the renderer. Node loads a `.ts` config from 22.18 on; on older versions, write it as `.mjs`.
+Its `plugins` and `components` are added to the installed packages', and it takes every [library option](#library) but `file`. `components` takes a list of names or the components map you give the renderer. Node loads a `.ts` config from 22.18 on. On older versions, write it as `.mjs`.
 
 ## Library
 
@@ -41,7 +41,9 @@ const diagnostics = await lint(markdown, { plugins: [annotate()], components });
 // [{ rule: "comark/unclosed-block", line: 8, column: 1, message: "…", fix: "…" }]
 ```
 
-`lint()` never throws; if a rule crashes on a document, that rule reports one diagnostic saying so and the others still run. Pass the same plugins and components you render with. Without `components`, `comark/unknown-component` is off, since any name could be valid; HTML elements are always known. `resolveConfig()` returns the installed packages' plugins and components, as the command line uses them.
+`lint()` never throws. If a rule crashes on a document, that rule reports one diagnostic saying so, and the others still run.
+
+Pass the same plugins and components you render with. Without `components`, `comark/unknown-component` is off, since any name could be valid. HTML elements are always known. `resolveConfig()` returns the installed packages' plugins and components, as the command line uses them.
 
 | Option | |
 | --- | --- |
@@ -143,4 +145,4 @@ export default defineDoctorConfig({
 pnpm vite-doctor . --config doctor.config.ts
 ```
 
-It lints `**/*.{md,mdc}` except `node_modules` and `dist`; set `include` and `exclude` to change that. Each rule reports with its own code, linked to its page in [Doctor](/doctor/), and the `comark/recommended` preset turns them all on. It runs whenever the extension is registered. It needs `vite-doctor` 0.1 or later.
+It lints `**/*.{md,mdc}` except `node_modules` and `dist`. Set `include` and `exclude` to change that. Each rule reports with its own code, linked to its page in [Doctor](/doctor/), and the `comark/recommended` preset turns them all on. It runs whenever the extension is registered, and needs `vite-doctor` 0.1 or later.

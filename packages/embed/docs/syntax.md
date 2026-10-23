@@ -8,7 +8,7 @@ description: The links embed reads and its props.
 ::
 ```
 
-Close the block with `::` on the next line; anything inside it is dropped.
+Close the block with `::` on the next line. The plugin drops anything inside it.
 
 | Prop | What it does |
 | --- | --- |
@@ -26,8 +26,19 @@ Close the block with `::` on the next line; anything inside it is dropped.
 | StackBlitz | `stackblitz.com/edit/<project>`, `stackblitz.com/github/<owner>/<repo>` | The project, keeping options such as `file` and `view`. |
 | Figma | `figma.com/design`, `proto`, `board`, `slides`, and `deck` links | Figma's embed, keeping `node-id`. |
 
-A StackBlitz project that runs in WebContainers, such as a Node or Vite starter, needs a cross-origin-isolated embedding page and a supported browser/runtime configuration ([WebContainers browser support](https://developer.stackblitz.com/platform/webcontainers/browser-support) and [browser configuration](https://developer.stackblitz.com/platform/webcontainers/browser-config)); without those requirements, its embedded preview may fail with “Unable to run Embedded Project”. A project that runs in the browser alone, such as the `typescript` starter, does not need WebContainer isolation, but it still depends on StackBlitz’s [supported embedding environments](https://developer.stackblitz.com/guides/integration/embedding).
+A StackBlitz project that runs in WebContainers, such as a Node or Vite starter, needs a cross-origin-isolated page and a supported browser. Without them, its preview may fail with "Unable to run Embedded Project". StackBlitz lists the [supported browsers](https://developer.stackblitz.com/platform/webcontainers/browser-support) and the [browser configuration](https://developer.stackblitz.com/platform/webcontainers/browser-config).
+
+A project that runs in the browser alone, such as the `typescript` starter, doesn't need that isolation. It still needs one of StackBlitz's [supported embedding environments](https://developer.stackblitz.com/guides/integration/embedding).
 
 Any other `https://` link renders as a card with its `title` and host. Cards don't fetch the page's title yet, so give each one a `title`.
 
-The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes: a missing `url`, one that isn't `https://` (it renders nothing), a provider's link it can't read an ID from (it renders as a card), a card without a `title`, a `start` that isn't whole seconds or is set on a player that can't seek, and content inside the block. Each issue names its block and says how to fix it.
+The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes:
+
+- A missing `url`.
+- A `url` that isn't `https://`. The block renders nothing.
+- A provider's link it can't read an ID from. The block renders as a card.
+- A card without a `title`.
+- A `start` that isn't whole seconds, or that is set on a player that can't seek.
+- Content inside the block.
+
+Each issue names its block and says how to fix it.

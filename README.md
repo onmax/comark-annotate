@@ -4,7 +4,7 @@
 
 # comark-plugins
 
-[Comark](https://comark.dev) plugins for review documents. Each package is published on its own and all of them share one version.
+Plugins for review documents, built on [Comark](https://comark.dev). This is an independent project by [@onmax](https://github.com/onmax), not made by the Comark team. Each package is published on its own and all of them share one version.
 
 | Package | What it does |
 | --- | --- |
@@ -15,6 +15,7 @@
 | [`comark-charts`](./packages/charts) | Charts from Markdown tables. |
 | [`comark-chips`](./packages/chips) | Links and `@user` mentions as chips with the site's favicon or the person's avatar, inlined while parsing. |
 | [`comark-code`](./packages/code) | Copy and Wrap buttons on code blocks, and buttons of your own that hand the code to your app. |
+| [`comark-deflist`](./packages/deflist) | Definition lists: a term, then `: definition` lines, rendered as native `<dl>`, `<dt>`, and `<dd>`. |
 | [`comark-details`](./packages/details) | Details, accordions, and collapsibles in Nuxt UI's syntax, drawn as native `<details>` with a real `<summary>`, so they open with no script. |
 | [`comark-diff`](./packages/diff) | A code change shown like a suggested change in a pull request review: the file, red and green lines, and the words that changed. |
 | [`comark-embed`](./packages/embed) | YouTube, Vimeo, Loom, Spotify, CodePen, StackBlitz, and Figma players from a link, with no network fetch. |
@@ -25,9 +26,12 @@
 | [`comark-media`](./packages/media) | Videos and audio written as images, and GitHub attachment links that play, with no script. |
 | [`comark-linter`](./packages/lint) | Finds unclosed blocks, unknown components, broken links and anchors, local URLs, and plugin issues in Comark documents, from a script, the command line, or Vite Doctor. |
 | [`comark-include`](./packages/include) | Markdown partials and code snippets from files, by lines or by region. |
+| [`comark-mark`](./packages/mark) | `==highlighted text==` as `<mark>` and `^superscript^` as `<sup>`. |
 | [`comark-steps`](./packages/steps) | Numbered steps from the headings of a tutorial or a numbered list, in Nuxt UI's `::steps` syntax, with no script. |
+| [`comark-qr`](./packages/qr) | QR codes drawn as inline SVG while parsing, for opening a preview link on a phone. |
 | [`comark-reading-time`](./packages/reading-time) | A document's word count and reading time in `meta.readingTime`, with code blocks left out and CJK counted by character. |
 | [`comark-tabs`](./packages/tabs) | Tabs and code groups that switch together across the page, and read without a script. |
+| [`comark-outline`](./packages/outline) | A table of contents in the body of a page: `::toc` becomes a nested list of links to its headings. |
 | [`comark-zoom`](./packages/zoom) | Zoom images and any block like medium-zoom, with Escape, Back, and click-outside to close. |
 
 Docs and live demos: [comark.onmax.me](https://comark.onmax.me).

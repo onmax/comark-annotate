@@ -5,6 +5,7 @@ import carousel, { components as carouselComponents } from "../packages/carousel
 import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
 import chips, { components as chipsComponents } from "../packages/chips/src/html.ts";
 import code, { components as codeComponents } from "../packages/code/src/html.ts";
+import deflist from "../packages/deflist/src/index.ts";
 import diff, { components as diffComponents } from "../packages/diff/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
 import {
@@ -14,15 +15,18 @@ import {
   references,
 } from "../packages/github/src/html.ts";
 import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
+import mark from "../packages/mark/src/index.ts";
 import media, { components as mediaComponents } from "../packages/media/src/html.ts";
 import steps, { components as stepsComponents } from "../packages/steps/src/html.ts";
 import cards, { components as cardsComponents } from "../packages/cards/src/html.ts";
 import badge, { components as badgeComponents } from "../packages/badge/src/html.ts";
+import qr, { components as qrComponents } from "../packages/qr/src/html.ts";
 import fields, { components as fieldsComponents } from "../packages/fields/src/html.ts";
 import readingTime from "../packages/reading-time/src/index.ts";
 import fileTree, { components as fileTreeComponents } from "../packages/file-tree/src/html.ts";
 import details, { components as detailsComponents } from "../packages/details/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
+import outline, { components as outlineComponents } from "../packages/outline/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
 import type { PlayConfig } from "./config.ts";
 
@@ -31,6 +35,7 @@ import type { PlayConfig } from "./config.ts";
 export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}) => [
   annotate(),
   carousel(),
+  deflist(),
   charts(),
   chips({ download }),
   diff(),
@@ -39,16 +44,19 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   references(config["comark-github"]?.references),
   githubHtml(),
   icon(),
+  mark(),
   details(),
   fileTree(),
   fields(),
   badge(),
   media(),
   cards(),
+  qr(),
   steps(),
   // It only writes `meta.readingTime`, so it changes nothing the pages or the playground show.
   readingTime(),
   tabs(),
+  outline(),
   zoom(config["comark-zoom"]),
   code(config["comark-code"]),
 ];
@@ -69,7 +77,9 @@ export const components = {
   ...badgeComponents,
   ...mediaComponents,
   ...cardsComponents,
+  ...qrComponents,
   ...stepsComponents,
   ...tabsComponents,
+  ...outlineComponents,
   ...zoomComponents,
 };

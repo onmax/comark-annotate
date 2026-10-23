@@ -6,7 +6,7 @@ tagline: Agents write most review documents. Install a skill so yours knows the 
 
 ## Skills
 
-Packages that need more than their syntax ship an agent skill, and this site serves every one of them through [Agent Skills Discovery](https://agentskills.io), at `/.well-known/agent-skills/index.json`. Install them all:
+Packages that need more than their syntax ship an agent skill. This site serves every one of them through [Agent Skills Discovery](https://agentskills.io), at `/.well-known/agent-skills/index.json`. Install them all:
 
 ```sh
 npx skills add https://comark.onmax.me
@@ -33,7 +33,9 @@ An app that renders these documents and serves skills to its own agents, such as
 import annotateSkill from "comark-annotate/skills/comark-annotate/SKILL.md?raw";
 ```
 
-The text then always matches the renderer the app installed: an app on an older version never tells its agents about syntax it can't draw yet, and its agents need no network request to read it. Serve it as a skill of its own, or inside one of yours as a reference file with its front matter removed. When it names a CLI command, pin it to the installed version, such as `npx comark-annotate@0.3.0 check`.
+The skill then always matches the renderer the app installed. An app on an older version never tells its agents about syntax it can't draw yet, and its agents read the skill without a network request.
+
+Serve it as a skill of its own, or inside one of yours as a reference file with its front matter removed. When it names a CLI command, pin the command to the installed version, such as `npx comark-annotate@0.3.0 check`.
 
 ## Check the result
 
@@ -43,7 +45,7 @@ An agent should check a document before it hands it over. comark-linter lists ev
 npx lint-comark duck-audit.md
 ```
 
-Marks need a look as well as a check: a box can sit inside the image and still miss its target. `comark-annotate render` writes a standalone page next to the file, which the agent opens in a browser and screenshots to confirm each mark sits on its target:
+Marks also need a look, because a box can sit inside the image and still miss its target. `comark-annotate render` writes a standalone page next to the file. The agent opens it in a browser and takes a screenshot to confirm each mark sits on its target:
 
 ```sh
 npx comark-annotate render duck-audit.md -o duck-audit.html

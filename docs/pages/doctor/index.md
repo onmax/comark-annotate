@@ -4,7 +4,9 @@ description: Every problem comark-linter reports, with its code, what it means, 
 tagline: Every problem comark-linter and Vite Doctor report in a Comark document, one page each. A report's code links here, and each page shows Markdown that triggers it and the same Markdown fixed.
 ---
 
-[comark-linter](/lint/) reports each problem under a rule, and [Vite Doctor](/lint/vite-doctor/) under that rule's code. The core rules check what Comark forgives: blocks never closed, misspelled components, broken anchors, and unsafe URLs. Each package's rules are the problems its plugin adds to `meta.issues`, one rule per kind, so you can tell them apart in a report and look each one up here.
+[comark-linter](/lint/) reports each problem under a rule, and [Vite Doctor](/lint/vite-doctor/) reports it under that rule's code.
+
+The core rules catch what Comark forgives: blocks never closed, misspelled components, broken anchors, and unsafe URLs. Each package adds one rule for each kind of problem its plugin puts in `meta.issues`. That way you can tell them apart in a report and look each one up here.
 
 ```txt
 docs/review.md:8:1 comark/annotate/box-outside-image screenshot "after.png", annotation 2: the box runs past the image edge. Keep x + w and y + h within 100.

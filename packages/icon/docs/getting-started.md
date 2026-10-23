@@ -15,11 +15,11 @@ import icon, { components } from "comark-icon/html";
 const render = createHtmlRenderer({ plugins: [icon()], components });
 ```
 
-For Vue, React, or Svelte, import from `comark-icon/vue`, `comark-icon/react`, or `comark-icon/svelte`; the `Icon` component adds the styles when it mounts. Import `comark-icon/style.css` with your styles so a server-rendered page doesn't shift. [Renderers](/guide/renderers/) covers using it with other plugins.
+For Vue, React, or Svelte, import from `comark-icon/vue`, `comark-icon/react`, or `comark-icon/svelte`. The `Icon` component adds the styles when it mounts. When you render on a server, import `comark-icon/style.css` with your own styles so the page doesn't shift. [Renderers](/guide/renderers/) covers using it with other plugins.
 
 ## Where icons come from
 
-With no options, the plugin fetches each icon from the [Iconify API](https://iconify.design/docs/api/) while parsing, once per process, a few icons per request. To build offline, or to keep the output from depending on Iconify, install the sets you use and pass them in `collections`:
+With no options, the plugin fetches each icon from the [Iconify API](https://iconify.design/docs/api/) while parsing. It asks once per process, for a few icons per request. To build offline, or to keep the output from depending on Iconify, install the sets you use and pass them in `collections`:
 
 ```ts
 import { icons as lucide } from "@iconify-json/lucide";

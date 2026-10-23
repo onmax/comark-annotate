@@ -75,6 +75,22 @@ Peak coffee.
 ```
 :::
 
+:::example{label="Performance"}
+```md
+::chart{type="dumbbell" title="Largest Contentful Paint per page, before and after lazy-loading the editor (ms)"}
+| page | before | after |
+| --- | --: | --: |
+| home | 2,480 | 1,120 |
+| docs | 2,910 | 1,340 |
+| blog post | 2,050 | 980 |
+| playground | 4,350 | 4,100 |
+::::annotation{at="playground" series="after" mark="circle" color="red"}
+The playground opens the editor right away, so it stays slow.
+::::
+::
+```
+:::
+
 :::example{label="Waterfall"}
 ```md
 ::chart{type="waterfall" title="Rubber ducks in the office this quarter"}
@@ -90,4 +106,4 @@ Peak coffee.
 :::
 ::
 
-The chart's source is a plain Markdown table, so anyone reading the Markdown, a person or an agent, reads the numbers rather than a chart spec. The page shows the chart with the same table under it, folded into **Data**, so a tool that turns the page into text keeps the numbers too. Without the plugin, the table still renders as a table.
+The chart's source is a plain Markdown table. A person or an agent reading the Markdown reads the numbers, not a chart spec. The page shows the chart with the same table under it, folded into **Data**, so a tool that turns the page into text keeps the numbers too. Without the plugin, the table still renders as a table.

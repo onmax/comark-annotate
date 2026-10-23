@@ -1,6 +1,6 @@
 // Renders docs/pages and each package's docs/ with the plugins themselves into docs/dist, a static site served by Cloudflare at comark.onmax.me.
 import { createHash } from "node:crypto";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { deflateRawSync } from "node:zlib";
@@ -17,6 +17,7 @@ import { createIcons, css as iconCss, iconHtml } from "../packages/icon/src/html
 import include from "../packages/include/src/index.ts";
 import { lint, type Diagnostic } from "../packages/lint/src/index.ts";
 import { defaultConfig } from "./config.ts";
+import { loadExamples, pageOrder, recipeOrder } from "./examples.ts";
 import { checkExample, doctorRule, doctorRules } from "./doctor.ts";
 import { highlight } from "./highlight.ts";
 import { browserPlugins, components } from "./plugins.ts";
@@ -84,6 +85,7 @@ const packageOrder = [
   "media",
   "github",
   "icon",
+  "qr",
   "zoom",
   "carousel",
   "tabs",
@@ -94,7 +96,10 @@ const packageOrder = [
   "badge",
   "cards",
   "steps",
+  "deflist",
+  "mark",
   "include",
+  "outline",
   "reading-time",
   "lint",
 ];
@@ -109,6 +114,24 @@ const fileOf = (slug: string) => {
       : `docs/pages/${slug || "index"}.md`;
 };
 const exists = (file: string) => existsSync(new URL(file, repo));
+// A package with several rich components gives each its own page in docs/components/, listed after its Components
+// page in the order that page links to them.
+function componentPages(slug: string) {
+  const folder = new URL(`packages/${slug}/docs/components/`, repo);
+  if (!existsSync(folder)) return [];
+  const linked = [
+    ...readFileSync(new URL("../components.md", folder), "utf8").matchAll(
+      new RegExp(`\\(/${slug}/components/([\\w-]+)/\\)`, "g"),
+    ),
+  ].map(([, name]) => name);
+  const pages = readdirSync(folder).map((file) => file.replace(/\.md$/, ""));
+  const unlisted = pages.filter((page) => !linked.includes(page));
+  if (unlisted.length)
+    throw new Error(
+      `packages/${slug}/docs/components.md needs a link to each page in components/: ${unlisted.join(", ")}.`,
+    );
+  return [...new Set(linked)].map((name) => `components/${name}`);
+}
 for (const folder of await readdir(new URL("packages/", repo))) {
   // A branch from before the move would add its pages where nothing reads them.
   for (const stale of [`docs/pages/${folder}`, `docs/pages/${folder}.md`])
@@ -180,7 +203,7 @@ const sections: Section[] = [
       },
       {
         title: "Recipes",
-        slugs: ["recipes/review", "recipes/share", "recipes/zoom", "recipes/carousel"],
+        slugs: recipeOrder.map((recipe) => `recipes/${recipe}`),
       },
       { title: "Compared", slugs: ["compare/charts"] },
     ],
@@ -208,7 +231,10 @@ const sections: Section[] = [
     // A package's pages, in this order when it has them.
     lists: [
       {
-        slugs: ["", "getting-started", "components", "syntax", "guides", "theming", "vite-doctor"]
+        slugs: pageOrder
+          .flatMap((page) =>
+            page === "components" ? ["components", ...componentPages(pkg.slug)] : [page],
+          )
           .map((page) => (page ? `${pkg.slug}/${page}` : pkg.slug))
           .filter((slug) => exists(fileOf(slug))),
       },
@@ -249,7 +275,7 @@ const exampleWithout =
   };
 
 // The examples at the top of each page. Not comark-tabs: each example's Preview/Code switch shares the tab row.
-const examples: NodeHandler = async ([, , ...children], state) => {
+const exampleTabs: NodeHandler = async ([, , ...children], state) => {
   const panels = children.filter(isElement);
   const labels = panels.map((panel, i) => {
     const label = escapeHtml(str(panel[1].label) || `Example ${i + 1}`);
@@ -458,50 +484,21 @@ const pagesOf = (section: Section) =>
     pages: list.slugs.flatMap((slug) => parsed.filter((page) => page.slug === slug)),
   }));
 
-// Each recipe's example. It uses several packages at once, so it shows under Recipes in the playground and gets
-// its own card on the landing's canvas, which links to the recipe and copies its install command.
-const recipes = parsed
-  .filter((page) => page.slug.startsWith("recipes/"))
-  .flatMap((page) =>
-    page.document.nodes
-      .filter(isElement)
-      .filter(([tag]) => tag === "example")
-      .slice(0, 1)
-      .map(([, attrs, ...children]) => ({
-        page,
-        label: str(attrs.label) || page.title,
-        source: textContent(children.find(isPre) ?? ["pre", {}]),
-      })),
-  );
-
-// The playground's presets: every page's top examples, under the section they come from, then the recipes.
-const packagePresets = parsed.flatMap((page) =>
-  page.document.nodes
-    .filter(isElement)
-    .filter(([tag]) => tag === "examples")
-    .flatMap(([, , ...panels]) => panels.filter(isElement))
-    .map(([, attrs, ...children]) => ({
-      id: `${page.section.slug || "docs"}-${str(attrs.label)
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")}`,
-      label: str(attrs.label),
-      group: page.section.label,
-      npm: page.section.npm ?? "",
-      source: textContent(children.find(isPre) ?? ["pre", {}]),
-    }))
-    .filter((preset) => playable(preset.source)),
-);
-const presets = [
-  ...packagePresets,
-  ...recipes.map(({ page, label, source }) => ({
-    id: page.slug.replace("/", "-"),
-    label,
-    group: "Recipes",
-    npm: "",
-    source,
-  })),
-];
+// Every example on the site, in one list from docs/examples.ts: the playground lists the ones it can run, a
+// package's column shows its own, and the landing's canvas draws a card for each.
+const examples = await loadExamples(packageOrder);
+const slugify = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+const pageOf = (slug: string) => parsed.find((page) => page.slug === slug)!;
+const presets = examples
+  .filter((example) => example.playable)
+  .map(({ id, label, group, source }) => {
+    const section = sections.find((section) => section.npm && section.slug === group);
+    return { id, label, group: section?.label ?? "Recipes", npm: section?.npm ?? "", source };
+  });
 // The size of each PNG the pages show, read from its header, so a still reserves its room before the image loads.
 const publicDir = new URL("public/", root);
 const imageSizes = new Map(
@@ -515,13 +512,15 @@ const imageSizes = new Map(
   ),
 );
 // A still of a rendered document: no scripts, its plugins' styles collected into `styles` to go in the page once,
-// no ids, since a page holds many, and a chart without its data table, so the still is all plot.
+// no ids, since a page holds many, and a chart without its data table, so the still is all plot. Nothing in it zooms
+// or takes focus, so the page's zoom never adds a still to a gallery or a group.
 const stillOf = (html: string, styles: Set<string>) =>
   html
     .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, (style) => (styles.add(style), ""))
     .replace(/<script>[\s\S]*?<\/script>/g, "")
     .replace(/<details class="cch-data">[\s\S]*?<\/details>/g, "")
-    .replace(/\s(id|for|aria-controls|aria-labelledby)="[^"]*"/g, "")
+    .replace(/\s(id|for|aria-controls|aria-labelledby|tabindex|data-zoom[\w-]*)="[^"]*"/g, "")
+    .replace(/(<[a-z][^>]*?)\sdata-zoom(?=[\s>])/g, "$1")
     .replace(/<img\b([^>]*?) src="\/([\w-]+\.png)"/g, (tag, rest: string, file: string) => {
       const size = imageSizes.get(file);
       return size && !/\swidth=/.test(rest) ? `${tag} width="${size[0]}" height="${size[1]}"` : tag;
@@ -594,25 +593,6 @@ const ruleTable: NodeHandler = () =>
     .join("")}</tbody></table></div>`;
 
 const demoStyles = new Set<string>();
-const slugify = (text: string) =>
-  text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-// Every page's top examples, include's too, which the playground leaves out since it can't read files.
-const pageExamples = parsed.flatMap((page) =>
-  page.section.npm
-    ? page.document.nodes
-        .filter(isElement)
-        .filter(([tag]) => tag === "examples")
-        .flatMap(([, , ...panels]) => panels.filter(isElement))
-        .map(([, attrs, ...children]) => ({
-          pkg: page.section,
-          label: str(attrs.label),
-          source: textContent(children.find(isPre) ?? ["pre", {}]),
-        }))
-    : [],
-);
 async function renderDemo(slug: string, source: string) {
   if (slug === "lint") return lintReport(source);
   const document = await parseMarkdown(source, { plugins: contentPlugins() });
@@ -620,37 +600,28 @@ async function renderDemo(slug: string, source: string) {
     throw new Error(`The ${slug} demo:\n${document.meta.issues.join("\n")}`);
   let html = (await renderHtmlFromDocument(document, { components })).replace(
     /<iframe\b[^>]*><\/iframe>/g,
-    `<span class="demo-player"><span class="demo-play">${playIcon}</span><span class="demo-progress"></span></span>`,
+    `<span class="demo-player"><span class="demo-play">${playIcon}</span></span>`,
   );
   // Tabs show their strip once their script runs, which a card doesn't have.
   html = html.replaceAll('<div class="ct"', '<div class="ct" data-tabs-ready');
-  // An include shows what it reads, since the page alone doesn't say.
-  if (slug === "include")
-    html = `<p class="demo-directive"><code>${escapeHtml(source.trim())}</code></p>${html}`;
   return stillOf(html, demoStyles);
 }
 interface Demo {
+  /** The example's id, the same as its playground preset's. */
+  id: string;
   pkg: Section;
+  /** The page the card opens. */
+  page: string;
   label: string;
   source: string;
-  /** The card's height in pixels; without one, the canvas measures the card once. */
-  height?: number;
-  /** Stills the card turns through while the pointer is on it, after its own. */
-  variants?: string[];
 }
-async function demoCard({ pkg, label, source, height, variants = [] }: Demo) {
-  const page = await renderDemo(pkg.slug, source);
-  const screen = variants.length
-    ? `<div class="demo-variants">${[page, ...variants].map((still, i) => `<div class="demo-variant"${i ? "" : " data-on"}>${still}</div>`).join("")}</div>`
-    : page;
-  const tag = label ? ` demo-${slugify(pkg.slug)}-${slugify(label)}` : "";
+async function demoCard({ id, pkg, page, label, source }: Demo) {
+  const still = await renderDemo(pkg.slug, source);
   return (
-    `<article class="demo demo-${slugify(pkg.slug)}${tag}" data-package="${pkg.slug}"${height ? ` data-h="${height}" style="height:${height}px"` : ""}>` +
-    `<a class="demo-link" href="${href(pkg.slug)}" draggable="false" tabindex="-1">${siteIcon(pkg.icon!, 15)}<strong>${escapeHtml(pkg.label)}</strong>${label ? `<span>${escapeHtml(label.toLowerCase())}</span>` : ""}${siteIcon("arrow-up-right", 14)}</a>` +
-    `<button type="button" class="demo-md" tabindex="-1" title="Show the Markdown" aria-label="Show the Markdown">${siteIcon("code-xml", 15)}</button>` +
-    `<button type="button" class="demo-copy" data-copy="pnpm add ${escapeHtml(pkg.npm!)}" tabindex="-1" title="Copy pnpm add ${escapeHtml(pkg.npm!)}">${copyIcon}${checkIcon}</button>` +
-    // A card plays its loop while the pointer is on it; its Markdown button shows what it was drawn from.
-    `<div class="demo-screen" inert><div class="demo-page">${screen}</div><div class="demo-source">${highlight(source.trimEnd())}</div></div></article>`
+    `<article class="demo demo-${slugify(pkg.slug)}" data-package="${pkg.slug}" data-example="${id}">` +
+    `<a class="demo-link" href="${href(page)}" draggable="false" tabindex="-1">${siteIcon(pkg.icon, 15)}<strong>${escapeHtml(pkg.label)}</strong>${label ? `<span>${escapeHtml(label.toLowerCase())}</span>` : ""}</a>` +
+    `<button type="button" class="demo-copy" data-copy="pnpm add ${escapeHtml(pkg.npm!)}" tabindex="-1" title="Copy pnpm add ${escapeHtml(pkg.npm!)}" aria-label="Copy pnpm add ${escapeHtml(pkg.npm!)}">${copyIcon}${checkIcon}</button>` +
+    `<div class="demo-screen" inert><div class="demo-page">${still}</div></div></article>`
   );
 }
 // The cards in a fixed shuffle, so neighbours on the canvas are mostly of different packages, and never two of one
@@ -670,58 +641,50 @@ function deal(demos: Demo[]) {
   return dealt;
 }
 
-// The index's packages, twice over: a canvas of cards, each drawn live by the plugins from the Markdown in its `demo`
-// or in a page's examples and animated by the stylesheet, and the list it replaces without the script, for keyboards,
-// and on request.
+// The index's packages, twice over: a canvas with a card for every example, drawn by the plugins as the playground
+// draws it, and the list it replaces without the script, for keyboards, and on request. A `demo` in the block adds a
+// card for a package with no examples, such as lint's report.
 const packageGrid: NodeHandler = async ([, , ...children]) => {
-  const landingDemos: Demo[] = children.filter(isElement).map(([, attrs, ...content]) => {
+  const extra: Demo[] = children.filter(isElement).map(([, attrs, ...content]) => {
     const pkg = sections.find((section) => section.npm && section.slug === str(attrs.package));
     if (!pkg?.npm) throw new Error(`A demo names no package: "${str(attrs.package)}".`);
     const pre = content.find(isPre);
     if (!pre) throw new Error(`The ${pkg.slug} demo needs a fenced code block.`);
+    return { id: pkg.slug, pkg, page: pkg.slug, label: str(attrs.label), source: textContent(pre) };
+  });
+  const cards: Demo[] = examples.map((example) => {
+    const section = sections.find((section) => section.npm && section.slug === example.group);
+    if (section)
+      return {
+        id: example.id,
+        pkg: section,
+        page: example.page,
+        label: example.label,
+        source: example.source,
+      };
+    // A recipe links to its page and copies its install command.
+    const recipe = pageOf(example.page);
     return {
-      pkg,
-      label: str(attrs.label),
-      source: textContent(pre),
-      height: Number(attrs.height) || undefined,
+      id: example.id,
+      pkg: {
+        slug: recipe.slug,
+        label: "recipe",
+        group: "",
+        icon: "book-open",
+        npm: recipe.install.replace(/^pnpm add /, ""),
+        lists: [],
+      },
+      page: recipe.slug,
+      label: recipe.slug.slice("recipes/".length),
+      source: example.source,
     };
   });
-  // Charts don't get a card per example: the landing's chart cards turn through them instead, each its share.
-  const chartCards = landingDemos.filter((demo) => demo.pkg.slug === "charts");
-  const charts = pageExamples.filter((example) => example.pkg.slug === "charts");
-  const chartStills = await Promise.all(
-    charts.map((example) => renderDemo("charts", example.source)),
-  );
-  for (const [i, card] of chartCards.entries()) {
-    card.variants = chartStills.filter((_, j) => j % chartCards.length === i);
-    // Its height is the tallest chart it turns through, which the canvas measures.
-    card.height = undefined;
-  }
-  // An example the landing already shows, such as github's references, shows once.
-  const shown = new Set(landingDemos.map((demo) => demo.source.trim()));
-  const others: Demo[] = pageExamples.filter(
-    (example) => example.pkg.slug !== "charts" && !shown.has(example.source.trim()),
-  );
-  // A recipe's card is cut to the height of a package's, and its page shows the rest.
-  const recipeCards: Demo[] = recipes.map(({ page, source }) => ({
-    pkg: {
-      slug: page.slug,
-      label: "recipe",
-      group: "",
-      icon: "book-open",
-      npm: page.install.replace(/^pnpm add /, ""),
-      lists: [],
-    },
-    label: page.slug.slice("recipes/".length),
-    source,
-    height: 300,
-  }));
-  const demos = await Promise.all(deal([...landingDemos, ...others, ...recipeCards]).map(demoCard));
+  const demos = await Promise.all(deal([...cards, ...extra]).map(demoCard));
   const list = sections
     .filter((section) => section.npm)
     .map(
       (section) =>
-        `<li><a href="${href(section.slug)}">${siteIcon(section.icon, 24)}<strong>${escapeHtml(section.label)}</strong><span>${escapeHtml(section.blurb ?? "")}</span></a><button type="button" class="grid-copy" data-copy="pnpm add ${escapeHtml(section.npm!)}" aria-label="Copy pnpm add ${escapeHtml(section.npm!)}">${copyIcon}</button></li>`,
+        `<li><a href="${href(section.slug)}"><span class="grid-icon">${siteIcon(section.icon, 20)}</span><strong>${escapeHtml(section.label)}</strong><span>${escapeHtml(section.blurb ?? "")}</span><span class="grid-arrow">${siteIcon("arrow-up-right", 16)}</span></a></li>`,
     )
     .join("");
   return (
@@ -801,6 +764,10 @@ const rail = (current: Section) =>
     )}<a class="rail-drop" href="https://drop.vitehub.dev/?utm_source=comark-plugins&amp;utm_medium=sidebar"><img src="/drop.svg" alt="" width="18" height="18"><span class="rail-label"><strong>Review on Drop</strong><span>Comment on the exact spot</span></span></a></nav>`;
 // The second column: the current section's pages, or the playground's presets.
 const column = (section: Section, current: string) => {
+  // A package's examples, under its pages as the playground lists them; each opens there.
+  const examples = presets.filter((preset) => preset.group === section.label);
+  const presetCard = (preset: (typeof presets)[number], href: string) =>
+    `<div class="preset"><div class="preset-thumb" aria-hidden="true" inert><div class="preset-page">${thumbnails.get(preset.id) ?? ""}</div></div><a data-preset="${preset.id}" href="${href}">${escapeHtml(preset.label)}</a></div>`;
   const lists =
     section.slug === "play"
       ? [...new Set(presets.map((preset) => preset.group))].map((group) => ({
@@ -809,10 +776,7 @@ const column = (section: Section, current: string) => {
           links: [
             `<div class="presets">${presets
               .filter((preset) => preset.group === group)
-              .map(
-                (preset) =>
-                  `<div class="preset"><div class="preset-thumb" aria-hidden="true" inert><div class="preset-page">${thumbnails.get(preset.id) ?? ""}</div></div><a data-preset="${preset.id}" href="#preset=${preset.id}">${escapeHtml(preset.label)}</a></div>`,
-              )
+              .map((preset) => presetCard(preset, `#preset=${preset.id}`))
               .join("")}</div>`,
           ],
         }))
@@ -821,11 +785,9 @@ const column = (section: Section, current: string) => {
           icon: list.icon,
           links: list.pages.map(
             (page) =>
-              `<a${page.slug === current ? ' aria-current="page"' : ""} href="${href(page.slug)}">${escapeHtml(page.label)}</a>`,
+              `<a${page.slug.includes("/components/") ? ' class="nav-sub"' : ""}${page.slug === current ? ' aria-current="page"' : ""} href="${href(page.slug)}">${escapeHtml(page.label)}</a>`,
           ),
         }));
-  // A package with examples opens its first one in the playground.
-  const preset = presets.find((preset) => preset.group === section.label);
   return `<nav class="pages" aria-label="${escapeHtml(section.label)}"><p class="pages-title">${escapeHtml(section.npm ?? section.label)}</p>${lists
     .map(
       (list) =>
@@ -833,7 +795,7 @@ const column = (section: Section, current: string) => {
     )
     .join(
       "",
-    )}${section.npm && preset ? `<div class="pages-foot"><a class="pages-play" href="/play/#preset=${preset.id}">${siteIcon("flask-conical", 15)}Open in playground</a></div>` : ""}</nav>`;
+    )}${section.npm && examples.length ? `<p class="nav-group pages-examples">${siteIcon("flask-conical", 14)}Examples<span class="pages-count">${examples.length}</span></p><div class="presets">${examples.map((preset) => presetCard(preset, `/play/#preset=${preset.id}`)).join("")}</div>` : ""}</nav>`;
 };
 // Previous and next page in the section.
 function pager(page: Page) {
@@ -909,7 +871,6 @@ const copied = async button => {
     if (copyTokens.get(button) === token) button.classList.remove("copied");
   }, 1200);
 };
-for (const button of document.querySelectorAll(".grid-copy")) button.addEventListener("click", () => copied(button));
 // The index's canvas: columns of package cards without end, each running through every card from its own start, so
 // neighbours differ from column to column. Only the cards in view are in the page, cloned from the template as they
 // come in, at heights known before any is shown. It holds still: it follows a drag and coasts to rest after it, and
@@ -930,9 +891,14 @@ for (const canvas of document.querySelectorAll(".canvas")) {
     const unsized = cards.flatMap((c, i) => c.dataset.h || measured[i] ? [] : [i]);
     const clones = unsized.map(i => probe.appendChild(cards[i].cloneNode(true)));
     stage.append(probe);
-    unsized.forEach((i, j) => measured[i] = Math.min(420, Math.max(120, Math.ceil(clones[j].getBoundingClientRect().height))));
+    unsized.forEach((i, j) => measured[i] = Math.ceil(clones[j].getBoundingClientRect().height));
     probe.remove();
-    cards.forEach((card, i) => { if (!card.dataset.h) { card.dataset.h = measured[i]; card.style.height = measured[i] + "px" } });
+    // A card taller than the tallest the canvas shows is cut, and fades out where it's cut.
+    cards.forEach((card, i) => {
+      if (card.dataset.h) return;
+      card.dataset.h = Math.min(420, Math.max(120, measured[i])); card.style.height = card.dataset.h + "px";
+      card.toggleAttribute("data-cut", measured[i] > 420);
+    });
     heights = cards.map(c => Number(c.dataset.h));
     period = heights.reduce((sum, h) => sum + h + gap, 0);
   };
@@ -1030,22 +996,7 @@ for (const canvas of document.querySelectorAll(".canvas")) {
     if (copy) copied(copy);
   }, true);
   viewport.addEventListener("dragstart", e => e.preventDefault());
-  // A chart card turns through its charts while the pointer is on it: the first turn soon, then one every few seconds.
-  let turning, turner = 0;
-  const turn = card => {
-    const variants = [...card.querySelectorAll(".demo-variant")], on = variants.findIndex(v => v.hasAttribute("data-on"));
-    variants[on].removeAttribute("data-on"); variants[(on + 1) % variants.length].setAttribute("data-on", "");
-  };
-  const settle = () => { clearTimeout(turner); clearInterval(turner); turning = undefined };
-  viewport.addEventListener("pointerover", e => {
-    const card = e.target.closest(".demo");
-    if (card === turning) return;
-    settle();
-    if (!card?.querySelector(".demo-variants") || reduce.matches) return;
-    turning = card;
-    turner = setTimeout(() => { turn(card); turner = setInterval(() => card.isConnected ? turn(card) : settle(), 2800) }, 700);
-  });
-  viewport.addEventListener("pointerleave", settle);
+  viewport.addEventListener("selectstart", e => e.preventDefault());
   viewport.addEventListener("wheel", e => {
     if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
     e.preventDefault(); x += e.deltaX * (e.deltaMode ? 16 : 1); canvas.dataset.dragged = ""; draw();
@@ -1276,6 +1227,8 @@ function shell(options: {
 }) {
   const { slug, section } = options;
   const npm = options.npm ?? section.npm;
+  const pageHead =
+    options.head ?? (npm && section.slug !== "play" ? `\n${[...thumbnailStyles].join("")}` : "");
   const nav = rail(section) + column(section, slug);
   const header = `<div class="top-start"><a class="name" href="/">${logo}comark plugins</a>${options.landing ? `<nav class="top-links" aria-label="Site"><a href="/guide/renderers/">Docs</a><a href="/play/">Playground</a><a href="https://drop.vitehub.dev">Drop</a></nav>` : ""}</div>
 <button type="button" class="search-open" aria-haspopup="dialog">${siteIcon("search", 15)}<span class="search-label">Search docs</span><kbd><span class="kbd-mac">⌘K</span><span class="kbd-other">Ctrl K</span></kbd></button>
@@ -1312,7 +1265,7 @@ ${options.landing ? options.body : `<div class="layout">\n<aside class="sidebar"
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<style>${style}${iconCss}</style>${options.head ?? ""}
+<style>${style}${iconCss}</style>${pageHead}
 </head>
 <body>
 ${body}
@@ -1367,7 +1320,7 @@ ${page.install ? installerFor(page.install, page.skill) : ""}</div>
             // comark-chips would take the `@user` that comark-github's references draw, so GitHub's pages show them
             // as GitHub does.
             example: exampleWithout(page.section.slug === "github" ? ["comark-chips"] : []),
-            examples,
+            examples: exampleTabs,
             matrix,
             incorrect: ruleExample(page, "incorrect"),
             correct: ruleExample(page, "correct"),
@@ -1402,7 +1355,7 @@ ${colorTokens.map((token) => tokenRow(token, capitalize(token), `<input type="co
 ${tokenRow("radius", "Radius", `<input type="range" data-slider="radius" min="0" max="1.5" step="0.125" value="0.625" aria-label="Radius in rem">`)}
 ${tokenRow("font", "Font", "<span></span>")}
 </div>
-<div class="play-theme-field play-theme-extra"><label for="play-theme-css">Extra CSS</label><p>Each plugin's own variables, like <code>--cc-*</code> or <code>--ck-*</code>, or any rule, applied to the preview.</p><textarea id="play-theme-css" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder=":root { --cc-gap: 2rem; --ck-inset: 0.5rem }"></textarea></div>
+<details class="play-theme-field play-theme-extra"><summary>Extra CSS</summary><p>Each plugin's own variables, like <code>--cc-*</code> or <code>--ck-*</code>, or any rule, applied to the preview.</p><textarea id="play-theme-css" aria-label="Extra CSS" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder=":root { --cc-gap: 2rem; --ck-inset: 0.5rem }"></textarea></details>
 </div>`;
 
 // The playground opens on the first preset, rendered here so it shows before the script loads.

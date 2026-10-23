@@ -61,8 +61,11 @@ async function writeAssets() {
   const playground = new URL("dist/play/", root);
   if (existsSync(playground))
     await cp(playground, new URL("play/", generated), { recursive: true });
-  const search = new URL("dist/search.json", root);
-  if (existsSync(search)) await cp(search, new URL("search.json", generated));
+  // The playground's preview is its own document and links the site's styles, so they keep their own URL too.
+  for (const file of ["search.json", "style.css"]) {
+    const built = new URL(`dist/${file}`, root);
+    if (existsSync(built)) await cp(built, new URL(file, generated));
+  }
 }
 
 // Every page, so one that nothing links to still prerenders: docs/pages, and each package's docs/ under its name.
@@ -88,6 +91,8 @@ export default defineNuxtConfig({
     componentIslands: true,
     // Nuxt 5's default: the first load reads the payload inlined in the HTML, and client navigations fetch `_payload.json`.
     payloadExtraction: "client",
+    // Lets the header's npmx chip move from one package's name to the next; docs/style.css animates only that.
+    viewTransition: true,
   },
   css: ["~~/style.css"],
   runtimeConfig: {
