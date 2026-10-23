@@ -391,10 +391,18 @@ const PERCENT = /^(?:\d+(?:\.\d*)?|\.\d+)$/;
 const percent = (raw: string) => (PERCENT.test(raw) ? Number(raw) : Number.NaN);
 
 function readAt(attrs: Record<string, unknown>, problems: Issue[]) {
-  const raw = text(attrs.at);
+  const value = attrs.at;
+  if (value !== undefined && value !== null && typeof value === "object") {
+    problems.push({
+      rule: "comark/annotate/invalid-position",
+      message: `\`at\` must be where the note sits along its margin, a percentage of the image from 0 to 100 (got ${quote(JSON.stringify(value))}).`,
+    });
+    return undefined;
+  }
+  const raw = text(value);
   if (!raw) return undefined;
-  const value = percent(raw);
-  if (value <= 100) return value;
+  const parsed = percent(raw);
+  if (parsed <= 100) return parsed;
   problems.push({
     rule: "comark/annotate/invalid-position",
     message: `\`at\` must be where the note sits along its margin, a percentage of the image from 0 to 100 (got ${quote(raw)}).`,
@@ -403,7 +411,15 @@ function readAt(attrs: Record<string, unknown>, problems: Issue[]) {
 }
 
 function readTo(attrs: Record<string, unknown>, problems: Issue[]) {
-  const raw = text(attrs.to);
+  const value = attrs.to;
+  if (value !== undefined && value !== null && typeof value === "object") {
+    problems.push({
+      rule: "comark/annotate/invalid-position",
+      message: `\`to\` must be the point the arrow lands on, as two percentages of the image from 0 to 100, like to="42,18" (got ${quote(JSON.stringify(value))}).`,
+    });
+    return undefined;
+  }
+  const raw = text(value);
   if (!raw) return undefined;
   const [x, y, extra] = raw.split(/\s*,\s*|\s+/).map(percent);
   if (x! <= 100 && y! <= 100 && extra === undefined) return { x: x!, y: y! };
@@ -415,7 +431,15 @@ function readTo(attrs: Record<string, unknown>, problems: Issue[]) {
 }
 
 function readInk(attrs: Record<string, unknown>, problems: Issue[]) {
-  const ink = text(attrs.ink);
+  const value = attrs.ink;
+  if (value !== undefined && value !== null && typeof value === "object") {
+    problems.push({
+      rule: "comark/annotate/invalid-color",
+      message: `\`ink\` must be ${PALETTE.join(", ")}, or a 3- or 6-digit hex color like #8b5cf6 (got ${quote(JSON.stringify(value))}).`,
+    });
+    return undefined;
+  }
+  const ink = text(value);
   if (!ink) return undefined;
   if (isColor(ink)) return ink;
   problems.push({
