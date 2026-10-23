@@ -18,6 +18,7 @@ import media, { components as mediaComponents } from "../packages/media/src/html
 import steps, { components as stepsComponents } from "../packages/steps/src/html.ts";
 import cards, { components as cardsComponents } from "../packages/cards/src/html.ts";
 import badge, { components as badgeComponents } from "../packages/badge/src/html.ts";
+import fields, { components as fieldsComponents } from "../packages/fields/src/html.ts";
 import readingTime from "../packages/reading-time/src/index.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import outline, { components as outlineComponents } from "../packages/outline/src/html.ts";
@@ -37,6 +38,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   references(config["comark-github"]?.references),
   githubHtml(),
   icon(),
+  fields(),
   badge(),
   media(),
   cards(),
@@ -59,6 +61,7 @@ export const components = {
   ...embedComponents,
   ...githubComponents,
   ...iconComponents,
+  ...fieldsComponents,
   ...badgeComponents,
   ...mediaComponents,
   ...cardsComponents,

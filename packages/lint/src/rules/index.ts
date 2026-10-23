@@ -8,6 +8,7 @@ import code from "./code.ts";
 import core from "./core.ts";
 import diff from "./diff.ts";
 import embed from "./embed.ts";
+import fields from "./fields.ts";
 import github from "./github.ts";
 import icon from "./icon.ts";
 import include from "./include.ts";
@@ -38,4 +39,5 @@ export const catalog = {
   ...badge,
   ...outline,
   ...media,
+  ...fields,
 } satisfies Record<string, RuleInfo>;

@@ -2,7 +2,7 @@ A media source must use a playable extension.
 
 ::incorrect
 ```md
-![Clip](https://example.com/clip.txt)
+::media{src="https://example.com/clip.txt"}
 ```
 ::
 
