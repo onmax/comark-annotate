@@ -47,6 +47,13 @@ export type Data = Parameters<typeof resolveAttributes>[1];
 /** Named colors, each with one meaning. Anything else must be a hex color. */
 export const PALETTE = ["red", "amber", "green", "blue", "gray"] as const;
 
+/** One problem: the comark-linter rule it falls under, and the sentence that names its block and the fix. */
+export type Issue = { rule: `comark/annotate/${string}`; message: string };
+
+// Prefixes each problem with the block it's in, keeping its rule.
+const within = (where: string, problems: Issue[]): Issue[] =>
+  problems.map(({ rule, message }) => ({ rule, message: `${where}: ${message}` }));
+
 // What `check` calls each screenshot and compare in its messages. The renderer reports nothing, so it needs no names.
 type Names = Map<ElementNode, string>;
 
@@ -154,7 +161,7 @@ function checkProps(
   block: Block,
   node: ElementNode,
   attrs: Record<string, unknown>,
-  problems: string[],
+  problems: Issue[],
   data: Data,
 ) {
   const valid: readonly string[] = PROPS[block];
@@ -171,16 +178,18 @@ function checkProps(
         Object.hasOwn(node[1], bound) &&
         !Object.hasOwn(props([node[0], { [bound]: node[1][bound] }], data), key)
       ) {
-        problems.push(
-          `\`:${key}\` resolves to an unsafe URL, so it's left out. Use an http:// or https:// URL${key === "src" ? " or a path to the image file" : ""}.`,
-        );
+        problems.push({
+          rule: "comark/annotate/unsafe-bound-url",
+          message: `\`:${key}\` resolves to an unsafe URL, so it's left out. Use an http:// or https:// URL${key === "src" ? " or a path to the image file" : ""}.`,
+        });
         continue;
       }
       const path = text(node[1][`:${key}`]);
       if (unresolved(node, attrs, key) && !later(path))
-        problems.push(
-          `\`:${key}\` points at ${path}, which is undefined. Fix the path or set \`${key}\` directly.`,
-        );
+        problems.push({
+          rule: "comark/annotate/undefined-binding",
+          message: `\`:${key}\` points at ${path}, which is undefined. Fix the path or set \`${key}\` directly.`,
+        });
       continue;
     }
     const lower = key.toLowerCase();
@@ -193,9 +202,10 @@ function checkProps(
       : close
         ? `Did you mean \`${close}\`?`
         : "";
-    problems.push(
-      `\`${key}\` isn't a prop of \`::${block}\`.${hint ? ` ${hint}` : ""} Valid props: ${valid.join(", ")}.`,
-    );
+    problems.push({
+      rule: "comark/annotate/unknown-prop",
+      message: `\`${key}\` isn't a prop of \`::${block}\`.${hint ? ` ${hint}` : ""} Valid props: ${valid.join(", ")}.`,
+    });
   }
 }
 
@@ -204,58 +214,67 @@ const VIEWPORT = /^(\d+)\s*[x×]\s*(\d+)$/i;
 /** Reads a `::screenshot` node, counting on from `start`. Problems go to `issues`; rendering never throws. */
 export function readScreenshot(
   node: ElementNode,
-  issues: string[],
+  issues: Issue[],
   data: Data,
   names: Names = new Map(),
   start: { n: number; number: number; sides?: readonly Side[] } = { n: 1, number: 1 },
 ): Screenshot & { viewport?: { width: number; height: number } } {
   let number = start.number;
   const where = names.get(node) ?? "screenshot";
-  const problems: string[] = [];
+  const problems: Issue[] = [];
   const attrs = props(node, data);
   checkProps("screenshot", node, attrs, problems, data);
   const src = text(attrs.src);
   if (!src && !unresolved(node, attrs, "src"))
-    problems.push("`src` is required. Point it at the image file.");
+    problems.push({
+      rule: "comark/annotate/missing-src",
+      message: "`src` is required. Point it at the image file.",
+    });
   const alt = text(attrs.alt);
   if (!alt && !unresolved(node, attrs, "alt"))
-    problems.push("`alt` is required. Describe what the screenshot shows.");
+    problems.push({
+      rule: "comark/annotate/missing-alt",
+      message: "`alt` is required. Describe what the screenshot shows.",
+    });
   const href = text(attrs.href);
   if (href && !isHttp(href))
-    problems.push(
-      "`href` must be an http:// or https:// URL with a host. Link the page you captured.",
-    );
+    problems.push({
+      rule: "comark/annotate/invalid-href",
+      message: "`href` must be an http:// or https:// URL with a host. Link the page you captured.",
+    });
   const viewport = text(attrs.viewport);
   const size = VIEWPORT.exec(viewport);
   if (viewport && !size)
-    problems.push(
-      `\`viewport\` must be the capture size in pixels, like 1440x900 (got ${quote(viewport)}).`,
-    );
-  issues.push(...problems.map((problem) => `${where}: ${problem}`));
+    problems.push({
+      rule: "comark/annotate/invalid-viewport",
+      message: `\`viewport\` must be the capture size in pixels, like 1440x900 (got ${quote(viewport)}).`,
+    });
+  issues.push(...within(where, problems));
 
   const annotations: Annotation[] = [];
   const caption: Node[] = [];
   for (const child of children(node)) {
     if (isElement(child) && child[0] === "annotation") {
       const n = start.n + annotations.length;
-      const found: string[] = [];
+      const found: Issue[] = [];
       const annotation = readAnnotation(child, found, data);
       if (annotation.side && !(start.sides ?? SIDES).includes(annotation.side))
         annotation.side = undefined;
       const stamp = annotation.side ? undefined : number++;
       const index = annotations.length + 1;
       const label = `${where}, annotation ${index}${annotation.side ? ` (${annotation.side} note)` : stamp === index ? "" : ` (stamp ${stamp})`}`;
-      issues.push(...found.map((problem) => `${label}: ${problem}`));
+      issues.push(...within(label, found));
       if (n === MAX_LINKED + 1)
-        issues.push(
-          `${where}: more than ${MAX_LINKED} annotations in one screenshot or compare. Hovering stops linking marks to notes after ${MAX_LINKED}; split it into several screenshots.`,
-        );
+        issues.push({
+          rule: "comark/annotate/too-many-annotations",
+          message: `${where}: more than ${MAX_LINKED} annotations in one screenshot or compare. Hovering stops linking marks to notes after ${MAX_LINKED}; split it into several screenshots.`,
+        });
       annotations.push({ ...annotation, n, number: stamp });
     } else caption.push(child);
   }
-  const nestedProblems: string[] = [];
+  const nestedProblems: Issue[] = [];
   nested(caption, nestedProblems);
-  issues.push(...nestedProblems.map((problem) => `${where}: ${problem}`));
+  issues.push(...within(where, nestedProblems));
   for (const side of SIDES) {
     const centers = annotations
       .flatMap((annotation, index) =>
@@ -274,15 +293,17 @@ export function readScreenshot(
       .sort((a, b) => a.at - b.at);
     for (let i = 1; i < centers.length; i++)
       if (centers[i]!.at - centers[i - 1]!.at < SIDE_GAP[side])
-        issues.push(
-          `${where}: the ${side} notes for annotations ${centers[i - 1]!.index} and ${centers[i]!.index} would overlap. Move one to the other side or leave it under the image.`,
-        );
+        issues.push({
+          rule: "comark/annotate/side-notes-overlap",
+          message: `${where}: the ${side} notes for annotations ${centers[i - 1]!.index} and ${centers[i]!.index} would overlap. Move one to the other side or leave it under the image.`,
+        });
   }
   const aspect = size ? Number(size[2]) / Number(size[1]) : undefined;
   for (const [a, b] of place(annotations, aspect).clashes)
-    issues.push(
-      `${where}: the numbers of annotations ${a} and ${b} overlap at every corner of their marks. Leave room between the marks, or merge them into one annotation.`,
-    );
+    issues.push({
+      rule: "comark/annotate/numbers-overlap",
+      message: `${where}: the numbers of annotations ${a} and ${b} overlap at every corner of their marks. Leave room between the marks, or merge them into one annotation.`,
+    });
   return {
     src,
     alt,
@@ -295,7 +316,7 @@ export function readScreenshot(
   };
 }
 
-function readAnnotation(node: ElementNode, problems: string[], data: Data): Omit<Annotation, "n"> {
+function readAnnotation(node: ElementNode, problems: Issue[], data: Data): Omit<Annotation, "n"> {
   const attrs = props(node, data);
   checkProps("annotation", node, attrs, problems, data);
   const box = { x: 0, y: 0, w: 0, h: 0 };
@@ -311,18 +332,35 @@ function readAnnotation(node: ElementNode, problems: string[], data: Data): Omit
     const valid = key === "x" || key === "y" ? value <= 100 : value > 0 && value <= 100;
     if (!raw) {
       known = false;
-      problems.push(
-        `\`${key}\` is required: a percentage of the image, a number without %, ${range}.`,
-      );
+      problems.push({
+        rule: "comark/annotate/invalid-position",
+        message: `\`${key}\` is required: a percentage of the image, a number without %, ${range}.`,
+      });
     } else if (!valid) {
       known = false;
-      problems.push(
-        `\`${key}\` must be a percentage of the image, a number without %, ${range} (got ${quote(raw)}).`,
-      );
+      problems.push({
+        rule: "comark/annotate/invalid-position",
+        message: `\`${key}\` must be a percentage of the image, a number without %, ${range} (got ${quote(raw)}).`,
+      });
     } else box[key] = value;
   }
   if (known && (box.x + box.w > EDGE || box.y + box.h > EDGE))
-    problems.push("the box runs past the image edge. Keep x + w and y + h within 100.");
+    problems.push({
+      rule: "comark/annotate/box-outside-image",
+      message: "the box runs past the image edge. Keep x + w and y + h within 100.",
+    });
+  // Fractions such as x=0.25 are the likeliest slip when converting pixels; a real box this small would be a speck.
+  const values = Object.values(box);
+  if (
+    known &&
+    values.every((value) => value <= 1) &&
+    values.some((value) => !Number.isInteger(value))
+  )
+    problems.push({
+      rule: "comark/annotate/box-as-fraction",
+      message:
+        "`x`, `y`, `w`, and `h` are all 1 or less, so the box is a speck in the top left corner. They're percentages: multiply each by 100, so x=0.25 becomes x=25.",
+    });
 
   return { ...box, ...readMark(node, attrs, problems) };
 }
@@ -334,26 +372,39 @@ function readAnnotation(node: ElementNode, problems: string[], data: Data): Omit
 export function readMark(
   node: ElementNode,
   attrs: Record<string, unknown>,
-  problems: string[],
+  problems: Issue[],
 ): Pick<Annotation, "mark" | "color" | "side" | "note"> {
   const mark = text(attrs.mark) || "box";
   if (!isMark(mark))
-    problems.push(`\`mark\` must be one of ${Object.keys(marks).join(", ")} (got ${quote(mark)}).`);
+    problems.push({
+      rule: "comark/annotate/unknown-mark",
+      message: `\`mark\` must be one of ${Object.keys(marks).join(", ")} (got ${quote(mark)}).`,
+    });
   const color = text(attrs.color);
   if (color && !isColor(color))
-    problems.push(
-      `\`color\` must be ${PALETTE.join(", ")}, or a 3- or 6-digit hex color like #e5484d (got ${quote(color)}).`,
-    );
+    problems.push({
+      rule: "comark/annotate/invalid-color",
+      message: `\`color\` must be ${PALETTE.join(", ")}, or a 3- or 6-digit hex color like #e5484d (got ${quote(color)}).`,
+    });
   const side = text(attrs.side);
   const knownSide = SIDES.find((item) => item === side);
   if (side && !knownSide)
-    problems.push(`\`side\` must be left, right, or top (got ${quote(side)}).`);
+    problems.push({
+      rule: "comark/annotate/invalid-side",
+      message: `\`side\` must be left, right, or top (got ${quote(side)}).`,
+    });
   if (mark === "none" && !side && !unresolved(node, attrs, "side"))
-    problems.push(
-      '`mark="none"` draws nothing, so without a `side` note nothing points at the spot. Add `side="left"`, `"right"`, or `"top"`, or pick a visible mark such as `box`.',
-    );
+    problems.push({
+      rule: "comark/annotate/invisible-mark",
+      message:
+        '`mark="none"` draws nothing, so without a `side` note nothing points at the spot. Add `side="left"`, `"right"`, or `"top"`, or pick a visible mark such as `box`.',
+    });
   const note = children(node);
-  if (!hasContent(note)) problems.push("write a note explaining what the mark points at.");
+  if (!hasContent(note))
+    problems.push({
+      rule: "comark/annotate/missing-note",
+      message: "write a note explaining what the mark points at.",
+    });
   nested(note, problems);
 
   return {
@@ -366,13 +417,14 @@ export function readMark(
 
 // Screenshots, compares, and annotations only work as direct children; deeper ones would be dropped or unchecked.
 const BLOCKS = new Set(["screenshot", "compare", "annotation"]);
-function nested(nodes: Node[], problems: string[]) {
+function nested(nodes: Node[], problems: Issue[]) {
   for (const node of nodes) {
     if (!isElement(node)) continue;
     if (BLOCKS.has(node[0]))
-      problems.push(
-        `\`${node[0]}\` can't go inside a note or caption.${node[0] === "annotation" ? " Annotations must be direct children of a screenshot." : " Move it out after the block."}`,
-      );
+      problems.push({
+        rule: "comark/annotate/nested-block",
+        message: `\`${node[0]}\` can't go inside a note or caption.${node[0] === "annotation" ? " Annotations must be direct children of a screenshot." : " Move it out after the block."}`,
+      });
     else nested(children(node), problems);
   }
 }
@@ -380,15 +432,15 @@ function nested(nodes: Node[], problems: string[]) {
 /** Reads a `::compare` node: two screenshots numbered as one sequence, titled Before and After unless they say otherwise. */
 export function readCompare(
   node: ElementNode,
-  issues: string[],
+  issues: Issue[],
   data: Data,
   names: Names = new Map(),
 ): Compare {
   const where = names.get(node) ?? "compare";
   const attrs = props(node, data);
-  const problems: string[] = [];
+  const problems: Issue[] = [];
   checkProps("compare", node, attrs, problems, data);
-  issues.push(...problems.map((problem) => `${where}: ${problem}`));
+  issues.push(...within(where, problems));
   const mode = text(attrs.mode) || "columns";
   const known = MODES.find((item) => item === mode);
   // A note beside one screenshot of a pair would sit against the other one and narrow its own image, and in a slider
@@ -407,14 +459,21 @@ export function readCompare(
       shots.push({ ...shot, title: shot.title ?? (shots.length ? "After" : "Before") });
       viewports.push({ name: names.get(child) ?? "screenshot", size: viewport });
     } else if (isElement(child) || text(child))
-      issues.push(
-        `${where}: only \`screenshot\` blocks can go inside a compare (found ${isElement(child) && child[0] !== "p" ? `\`${child[0]}\`` : "text"}). Move it before or after the compare.`,
-      );
+      issues.push({
+        rule: "comark/annotate/compare-content",
+        message: `${where}: only \`screenshot\` blocks can go inside a compare (found ${isElement(child) && child[0] !== "p" ? `\`${child[0]}\`` : "text"}). Move it before or after the compare.`,
+      });
   }
   if (shots.length !== 2)
-    issues.push(
-      `${where}: needs exactly two screenshots, before and after (got ${shots.length}). ${shots.length < 2 ? "Add the missing one" : "Split the rest into another compare"}.`,
-    );
+    issues.push({
+      rule: "comark/annotate/compare-screenshot-count",
+      message: `${where}: needs exactly two screenshots, before and after (got ${shots.length}). ${shots.length < 2 ? "Add the missing one" : "Split the rest into another compare"}.`,
+    });
+  else if (shots[0]!.src && shots[0]!.src === shots[1]!.src)
+    issues.push({
+      rule: "comark/annotate/compare-same-image",
+      message: `${where}: both screenshots show ${quote(shots[0]!.src)}, so there's no change to see. Point the after screenshot at the new capture.`,
+    });
   const [before, after] = viewports;
   const px = (size: { width: number; height: number }) => `${size.width}x${size.height}`;
   if (
@@ -422,13 +481,15 @@ export function readCompare(
     after?.size &&
     (before.size.width !== after.size.width || before.size.height !== after.size.height)
   )
-    issues.push(
-      `${where}: ${before.name} was captured at ${px(before.size)} and ${after.name} at ${px(after.size)}, so they can't be compared. Recapture both at the same viewport.`,
-    );
+    issues.push({
+      rule: "comark/annotate/compare-viewport-mismatch",
+      message: `${where}: ${before.name} was captured at ${px(before.size)} and ${after.name} at ${px(after.size)}, so they can't be compared. Recapture both at the same viewport.`,
+    });
   if (!known)
-    issues.push(
-      `${where}: \`mode\` is ${quote(mode)}, which isn't a compare mode. Use \`columns\` (side by side, the default) or \`slider\`.`,
-    );
+    issues.push({
+      rule: "comark/annotate/invalid-mode",
+      message: `${where}: \`mode\` is ${quote(mode)}, which isn't a compare mode. Use \`columns\` (side by side, the default) or \`slider\`.`,
+    });
   return { title: text(attrs.title) || undefined, mode: known ?? "columns", shots };
 }
 
@@ -467,8 +528,8 @@ function name(nodes: Node[], data: Data): Names {
 }
 
 /** Every problem in a document's screenshots, compares, and annotations. */
-export function check(nodes: Node[], data: Data): string[] {
-  const issues: string[] = [];
+export function check(nodes: Node[], data: Data): Issue[] {
+  const issues: Issue[] = [];
   const names = name(nodes, data);
   let stray = 0;
   const walk = (list: Node[]) => {
@@ -482,9 +543,10 @@ export function check(nodes: Node[], data: Data): string[] {
         const note = textContent(["div", {}, ...children(node)])
           .trim()
           .slice(0, 40);
-        issues.push(
-          `annotation ${++stray} outside a screenshot${note ? ` (${quote(note)})` : ""}: it has nothing to point at. Move it inside the \`::screenshot\` it marks, as a direct child.`,
-        );
+        issues.push({
+          rule: "comark/annotate/annotation-outside-screenshot",
+          message: `annotation ${++stray} outside a screenshot${note ? ` (${quote(note)})` : ""}: it has nothing to point at. Move it inside the \`::screenshot\` it marks, as a direct child.`,
+        });
       } else walk(children(node));
     }
   };
