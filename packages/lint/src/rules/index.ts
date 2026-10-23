@@ -1,4 +1,5 @@
 import annotate from "./annotate.ts";
+import badge from "./badge.ts";
 import cards from "./cards.ts";
 import carousel from "./carousel.ts";
 import charts from "./charts.ts";
@@ -32,4 +33,5 @@ export const catalog = {
   ...include,
   ...steps,
   ...tabs,
+  ...badge,
 } satisfies Record<string, RuleInfo>;
