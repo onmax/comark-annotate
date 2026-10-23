@@ -14,6 +14,7 @@ export type PresetOptions = {
   include?: IncludeOptions | boolean;
   /** HTML only: Vue, React, and Svelte have no annotate components. */
   annotate?: boolean;
+  badge?: boolean;
   /** Cards draw their icons with the resolver from `icon`'s options. */
   cards?: boolean;
   carousel?: boolean;
@@ -46,6 +47,7 @@ type Part<C, O = void> = { default: (options?: O) => AnyPlugin; components: Reco
 /** One renderer's entry of each package, by the option that turns it on. */
 export type Renderer<C> = {
   annotate?: Part<C>;
+  badge: Part<C>;
   cards: Part<C, { iconResolver?: Icons }>;
   carousel: Part<C>;
   charts: Part<C, ChartsOptions>;
@@ -89,6 +91,7 @@ export function preset<C>(renderer: Renderer<C>, options: PresetOptions = {}): P
   // Include goes first, so the others read what it pastes.
   if (on(options.include, false)) plugins.push(include(optionsOf(options.include)));
   add(renderer.annotate, options.annotate);
+  add(renderer.badge, options.badge);
   add(renderer.carousel, options.carousel);
   add(renderer.code, options.code, { iconResolver: icons, ...optionsOf(options.code) });
   add(renderer.charts, options.charts);

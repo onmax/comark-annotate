@@ -1,5 +1,6 @@
 import type { NodeHandler } from "comark";
 import * as annotate from "comark-annotate/html";
+import * as badge from "comark-badge/html";
 import * as cards from "comark-cards/html";
 import * as carousel from "comark-carousel/html";
 import * as charts from "comark-charts/html";
@@ -21,6 +22,7 @@ export default (options?: PresetOptions): Preset<NodeHandler> =>
   preset<NodeHandler>(
     {
       annotate,
+      badge,
       cards,
       carousel,
       charts,

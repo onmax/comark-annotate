@@ -15,6 +15,7 @@ import vue from "../src/vue.ts";
 const offline: PresetOptions = { chips: { download: false }, icon: { fetch: false } };
 const document = [
   "> [!TIP]\n> Read this.",
+  "Released :badge[New]",
   "::steps\n### Install\nRun it.\n::",
   "::code-group\n```sh [pnpm]\npnpm add x\n```\n```sh [npm]\nnpm i x\n```\n::",
   "![A cat](/cat.png)",
@@ -28,6 +29,7 @@ const blocks = [
   'class="ck"',
   "data-zoom",
   'class="ccr"',
+  'class="cb"',
 ];
 
 describe("@onmax/comark", () => {

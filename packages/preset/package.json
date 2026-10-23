@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "comark-annotate": "workspace:^",
+    "comark-badge": "workspace:^",
     "comark-cards": "workspace:^",
     "comark-carousel": "workspace:^",
     "comark-charts": "workspace:^",
