@@ -71,6 +71,7 @@ const packageOrder = [
   "chips",
   "diff",
   "embed",
+  "media",
   "github",
   "icon",
   "zoom",
@@ -492,7 +493,7 @@ const stillOf = (html: string, styles: Set<string>) =>
       return size && !/\swidth=/.test(rest) ? `${tag} width="${size[0]}" height="${size[1]}"` : tag;
     })
     .replace(/<img\b/g, '<img loading="lazy" draggable="false"');
-// A small still of each preset for the playground's column, with a gray box for each embedded player, so the column
+// A small still of each preset for the playground's column, with a gray box for each player, so the column
 // loads nothing but the pages' own images. The playground scales each still to its card.
 const thumbnailStyles = new Set<string>();
 const thumbnails = new Map(
@@ -500,7 +501,7 @@ const thumbnails = new Map(
     presets.map(async (preset) => {
       const document = await parseMarkdown(preset.source, { plugins: sitePlugins() });
       const html = (await renderHtmlFromDocument(document, { components })).replace(
-        /<iframe\b[^>]*><\/iframe>/g,
+        /<iframe\b[^>]*><\/iframe>|<(video|audio) class="cm"[^>]*>.*?<\/\1>/g,
         `<span class="preset-player">${siteIcon("tv-minimal-play", 128)}</span>`,
       );
       return [preset.id, stillOf(html, thumbnailStyles)] as const;

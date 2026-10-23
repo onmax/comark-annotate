@@ -36,6 +36,11 @@ describe("comark-reading-time", () => {
       words: 2,
       minutes: 1,
     });
+
+    expect(await timeOf("<Pre>hidden words</Pre>\n\nVisible words")).toEqual({
+      words: 2,
+      minutes: 1,
+    });
   });
 
   it("leaves punctuation, frontmatter, and comments out", async () => {
