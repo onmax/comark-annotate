@@ -13,7 +13,7 @@ export const css = `@layer comark{${[
   ".cto li{margin:0}",
   ".cto a{color:inherit;text-decoration:none;text-underline-offset:4px}",
   ".cto a:hover{text-decoration:underline}",
-  ".cto a:focus-visible{border-radius:2px;outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--_comark-ring) 50%,transparent)}",
+  ".cto a:focus-visible{border-radius:calc(var(--_comark-radius)/4);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--_comark-ring) 50%,transparent)}",
   ".cto ul ul a{color:var(--_comark-muted)}",
   ".cto ul ul a:hover{color:var(--_comark-foreground)}",
   "@media print{.cto{break-inside:avoid}}",
