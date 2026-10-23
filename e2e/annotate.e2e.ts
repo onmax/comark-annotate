@@ -4,7 +4,7 @@ test("a comparison lines up its screenshots and zooms them with their marks and 
   page,
 }) => {
   await page.goto("/annotate/");
-  const compare = page.locator(".ca-compare").first();
+  const compare = page.locator("main .ca-compare").first();
   const tops = await compare
     .locator(".ca-frame img")
     .evaluateAll((images) => images.map((image) => Math.round(image.getBoundingClientRect().top)));
@@ -53,7 +53,7 @@ test("the zoom maps its copies to the page and back", async ({ page }) => {
       });
     });
   });
-  await page.locator(".ca-compare .ca-stage").first().click();
+  await page.locator("main .ca-compare .ca-stage").first().click();
   await expect(page.locator(".cz-dialog")).toBeVisible();
   expect(await page.evaluate(() => (window as unknown as { mapped: unknown }).mapped)).toEqual({
     content: true,
@@ -67,10 +67,10 @@ test("the zoom maps its copies to the page and back", async ({ page }) => {
 test("a host's `.ca` rule sets the default mark color, on the page and zoomed", async ({
   page,
 }) => {
-  await page.goto("/annotate/components/");
+  await page.goto("/annotate/components/screenshot/");
   await page.addStyleTag({ content: ".ca{--ca-color:rgb(1, 2, 3)}" });
   const plain = ".ca-mark:not([style*='--ca-color'])";
-  const mark = page.locator(`${plain}:visible`).first();
+  const mark = page.locator(`main ${plain}:visible`).first();
   await expect(mark).toHaveCSS("color", "rgb(1, 2, 3)");
   await mark.click({ force: true });
   await expect(page.locator(`.cz-item ${plain}`).first()).toHaveCSS("color", "rgb(1, 2, 3)");
@@ -81,7 +81,7 @@ test("a side note lines up with its arrow when the screenshot also has a note ab
 }) => {
   await page.goto("/annotate/");
   await page.getByRole("tab", { name: "Arrows only" }).click();
-  const figure = page.locator(".ca-screenshot.ca-top.ca-left:visible").first();
+  const figure = page.locator("main .ca-screenshot.ca-top.ca-left:visible").first();
   await figure.locator(".ca-frame > img").evaluate((image) => (image as HTMLImageElement).decode());
   const middle = (selector: string) =>
     figure.locator(selector).evaluate((node) => {
@@ -97,7 +97,7 @@ test("a slider moves its divider by drag and by key, and a click without a drag 
 }) => {
   await page.goto("/annotate/");
   await page.getByRole("tab", { name: "Slider" }).click();
-  const swipe = page.locator(".ca-swipe:visible").first();
+  const swipe = page.locator("main .ca-swipe:visible").first();
   const handle = swipe.locator(".ca-handle");
   await expect(handle).toHaveAttribute("aria-valuenow", "50");
 
@@ -141,7 +141,7 @@ test("Copy puts a screenshot on the clipboard with its marks, and a right-click 
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/annotate/");
   const figure = page
-    .locator(".ca-screenshot:visible")
+    .locator("main .ca-screenshot:visible")
     .filter({ has: page.locator(".ca-mark .ca-stamp") })
     .first();
   await figure.hover();
