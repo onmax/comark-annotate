@@ -27,8 +27,6 @@ The parse plugin replaces each badge's attributes with its `color`, `primary` un
 
 A badge is a `<span class="cb" data-color="...">`. Each color reads Nuxt UI's variable, such as `--ui-warning`, then its own default. Primary's default is shadcn/ui's `--primary`, then the foreground, so badges match the page's brand color or stay neutral without one. Secondary's is the muted text color, and error's is `--destructive`. Set `--cb-primary`, `--cb-secondary`, `--cb-success`, `--cb-info`, `--cb-warning`, `--cb-error`, or `--cb-neutral` on `.cb` to change one. Badges also read these [shared tokens](/guide/theming/):
 
-Badges also read these [shared tokens](/guide/theming/):
-
 | Token | Used for |
 | --- | --- |
 | `--comark-foreground` | Mixed into the text, so it stays readable |

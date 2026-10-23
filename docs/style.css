@@ -845,8 +845,9 @@ kbd {
 }
 
 /* The card is the frame, so a block that draws its own drops it when it's all the card shows. */
-.demo-page > :is(.cch, .cd, .cft):only-child {
+.demo-page > :is(.cch, .cd, .ce, .ce-card, .cgc, .ck, .cft, .ct, .cc, .ccr-group):only-child {
   margin: 0;
+  padding: 0;
   border: 0;
   border-radius: 0;
   background: none;
