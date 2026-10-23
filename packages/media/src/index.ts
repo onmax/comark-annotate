@@ -5,6 +5,7 @@ import { resolveAttributes } from "comark/render";
 export type MediaMeta = {
   /** One readable sentence per problem with a video or audio file. Empty when the document has none. Other plugins add theirs too. */
   issues: string[];
+  issueRules: Record<string, string>;
 };
 
 /**
@@ -118,7 +119,10 @@ function read(node: ElementNode, data: Data, issues: Issue[]): MediaAttributes {
     });
   const unknown = Object.keys(attrs).filter((key) => !KNOWN.has(key));
   if (unknown.length)
-    issues.push({ message: `${name}: ${unknown.map((key) => `\`${key}\``).join(", ")} ${unknown.length === 1 ? "isn't a" : "aren't"} ${kind} option${unknown.length === 1 ? "" : "s"}, so ${unknown.length === 1 ? "it was" : "they were"} dropped. Use autoplay, loop, muted${kind === "video" ? ", or poster" : ""}.`, rule: "comark/media/unknown-prop" });
+    issues.push({
+      message: `${name}: ${unknown.map((key) => `\`${key}\``).join(", ")} ${unknown.length === 1 ? "isn't a" : "aren't"} ${kind} option${unknown.length === 1 ? "" : "s"}, so ${unknown.length === 1 ? "it was" : "they were"} dropped. Use autoplay, loop, muted${kind === "video" ? ", or poster" : ""}.`,
+      rule: "comark/media/unknown-prop",
+    });
   return result;
 }
 

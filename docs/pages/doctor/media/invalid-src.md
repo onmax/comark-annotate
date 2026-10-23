@@ -1,9 +1,10 @@
 A media source must use a playable extension.
 
 ::incorrect
-```md
+````md
 ::media{src="https://example.com/clip.txt"}
-```
+::
+````
 ::
 
 ::correct

@@ -81,12 +81,14 @@ describe.each(withRenderer)("the renderer of packages/%s", (folder) => {
 
     // Keep the import and both runtime registries in sync. The import alone can
     // remain present after a plugin is accidentally removed from the site.
+    // A folder such as file-tree imports as fileTree.
+    const name = folder.replace(/-(\w)/g, (_, letter: string) => letter.toUpperCase());
     const imported =
       folder === "github"
         ? { plugin: "githubHtml", components: "githubComponents" }
         : {
-            plugin: folder,
-            components: `${folder}Components`,
+            plugin: name,
+            components: `${name}Components`,
           };
     const browser = plugins.slice(
       plugins.indexOf("export const browserPlugins"),

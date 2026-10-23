@@ -52,6 +52,7 @@ const packages = [
     () => import("comark-reading-time").then((module) => ({ ...module, components: {} })),
     [],
   ],
+  ["comark-file-tree/html", () => import("comark-file-tree/html"), []],
   ["comark-tabs/html", () => import("comark-tabs/html"), ["code-group", "tabs-item"]],
   ["comark-outline/html", () => import("comark-outline/html"), []],
   ["comark-zoom/html", () => import("comark-zoom/html"), []],
