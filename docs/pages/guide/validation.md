@@ -53,7 +53,7 @@ meta.issueRules['screenshot "after.png", annotation 2: the box runs past the ima
 
 ## Line numbers
 
-`meta.issues` can't say where a problem is, because Comark gives nodes no source positions. [comark-linter](/lint/) finds the line of each issue and adds what Comark forgives silently: blocks never closed, misspelled components, broken anchors, unsafe URLs, repeated ids, images without alt text, and links without text. It reports each issue under its rule, with the rule's code in Vite Doctor. Run it in CI and in [Vite Doctor](/lint/getting-started/#vite-doctor):
+`meta.issues` can't say where a problem is, because Comark gives nodes no source positions. [comark-linter](/lint/) finds the line of each issue and adds what Comark forgives silently: blocks never closed, misspelled components, broken links and anchors, links to localhost, unsafe URLs, repeated ids, images without alt text, and links without text. It reports each issue under its rule, with the rule's code in Vite Doctor. Run it in CI and in [Vite Doctor](/lint/getting-started/#vite-doctor):
 
 ```sh
 pnpm lint-comark "docs/**/*.md"

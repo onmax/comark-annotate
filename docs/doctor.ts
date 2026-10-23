@@ -39,12 +39,25 @@ const plugins = () => [
   ...browserPlugins({}, { download: false }).map((plugin) => offline[plugin.name] ?? plugin),
   include({ root: fileURLToPath(new URL("docs/doctor-include/", repo)) }),
 ];
-// comark-tabs turns `::code-group` into `::tabs` and comark-include replaces `:include` while parsing, so no renderer
-// has them.
-const known = [...Object.keys(components), "code-group", "tabs-item", "include"];
+// comark-tabs turns `::code-group` into `::tabs`, comark-include replaces `:include`, and comark-details turns its
+// items and collapsibles into `disclosure` while parsing, so no renderer has them.
+const known = [
+  ...Object.keys(components),
+  "code-group",
+  "tabs-item",
+  "include",
+  "accordion-item",
+  "collapsible",
+];
 
-export const lintExample = (source: string) =>
-  lint(source, { plugins: plugins(), components: known });
+// Links to files are checked only in a document with a path, so broken-link's examples lint as a page in
+// docs/doctor-include/, next to the files they link. The other examples have none, so their links aren't checked.
+const fileOf: Partial<Record<Rule, string>> = {
+  "comark/broken-link": fileURLToPath(new URL("docs/doctor-include/page.md", repo)),
+};
+
+export const lintExample = (source: string, rule?: Rule) =>
+  lint(source, { plugins: plugins(), components: known, file: rule && fileOf[rule] });
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
 
@@ -77,7 +90,7 @@ export async function checkExample(
   kind: "incorrect" | "correct",
   source: string,
 ): Promise<{ found: Diagnostic[]; problem?: string }> {
-  const found = await lintExample(source);
+  const found = await lintExample(source, rule);
   const other = found.filter((diagnostic) => diagnostic.rule !== rule);
   const list = (diagnostics: Diagnostic[]) =>
     diagnostics.map((d) => `\n  ${d.rule}: ${d.message} ${d.fix}`).join("");
