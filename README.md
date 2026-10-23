@@ -17,7 +17,7 @@
 | [`comark-embed`](./packages/embed) | YouTube, Vimeo, Loom, Spotify, CodePen, StackBlitz, and Figma players from a link, with no network fetch. |
 | [`comark-github`](./packages/github) | GitHub's `> [!NOTE]` alerts as callouts, `@user` and `#123` as links, and raw HTML limited to what GitHub allows. |
 | [`comark-icon`](./packages/icon) | Iconify icons in Markdown as `:icon{name="lucide:apple"}`, drawn as CSS with no script, and the resolver other plugins draw icons with. |
-| [`comark-linter`](./packages/lint) | Finds unclosed blocks, unknown components, broken anchors, and plugin issues in Comark documents, from a script, the command line, or Vite Doctor. |
+| [`comark-linter`](./packages/lint) | Finds unclosed blocks, unknown components, broken links and anchors, local URLs, and plugin issues in Comark documents, from a script, the command line, or Vite Doctor. |
 | [`comark-include`](./packages/include) | Markdown partials and code snippets from files, by lines or by region. |
 | [`comark-tabs`](./packages/tabs) | Tabs and code groups that switch together across the page, and read without a script. |
 | [`comark-zoom`](./packages/zoom) | Zoom images and any block like medium-zoom, with Escape, Back, and click-outside to close. |

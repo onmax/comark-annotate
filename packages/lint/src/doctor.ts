@@ -5,7 +5,14 @@ import {
   defineDoctorExtension,
   defineRulePack,
 } from "vite-doctor/extension";
-import { lint, resolveConfig, rules, type Config, type Diagnostic, type Rule } from "./index.ts";
+import {
+  lintFiles,
+  resolveConfig,
+  rules,
+  type Config,
+  type LintedFile,
+  type Rule,
+} from "./index.ts";
 
 export type DoctorOptions = Config & {
   /** Markdown to check, relative to the project root. Default `**\/*.{md,mdc}`. */
@@ -22,6 +29,9 @@ const codes = {
   "comark/invalid-frontmatter": "COMARK0005",
   "comark/plugin-issue": "COMARK0006",
   "comark/unsafe-url": "COMARK0007",
+  "comark/broken-link": "COMARK0008",
+  "comark/blocked-url": "COMARK0009",
+  "comark/dead-url": "COMARK0010",
 } as const satisfies Record<Rule, string>;
 
 const severities: Partial<Record<Rule, RuleMeta["severity"]>> = {
@@ -47,19 +57,20 @@ export default function comark(options: DoctorOptions = {}) {
   // SAFETY: `rules` is a Record<Rule, string>, so its keys are exactly the rules.
   const ids = Object.keys(rules) as Rule[];
 
-  // Every Rule reads the same results; the first one to run lints the files.
+  // Every Rule reads the same results; the first one to run lints the files. Rules may only read through `ctx.fs`,
+  // so links are checked through it too. The URL cache is written with node:fs, since `ctx.fs` can't write.
   const lintProject = (ctx: RuleContext) => {
     const key = `lint-comark:${ctx.project.root}`;
-    let results =
-      ctx.cache.get<Promise<{ file: string; text: string; found: Diagnostic[] }[]>>(key);
+    let results = ctx.cache.get<Promise<LintedFile[]>>(key);
     if (!results) {
       results = resolveConfig(config).then((resolved) =>
-        Promise.all(
-          ctx.fs.glob(include, { exclude }).map(async (file) => {
-            const text = ctx.fs.readText(file) ?? "";
-            return { file, text, found: await lint(text, resolved) };
-          }),
-        ),
+        lintFiles(ctx.fs.glob(include, { exclude }), {
+          root: ctx.project.root,
+          read: (path) => ctx.fs.readText(path),
+          exists: (path) => ctx.fs.exists(path),
+          list: (path) => ctx.fs.readDir(path)?.map((entry) => entry.name),
+          ...resolved,
+        }),
       );
       ctx.cache.set(key, results);
     }
@@ -76,11 +87,12 @@ export default function comark(options: DoctorOptions = {}) {
         execution: "manifest",
         // The result depends on the comark plugins installed, which the Rule imports instead of reading.
         cacheScope: "none",
+        ...(id === "comark/dead-url" && { determinism: "env-dependent" as const }),
       },
       create(ctx) {
         return {
           async onProjectEnd() {
-            for (const { file, text, found } of await lintProject(ctx)) {
+            for (const { file, text = "", diagnostics: found } of await lintProject(ctx)) {
               const starts = [0];
               for (const match of text.matchAll(/\n/g)) starts.push(match.index + 1);
               for (const diagnostic of found) {

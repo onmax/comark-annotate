@@ -35,9 +35,7 @@ include "./ducks.md": file not found. It resolved to "guide/ducks.md" under the 
 
 | Plugin | Reports |
 | --- | --- |
-| [annotate](/annotate/#guides-validation) | Missing or unknown props, marks outside the image, side notes that would overlap, compares whose viewports differ, and diffs that are too long, mix files, or change nothing |
-| [charts](/charts/#guides-validation) | Invalid chart tables and marks |
-| [carousel](/carousel/#guides-validation) | Content outside every `:::slide`, empty carousels, bad `columns`, stray slides, and props bound to render-time data |
+| [charts](/charts/guides/#validation) | Invalid chart tables and marks |
 | [annotate](/annotate/guides/#validation) | Missing or unknown props, marks outside the image, side notes that would overlap, compares whose viewports differ, and diffs that are too long, mix files, or change nothing |
 | [carousel](/carousel/guides/#validation) | Content outside every `:::slide`, empty carousels, bad `columns`, stray slides, and props bound to render-time data |
 | [embed](/embed/) | Missing or non-https links, links it can't read, cards without a `title`, and a bad `start` |
@@ -48,7 +46,7 @@ code and zoom have nothing to report: every code block gets its buttons, and any
 
 ## Line numbers
 
-`meta.issues` can't say where a problem is, because Comark gives nodes no source positions. [comark-linter](/lint/) finds the line of each issue and adds what Comark forgives silently: blocks never closed, misspelled components, broken anchors, and unsafe URLs. Run it in CI and in [Vite Doctor](/lint/getting-started/#vite-doctor):
+`meta.issues` can't say where a problem is, because Comark gives nodes no source positions. [comark-linter](/lint/) finds the line of each issue and adds what Comark forgives silently: blocks never closed, misspelled components, broken links and anchors, links to localhost, and unsafe URLs. Run it in CI and in [Vite Doctor](/lint/getting-started/#vite-doctor):
 
 ```sh
 pnpm lint-comark "docs/**/*.md"
