@@ -105,8 +105,8 @@ describe("comark-figure", () => {
   });
 
   it("leaves raw HTML images and their subtrees unchanged", async () => {
-    expect(await render('<p><img src="duck.png" title="Raw caption"></p>', {}, {}, [html(), figure()])).toBe(
-      '<p><img src="duck.png" title="Raw caption"></p>',
-    );
+    expect(
+      await render('<p><img src="duck.png" title="Raw caption"></p>', {}, {}, [html(), figure()]),
+    ).toBe('<p><img src="duck.png" title="Raw caption"></p>');
   });
 });
