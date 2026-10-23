@@ -18,5 +18,5 @@ export const css = `@layer comark{${[
   '.cp[data-kind="avatar"]{padding:0;background:none;box-shadow:none;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:.2em;transition:text-decoration-color .15s ease-out}',
   '.cp[data-kind="avatar"]:hover{background:none;text-decoration-color:currentColor}',
   '.cp[data-kind="avatar"] .cp-img{border-radius:50%;outline:none}',
-  "@media (prefers-reduced-motion:reduce){.cp{transition:none}}",
+  '@media (prefers-reduced-motion:reduce){.cp,.cp[data-kind="avatar"]{transition:none}}',
 ].join("")}}`;
