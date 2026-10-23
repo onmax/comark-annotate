@@ -19,11 +19,22 @@ function splitCommands(line: string) {
   const parts: string[] = [];
   let start = 0;
   let quote: "'" | '"' | undefined;
+  const substitutionQuotes: ("'" | '"' | undefined)[] = [];
   for (let index = 0; index < line.length; index++) {
     const char = line[index];
+    if (char === "$" && line[index + 1] === "(" && quote !== "'") {
+      substitutionQuotes.push(quote);
+      quote = undefined;
+      index++;
+      continue;
+    }
     if (quote) {
       if (char === "\\" && quote === '"') index++;
       else if (char === quote) quote = undefined;
+      continue;
+    }
+    if (char === ")" && substitutionQuotes.length) {
+      quote = substitutionQuotes.pop();
       continue;
     }
     if (char === "'" || char === '"') {
@@ -34,7 +45,8 @@ function splitCommands(line: string) {
       index++;
       continue;
     }
-    const separator = line.startsWith("&&", index) || line.startsWith("||", index) ? 2 : char === ";" ? 1 : 0;
+    const separator =
+      line.startsWith("&&", index) || line.startsWith("||", index) ? 2 : char === ";" ? 1 : 0;
     if (!separator) continue;
     parts.push(line.slice(start, index), line.slice(index, index + separator));
     index += separator - 1;
