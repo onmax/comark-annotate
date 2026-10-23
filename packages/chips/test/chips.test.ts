@@ -152,6 +152,22 @@ describe("comark-chips", () => {
     );
   });
 
+  it("leaves malformed social profile paths as favicon chips", async () => {
+    await render(
+      "[bad Bluesky](https://bsky.app/profile/not_a_handle), [bad Bluesky](https://bsky.app/profile/-name), [bad YouTube](https://youtube.com/@-channel), [bad YouTube](https://youtube.com/@channel.), [bad GitLab](https://gitlab.com/a), and [bad GitLab](https://gitlab.com/.name).",
+    );
+    expect(requests).not.toEqual(
+      expect.arrayContaining([
+        "https://unavatar.io/bluesky/not_a_handle?fallback=false",
+        "https://unavatar.io/bluesky/-name?fallback=false",
+        "https://unavatar.io/youtube/-channel?fallback=false",
+        "https://unavatar.io/youtube/channel.?fallback=false",
+        "https://unavatar.io/gitlab/a?fallback=false",
+        "https://unavatar.io/gitlab/.name?fallback=false",
+      ]),
+    );
+  });
+
   it("takes an account on any network unavatar.io knows from `avatar`, and reports one that doesn't exist", async () => {
     const html = await render('[Sindre](https://sindresorhus.com){avatar="mastodon:sindre"}');
     expect(html).toContain('href="https://sindresorhus.com" data-kind="avatar"><img');
@@ -159,6 +175,18 @@ describe("comark-chips", () => {
     expect(await issues("[Ghost](https://bsky.app/profile/ghost.bsky.social)")).toEqual([
       "[Ghost](https://bsky.app/profile/ghost.bsky.social): there's no avatar at https://unavatar.io/bluesky/ghost.bsky.social?fallback=false (HTTP 404). Check the Bluesky handle, or set `avatar` to an image URL.",
     ]);
+  });
+
+  it("accepts hyphenated providers and preserves federated handles", async () => {
+    await render(
+      '[Music](https://example.com){avatar="apple-music:artist"} and [Masto](https://example.com/masto){avatar="mastodon:sindre@example.social"}',
+    );
+    expect(requests).toEqual(
+      expect.arrayContaining([
+        "https://unavatar.io/apple-music/artist?fallback=false",
+        "https://unavatar.io/mastodon/sindre%40example.social?fallback=false",
+      ]),
+    );
   });
 
   it("leaves a rate-limited image to the reader's browser and says to build again", async () => {

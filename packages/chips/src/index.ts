@@ -47,11 +47,17 @@ const PROFILES: [provider: string, pattern: RegExp, routes?: Set<string>][] = [
       "compose explore hashtag home i intent login messages notifications privacy search settings share signup tos",
     ),
   ],
-  ["bluesky", /^https?:\/\/bsky\.app\/profile\/([\w.:-]+)(?:[/?#]|$)/i],
-  ["youtube", /^https?:\/\/(?:www\.)?youtube\.com\/@([\w.-]+)(?:[/?#]|$)/i],
+  [
+    "bluesky",
+    /^https?:\/\/bsky\.app\/profile\/((?:[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?\.)*[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?)(?:[/?#]|$)/i,
+  ],
+  [
+    "youtube",
+    /^https?:\/\/(?:www\.)?youtube\.com\/@([a-z\d](?:[a-z\d_.-]{0,28}[a-z\d])?)(?:[/?#]|$)/i,
+  ],
   [
     "gitlab",
-    /^https?:\/\/gitlab\.com\/([\w.-]+)\/?(?:[?#]|$)/i,
+    /^https?:\/\/gitlab\.com\/([a-z\d](?:[a-z\d_.-]{0,61}[a-z\d_-])?)\/?(?:[?#]|$)/i,
     words("dashboard explore help projects search users"),
   ],
 ];
@@ -63,7 +69,7 @@ const NAMES = new Map([
   ["gitlab", "GitLab username"],
 ]);
 // `avatar="bluesky:name"` names an account on any network unavatar.io knows; a URL has `//` after its scheme.
-const NAMED = /^([a-z]+):(?!\/\/)(\S+)$/i;
+const NAMED = /^([a-z][a-z\d-]*):(?!\/\/)(\S+)$/i;
 // Text in these is a link, a chip, or code already, so it stays as written.
 const SKIP = new Set(["a", CHIP_TAG, "code", "pre", "script", "style"]);
 const WEB = /^https?:\/\//i;
