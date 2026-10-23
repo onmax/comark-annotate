@@ -34,4 +34,4 @@ Details and accordions are bordered boxes with a chevron that turns as they open
 | `--comark-radius` | Corners |
 | `--comark-font` | Summaries |
 
-The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
+The rules sit in a `comark` CSS layer, so any plain rule of your own wins, except the spacing that draws each box: the padding of `.cdt` and its summary, the margins between accordion items, and the edge margins of a box's content are `!important`, because a page's own `details`, `summary`, and paragraph rules are almost always unlayered and would pull the summary out of line or split an accordion. Override those with `!important` too.
