@@ -24,6 +24,7 @@
 | [`comark-include`](./packages/include) | Markdown partials and code snippets from files, by lines or by region. |
 | [`comark-steps`](./packages/steps) | Numbered steps from the headings of a tutorial or a numbered list, in Nuxt UI's `::steps` syntax, with no script. |
 | [`comark-qr`](./packages/qr) | QR codes drawn as inline SVG while parsing, for opening a preview link on a phone. |
+| [`comark-reading-time`](./packages/reading-time) | A document's word count and reading time in `meta.readingTime`, with code blocks left out and CJK counted by character. |
 | [`comark-tabs`](./packages/tabs) | Tabs and code groups that switch together across the page, and read without a script. |
 | [`comark-zoom`](./packages/zoom) | Zoom images and any block like medium-zoom, with Escape, Back, and click-outside to close. |
 
