@@ -143,6 +143,18 @@ function markPreset(id?: string) {
     link.toggleAttribute("aria-current", link.dataset.preset === id);
 }
 
+// A package's "Open in playground" lands on its example, which can sit far down the presets' column, so the column
+// scrolls to center it. One already in view stays put, so a click in the column doesn't move it.
+function revealPreset(id?: string) {
+  const card = document.querySelector(`.sidebar .pages a[data-preset="${id}"]`)?.closest(".preset");
+  const column = card?.closest(".pages");
+  if (!(card instanceof HTMLElement) || !(column instanceof HTMLElement) || !column.clientHeight)
+    return;
+  const top = card.getBoundingClientRect().top - column.getBoundingClientRect().top;
+  if (top >= 0 && top + card.offsetHeight <= column.clientHeight) return;
+  column.scrollTop += top - (column.clientHeight - card.offsetHeight) / 2;
+}
+
 // The example the Markdown started from. Once the Markdown differs from it, Reset appears and brings it back.
 let base: (typeof presets)[number] | undefined;
 function markEdited() {
@@ -447,6 +459,7 @@ async function load() {
   if (markdown !== undefined) editor.value = markdown;
   base = preset;
   markPreset(preset?.id);
+  revealPreset(preset?.id);
   reset.hidden = true;
   pointNpmx(preset?.npm);
   repaint(editor);

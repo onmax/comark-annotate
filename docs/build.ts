@@ -15,8 +15,9 @@ import light from "shiki/themes/vitesse-light.mjs";
 import { build } from "vite";
 import { createIcons, css as iconCss, iconHtml } from "../packages/icon/src/html.ts";
 import include from "../packages/include/src/index.ts";
-import { lint } from "../packages/lint/src/index.ts";
+import { lint, type Diagnostic } from "../packages/lint/src/index.ts";
 import { defaultConfig } from "./config.ts";
+import { checkExample, doctorRule, doctorRules } from "./doctor.ts";
 import { highlight } from "./highlight.ts";
 import { browserPlugins, components } from "./plugins.ts";
 import { colorTokens, themePresets } from "./play-theme.ts";
@@ -35,10 +36,13 @@ const contentPlugins = () => [
   ...sitePlugins(),
 ];
 // The site's own links stay plain; chips show in the examples and the playground.
-const plugins = [
-  ...contentPlugins().filter((plugin) => plugin.name !== "comark-chips"),
+// Shiki goes before comark-code, the last plugin, which marks the lines Shiki drew.
+const highlighted = (list: ReturnType<typeof contentPlugins>) => [
+  ...list.slice(0, -1),
   shiki({ themes: { light, dark } }),
+  ...list.slice(-1),
 ];
+const plugins = highlighted(contentPlugins().filter((plugin) => plugin.name !== "comark-chips"));
 
 // The site's own icons, drawn the way `:icon` draws them: Lucide's, and annotate's, a hand-drawn loop like its marks.
 const ownIcons = {
@@ -51,8 +55,11 @@ const lucideNames = [
   "arrow-right",
   "arrow-up-right",
   "book-open",
+  "circle-check",
+  "circle-x",
   "flask-conical",
   "search",
+  "stethoscope",
   "tv-minimal-play",
 ];
 const iconId = (name: string) => (name in ownIcons ? `site:${name}` : `lucide:${name}`);
@@ -61,6 +68,9 @@ const str = (value: unknown) =>
     ? ""
     : // SAFETY: undefined, null, objects, and arrays returned above, so only a string, number, or boolean is left.
       String(value as string | number | boolean);
+
+const plain = (text: string) => text.replaceAll("`", "");
+const inlineCode = (text: string) => escapeHtml(text).replace(/`([^`]+)`/g, "<code>$1</code>");
 
 // The rail, in order: the docs, the playground, then one section per package. Each package's pages sit in its own
 // docs/ folder, and its index's frontmatter gives its group, icon, blurb, and credits. A package with no docs yet is
@@ -71,16 +81,21 @@ const packageOrder = [
   "chips",
   "diff",
   "embed",
+  "media",
   "github",
   "icon",
   "zoom",
   "carousel",
   "tabs",
   "code",
+  "details",
+  "file-tree",
+  "fields",
   "badge",
   "cards",
   "steps",
   "include",
+  "reading-time",
   "lint",
 ];
 const repo = new URL("../", root);
@@ -89,7 +104,9 @@ const fileOf = (slug: string) => {
   const [first = "", ...rest] = slug.split("/");
   return packageOrder.includes(first)
     ? `packages/${first}/docs/${rest.join("/") || "index"}.md`
-    : `docs/pages/${slug || "index"}.md`;
+    : existsSync(new URL(`docs/pages/${slug}/index.md`, repo))
+      ? `docs/pages/${slug}/index.md`
+      : `docs/pages/${slug || "index"}.md`;
 };
 const exists = (file: string) => existsSync(new URL(file, repo));
 for (const folder of await readdir(new URL("packages/", repo))) {
@@ -147,7 +164,7 @@ type Section = {
   blurb?: string;
   // What the footer credits besides Comark, as HTML.
   credits?: string;
-  lists: { title?: string; slugs: string[] }[];
+  lists: { title?: string; icon?: string; slugs: string[] }[];
 };
 const sections: Section[] = [
   {
@@ -170,6 +187,21 @@ const sections: Section[] = [
   },
   // Its column lists the presets, which come from the pages' examples.
   { slug: "play", label: "Playground", group: "Comark plugins", icon: "flask-conical", lists: [] },
+  // One page per comark-linter rule: the core rules, then each package's.
+  {
+    slug: "doctor",
+    label: "Doctor",
+    group: "Comark plugins",
+    icon: "stethoscope",
+    lists: [
+      { slugs: ["doctor"] },
+      ...[...new Set(doctorRules.map((entry) => entry.group))].map((group) => ({
+        title: group === "core" ? "Core" : group,
+        icon: packages.find((pkg) => pkg.slug === (group === "core" ? "lint" : group))?.icon,
+        slugs: doctorRules.filter((entry) => entry.group === group).map((entry) => entry.slug),
+      })),
+    ],
+  },
   ...packages.map((pkg) => ({
     ...pkg,
     label: pkg.slug,
@@ -201,10 +233,7 @@ const exampleWithout =
     const source = textContent(pre);
     // Highlighted like the page, so a diff in an example keeps its colors.
     const preview = await parseMarkdown(source, {
-      plugins: [
-        ...contentPlugins().filter((plugin) => !without.includes(plugin.name)),
-        shiki({ themes: { light, dark } }),
-      ],
+      plugins: highlighted(contentPlugins().filter((plugin) => !without.includes(plugin.name))),
     });
     if (preview.meta.issues.length)
       throw new Error(`Example "${str(attrs.label)}":\n${preview.meta.issues.join("\n")}`);
@@ -383,6 +412,12 @@ async function parsePage(slug: string, section: Section) {
   const file = fileOf(slug);
   const document = await parseMarkdown(await readFile(new URL(file, repo), "utf8"), { plugins });
   if (document.meta.issues.length) throw new Error(`${file}:\n${document.meta.issues.join("\n")}`);
+  // A rule page is named by its rule, and the catalog says what it asks for.
+  const rule = doctorRule(slug);
+  if (rule && Object.keys(document.frontmatter).length)
+    throw new Error(
+      `${file} takes its title from the rule's catalog entry; remove its frontmatter.`,
+    );
   const [title, description, tagline, install, headline] = [
     "title",
     "description",
@@ -399,13 +434,14 @@ async function parsePage(slug: string, section: Section) {
     slug,
     section,
     document,
-    title,
-    description,
-    tagline: tagline || description,
+    rule,
+    title: rule?.rule ?? title,
+    description: rule ? plain(rule.title) : description,
+    tagline: rule ? plain(rule.title) : tagline || description,
     install,
     headline,
     skill,
-    label: slug === section.slug ? "Overview" : title,
+    label: rule?.name ?? (slug === section.slug ? "Overview" : title),
     toc: toc(document),
   };
 }
@@ -491,7 +527,7 @@ const stillOf = (html: string, styles: Set<string>) =>
       return size && !/\swidth=/.test(rest) ? `${tag} width="${size[0]}" height="${size[1]}"` : tag;
     })
     .replace(/<img\b/g, '<img loading="lazy" draggable="false"');
-// A small still of each preset for the playground's column, with a gray box for each embedded player, so the column
+// A small still of each preset for the playground's column, with a gray box for each player, so the column
 // loads nothing but the pages' own images. The playground scales each still to its card.
 const thumbnailStyles = new Set<string>();
 const thumbnails = new Map(
@@ -499,7 +535,7 @@ const thumbnails = new Map(
     presets.map(async (preset) => {
       const document = await parseMarkdown(preset.source, { plugins: sitePlugins() });
       const html = (await renderHtmlFromDocument(document, { components })).replace(
-        /<iframe\b[^>]*><\/iframe>/g,
+        /<iframe\b[^>]*><\/iframe>|<(video|audio) class="cm"[^>]*>.*?<\/\1>/g,
         `<span class="preset-player">${siteIcon("tv-minimal-play", 128)}</span>`,
       );
       return [preset.id, stillOf(html, thumbnailStyles)] as const;
@@ -512,19 +548,50 @@ const canvasIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" 
 const listIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/></svg>`;
 
 // What lint-comark prints for a demo's Markdown, a line at a time, as its command line would.
-async function lintReport(source: string) {
-  const found = await lint(source, { plugins: browserPlugins(), components });
-  if (!found.length) throw new Error("The lint demo's Markdown needs a problem to report.");
+// What lint-comark prints for a file, drawn as a terminal. With `fixes`, each problem's fix follows its message.
+function terminal(file: string, found: Diagnostic[], fixes = false) {
   const lines = [
-    `<span class="term-cmd"><span aria-hidden="true">$</span> lint-comark review.md</span>`,
+    `<span class="term-cmd"><span aria-hidden="true">$</span> lint-comark ${file}</span>`,
     ...found.flatMap((d) => [
-      `<span class="term-where">review.md:${d.line}:${d.column ?? 1} <span>${escapeHtml(d.rule)}</span></span>`,
-      `<span class="term-message">${escapeHtml(d.message).replace(/`([^`]+)`/g, "<code>$1</code>")}</span>`,
+      `<span class="term-where">${file}:${d.line}:${d.column ?? 1} <span>${escapeHtml(d.rule)}</span></span>`,
+      `<span class="term-message">${inlineCode(d.message)}</span>`,
+      ...(fixes ? [`<span class="term-fix">${inlineCode(d.fix)}</span>`] : []),
     ]),
-    `<span class="term-sum">✖ ${found.length} problem${found.length === 1 ? "" : "s"}</span>`,
+    found.length
+      ? `<span class="term-sum">✖ ${found.length} problem${found.length === 1 ? "" : "s"}</span>`
+      : `<span class="term-ok">✔ No problems</span>`,
   ];
   return `<div class="term">${lines.map((line, i) => `<span class="term-line" style="--i:${i}">${line}</span>`).join("")}</div>`;
 }
+async function lintReport(source: string) {
+  const found = await lint(source, { plugins: browserPlugins(), components });
+  if (!found.length) throw new Error("The lint demo's Markdown needs a problem to report.");
+  return terminal("review.md", found);
+}
+// A rule page's examples: Markdown the rule reports, with what lint-comark prints for it, and the same Markdown fixed.
+// test/doctor.test.ts checks them the same way, so the build fails only on a page the tests let through.
+const ruleExample =
+  (page: Page, kind: "incorrect" | "correct"): NodeHandler =>
+  async ([, , ...children], state) => {
+    const pre = children.find(isPre);
+    const { rule } = page;
+    if (!rule) throw new Error(`${fileOf(page.slug)}: ::${kind} goes only on a Doctor rule page.`);
+    const { found, problem } = await checkExample(rule.rule, kind, pre ? textContent(pre) : "");
+    if (problem || !pre) throw new Error(`${fileOf(page.slug)}: ${problem}`);
+    const label = kind === "correct" ? "Correct" : "Incorrect";
+    return (
+      `<div class="rule-example rule-${kind}"><p class="rule-verdict">${siteIcon(kind === "correct" ? "circle-check" : "circle-x", 15)}${label}</p>` +
+      `${await state.one(pre, state)}${terminal("example.md", found, true)}</div>`
+    );
+  };
+// The Doctor overview's table of every rule, with its code and severity.
+const ruleTable: NodeHandler = () =>
+  `<div class="table-scroll"><table><thead><tr><th>Code</th><th>Rule</th><th>What it asks</th><th>Severity</th></tr></thead><tbody>${doctorRules
+    .map(
+      (entry) =>
+        `<tr><td><code>${entry.code}</code></td><td><a href="${href(entry.slug)}"><code>${escapeHtml(entry.rule)}</code></a></td><td>${inlineCode(entry.title)}</td><td>${entry.severity ?? "warning"}</td></tr>`,
+    )
+    .join("")}</tbody></table></div>`;
 
 const demoStyles = new Set<string>();
 const slugify = (text: string) =>
@@ -752,7 +819,7 @@ const column = (section: Section, current: string) => {
         }))
       : pagesOf(section).map((list) => ({
           title: list.title,
-          icon: undefined,
+          icon: list.icon,
           links: list.pages.map(
             (page) =>
               `<a${page.slug === current ? ' aria-current="page"' : ""} href="${href(page.slug)}">${escapeHtml(page.label)}</a>`,
@@ -1291,7 +1358,7 @@ for (const page of parsed) {
       description: page.tagline,
       body: `<div class="page">
 <div class="content">
-<div class="hero enter">${subpage ? `<p class="eyebrow mono">${npm}</p>` : ""}<h1>${escapeHtml(page.title)}</h1><p>${escapeHtml(page.tagline)}</p>
+<div class="hero enter">${subpage ? `<p class="eyebrow mono">${npm}</p>` : ""}${page.rule ? `<p class="eyebrow mono">${page.rule.code} · ${page.rule.severity ?? "warning"}</p>` : ""}<h1>${escapeHtml(page.title)}</h1><p>${page.rule ? inlineCode(page.rule.title) : escapeHtml(page.tagline)}</p>
 ${page.install ? installerFor(page.install, page.skill) : ""}</div>
 <main class="enter" style="--i:1">${(
         await renderHtmlFromDocument(page.document, {
@@ -1302,6 +1369,9 @@ ${page.install ? installerFor(page.install, page.skill) : ""}</div>
             example: exampleWithout(page.section.slug === "github" ? ["comark-chips"] : []),
             examples,
             matrix,
+            incorrect: ruleExample(page, "incorrect"),
+            correct: ruleExample(page, "correct"),
+            rules: ruleTable,
           },
         })
       ).replace(

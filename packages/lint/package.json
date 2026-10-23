@@ -1,7 +1,7 @@
 {
   "name": "comark-linter",
   "version": "0.3.0",
-  "description": "Finds unclosed blocks, unknown components, broken anchors, and plugin issues in Comark documents. A library, a CLI, and a Vite Doctor extension.",
+  "description": "Finds unclosed blocks, unknown components, broken links and anchors, local URLs, and plugin issues in Comark documents. A library, a CLI, and a Vite Doctor extension.",
   "keywords": [
     "comark",
     "lint",
@@ -50,10 +50,15 @@
     "comark-charts": "workspace:*",
     "comark-chips": "workspace:*",
     "comark-code": "workspace:*",
+    "comark-details": "workspace:*",
     "comark-diff": "workspace:*",
     "comark-embed": "workspace:*",
+    "comark-fields": "workspace:*",
+    "comark-file-tree": "workspace:*",
     "comark-github": "workspace:*",
     "comark-icon": "workspace:*",
+    "comark-media": "workspace:*",
+    "comark-reading-time": "workspace:*",
     "comark-steps": "workspace:*",
     "comark-tabs": "workspace:*",
     "comark-zoom": "workspace:*",
@@ -68,10 +73,15 @@
     "comark-charts": "workspace:^",
     "comark-chips": "workspace:^",
     "comark-code": "workspace:^",
+    "comark-details": "workspace:^",
     "comark-diff": "workspace:^",
     "comark-embed": "workspace:^",
+    "comark-fields": "workspace:^",
+    "comark-file-tree": "workspace:^",
     "comark-github": "workspace:^",
     "comark-icon": "workspace:^",
+    "comark-media": "workspace:^",
+    "comark-reading-time": "workspace:^",
     "comark-steps": "workspace:^",
     "comark-tabs": "workspace:^",
     "comark-zoom": "workspace:^",
@@ -105,6 +115,9 @@
     "comark-icon": {
       "optional": true
     },
+    "comark-media": {
+      "optional": true
+    },
     "comark-steps": {
       "optional": true
     },
@@ -112,6 +125,18 @@
       "optional": true
     },
     "comark-badge": {
+      "optional": true
+    },
+    "comark-fields": {
+      "optional": true
+    },
+    "comark-reading-time": {
+      "optional": true
+    },
+    "comark-file-tree": {
+      "optional": true
+    },
+    "comark-details": {
       "optional": true
     },
     "comark-tabs": {
