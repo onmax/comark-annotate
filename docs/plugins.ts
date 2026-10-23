@@ -20,6 +20,7 @@ import cards, { components as cardsComponents } from "../packages/cards/src/html
 import badge, { components as badgeComponents } from "../packages/badge/src/html.ts";
 import fields, { components as fieldsComponents } from "../packages/fields/src/html.ts";
 import readingTime from "../packages/reading-time/src/index.ts";
+import fileTree, { components as fileTreeComponents } from "../packages/file-tree/src/html.ts";
 import details, { components as detailsComponents } from "../packages/details/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
@@ -39,6 +40,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   githubHtml(),
   icon(),
   details(),
+  fileTree(),
   fields(),
   badge(),
   media(),
@@ -62,6 +64,7 @@ export const components = {
   ...githubComponents,
   ...iconComponents,
   ...detailsComponents,
+  ...fileTreeComponents,
   ...fieldsComponents,
   ...badgeComponents,
   ...mediaComponents,

@@ -6,10 +6,10 @@ import charts from "./charts.ts";
 import chips from "./chips.ts";
 import code from "./code.ts";
 import core from "./core.ts";
-import details from "./details.ts";
 import diff from "./diff.ts";
 import embed from "./embed.ts";
 import fields from "./fields.ts";
+import fileTree from "./file-tree.ts";
 import github from "./github.ts";
 import icon from "./icon.ts";
 import include from "./include.ts";
@@ -37,5 +37,5 @@ export const catalog = {
   ...tabs,
   ...badge,
   ...fields,
-  ...details,
+  ...fileTree,
 } satisfies Record<string, RuleInfo>;
