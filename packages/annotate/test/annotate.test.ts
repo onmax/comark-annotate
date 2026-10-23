@@ -283,14 +283,14 @@ describe("comark-annotate", () => {
     expect(issues).toEqual([]);
     // The point lies left of the note, so the note reads rightward from where its leader leaves it.
     expect(html).toMatch(
-      /class="ca-arrow ca-arrow-top ca-curve" data-n="1" style="left:12%;right:60%;top:calc\(-1 \* var\(--ca-lead\)\);bottom:79%"[^>]*><svg class="ca-arrow-line" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M100 0C25 0 0 35 0 100"/,
+      /class="ca-arrow ca-arrow-top ca-curve" data-n="1" style="left:12%;right:60%;top:calc\(-1 \* var\(--ca-lead\)\);bottom:79%"[^>]*><svg class="ca-arrow-line" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M100 0C55 0 0 20 0 100"/,
     );
     expect(html).toMatch(
       /class="ca-callout ca-callout-top ca-callout-east" id="ca-[a-z0-9]+-1" data-n="1" style="left:calc\(var\(--ca-pl,0px\) \+ \(100% - var\(--ca-pl,0px\) - var\(--ca-pr,0px\)\) \* 0.4\)"/,
     );
     // Without `to`, the arrow meets the edge of the mark that faces the note; this one lies right of its note.
     expect(html).toMatch(
-      /class="ca-arrow ca-arrow-bottom ca-curve" data-n="2" style="left:30%;right:35%;top:75%;bottom:calc\(-1 \* var\(--ca-lead\)\)"[^>]*>.*?<path d="M0 100C75 100 100 65 100 0"/,
+      /class="ca-arrow ca-arrow-bottom ca-curve" data-n="2" style="left:30%;right:35%;top:75%;bottom:calc\(-1 \* var\(--ca-lead\)\)"[^>]*>.*?<path d="M0 100C45 100 100 80 100 0"/,
     );
     expect(html).toMatch(/class="ca-callout ca-callout-bottom ca-callout-west"/);
     // A right note above its point drops into it and lands level.
@@ -332,7 +332,9 @@ describe("comark-annotate", () => {
     expect(html).toMatch(/data-n="1"[^>]*style="--ca-color:var\(--ca-violet\);/);
     expect(html).toMatch(/data-n="2"[^>]*style="--ca-color:var\(--ca-red\);/);
     expect(html).toMatch(/data-n="3"[^>]*style="--ca-color:#16a34a;/);
-    expect(css).toContain("--ca-violet:#7042d5");
+    expect(css).toContain("--ca-violet:#8b5cf6");
+    // Violet is also the default, so marks without a color or an ink take it.
+    expect(css).toContain("--ca-color:var(--ca-violet);--ca-solid:var(--ca-violet-solid)");
   });
 
   it("reports `at` and `to` without a side, out of range, or written wrong, and a bad ink", async () => {
@@ -340,7 +342,7 @@ describe("comark-annotate", () => {
       `::screenshot{src="a.png" alt="A" ink="purple"}\n:::annotation{x=10 y=10 w=10 h=10 at=40}\nNo side.\n:::\n:::annotation{x=10 y=40 w=10 h=10 side="top" at=140 to="12"}\nOut.\n:::\n::`,
     );
     expect(issues).toEqual([
-      'screenshot "a.png": `ink` must be red, amber, green, blue, violet, gray, or a 3- or 6-digit hex color like #7042d5 (got "purple").',
+      'screenshot "a.png": `ink` must be red, amber, green, blue, violet, gray, or a 3- or 6-digit hex color like #8b5cf6 (got "purple").',
       'screenshot "a.png", annotation 1: `at` places a side note and its arrow, so it needs a `side`. Add `side="top"`, `"bottom"`, `"left"`, or `"right"`.',
       'screenshot "a.png", annotation 2 (top note): `at` must be where the note sits along its margin, a percentage of the image from 0 to 100 (got "140").',
       'screenshot "a.png", annotation 2 (top note): `to` must be the point the arrow lands on, as two percentages of the image from 0 to 100, like to="42,18" (got "12").',

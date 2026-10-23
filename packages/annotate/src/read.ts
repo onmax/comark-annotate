@@ -420,7 +420,7 @@ function readInk(attrs: Record<string, unknown>, problems: Issue[]) {
   if (isColor(ink)) return ink;
   problems.push({
     rule: "comark/annotate/invalid-color",
-    message: `\`ink\` must be ${PALETTE.join(", ")}, or a 3- or 6-digit hex color like #7042d5 (got ${quote(ink)}).`,
+    message: `\`ink\` must be ${PALETTE.join(", ")}, or a 3- or 6-digit hex color like #8b5cf6 (got ${quote(ink)}).`,
   });
   return undefined;
 }

@@ -30,11 +30,11 @@ Extra filters collapse into **+2 filters**.
 
 A mark on the screenshot and its note. The content is the note. Props can be inline, in a YAML props block, or bound with `:x`. Notes in the list under the image are numbered. Side notes sit beside, above, or below the image and point with an arrow instead.
 
-A side note sits level with its mark unless `at` moves it along its margin; its arrow then leaves the note level and sweeps into the mark, the way a hand-drawn leader does. `to` aims the arrow at one point instead of the middle of the mark's edge, which suits `mark="none"`: the arrow alone points, and nothing covers the screen. Arrows and marks carry a thin halo in the page's background, so they stay readable where they cross a dark screenshot.
+A side note sits level with its mark unless `at` moves it along its margin; its arrow then leaves the note level and sweeps into the mark, the way a hand-drawn leader does. `to` aims the arrow at one point instead of the middle of the mark's edge, which suits `mark="none"`: the arrow alone points, and nothing covers the screen.
 
 ::example
 ```md
-::screenshot{src="/dashboard.png" alt="Office correlations dashboard" ink="violet"}
+::screenshot{src="/dashboard.png" alt="Office correlations dashboard"}
 :::annotation{x=37 y=33.1 w=16.4 h=5.2 mark="none" side="top" at=58 to="44,33"}
 Bugs fixed fell with the duck supply.
 :::
@@ -67,7 +67,7 @@ r now counts the office cat.
 | `side` | `left`, `right`, `top`, or `bottom` puts the note beside, above, or below the image with an arrow. |
 | `at` | Where a side note sits along its margin, as a percentage of the image: across it for `top` and `bottom`, down it for `left` and `right`. Defaults to level with the arrow's point. A note set off to one side starts where its arrow leaves it and reads away from the point. Needs a `side`. |
 | `to` | The point the arrow lands on, as two percentages of the image, like `to="42,18"`. Defaults to the middle of the mark's edge that faces the note. Needs a `side`. |
-| `color` | `blue` (default) points something out, `red` flags a problem, `amber` a warning, `green` a fix, `violet` is the author's commentary, `gray` anything neutral. Each has a dark-mode value. A 3- or 6-digit hex color like `#e11d48` works too, and its stamp gets whichever of a white or dark number reads better. |
+| `color` | `violet` (default) points something out and reads on light and dark screenshots alike, `red` flags a problem, `amber` a warning, `green` a fix, `blue` is a second voice beside the default, `gray` anything neutral. Each has a dark-mode value. A 3- or 6-digit hex color like `#e11d48` works too, and its stamp gets whichever of a white or dark number reads better. |
 
 ## compare
 

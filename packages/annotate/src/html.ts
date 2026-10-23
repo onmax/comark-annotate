@@ -71,7 +71,7 @@ const paint = (color?: string) =>
 
 // A loose hand-drawn stroke that stretches between the mark and its note, and a head that keeps its size.
 const ARROW = `<svg class="ca-arrow-line" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M2 10C30 3 62 17 98 9" vector-effect="non-scaling-stroke"/></svg>`;
-const HEAD = `<svg class="ca-arrow-head" viewBox="0 0 8 8"><path d="M6.5 1.5L1.5 4l5 2.5" vector-effect="non-scaling-stroke"/></svg>`;
+const HEAD = `<svg class="ca-arrow-head" viewBox="0 0 12 12"><path d="M8.5 1.5Q5 5 1 6Q5 7 8.5 10.5" vector-effect="non-scaling-stroke"/></svg>`;
 // The same stroke falling from a note above the image, with its head pointing down.
 const ARROW_DOWN = `<svg class="ca-arrow-line" viewBox="0 0 24 100" preserveAspectRatio="none"><path d="M17 2C2 26 3 66 12 98" vector-effect="non-scaling-stroke"/></svg>`;
 // Shown once the script starts and the browser can write images to the clipboard; a check replaces the icon once it has.
@@ -80,20 +80,20 @@ const COPY =
   `<svg class="ca-copy-idle" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>` +
   `<svg class="ca-copy-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></button>` +
   `<span class="ca-copy-status" role="status"></span>`;
-const HEAD_DOWN = `<svg class="ca-arrow-head" viewBox="0 0 8 8"><path d="M1.5 1.5L4 6.5l2.5-5" vector-effect="non-scaling-stroke"/></svg>`;
+const HEAD_DOWN = `<svg class="ca-arrow-head" viewBox="0 0 12 12"><path d="M1.5 3.5Q5 7 6 11Q7 7 10.5 3.5" vector-effect="non-scaling-stroke"/></svg>`;
 // And rising from a note below it.
 const ARROW_UP = `<svg class="ca-arrow-line" viewBox="0 0 24 100" preserveAspectRatio="none"><path d="M17 98C2 74 3 34 12 2" vector-effect="non-scaling-stroke"/></svg>`;
-const HEAD_UP = `<svg class="ca-arrow-head" viewBox="0 0 8 8"><path d="M1.5 6.5L4 1.5l2.5 5" vector-effect="non-scaling-stroke"/></svg>`;
+const HEAD_UP = `<svg class="ca-arrow-head" viewBox="0 0 12 12"><path d="M1.5 8.5Q5 5 6 1Q7 5 10.5 8.5" vector-effect="non-scaling-stroke"/></svg>`;
 
 // A note set off to one side of where its arrow lands gets a leader after AnnotationKit's: it leaves the note level
 // and sweeps into the point. The curve fills a box between the two, stretched to any size, so it starts and ends square
-// to the box's sides and each head can be a fixed shape on a corner. A head's tip is at (4, 6.5) pointing down, (4, 1.5)
-// up, (1.5, 4) left, and (6.5, 4) right, so each corner offset puts the tip on the corner.
+// to the box's sides and each head can be a fixed shape on a corner. A head's tip is at (6, 11) pointing down, (6, 1)
+// up, (1, 6) left, and (11, 6) right, so each corner offset puts the tip on the corner.
 const curve = (d: string) =>
   `<svg class="ca-arrow-line" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${d}" vector-effect="non-scaling-stroke"/></svg>`;
 const tip = (svg: string, css: string) =>
   svg.replace('class="ca-arrow-head"', `class="ca-arrow-head" style="${css}"`);
-const HEAD_RIGHT = `<svg class="ca-arrow-head" viewBox="0 0 8 8"><path d="M1.5 1.5L6.5 4l-5 2.5" vector-effect="non-scaling-stroke"/></svg>`;
+const HEAD_RIGHT = `<svg class="ca-arrow-head" viewBox="0 0 12 12"><path d="M3.5 1.5Q7 5 11 6Q7 7 3.5 10.5" vector-effect="non-scaling-stroke"/></svg>`;
 // Closer than this, in percent of the image, the note sits straight over or beside its point and the arrow runs straight.
 const LEVEL = 2;
 
@@ -209,30 +209,30 @@ async function parts(shot: Screenshot, state: State, id: string, copy = false, b
       // "back": the point lies before the note, so the leader runs back toward the left from the note's start.
       const [from, to] = way === "back" ? [100, 0] : [0, 100];
       const [left, right] = way === "back" ? [x, along] : [along, x];
-      const corner = way === "back" ? "left:-4px" : "right:-4px";
+      const corner = way === "back" ? "left:-6px" : "right:-6px";
       if (side === "top") {
         place = `left:${left}%;right:${100 - right}%;top:calc(-1 * var(--ca-lead));bottom:${100 - y}%`;
-        line = curve(`M${from} 0C${(from + to * 3) / 4} 0 ${to} 35 ${to} 100`);
-        head = tip(HEAD_DOWN, `${corner};bottom:-.5px`);
+        line = curve(`M${from} 0C${from + (to - from) * 0.45} 0 ${to} 20 ${to} 100`);
+        head = tip(HEAD_DOWN, `${corner};bottom:-1px`);
       } else {
         place = `left:${left}%;right:${100 - right}%;top:${y}%;bottom:calc(-1 * var(--ca-lead))`;
-        line = curve(`M${from} 100C${(from + to * 3) / 4} 100 ${to} 65 ${to} 0`);
-        head = tip(HEAD_UP, `${corner};top:-1.5px`);
+        line = curve(`M${from} 100C${from + (to - from) * 0.45} 100 ${to} 80 ${to} 0`);
+        head = tip(HEAD_UP, `${corner};top:-1px`);
       }
     } else {
       // "back": the point lies above the note, so the leader rises from it.
       const [from, to] = way === "back" ? [100, 0] : [0, 100];
       const [top, bottom] = way === "back" ? [y, along] : [along, y];
-      const corner = way === "back" ? "top:-4px" : "bottom:-4px";
+      const corner = way === "back" ? "top:-6px" : "bottom:-6px";
       const span = `top:${top}%;bottom:${100 - bottom}%`;
       if (side === "right") {
         place = `${span};left:${x}%;right:calc(-1 * var(--ca-gap))`;
         line = curve(`M100 ${from}C40 ${from} 60 ${to} 0 ${to}`);
-        head = tip(HEAD, `${corner};left:-1.5px`);
+        head = tip(HEAD, `${corner};left:-1px`);
       } else {
         place = `${span};left:calc(-1 * var(--ca-gap));right:${100 - x}%`;
         line = curve(`M0 ${from}C60 ${from} 40 ${to} 100 ${to}`);
-        head = tip(HEAD_RIGHT, `${corner};right:-1.5px`);
+        head = tip(HEAD_RIGHT, `${corner};right:-1px`);
       }
     }
     return `<span class="ca-arrow ca-arrow-${side}${way ? " ca-curve" : ""}" data-n="${annotation.n}" style="${color(annotation)}${place}" aria-hidden="true">${line}${head}</span>`;

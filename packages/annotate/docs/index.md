@@ -74,7 +74,7 @@ The pigeons ate week 15.
 
 :::example{label="Margin notes"}
 ```md
-::screenshot{src="/dashboard.png" alt="Office correlations dashboard" ink="violet"}
+::screenshot{src="/dashboard.png" alt="Office correlations dashboard"}
 :::annotation{x=37 y=33.1 w=16.4 h=5.2 mark="none" side="top" at=58 to="44,33"}
 Bugs fixed fell with the duck supply.
 :::
