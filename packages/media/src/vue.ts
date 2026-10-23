@@ -1,8 +1,8 @@
-import { defineComponent, h, onMounted } from "vue";
-import { addStyles } from "./client.ts";
+import { defineComponent, h, onBeforeUnmount, onMounted, watch } from "vue";
+import { controls, css, start } from "./client.ts";
 
 export { default } from "./index.ts";
-export type { MediaAttributes, MediaMeta } from "./index.ts";
+export type { MediaAttributes, MediaMeta, MediaOptions } from "./index.ts";
 
 /** Videos and audio for `@comark/vue`. */
 export const Media = defineComponent({
@@ -16,28 +16,44 @@ export const Media = defineComponent({
     autoplay: Boolean,
     loop: Boolean,
     muted: Boolean,
+    native: Boolean,
   },
   setup(props) {
-    onMounted(addStyles);
+    let stop = () => {};
+    const sync = () => {
+      stop();
+      stop = () => {};
+      if ((props.kind === "video" || props.kind === "audio") && props.src && !props.native)
+        stop = start(css);
+    };
+    watch(() => [props.kind, props.src, props.native], sync);
+    onMounted(sync);
+    onBeforeUnmount(() => stop());
     return () => {
       const { kind, src, label } = props;
       if ((kind !== "video" && kind !== "audio") || !src) return null;
       const video = kind === "video";
+      const attrs = {
+        src,
+        controls: true,
+        playsinline: video || undefined,
+        preload: "metadata",
+        poster: video ? props.poster : undefined,
+        autoplay: props.autoplay || undefined,
+        loop: props.loop || undefined,
+        muted: props.muted || undefined,
+        "aria-label": label || undefined,
+      };
+      const fallback = [h("a", { href: src }, label || src)];
+      if (props.native) return h(kind, { class: "cm", ...attrs }, fallback);
       return h(
-        kind,
+        "span",
         {
-          class: "cm",
-          src,
-          controls: true,
-          playsinline: video || undefined,
-          preload: "metadata",
-          poster: video ? props.poster : undefined,
-          autoplay: props.autoplay || undefined,
-          loop: props.loop || undefined,
-          muted: props.muted || undefined,
+          class: `cm cm-${kind}`,
+          role: label ? "group" : undefined,
           "aria-label": label || undefined,
         },
-        [h("a", { href: src }, label || src)],
+        [h(kind, attrs, fallback), h("span", { class: "cm-bar", innerHTML: controls(kind) })],
       );
     };
   },

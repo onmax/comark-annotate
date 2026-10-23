@@ -25,11 +25,11 @@ Set them on `.ca`, the root of every block:
 
 | Variable | Default | Used for |
 | --- | --- | --- |
-| `--ca-color` | `var(--ca-blue)` | Marks, arrows, and notes without a `color` |
-| `--ca-solid` | `var(--ca-blue-solid)` | Their stamps, and their strokes in dark mode |
-| `--ca-ink` | `var(--ca-blue-ink)` | The number on their stamps |
-| `--ca-red` to `--ca-gray` | `#ee3533`, `#f5a524`, `#259f56`, `#0581e6`, `#71717a`, lighter in dark mode | Marks, arrows, and notes in red, amber, green, blue, and gray |
-| `--ca-red-solid` to `--ca-gray-solid` | `#d01d21`, `#f59e0b`, `#037e3f`, `#0267c7`, `#52525b` | Stamps in each named color, and its strokes in dark mode |
+| `--ca-color` | `var(--ca-violet)` | Marks, arrows, and notes without a `color` |
+| `--ca-solid` | `var(--ca-violet-solid)` | Their stamps, and their strokes in dark mode |
+| `--ca-ink` | `var(--ca-violet-ink)` | The number on their stamps |
+| `--ca-red` to `--ca-gray` | `#ee3533`, `#f5a524`, `#259f56`, `#0581e6`, `#8b5cf6`, `#71717a`, lighter in dark mode | Marks, arrows, and notes in red, amber, green, blue, violet, and gray |
+| `--ca-red-solid` to `--ca-gray-solid` | `#d01d21`, `#f59e0b`, `#037e3f`, `#0267c7`, `#7c3aed`, `#52525b` | Stamps in each named color, and its strokes in dark mode |
 | `--ca-red-ink` to `--ca-gray-ink` | `#fff`, and `#1c1917` for amber | The number on a stamp in each named color |
 | `--ca-ring` | `--comark-background` | The ring that parts a stamp from the screenshot |
 | `--ca-note-font` | `comark-caveat, cursive` | Side notes and titles. `inherit` uses the page font. |
@@ -37,9 +37,10 @@ Set them on `.ca`, the root of every block:
 | `--ca-label-size` | `1.5em` | A screenshot's title |
 | `--ca-gutter` | `10rem` | The room beside the image for `side="left"` and `side="right"` notes |
 | `--ca-top-gutter` | `5rem` | The room above the image for `side="top"` notes |
+| `--ca-bottom-gutter` | `5rem` | The room below the image for `side="bottom"` notes |
 | `--ca-gap` | `1.25rem` | The space between a side note and the image, where its arrow runs |
 
-An annotation's `color` sets `--ca-color`, `--ca-solid`, and `--ca-ink` on its own mark and note, so it wins over `.ca`. Caveat comes inlined with the styles, about 32 KB once per page.
+A screenshot's or compare's `ink` colors its annotations the same way. An annotation's `color` sets `--ca-color`, `--ca-solid`, and `--ca-ink` on its own mark and note, so it wins over `.ca`. Caveat comes inlined with the styles, about 32 KB once per page.
 
 ## Classes
 

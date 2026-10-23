@@ -72,6 +72,24 @@ The pigeons ate week 15.
 ```
 :::
 
+:::example{label="Margin notes"}
+```md
+::screenshot{src="/dashboard.png" alt="Office correlations dashboard"}
+:::annotation{x=37 y=33.1 w=16.4 h=5.2 mark="none" side="top" at=58 to="44,33"}
+Bugs fixed fell with the duck supply.
+:::
+
+:::annotation{x=66.1 y=17 w=30.5 h=24.6 mark="circle" side="right" at=8}
+r now counts the office cat.
+:::
+
+:::annotation{x=4 y=77.3 w=92 h=8.2 mark="none" side="bottom" at=42 to="55,81"}
+The pigeons ate week 15.
+:::
+::
+```
+:::
+
 :::example{label="Side notes"}
 ```md
 ::screenshot{src="/dashboard.png" alt="Office correlations dashboard"}

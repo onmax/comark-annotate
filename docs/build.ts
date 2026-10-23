@@ -536,7 +536,7 @@ const thumbnails = new Map(
     presets.map(async (preset) => {
       const document = await parseMarkdown(preset.source, { plugins: sitePlugins() });
       const html = (await renderHtmlFromDocument(document, { components })).replace(
-        /<iframe\b[^>]*><\/iframe>|<(video|audio) class="cm"[^>]*>.*?<\/\1>/g,
+        /<iframe\b[^>]*><\/iframe>|<(video|audio) class="cm"[^>]*>.*?<\/\1>|<span class="cm cm-(?:audio|video)"[^>]*>.*?<\/button><\/span><\/span>/g,
         `<span class="preset-player">${siteIcon("tv-minimal-play", 128)}</span>`,
       );
       return [preset.id, stillOf(html, thumbnailStyles)] as const;
@@ -604,8 +604,18 @@ async function renderDemo(slug: string, source: string) {
     /<iframe\b[^>]*><\/iframe>/g,
     `<span class="demo-player"><span class="demo-play">${playIcon}</span></span>`,
   );
-  // Tabs show their strip once their script runs, which a card doesn't have.
-  html = html.replaceAll('<div class="ct"', '<div class="ct" data-tabs-ready');
+  // Tabs show their strip, and players their controls, once their script runs, which a card doesn't have. A video
+  // there drops the browser's controls, which would otherwise show over its own.
+  html = html
+    .replaceAll('<div class="ct"', '<div class="ct" data-tabs-ready')
+    .replace(
+      /<span class="cm cm-video"([^>]*)><video([^>]*?) controls/g,
+      '<span class="cm cm-video" data-media-ready$1><video$2',
+    )
+    .replaceAll('<span class="cm cm-audio"', '<span class="cm cm-audio" data-media-ready');
+  // An include shows what it reads, since the page alone doesn't say.
+  if (slug === "include")
+    html = `<p class="demo-directive"><code>${escapeHtml(source.trim())}</code></p>${html}`;
   return stillOf(html, demoStyles);
 }
 interface Demo {
@@ -766,7 +776,7 @@ const rail = (current: Section) =>
     )}<a class="rail-drop" href="https://drop.vitehub.dev/?utm_source=comark-plugins&amp;utm_medium=sidebar"><img src="/drop.svg" alt="" width="18" height="18"><span class="rail-label"><strong>Review on Drop</strong><span>Comment on the exact spot</span></span></a></nav>`;
 // The second column: the current section's pages, or the playground's presets.
 const column = (section: Section, current: string) => {
-  // A package's examples, under its pages as the playground lists them; each opens there.
+  // A package's examples, folded at the foot of its column as the playground lists them; each opens there.
   const examples = presets.filter((preset) => preset.group === section.label);
   const presetCard = (preset: (typeof presets)[number], href: string) =>
     `<div class="preset"><div class="preset-thumb" aria-hidden="true" inert><div class="preset-page">${thumbnails.get(preset.id) ?? ""}</div></div><a data-preset="${preset.id}" href="${href}">${escapeHtml(preset.label)}</a></div>`;
@@ -797,7 +807,7 @@ const column = (section: Section, current: string) => {
     )
     .join(
       "",
-    )}${section.npm && examples.length ? `<p class="nav-group pages-examples">${siteIcon("flask-conical", 14)}Examples<span class="pages-count">${examples.length}</span></p><div class="presets">${examples.map((preset) => presetCard(preset, `/play/#preset=${preset.id}`)).join("")}</div>` : ""}</nav>`;
+    )}${section.npm && examples.length ? `<details class="pages-foot"><summary class="pages-play">${siteIcon("flask-conical", 15)}Examples<span class="pages-count">${examples.length}</span></summary><div class="presets">${examples.map((preset) => presetCard(preset, `/play/#preset=${preset.id}`)).join("")}</div></details>` : ""}</nav>`;
 };
 // Previous and next page in the section.
 function pager(page: Page) {

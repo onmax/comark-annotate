@@ -6,7 +6,8 @@ interface Drawing {
   paths: string[];
 }
 type Point = readonly [number, number];
-type Draw = (width: number, height: number, random: () => number) => Drawing;
+type Edge = "left" | "right" | "top" | "bottom";
+type Draw = (width: number, height: number, random: () => number, edge: Edge) => Drawing;
 
 const round = (value: number) => Math.round(value * 10) / 10;
 const point = ([x, y]: Point) => `${round(x)} ${round(y)}`;
@@ -85,6 +86,27 @@ export const marks = {
       paths: [`M${point(sides[0]!.from)}${sides.map(({ curve }) => curve).join("")}Z`],
     };
   },
+  // A square bracket along one edge, 3px outside it, with short ends turning back toward the area: it spans a run of
+  // rows or a group without covering any of them. It stands on the edge that faces the side note, if there is one.
+  bracket: (width, height, random, edge) => {
+    const end = Math.min(7, (edge === "left" || edge === "right" ? width : height) / 2);
+    const wobble = (value: number) => value + random() * 1.2;
+    const across = edge === "left" || edge === "right";
+    const line =
+      edge === "left" ? -3 : edge === "right" ? width + 3 : edge === "top" ? -3 : height + 3;
+    const back = edge === "left" || edge === "top" ? line + end : line - end;
+    const length = across ? height : width;
+    const at = (along: number, off: number): Point =>
+      across ? [wobble(off), wobble(along)] : [wobble(along), wobble(off)];
+    const bow = Math.min(3, length * 0.03) * random();
+    const [a, b] = [at(0, back), at(0, line)];
+    const [c, d] = [at(length, line), at(length, back)];
+    const mid = at(length / 2, line + bow);
+    return {
+      viewBox: `-5 -5 ${round(width + 10)} ${round(height + 10)}`,
+      paths: [`M${point(a)}L${point(b)}Q${point(mid)} ${point(c)}L${point(d)}`],
+    };
+  },
   cross: wobbly("0 0 100 100", ["M20 20C40 42 60 62 80 82", "M80 20C60 42 40 62 20 82"], 4),
   check: wobbly("0 0 100 100", ["M14 54C26 60 34 70 42 82C54 54 68 30 88 14"], 5),
 } satisfies Record<string, Draw>;
@@ -102,7 +124,13 @@ function generator(seed: number) {
   };
 }
 
-/** Draws `mark` over an area of `width` by `height` pixels, wobbling it by `seed`. */
-export function draw(mark: Mark, width: number, height: number, seed: number): Drawing {
-  return marks[mark](width, height, generator(seed));
+/** Draws `mark` over an area of `width` by `height` pixels, wobbling it by `seed`. A bracket stands on `edge`. */
+export function draw(
+  mark: Mark,
+  width: number,
+  height: number,
+  seed: number,
+  edge: Edge = "left",
+): Drawing {
+  return marks[mark](width, height, generator(seed), edge);
 }
