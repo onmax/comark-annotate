@@ -30,7 +30,7 @@ Set these on `.ct` or any ancestor, such as `:root`:
 | `--ct-gap` | `0.75rem` | The space between the strip and the open panel, except in a code group, whose block hangs from its strip |
 | `--ct-font-size` | `0.8125rem` | The labels and captions |
 
-Icons in tabs come from comark-icon: size them with `--comark-icon-size`, as [its syntax](/icon/syntax/#styling) describes.
+Icons in tabs come from comark-icon: size them with `--comark-icon-size`, as [its theming](/icon/theming/#variables) describes.
 
 ## Classes and attributes
 
