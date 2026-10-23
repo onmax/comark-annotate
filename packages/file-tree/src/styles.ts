@@ -15,7 +15,9 @@ export const css = `@layer comark{${[
   ".cft ul{margin:0!important;padding:0!important;list-style:none!important}",
   ".cft ul ul{margin-inline-start:calc(.5rem - .5px)!important;padding-inline-start:.75rem!important;border-inline-start:1px solid var(--_comark-border)}",
   ".cft li{margin:0!important;padding:0!important}",
-  ".cft summary{display:block;list-style:none;border-radius:calc(var(--_comark-radius) - 4px);cursor:pointer}",
+  // Prose styles often space out `details` and pad `summary`, which would push folders apart from their guide lines.
+  ".cft details{margin:0!important;padding:0!important}",
+  ".cft summary{display:block;margin:0!important;padding:0!important;list-style:none;border-radius:calc(var(--_comark-radius) - 4px);cursor:pointer}",
   ".cft summary::-webkit-details-marker{display:none}",
   ".cft summary:hover{background:var(--_comark-accent)}",
   ".cft summary:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--_comark-ring) 50%,transparent)}",
