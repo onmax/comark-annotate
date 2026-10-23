@@ -5,7 +5,15 @@ import { runtime as zoomRuntime } from "comark-zoom/html";
 import { start } from "./script.ts";
 import { draw } from "./marks.ts";
 import { pixels, place } from "./place.ts";
-import { type Annotation, PALETTE, readCompare, readScreenshot, type Screenshot } from "./read.ts";
+import {
+  type Annotation,
+  noteAt,
+  PALETTE,
+  readCompare,
+  readScreenshot,
+  type Screenshot,
+  target,
+} from "./read.ts";
 import { css } from "./styles.ts";
 
 export { default } from "./index.ts";
@@ -73,6 +81,21 @@ const COPY =
   `<svg class="ca-copy-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></button>` +
   `<span class="ca-copy-status" role="status"></span>`;
 const HEAD_DOWN = `<svg class="ca-arrow-head" viewBox="0 0 8 8"><path d="M1.5 1.5L4 6.5l2.5-5" vector-effect="non-scaling-stroke"/></svg>`;
+// And rising from a note below it.
+const ARROW_UP = `<svg class="ca-arrow-line" viewBox="0 0 24 100" preserveAspectRatio="none"><path d="M17 98C2 74 3 34 12 2" vector-effect="non-scaling-stroke"/></svg>`;
+const HEAD_UP = `<svg class="ca-arrow-head" viewBox="0 0 8 8"><path d="M1.5 6.5L4 1.5l2.5 5" vector-effect="non-scaling-stroke"/></svg>`;
+
+// A note set off to one side of where its arrow lands gets a leader after AnnotationKit's: it leaves the note level
+// and sweeps into the point. The curve fills a box between the two, stretched to any size, so it starts and ends square
+// to the box's sides and each head can be a fixed shape on a corner. A head's tip is at (4, 6.5) pointing down, (4, 1.5)
+// up, (1.5, 4) left, and (6.5, 4) right, so each corner offset puts the tip on the corner.
+const curve = (d: string) =>
+  `<svg class="ca-arrow-line" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${d}" vector-effect="non-scaling-stroke"/></svg>`;
+const tip = (svg: string, css: string) =>
+  svg.replace('class="ca-arrow-head"', `class="ca-arrow-head" style="${css}"`);
+const HEAD_RIGHT = `<svg class="ca-arrow-head" viewBox="0 0 8 8"><path d="M1.5 1.5L6.5 4l-5 2.5" vector-effect="non-scaling-stroke"/></svg>`;
+// Closer than this, in percent of the image, the note sits straight over or beside its point and the arrow runs straight.
+const LEVEL = 2;
 
 const attr = (value: string) => escapeHtml(value, { '"': "&quot;" });
 const wrap = (nodes: Node[]): ElementNode => ["div", {}, ...nodes];
@@ -106,7 +129,7 @@ function seed({ n, x, y, w, h, mark }: Annotation) {
 
 function markSvg(annotation: Annotation, aspect?: number) {
   const { w, h } = pixels(annotation, aspect);
-  const { viewBox, paths } = draw(annotation.mark, w, h, seed(annotation));
+  const { viewBox, paths } = draw(annotation.mark, w, h, seed(annotation), annotation.side);
   const keep = annotation.mark === "check" || annotation.mark === "cross";
   return `<svg viewBox="${viewBox}"${keep ? "" : ' preserveAspectRatio="none"'} aria-hidden="true">${paths.map((d) => `<path d="${d}" vector-effect="non-scaling-stroke"/>`).join("")}</svg>`;
 }
@@ -152,31 +175,82 @@ async function parts(shot: Screenshot, state: State, id: string, copy = false, b
       `<div>${await children(annotation.note, state)}</div></li>`,
   );
   const sided = shot.annotations.filter((annotation) => annotation.side);
-  const center = (annotation: Annotation) => ({
-    x: annotation.x + annotation.w / 2,
-    y: annotation.y + annotation.h / 2,
-  });
+  // Whether a note sits off to one side of its point, and which way its leader runs from it.
+  const offset = (annotation: Annotation) => {
+    const along = noteAt(annotation);
+    const point = target(annotation);
+    const level = annotation.side === "left" || annotation.side === "right" ? point.y : point.x;
+    return Math.abs(along - level) < LEVEL ? undefined : along > level ? "back" : "on";
+  };
   const arrows = sided.map((annotation) => {
-    const { x, y } = center(annotation);
-    const place =
-      annotation.side === "top"
-        ? `left:${x}%;top:calc(-1 * var(--ca-gap));bottom:${100 - annotation.y}%`
-        : annotation.side === "right"
-          ? `top:${y}%;left:${annotation.x + annotation.w}%;right:calc(-1 * var(--ca-gap))`
-          : `top:${y}%;left:calc(-1 * var(--ca-gap));right:${100 - annotation.x}%`;
-    const [line, head] = annotation.side === "top" ? [ARROW_DOWN, HEAD_DOWN] : [ARROW, HEAD];
-    return `<span class="ca-arrow ca-arrow-${annotation.side}" data-n="${annotation.n}" style="${color(annotation)}${place}" aria-hidden="true">${line}${head}</span>`;
+    const { x, y } = target(annotation);
+    const along = noteAt(annotation);
+    const way = offset(annotation);
+    const side = annotation.side!;
+    let place: string;
+    let line: string;
+    let head: string;
+    if (!way) {
+      place =
+        side === "top"
+          ? `left:${x}%;top:calc(-1 * var(--ca-gap));bottom:${100 - y}%`
+          : side === "bottom"
+            ? `left:${x}%;top:${y}%;bottom:calc(-1 * var(--ca-gap))`
+            : side === "right"
+              ? `top:${y}%;left:${x}%;right:calc(-1 * var(--ca-gap))`
+              : `top:${y}%;left:calc(-1 * var(--ca-gap));right:${100 - x}%`;
+      [line, head] =
+        side === "top"
+          ? [ARROW_DOWN, HEAD_DOWN]
+          : side === "bottom"
+            ? [ARROW_UP, HEAD_UP]
+            : [ARROW, HEAD];
+    } else if (side === "top" || side === "bottom") {
+      // "back": the point lies before the note, so the leader runs back toward the left from the note's start.
+      const [from, to] = way === "back" ? [100, 0] : [0, 100];
+      const [left, right] = way === "back" ? [x, along] : [along, x];
+      const corner = way === "back" ? "left:-4px" : "right:-4px";
+      if (side === "top") {
+        place = `left:${left}%;right:${100 - right}%;top:calc(-1 * var(--ca-lead));bottom:${100 - y}%`;
+        line = curve(`M${from} 0C${(from + to * 3) / 4} 0 ${to} 35 ${to} 100`);
+        head = tip(HEAD_DOWN, `${corner};bottom:-.5px`);
+      } else {
+        place = `left:${left}%;right:${100 - right}%;top:${y}%;bottom:calc(-1 * var(--ca-lead))`;
+        line = curve(`M${from} 100C${(from + to * 3) / 4} 100 ${to} 65 ${to} 0`);
+        head = tip(HEAD_UP, `${corner};top:-1.5px`);
+      }
+    } else {
+      // "back": the point lies above the note, so the leader rises from it.
+      const [from, to] = way === "back" ? [100, 0] : [0, 100];
+      const [top, bottom] = way === "back" ? [y, along] : [along, y];
+      const corner = way === "back" ? "top:-4px" : "bottom:-4px";
+      const span = `top:${top}%;bottom:${100 - bottom}%`;
+      if (side === "right") {
+        place = `${span};left:${x}%;right:calc(-1 * var(--ca-gap))`;
+        line = curve(`M100 ${from}C40 ${from} 60 ${to} 0 ${to}`);
+        head = tip(HEAD, `${corner};left:-1.5px`);
+      } else {
+        place = `${span};left:calc(-1 * var(--ca-gap));right:${100 - x}%`;
+        line = curve(`M0 ${from}C60 ${from} 40 ${to} 100 ${to}`);
+        head = tip(HEAD_RIGHT, `${corner};right:-1.5px`);
+      }
+    }
+    return `<span class="ca-arrow ca-arrow-${side}${way ? " ca-curve" : ""}" data-n="${annotation.n}" style="${color(annotation)}${place}" aria-hidden="true">${line}${head}</span>`;
   });
   // Side notes live outside the frame so the frame, and every percentage inside it, stays the size of the image.
-  // A note's x or y is a share of the frame, which sits between the gutters for notes beside and above it.
+  // A note's x or y is a share of the frame, which sits between the gutters for notes beside, above, and below it.
   const callouts = await each(sided, async (annotation) => {
-    const { x, y } = center(annotation);
-    const place =
-      annotation.side === "top"
-        ? `left:calc(var(--ca-pl,0px) + (100% - var(--ca-pl,0px) - var(--ca-pr,0px)) * ${x / 100})`
-        : `top:calc(var(--ca-pt,0px) + (100% - var(--ca-pt,0px)) * ${y / 100})`;
+    const along = noteAt(annotation);
+    const way = offset(annotation);
+    const across = annotation.side === "top" || annotation.side === "bottom";
+    const place = across
+      ? `left:calc(var(--ca-pl,0px) + (100% - var(--ca-pl,0px) - var(--ca-pr,0px)) * ${along / 100})`
+      : `top:calc(var(--ca-pt,0px) + (100% - var(--ca-pt,0px) - var(--ca-pb,0px)) * ${along / 100})`;
+    // A note off to one side of its point starts where its leader does and reads away from it: rightward when the
+    // point lies to its left.
+    const reads = across && way ? ` ca-callout-${way === "back" ? "east" : "west"}` : "";
     return (
-      `<div class="ca-callout ca-callout-${annotation.side}" id="${id}-${annotation.n}" data-n="${annotation.n}" style="${color(annotation)}${place}">` +
+      `<div class="ca-callout ca-callout-${annotation.side}${reads}" id="${id}-${annotation.n}" data-n="${annotation.n}" style="${color(annotation)}${place}">` +
       `${letter(annotation)}<div>${await children(annotation.note, state)}</div></div>`
     );
   });
@@ -199,18 +273,18 @@ async function parts(shot: Screenshot, state: State, id: string, copy = false, b
   };
 }
 
-// `top` reserves room for notes above the image, so every image in a comparison starts at the same height.
+// `margins` reserves room for notes above and below the image, so every image in a comparison sits at the same height.
 async function figure(
   shot: Screenshot,
   state: State,
   id: string,
-  top = false,
+  margins: readonly ("top" | "bottom")[] = [],
   body?: string,
   zoomContext?: string,
 ) {
   // Copying draws the image and its marks to a canvas, which only works for an image.
   const { sides, heading, frame, callouts, notes } = await parts(shot, state, id, !body, body);
-  const classes = [...new Set([...sides, ...(top ? [" ca-top"] : [])])].join("");
+  const classes = [...new Set([...sides, ...margins.map((side) => ` ca-${side}`)])].join("");
   return (
     `<figure class="ca-screenshot${classes}">${heading}<div class="ca-stage" data-zoom tabindex="0" data-zoom-context=".ca,.ca-screenshot${zoomContext ? `,${zoomContext}` : ""}" data-zoom-aside="figcaption" data-zoom-title="${attr(shot.title || shot.alt)}">${frame}${callouts}</div>` +
     (notes ? `<figcaption>${notes}</figcaption>` : "") +
@@ -256,7 +330,7 @@ export async function annotateHtml(
   aspect?: number,
 ): Promise<string> {
   const shot: Screenshot = { src: label, alt: label, annotations, caption: [], aspect };
-  return `${styles(state)}<div class="ca">${await figure(shot, state, idFor([shot], state), false, body, zoomContext)}</div>${zoomRuntime(state)}${runtime(state)}`;
+  return `${styles(state)}<div class="ca">${await figure(shot, state, idFor([shot], state), [], body, zoomContext)}</div>${zoomRuntime(state)}${runtime(state)}`;
 }
 
 const screenshot: NodeHandler = async (node, state) => {
@@ -268,11 +342,11 @@ const compare: NodeHandler = async (node, state) => {
   const { title, mode, shots } = readCompare(node, [], state.renderData);
   const id = idFor(shots, state);
   if (mode === "slider") return `${styles(state)}${await slider(title, shots, state, id)}`;
-  const top = shots.some((shot) =>
-    shot.annotations.some((annotation) => annotation.side === "top"),
+  const margins = (["top", "bottom"] as const).filter((side) =>
+    shots.some((shot) => shot.annotations.some((annotation) => annotation.side === side)),
   );
   const figures: string[] = [];
-  for (const shot of shots) figures.push(await figure(shot, state, id, top));
+  for (const shot of shots) figures.push(await figure(shot, state, id, margins));
   // Side by side on a wide page, one at a time on a narrow one; both screenshots zoom as one gallery.
   return `${styles(state)}<div class="ca ca-compare">${carouselHtml(figures, { columns: 2, title: title ?? "Comparison" }, state)}</div>${runtime(state)}`;
 };

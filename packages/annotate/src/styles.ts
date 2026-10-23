@@ -18,14 +18,17 @@ export const css = `@layer comark{${[
   `@font-face{font-family:comark-caveat;src:url(data:font/woff2;base64,${caveat}) format("woff2");font-display:block}`,
   // Surfaces, borders, and radii follow the shared `--comark-*` tokens; the mark colors stay their own.
   theme(".ca"),
-  // One meaning per color: blue points something out (the default), red flags a problem, amber a warning, green a fix, gray anything neutral.
+  // One meaning per color: blue points something out (the default), red flags a problem, amber a warning, green a fix,
+  // violet is the author's own commentary, and gray anything neutral.
   // Strokes, arrows, and notes use the color, which lightens in dark mode. Stamps use a deeper solid shade in both themes,
   // so their number stays white (5:1 or better); only amber keeps a dark number.
   // Declared on `.ca` alone and at zero specificity, so a host's plain `.ca { --ca-color: … }` reaches every mark. A
   // zoomed screenshot sits in a copy of its `.ca`, so it keeps them too.
-  ":where(.ca){--ca-note-font:comark-caveat,cursive;--ca-note-size:1.25em;--ca-label-size:1.5em;--ca-gutter:10rem;--ca-top-gutter:5rem;--ca-gap:1.25rem;--ca-red:#ee3533;--ca-amber:#f5a524;--ca-green:#259f56;--ca-blue:#0581e6;--ca-gray:#71717a;--ca-red-solid:#d01d21;--ca-amber-solid:#f59e0b;--ca-green-solid:#037e3f;--ca-blue-solid:#0267c7;--ca-gray-solid:#52525b;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-solid:var(--ca-blue-solid);--ca-ink:var(--ca-blue-ink)}",
+  ":where(.ca){--ca-note-font:comark-caveat,cursive;--ca-note-size:1.25em;--ca-label-size:1.5em;--ca-gutter:10rem;--ca-top-gutter:5rem;--ca-bottom-gutter:5rem;--ca-gap:1.25rem;--ca-red:#ee3533;--ca-amber:#f5a524;--ca-green:#259f56;--ca-blue:#0581e6;--ca-violet:#7042d5;--ca-gray:#71717a;--ca-red-solid:#d01d21;--ca-amber-solid:#f59e0b;--ca-green-solid:#037e3f;--ca-blue-solid:#0267c7;--ca-violet-solid:#6236c9;--ca-gray-solid:#52525b;--ca-red-ink:#fff;--ca-amber-ink:#1c1917;--ca-green-ink:#fff;--ca-blue-ink:#fff;--ca-violet-ink:#fff;--ca-gray-ink:#fff;--ca-color:var(--ca-blue);--ca-solid:var(--ca-blue-solid);--ca-ink:var(--ca-blue-ink)}",
   ":where(.ca){margin:1.5rem 0}",
-  "@media (prefers-color-scheme:dark){:where(.ca){--ca-red:#fd736d;--ca-amber:#ffb224;--ca-green:#59d38c;--ca-blue:#67b0f9;--ca-gray:#a1a1aa}}",
+  "@media (prefers-color-scheme:dark){:where(.ca){--ca-red:#fd736d;--ca-amber:#ffb224;--ca-green:#59d38c;--ca-blue:#67b0f9;--ca-violet:#b49cff;--ca-gray:#a1a1aa}}",
+  // How far above or below the image a leader leaves an offset note: level with the middle of its nearest line.
+  ":where(.ca){--ca-lead:calc(var(--ca-gap) + .25rem + var(--ca-note-size) * .675)}",
   // Before and after are bare and line up at the top, even when one screenshot is taller. The track clips what a slide
   // overflows, so each slide keeps room at its sides for a stamp on an edge mark, and the gap shrinks to keep the
   // screenshots 1.5rem apart.
@@ -64,6 +67,7 @@ export const css = `@layer comark{${[
   ".ca-right .ca-stage{--ca-pr:var(--ca-gutter);padding-right:var(--ca-gutter)}",
   ".ca-left .ca-stage{--ca-pl:var(--ca-gutter);padding-left:var(--ca-gutter)}",
   ".ca-top .ca-stage{--ca-pt:var(--ca-top-gutter);padding-top:var(--ca-top-gutter)}",
+  ".ca-bottom .ca-stage{--ca-pb:var(--ca-bottom-gutter);padding-bottom:var(--ca-bottom-gutter)}",
   ".ca-frame{position:relative;line-height:0}",
   ".ca-frame img{display:block;width:100%;height:auto;margin:0;border-radius:calc(var(--_comark-radius) - 4px);outline:1px solid var(--_comark-border);outline-offset:-1px}",
   // The Copy button shows on hover and focus, and always on touch screens and when zoomed.
@@ -90,6 +94,9 @@ export const css = `@layer comark{${[
   ".ca-mark,.ca-arrow{--ca-stroke:var(--ca-color)}",
   // Screenshots stay light in dark mode, where the lighter dark-mode colors would wash out, so they use the deeper shade.
   "@media (prefers-color-scheme:dark){.ca-mark,.ca-arrow{--ca-stroke:var(--ca-solid,var(--ca-color))}}",
+  // A thin halo in the page's own background keeps a stroke readable where it crosses a screenshot in the other theme,
+  // such as a dark editor on a light page, and disappears where it crosses the page.
+  ".ca-mark svg,.ca-arrow svg{filter:drop-shadow(0 0 1px var(--_comark-background)) drop-shadow(0 0 1px var(--_comark-background))}",
   ".ca-mark svg{position:absolute;left:-5px;top:-5px;width:calc(100% + 10px);height:calc(100% + 10px);overflow:visible;fill:none;stroke:currentColor;stroke:var(--ca-stroke,currentColor);stroke-width:calc(2.5px + .5px * var(--ca-on,0));stroke-linecap:round;stroke-linejoin:round;transition:stroke-width .15s ease}",
   ".ca-highlight svg{left:0;top:0;width:100%;height:100%;fill:currentColor;fill-opacity:calc(.14 + .08 * var(--ca-on,0));stroke:none}",
   ".ca-underline svg{top:calc(100% - 5px);height:12px}",
@@ -109,10 +116,19 @@ export const css = `@layer comark{${[
   ".ca-arrow-left .ca-arrow-head{right:1px;transform:scaleX(-1)}",
   ".ca-arrow-top{width:24px;height:auto;transform:translateX(-50%)}",
   ".ca-arrow-top .ca-arrow-head{top:auto;bottom:1px;left:8.5px}",
+  ".ca-arrow-bottom{width:24px;height:auto;transform:translateX(-50%)}",
+  ".ca-arrow-bottom .ca-arrow-head{top:1px;left:8.5px}",
+  // A curved leader fills the box between its note and its point; html.ts puts the head on the right corner.
+  ".ca-arrow.ca-curve{width:auto;height:auto;transform:none}",
+  ".ca-curve .ca-arrow-head{inset:auto;transform:none}",
   ".ca-callout{position:absolute;width:calc(var(--ca-gutter) - var(--ca-gap));padding:.25rem .5rem;box-sizing:border-box;border-radius:calc(var(--_comark-radius) - 4px);color:var(--ca-color);font-family:var(--ca-note-font);font-size:var(--ca-note-size);line-height:1.35;text-wrap:balance;transform:translateY(-50%);background:color-mix(in srgb,var(--ca-color) calc(8% * var(--ca-on,0)),transparent);transition:background .15s ease}",
   ".ca-callout-right{right:0}",
   ".ca-callout-left{left:0;text-align:right}",
   ".ca-callout-top{bottom:calc(100% - var(--ca-top-gutter) + var(--ca-gap));width:max-content;max-width:14rem;text-align:center;transform:translateX(-50%)}",
+  ".ca-callout-bottom{top:calc(100% - var(--ca-bottom-gutter) + var(--ca-gap));width:max-content;max-width:14rem;text-align:center;transform:translateX(-50%)}",
+  // A note off to one side of its point starts where its leader leaves it and reads away from the point.
+  ".ca-callout.ca-callout-east{text-align:left;transform:none}",
+  ".ca-callout.ca-callout-west{text-align:right;transform:translateX(-100%)}",
   ".ca-callout>div>:first-child{margin-top:0}",
   ".ca-callout>div>:last-child{margin-bottom:0}",
   // Too narrow for side notes: stack them under the image, drop the arrows, and letter each note and its target instead. Notes on both sides need more room than notes on one.

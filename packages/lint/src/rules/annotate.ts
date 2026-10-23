@@ -29,7 +29,7 @@ export default {
   },
   "comark/annotate/invalid-position": {
     code: "COMARK0108",
-    title: "Place each annotation with `x`, `y`, `w`, and `h` from 0 to 100",
+    title: "Place each annotation with `x`, `y`, `w`, `h`, `at`, and `to` from 0 to 100",
   },
   "comark/annotate/box-outside-image": {
     code: "COMARK0109",
@@ -42,11 +42,11 @@ export default {
   "comark/annotate/unknown-mark": { code: "COMARK0111", title: "Use a mark annotate draws" },
   "comark/annotate/invalid-color": {
     code: "COMARK0112",
-    title: "Color a mark with a named color or a hex color",
+    title: "Color a mark or a figure's `ink` with a named color or a hex color",
   },
   "comark/annotate/invalid-side": {
     code: "COMARK0113",
-    title: "Set `side` to `left`, `right`, or `top`",
+    title: "Set `side` to `left`, `right`, `top`, or `bottom`",
   },
   "comark/annotate/invisible-mark": {
     code: "COMARK0114",
@@ -95,5 +95,9 @@ export default {
   "comark/annotate/invalid-mode": {
     code: "COMARK0125",
     title: "Set a compare's `mode` to `columns` or `slider`",
+  },
+  "comark/annotate/needs-side": {
+    code: "COMARK0126",
+    title: "Give an annotation with `at` or `to` a `side`",
   },
 } satisfies Record<`comark/annotate/${string}`, RuleInfo>;

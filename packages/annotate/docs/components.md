@@ -24,10 +24,27 @@ Extra filters collapse into **+2 filters**.
 | `title` | Heading above the image, and the title of its zoomed view. |
 | `href` | The page you captured, linked by its host next to the title. |
 | `viewport` | Capture size in pixels, like `1440x900`. A compare checks that both sides match. |
+| `ink` | The color of every mark and note that doesn't set its own `color`. Takes the same values as `color`. |
 
 ## annotation
 
-A mark on the screenshot and its note. The content is the note. Props can be inline, in a YAML props block, or bound with `:x`. Notes in the list under the image are numbered. Side notes sit beside or above the image and point with an arrow instead.
+A mark on the screenshot and its note. The content is the note. Props can be inline, in a YAML props block, or bound with `:x`. Notes in the list under the image are numbered. Side notes sit beside, above, or below the image and point with an arrow instead.
+
+A side note sits level with its mark unless `at` moves it along its margin; its arrow then leaves the note level and sweeps into the mark, the way a hand-drawn leader does. `to` aims the arrow at one point instead of the middle of the mark's edge, which suits `mark="none"`: the arrow alone points, and nothing covers the screen. Arrows and marks carry a thin halo in the page's background, so they stay readable where they cross a dark screenshot.
+
+::example
+```md
+::screenshot{src="/dashboard.png" alt="Office correlations dashboard" ink="violet"}
+:::annotation{x=37 y=33.1 w=16.4 h=5.2 mark="none" side="top" at=58 to="44,33"}
+Bugs fixed fell with the duck supply.
+:::
+
+:::annotation{x=4 y=77.3 w=92 h=8.2 mark="none" side="bottom" at=42 to="55,81"}
+The pigeons ate week 15.
+:::
+::
+```
+::
 
 ::example
 ```md
@@ -46,13 +63,15 @@ r now counts the office cat.
 | Prop | |
 | --- | --- |
 | `x` `y` `w` `h` | The marked area, as percentages of the image: numbers from 0 to 100, without `%`. All four are required. |
-| `mark` | `box` (default), `circle`, `underline`, `highlight`, `cross`, `check`, or `none` to let a side note's arrow do the pointing. `none` needs a `side`. Each mark wobbles a little differently, seeded by its box, so no two match and every render draws the same. |
-| `side` | `left`, `right`, or `top` puts the note beside or above the image with an arrow. |
-| `color` | `blue` (default) points something out, `red` flags a problem, `amber` a warning, `green` a fix, `gray` anything neutral. Each has a dark-mode value. A 3- or 6-digit hex color like `#e11d48` works too, and its stamp gets whichever of a white or dark number reads better. |
+| `mark` | `box` (default), `circle`, `underline`, `highlight`, `bracket`, `cross`, `check`, or `none` to let a side note's arrow do the pointing. A `bracket` stands on the edge that faces its side note, the left one without a note, to span a run of rows or a group without covering it. `none` needs a `side`. Each mark wobbles a little differently, seeded by its box, so no two match and every render draws the same. |
+| `side` | `left`, `right`, `top`, or `bottom` puts the note beside, above, or below the image with an arrow. |
+| `at` | Where a side note sits along its margin, as a percentage of the image: across it for `top` and `bottom`, down it for `left` and `right`. Defaults to level with the arrow's point. A note set off to one side starts where its arrow leaves it and reads away from the point. Needs a `side`. |
+| `to` | The point the arrow lands on, as two percentages of the image, like `to="42,18"`. Defaults to the middle of the mark's edge that faces the note. Needs a `side`. |
+| `color` | `blue` (default) points something out, `red` flags a problem, `amber` a warning, `green` a fix, `violet` is the author's commentary, `gray` anything neutral. Each has a dark-mode value. A 3- or 6-digit hex color like `#e11d48` works too, and its stamp gets whichever of a white or dark number reads better. |
 
 ## compare
 
-Two screenshots side by side, titled **Before** and **After** unless they set their own `title`. Numbers continue from one side to the other, and the pair stacks on narrow screens. Notes with `side="left"` or `side="right"` join the numbered list under their screenshot, since beside it they'd sit against the other one and shrink their own image; notes with `side="top"` stay above.
+Two screenshots side by side, titled **Before** and **After** unless they set their own `title`. Numbers continue from one side to the other, and the pair stacks on narrow screens. Notes with `side="left"` or `side="right"` join the numbered list under their screenshot, since beside it they'd sit against the other one and shrink their own image; notes with `side="top"` and `side="bottom"` stay above and below, and both images keep the same room for them so they stay level.
 
 With `mode="slider"`, the two screenshots share one frame: Before shows left of a divider and After right of it. Drag anywhere on the pair, or focus the handle and use the arrow keys, to move it; a click on the screenshots that doesn't drag zooms the pair. Use it when both screenshots show the same spot and the change is small, so the reader sees it at full width. Side notes become numbered notes in the list, since an arrow would cross the divider. Without the script, the two screenshots stack.
 
@@ -78,3 +97,4 @@ Fixed.
 | --- | --- |
 | `title` | What the comparison shows, read out by screen readers. Defaults to "Comparison". |
 | `mode` | `columns` (default) puts the screenshots side by side; `slider` lays them over each other with a divider to drag. |
+| `ink` | The color of every mark and note in both screenshots that doesn't set its own. A screenshot's own `ink` wins. |
