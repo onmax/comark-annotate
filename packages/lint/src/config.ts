@@ -41,6 +41,7 @@ const packages = [
   ],
   ["comark-diff/html", () => import("comark-diff/html"), []],
   ["comark-icon/html", () => import("comark-icon/html"), []],
+  ["comark-steps/html", () => import("comark-steps/html"), []],
   [
     "comark-details/html",
     () => import("comark-details/html"),
