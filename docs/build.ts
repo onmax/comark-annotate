@@ -78,6 +78,7 @@ const packageOrder = [
   "tabs",
   "code",
   "file-tree",
+  "cards",
   "steps",
   "include",
   "lint",
