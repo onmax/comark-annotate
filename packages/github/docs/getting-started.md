@@ -24,7 +24,7 @@ Each plugin works alone, in any order. `callouts()` is named `alert` and `html()
 
 `callouts({ titles: { note: "Nota", warning: "Aviso" } })` changes the default titles, for a site in another language.
 
-`references({ repo: "owner/name" })` is the repository a bare `#123` points into. Without it, `#123` stays text, while `@user` and `owner/name#123` still link. A `repo` that isn't `owner/name` is reported in `meta.issues`.
+`references({ repo: "owner/name" })` is the repository a bare `#123` points into. Without it, `#123` stays text, while `@user` and `owner/name#123` still link. A `repo` that isn't `owner/name` is reported in `meta.issues`, with its own rule in [Doctor](/doctor/).
 
 `html()` takes no options. It keeps GitHub's allowed tags and attributes; [Syntax](/github/syntax/#html) lists what goes.
 
