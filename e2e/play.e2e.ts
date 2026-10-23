@@ -86,7 +86,7 @@ test("a package's playground examples unfold and each opens in the playground", 
 }) => {
   await page.goto("/annotate/");
   const pages = page.locator(".sidebar .pages");
-  await pages.getByText("Examples", { exact: true }).click();
+  await pages.locator("summary.pages-play").click();
   await pages.getByRole("link", { name: "Side notes" }).click();
   await expect(page).toHaveURL(/\/play\/#preset=annotate-/);
   await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("Side notes");
