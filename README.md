@@ -26,6 +26,7 @@
 | [`comark-media`](./packages/media) | Videos and audio written as images, and GitHub attachment links that play, with no script. |
 | [`comark-linter`](./packages/lint) | Finds unclosed blocks, unknown components, broken links and anchors, local URLs, and plugin issues in Comark documents, from a script, the command line, or Vite Doctor. |
 | [`comark-include`](./packages/include) | Markdown partials and code snippets from files, by lines or by region. |
+| [`comark-mark`](./packages/mark) | `==highlighted text==` as `<mark>` and `^superscript^` as `<sup>`. |
 | [`comark-steps`](./packages/steps) | Numbered steps from the headings of a tutorial or a numbered list, in Nuxt UI's `::steps` syntax, with no script. |
 | [`comark-qr`](./packages/qr) | QR codes drawn as inline SVG while parsing, for opening a preview link on a phone. |
 | [`comark-reading-time`](./packages/reading-time) | A document's word count and reading time in `meta.readingTime`, with code blocks left out and CJK counted by character. |
