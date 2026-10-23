@@ -76,7 +76,10 @@ function pairAll(state: StateInline) {
   renameTokens(state.tokens, { mark: SPAN });
 }
 
-function restoreUnresolvedFootnoteRefs(state: { tree: { nodes: unknown[] }; footnote?: Map<string, unknown> }) {
+function restoreUnresolvedFootnoteRefs(state: {
+  tree: { nodes: unknown[] };
+  footnote?: Map<string, unknown>;
+}) {
   const definitions = state.footnote;
   const rewrite = (value: unknown): unknown => {
     if (!Array.isArray(value)) return value;
