@@ -5,7 +5,7 @@ tagline: Put each step of a flow on its own slide, with its marks and notes, and
 install: pnpm add comark @comark/html comark-annotate comark-carousel
 ---
 
-::example
+::example{label="Carousel walkthrough"}
 ```md
 ::carousel{title="Exporting the pigeon data"}
 :::screenshot{src="/dashboard.png" alt="Office correlations dashboard" title="1. Find the export"}

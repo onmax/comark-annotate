@@ -5,7 +5,7 @@ tagline: Put a pull request's evidence in one Markdown file. The reviewer reads 
 install: pnpm add comark @comark/html comark-annotate comark-github comark-embed comark-zoom
 ---
 
-::example
+::example{label="Review document"}
 ````md
 > [!IMPORTANT] Decision
 > Moon phase and vibes collapse into **+2 filters**, so the toolbar stays on one row at 640px.
