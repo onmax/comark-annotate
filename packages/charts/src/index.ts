@@ -3,6 +3,7 @@ import { defineComarkPlugin } from "comark";
 import type { Annotation } from "comark-annotate";
 import { escapeHtml } from "comark/utils";
 import type { draw } from "./draw.ts";
+import type { Issue } from "./read.ts";
 import { readChart } from "./read.ts";
 
 export type { Chart, ChartType, SpecChart, XKind } from "./read.ts";
@@ -10,6 +11,8 @@ export type { Chart, ChartType, SpecChart, XKind } from "./read.ts";
 export type ChartsMeta = {
   /** One readable sentence per problem with a `::chart`. Other plugins add theirs too. */
   issues: string[];
+  /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
+  issueRules: Record<string, string>;
 };
 
 export interface ChartsOptions {
@@ -54,7 +57,7 @@ export default defineComarkPlugin<ChartsOptions | void, ChartsMeta>((options) =>
   name: "comark-charts",
   async post(state) {
     const { tree } = state;
-    const issues: string[] = [];
+    const issues: Issue[] = [];
     const found: { node: ElementNode; number: number }[] = [];
     eachChart(tree.nodes, (node, number) => found.push({ node, number }));
     for (const { node, number } of found) {
@@ -85,9 +88,10 @@ export default defineComarkPlugin<ChartsOptions | void, ChartsMeta>((options) =>
         const fix = spec
           ? "Check its Vega-Lite spec against https://vega.github.io/vega-lite/docs/"
           : "Check the table, or report it at https://github.com/onmax/comark-plugins/issues";
-        issues.push(
-          `\`::chart\` ${number} couldn't be drawn (${error instanceof Error ? error.message : String(error)}), so it shows its table alone. ${fix}.`,
-        );
+        issues.push({
+          rule: "comark/charts/draw-failed",
+          message: `\`::chart\` ${number} couldn't be drawn (${error instanceof Error ? error.message : String(error)}), so it shows its table alone. ${fix}.`,
+        });
         node.splice(1, node.length - 1, {}, table);
         continue;
       }
@@ -107,6 +111,10 @@ export default defineComarkPlugin<ChartsOptions | void, ChartsMeta>((options) =>
       };
       node.splice(1, node.length - 1, { ...attrs }, table);
     }
-    tree.meta.issues = [...(tree.meta.issues ?? []), ...issues];
+    tree.meta.issues = [...(tree.meta.issues ?? []), ...issues.map((issue) => issue.message)];
+    tree.meta.issueRules = {
+      ...tree.meta.issueRules,
+      ...Object.fromEntries(issues.map((issue) => [issue.message, issue.rule])),
+    };
   },
 }));

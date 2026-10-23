@@ -15,7 +15,7 @@ The plugin adds a problem with any carousel to `meta.issues`, as [Validation](/g
 carousel 2 ("Setup") drops the paragraph "Pass the plugin" because it sits outside every :::slide; move it into a :::slide.
 ```
 
-It reports content outside every `:::slide`, a carousel with no slides, `columns` that isn't 1, 2, or 3, a `:::slide` outside a carousel, and a `:zoom` or `:title` that reads render-time data.
+It reports content outside every `:::slide`, a carousel with no slides, `columns` that isn't 1, 2, or 3, a `:::slide` outside a carousel, a `:zoom` or `:title` that reads render-time data or a missing key, and a prop it doesn't know. Each one has its own rule in [Doctor](/doctor/).
 
 ## Zoom
 

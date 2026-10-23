@@ -1,6 +1,6 @@
 import type { ElementNode, Node } from "comark";
 import { defineComarkPlugin } from "comark";
-import { createIcons, describeIconProblem, type Icons } from "comark-icon";
+import { createIcons, describeIconProblem, iconProblemRule, type Icons } from "comark-icon";
 import type { ActionButton } from "./client.ts";
 
 type Shown =
@@ -38,6 +38,13 @@ export type CodeOptions = {
   iconResolver?: Icons;
 };
 
+export type CodeMeta = {
+  /** One readable sentence per action whose icon can't be drawn. Other plugins add theirs too. */
+  issues: string[];
+  /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
+  issueRules: Record<string, string>;
+};
+
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
 // SAFETY: an element node is [tag, attributes, ...children], so everything after index 1 is a child node.
 const childrenOf = (node: ElementNode) => node.slice(2) as Node[];
@@ -69,7 +76,7 @@ function mark(nodes: Node[], actions: CodeAction[], used: Set<CodeAction>, block
  * plugin is what tells every renderer which blocks get which of your actions. An icon it can't draw is added to
  * `meta.issues`, and its button shows the title instead.
  */
-export default defineComarkPlugin<CodeOptions>((options = {}) => {
+export default defineComarkPlugin<CodeOptions, CodeMeta>((options = {}) => {
   const resolver = options.iconResolver ?? createIcons();
   return {
     name: "comark-code",
@@ -81,15 +88,16 @@ export default defineComarkPlugin<CodeOptions>((options = {}) => {
       mark(state.tree.nodes, actions, used, blocks);
       const icons = [...used].flatMap((action) => (action.icon ? [action.icon] : []));
       const resolved = icons.length ? await resolver.resolve(icons) : new Map();
-      const issues: string[] = [];
+      const issues: { rule: string; message: string }[] = [];
       const buttons = new Map<CodeAction, ActionButton>();
       for (const action of used) {
         const title = action.title || action.label || action.id;
         const icon = action.icon ? resolved.get(action.icon) : undefined;
         if (action.icon && icon && "problem" in icon)
-          issues.push(
-            `The comark-code action "${action.id}" shows "${title}" as text on its code blocks, because it can't draw its icon "${action.icon}": ${describeIconProblem(action.icon, icon)}`,
-          );
+          issues.push({
+            rule: iconProblemRule(icon),
+            message: `The comark-code action "${action.id}" shows "${title}" as text on its code blocks, because it can't draw its icon "${action.icon}": ${describeIconProblem(action.icon, icon)}`,
+          });
         const drawn = icon && !("problem" in icon) ? icon : undefined;
         buttons.set(action, {
           id: action.id,
@@ -101,7 +109,13 @@ export default defineComarkPlugin<CodeOptions>((options = {}) => {
       for (const block of blocks)
         // SAFETY: `mark` wrote the matched actions on every block it pushed.
         block[1].actions = (block[1].actions as CodeAction[]).map((action) => buttons.get(action));
-      if (issues.length) state.tree.meta.issues = [...(state.tree.meta.issues ?? []), ...issues];
+      if (!issues.length) return;
+      const { meta } = state.tree;
+      meta.issues = [...(meta.issues ?? []), ...issues.map((issue) => issue.message)];
+      meta.issueRules = {
+        ...meta.issueRules,
+        ...Object.fromEntries(issues.map((issue) => [issue.message, issue.rule])),
+      };
     },
   };
 });

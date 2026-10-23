@@ -11,7 +11,18 @@ export default defineDoctorConfig({
     comark({
       include: "{docs/pages,packages/*/docs}/**/*.md",
       // docs/build.ts renders these itself.
-      components: ["demo", "drop", "example", "examples", "hero", "matrix", "packages"],
+      components: [
+        "correct",
+        "demo",
+        "drop",
+        "example",
+        "examples",
+        "hero",
+        "incorrect",
+        "matrix",
+        "packages",
+        "rules",
+      ],
       links: {
         // fileOf in docs/build.ts: a package's pages come from its docs/, the rest from docs/pages, and files from
         // docs/public. The playground is built by docs/play.ts and has no page.

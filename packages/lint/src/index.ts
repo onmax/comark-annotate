@@ -11,6 +11,7 @@ import {
   type LinkOptions,
   type Pending,
 } from "./links.ts";
+import { catalog } from "./rules/index.ts";
 import { find, read, type Source } from "./source.ts";
 import { closest, decode, listIds } from "./words.ts";
 
@@ -18,31 +19,14 @@ export { defineConfig, resolveConfig, type Config } from "./config.ts";
 export type { LinkOptions, Pattern, Routes } from "./links.ts";
 export type { UrlOptions } from "./urls.ts";
 
-export type Rule =
-  | "comark/unclosed-block"
-  | "comark/unknown-component"
-  | "comark/malformed-attributes"
-  | "comark/broken-anchor"
-  | "comark/invalid-frontmatter"
-  | "comark/plugin-issue"
-  | "comark/unsafe-url"
-  | "comark/broken-link"
-  | "comark/blocked-url"
-  | "comark/dead-url";
+/** Every rule: the core ones, then one per kind of issue each comark-plugins package reports. */
+export type Rule = keyof typeof catalog;
 
 /** Every rule, with what it checks. */
-export const rules: Record<Rule, string> = {
-  "comark/unclosed-block": "Close every `::` block",
-  "comark/unknown-component": "Use only known components",
-  "comark/malformed-attributes": "Close `{` attributes and set each key once",
-  "comark/broken-anchor": "Link `#fragments` to a heading or id in the document they name",
-  "comark/invalid-frontmatter": "Write valid YAML frontmatter",
-  "comark/plugin-issue": "Fix the problems Comark plugins report",
-  "comark/unsafe-url": "Keep script URLs out of `href` and `src`",
-  "comark/broken-link": "Link files that exist",
-  "comark/blocked-url": "Keep local, private, tunnel, and preview URLs out of links",
-  "comark/dead-url": "Link pages that still answer",
-};
+// SAFETY: built from every entry of the catalog, whose keys are exactly the rules.
+export const rules = Object.fromEntries(
+  Object.entries(catalog).map(([rule, { title }]) => [rule, title]),
+) as Record<Rule, string>;
 
 export type Diagnostic = {
   rule: Rule;
@@ -57,7 +41,10 @@ export type Diagnostic = {
 };
 
 export type LintOptions = {
-  /** The parse plugins the document is rendered with. Their `meta.issues` become `comark/plugin-issue`. */
+  /**
+   * The parse plugins the document is rendered with. Each of their `meta.issues` is reported under the rule the plugin
+   * names for it in `meta.issueRules`, or as `comark/plugin-issue` when it names none.
+   */
   // oxlint-disable-next-line no-explicit-any -- each plugin types its own meta, as in Comark's ParserOptions.
   plugins?: readonly ComarkPlugin<any, any>[];
   /**
@@ -259,6 +246,9 @@ function checkDocument({ source, found, parsed }: Document, options: LintOptions
       );
     check("comark/broken-anchor", () => brokenAnchors(document.nodes, source));
     check("comark/unsafe-url", () => unsafeUrls(document.nodes, source));
+    check("comark/duplicate-id", () => duplicateIds(document.nodes, source));
+    check("comark/missing-alt", () => missingAlts(document.nodes, source));
+    check("comark/empty-link", () => emptyLinks(document.nodes, source));
     check("comark/plugin-issue", () => pluginIssues(document.meta, source, blocks()));
   }
 }
@@ -688,6 +678,73 @@ function unsafeUrls(nodes: Node[], source: Source): Diagnostic[] {
   return found;
 }
 
+function duplicateIds(nodes: Node[], source: Source): Diagnostic[] {
+  const tagged = [...elements(nodes)].flatMap(([tag, attributes]) => {
+    const id = text(attributes.id);
+    return id ? [{ tag, id }] : [];
+  });
+  const total = new Map<string, number>();
+  for (const { id } of tagged) total.set(id, (total.get(id) ?? 0) + 1);
+  const seen = new Map<string, number>();
+  const found: Diagnostic[] = [];
+  for (const { tag, id } of tagged) {
+    const index = seen.get(id) ?? 0;
+    seen.set(id, index + 1);
+    if (!index) continue;
+    // Comark numbers a heading whose id is taken, so the repeats are the ids written as `{#id}`, after the heading's.
+    let writtenIds = 0;
+    while (find(source, `{#${id}`, { nth: writtenIds, from: source.body })) writtenIds++;
+    const nth = index - (total.get(id)! - writtenIds);
+    const at = nth >= 0 ? find(source, `{#${id}`, { nth, from: source.body }) : undefined;
+    const { line, column } = at ?? { line: source.body + 1, column: undefined };
+    found.push({
+      rule: "comark/duplicate-id",
+      line,
+      column,
+      message: `The \`${tag}\` on line ${line} has the id \`${id}\`, which an element before it already has, so links to \`#${id}\` go to that one.`,
+      fix: `Give it an id of its own, such as \`{#${id}-2}\`.`,
+    });
+  }
+  return found;
+}
+
+function missingAlts(nodes: Node[], source: Source): Diagnostic[] {
+  const locate = locator(source);
+  const found: Diagnostic[] = [];
+  for (const [tag, attributes] of elements(nodes)) {
+    const src = text(attributes.src);
+    // An empty `alt`, written `{alt=""}` or in HTML, marks an image as decoration on purpose.
+    if (tag !== "img" || !src || attributes.alt !== undefined) continue;
+    const { line, column } = locate(`](${src}`, src);
+    found.push({
+      rule: "comark/missing-alt",
+      line,
+      column,
+      message: `The image \`${src}\` on line ${line} has no alt text, so screen readers skip it or read its file name.`,
+      fix: `Describe what it shows between the brackets, as in \`![Pigeons on the roof](${src})\`, or add \`{alt=""}\` after it if it's only decoration.`,
+    });
+  }
+  return found;
+}
+
+function emptyLinks(nodes: Node[], source: Source): Diagnostic[] {
+  const locate = locator(source);
+  const found: Diagnostic[] = [];
+  for (const [tag, attributes, ...children] of elements(nodes)) {
+    const href = text(attributes.href);
+    if (tag !== "a" || !href || children.some((child) => isElement(child) || text(child))) continue;
+    const { line, column } = locate(`](${href}`, href);
+    found.push({
+      rule: "comark/empty-link",
+      line,
+      column,
+      message: `The link to \`${href}\` on line ${line} has no text, so readers can't see it and screen readers read out its URL.`,
+      fix: `Write what it links to between the brackets, as in \`[The pigeon census](${href})\`.`,
+    });
+  }
+  return found;
+}
+
 function pluginIssues(
   meta: Record<string, unknown>,
   source: Source,
@@ -696,12 +753,18 @@ function pluginIssues(
   const issues = Array.isArray(meta.issues)
     ? meta.issues.flatMap((issue) => text(issue) || [])
     : [];
+  const named: Record<string, unknown> =
+    meta.issueRules instanceof Object ? { ...meta.issueRules } : {};
   const locate = locator(source);
   return issues.map((issue) => {
+    const rule = text(named[issue]);
+    const known = Object.hasOwn(catalog, rule);
     const { line, column } = place(issue, blocks, locate);
     const sentences = issue.split(/(?<=[.!?])\s+(?=[A-Z`])/);
     return {
-      rule: "comark/plugin-issue",
+      // A rule this version doesn't know, from a newer plugin, still reports.
+      // SAFETY: `known` says the catalog, whose keys are exactly the rules, has it.
+      rule: known ? (rule as Rule) : "comark/plugin-issue",
       line,
       column,
       message: sentences.length > 1 ? sentences.slice(0, -1).join(" ") : issue,

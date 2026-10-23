@@ -1,4 +1,4 @@
-import type { RuleContext, RuleMeta } from "vite-doctor/extension";
+import type { RuleContext } from "vite-doctor/extension";
 import {
   createRule,
   defineDoctorDiagnostics,
@@ -8,11 +8,11 @@ import {
 import {
   lintFiles,
   resolveConfig,
-  rules,
   type Config,
   type LintedFile,
   type Rule,
 } from "./index.ts";
+import { catalog, type RuleInfo } from "./rules/index.ts";
 
 export type DoctorOptions = Config & {
   /** Markdown to check, relative to the project root. Default `**\/*.{md,mdc}`. */
@@ -21,27 +21,19 @@ export type DoctorOptions = Config & {
   exclude?: readonly string[];
 };
 
-const codes = {
-  "comark/unclosed-block": "COMARK0001",
-  "comark/unknown-component": "COMARK0002",
-  "comark/malformed-attributes": "COMARK0003",
-  "comark/broken-anchor": "COMARK0004",
-  "comark/invalid-frontmatter": "COMARK0005",
-  "comark/plugin-issue": "COMARK0006",
-  "comark/unsafe-url": "COMARK0007",
-  "comark/broken-link": "COMARK0008",
-  "comark/blocked-url": "COMARK0009",
-  "comark/dead-url": "COMARK0010",
-} as const satisfies Record<Rule, string>;
-
-const severities: Partial<Record<Rule, RuleMeta["severity"]>> = {
-  "comark/invalid-frontmatter": "error",
-  "comark/unsafe-url": "error",
-};
+// SAFETY: built from every entry of the catalog, whose keys are exactly the rules.
+const ids = Object.keys(catalog) as Rule[];
+const info: Record<Rule, RuleInfo> = catalog;
+const ruleOf = new Map<string, Rule>(ids.map((id) => [info[id].code, id]));
 
 const diagnostics = defineDoctorDiagnostics(
-  Object.entries(codes).map(([ruleId, code]) => ({ code, ruleId })),
-  { docsBase: (code) => `https://comark.onmax.me/lint/#${code.toLowerCase()}` },
+  ids.map((ruleId) => ({ code: info[ruleId].code, ruleId })),
+  {
+    docsBase: (code) => {
+      const rule = ruleOf.get(code);
+      return rule && `https://comark.onmax.me/doctor/${rule.replace(/^comark\//, "")}/`;
+    },
+  },
 );
 
 /**
@@ -54,8 +46,6 @@ export default function comark(options: DoctorOptions = {}) {
     exclude = ["**/node_modules/**", "**/dist/**"],
     ...config
   } = options;
-  // SAFETY: `rules` is a Record<Rule, string>, so its keys are exactly the rules.
-  const ids = Object.keys(rules) as Rule[];
 
   // Every Rule reads the same results; the first one to run lints the files. Rules may only read through `ctx.fs`,
   // so links are checked through it too. The URL cache is written with node:fs, since `ctx.fs` can't write.
@@ -81,9 +71,9 @@ export default function comark(options: DoctorOptions = {}) {
     createRule({
       meta: {
         id,
-        title: rules[id],
+        title: info[id].title,
         category: "content",
-        severity: severities[id] ?? "warn",
+        severity: info[id].severity ?? "warn",
         execution: "manifest",
         // The result depends on the comark plugins installed, which the Rule imports instead of reading.
         cacheScope: "none",
@@ -99,7 +89,7 @@ export default function comark(options: DoctorOptions = {}) {
                 if (diagnostic.rule !== id) continue;
                 const start = (starts[diagnostic.line - 1] ?? 0) + (diagnostic.column ?? 1) - 1;
                 ctx.report(
-                  diagnostics.diagnostics[codes[id]]({
+                  diagnostics.diagnostics[info[id].code]({
                     why: diagnostic.message,
                     fix: diagnostic.fix,
                   }),

@@ -231,7 +231,7 @@ describe("comark/invalid-frontmatter", () => {
   });
 });
 
-describe("comark/plugin-issue", () => {
+describe("plugin issues", () => {
   it("passes a document the plugins accept", async () => {
     expect(await check(`::screenshot{src="a.png" alt="A"}\n::`)).toEqual([]);
   });
@@ -243,13 +243,13 @@ describe("comark/plugin-issue", () => {
       ),
     ).toEqual([
       {
-        rule: "comark/plugin-issue",
+        rule: "comark/annotate/missing-alt",
         line: 6,
         column: 19,
         message: 'screenshot "b.png": `alt` is required. Describe what the screenshot shows.',
       },
       {
-        rule: "comark/plugin-issue",
+        rule: "comark/annotate/compare-screenshot-count",
         line: 9,
         column: 1,
         message:
@@ -264,7 +264,7 @@ describe("comark/plugin-issue", () => {
       { plugins: [charts()], components: chartComponents },
     );
     expect(diagnostics.map(({ rule, line }) => ({ rule, line }))).toEqual([
-      { rule: "comark/plugin-issue", line: 9 },
+      { rule: "comark/charts/too-many-series", line: 9 },
     ]);
   });
 });
@@ -303,6 +303,75 @@ describe("comark/unsafe-url", () => {
   });
 });
 
+describe("comark/duplicate-id", () => {
+  it("reports an id written twice, or one a heading already has", async () => {
+    expect(
+      (await check(`## Setup\n\n## Pond {#setup}\n\n## Census {#count}\n\nText {#count}`)).map(
+        ({ rule, line }) => ({ rule, line }),
+      ),
+    ).toEqual([
+      { rule: "comark/duplicate-id", line: 3 },
+      { rule: "comark/duplicate-id", line: 7 },
+    ]);
+  });
+
+  it("passes headings Comark numbers itself", async () => {
+    expect(await check(`## Setup\n\n## Setup`)).toEqual([]);
+  });
+});
+
+describe("comark/missing-alt", () => {
+  it("reports an image without alt text, and passes one marked as decoration", async () => {
+    expect(await check(`![](pond.png)\n\n![](roof.png){alt=""}\n\n![Ducks](ducks.png)`)).toEqual([
+      {
+        rule: "comark/missing-alt",
+        line: 1,
+        column: 3,
+        message:
+          'The image `pond.png` on line 1 has no alt text, so screen readers skip it or read its file name. Describe what it shows between the brackets, as in `![Pigeons on the roof](pond.png)`, or add `{alt=""}` after it if it\'s only decoration.',
+      },
+    ]);
+  });
+});
+
+describe("comark/empty-link", () => {
+  it("reports a link with nothing between its brackets", async () => {
+    expect(
+      (await check(`See [](/census/) and [the pond](/pond/).`)).map(({ rule, line }) => ({
+        rule,
+        line,
+      })),
+    ).toEqual([{ rule: "comark/empty-link", line: 1 }]);
+  });
+});
+
+describe("meta.issueRules", () => {
+  const issues = (rules: Record<string, string>) => ({
+    name: "duck-count",
+    post({ tree }: { tree: { meta: Record<string, unknown> } }) {
+      tree.meta.issues = Object.keys(rules);
+      tree.meta.issueRules = rules;
+    },
+  });
+
+  it("reports each issue under the rule its plugin names, and the rest as comark/plugin-issue", async () => {
+    const found = await lint("# Ducks", {
+      plugins: [
+        issues({
+          "`::embed` 1: `url` is required. Write it.": "comark/embed/missing-url",
+          "duck-count 1: `pond` is required. Write it.": "duck-count/missing-pond",
+          "duck-count 2: `pond` is empty. Fill it.": "",
+        }),
+      ],
+    });
+    expect(found.map(({ rule }) => rule)).toEqual([
+      "comark/embed/missing-url",
+      "comark/plugin-issue",
+      "comark/plugin-issue",
+    ]);
+  });
+});
+
 describe("lint()", () => {
   it("turns a rule that crashes into one diagnostic and still runs the others", async () => {
     const broken = {
@@ -320,6 +389,18 @@ describe("lint()", () => {
       [
         "comark/unsafe-url",
         "lint-comark crashed while checking `comark/unsafe-url`: Cannot read properties of null (reading 'href').",
+      ],
+      [
+        "comark/duplicate-id",
+        "lint-comark crashed while checking `comark/duplicate-id`: Cannot read properties of null (reading 'id').",
+      ],
+      [
+        "comark/missing-alt",
+        "lint-comark crashed while checking `comark/missing-alt`: Cannot read properties of null (reading 'src').",
+      ],
+      [
+        "comark/empty-link",
+        "lint-comark crashed while checking `comark/empty-link`: Cannot read properties of null (reading 'href').",
       ],
       [
         "comark/broken-link",
@@ -355,7 +436,7 @@ describe("lint-comark CLI", () => {
     expect((await cli(join(dir, "ok.md"))).stdout).toBe("No problems.\n");
     await expect(cli(join(dir, "*.md"))).rejects.toMatchObject({
       code: 1,
-      stdout: `${join(dir, "bad.md")}:3:1 comark/unclosed-block \`::compare\` opened on line 3 is never closed. Add a line with \`::\` after its last child.\n${join(dir, "bad.md")}:3:1 comark/plugin-issue compare 1: needs exactly two screenshots, before and after (got 0). Add the missing one.\n`,
+      stdout: `${join(dir, "bad.md")}:3:1 comark/unclosed-block \`::compare\` opened on line 3 is never closed. Add a line with \`::\` after its last child.\n${join(dir, "bad.md")}:3:1 comark/annotate/compare-screenshot-count compare 1: needs exactly two screenshots, before and after (got 0). Add the missing one.\n`,
     });
 
     const json = await cli(join(dir, "bad.md"), "--format", "json").catch(
@@ -367,7 +448,7 @@ describe("lint-comark CLI", () => {
         rule: "comark/unclosed-block",
         line: 3,
       }),
-      expect.objectContaining({ rule: "comark/plugin-issue" }),
+      expect.objectContaining({ rule: "comark/annotate/compare-screenshot-count" }),
     ]);
 
     await expect(cli(join(dir, "missing.md"))).rejects.toMatchObject({

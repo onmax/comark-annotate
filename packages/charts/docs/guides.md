@@ -23,9 +23,9 @@ Each issue names its chart by its position in the document and says how to fix i
 
 It reports unknown props and types, columns that `x` or `y` name but the table doesn't have, cells that aren't numbers, tables without rows or with unnamed or repeated columns, an x value that appears twice, content besides the table and its annotations, and data that doesn't fit the type: a line or an area of one row, a scatter without numbers on x, a dumbbell with one column, a pie or a waterfall with several, and a pie with a negative number or nothing but zeros.
 
-Annotations are checked too: a missing or unknown `at`, a `series` the chart doesn't draw, and the mark, color, and side, as comark-annotate checks them on screenshots.
+Annotations are checked too: a missing or unknown `at`, a `series` the chart doesn't draw, a mark on an empty cell, and the mark, color, and side, as comark-annotate checks them on screenshots.
 
-Rendering never throws. A cell that isn't a number is left out, a mark it can't place is left out, a type that doesn't fit falls back to the default, a pie or a waterfall draws its first column, and a chart with nothing to draw shows its content as it is. [comark-linter](/lint/) reports the same issues with their line numbers.
+Rendering never throws. A cell that isn't a number is left out, a mark it can't place is left out, a type that doesn't fit falls back to the default, a pie or a waterfall draws its first column, and a chart with nothing to draw shows its content as it is. [comark-linter](/lint/) reports the same issues with their line numbers. Each one has its own rule in [Doctor](/doctor/).
 
 ## Size
 

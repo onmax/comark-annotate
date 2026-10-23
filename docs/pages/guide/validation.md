@@ -44,9 +44,16 @@ include "./ducks.md": file not found. It resolved to "guide/ducks.md" under the 
 
 code and zoom have nothing to report: every code block gets its buttons, and anything can zoom. github reports only a `repo` that isn't `owner/name`: a quote that isn't a callout stays a quote, and HTML GitHub doesn't allow is dropped as GitHub drops it.
 
+Each plugin also names the rule of every issue in `meta.issueRules`, keyed by the sentence, and [Doctor](/doctor/) has a page per rule with Markdown that triggers it and the same Markdown fixed:
+
+```ts
+meta.issueRules['screenshot "after.png", annotation 2: the box runs past the image edge. Keep x + w and y + h within 100.'];
+// "comark/annotate/box-outside-image"
+```
+
 ## Line numbers
 
-`meta.issues` can't say where a problem is, because Comark gives nodes no source positions. [comark-linter](/lint/) finds the line of each issue and adds what Comark forgives silently: blocks never closed, misspelled components, broken links and anchors, links to localhost, and unsafe URLs. Run it in CI and in [Vite Doctor](/lint/getting-started/#vite-doctor):
+`meta.issues` can't say where a problem is, because Comark gives nodes no source positions. [comark-linter](/lint/) finds the line of each issue and adds what Comark forgives silently: blocks never closed, misspelled components, broken links and anchors, links to localhost, unsafe URLs, repeated ids, images without alt text, and links without text. It reports each issue under its rule, with the rule's code in Vite Doctor. Run it in CI and in [Vite Doctor](/lint/getting-started/#vite-doctor):
 
 ```sh
 pnpm lint-comark "docs/**/*.md"

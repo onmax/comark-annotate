@@ -143,4 +143,4 @@ export default defineDoctorConfig({
 pnpm vite-doctor . --config doctor.config.ts
 ```
 
-It lints `**/*.{md,mdc}` except `node_modules` and `dist`; set `include` and `exclude` to change that. Each rule reports with its own code, `COMARK0001` to `COMARK0010`, and the `comark/recommended` preset turns them all on. It runs whenever the extension is registered. It needs `vite-doctor` 0.1 or later.
+It lints `**/*.{md,mdc}` except `node_modules` and `dist`; set `include` and `exclude` to change that. Each rule reports with its own code, linked to its page in [Doctor](/doctor/), and the `comark/recommended` preset turns them all on. It runs whenever the extension is registered. It needs `vite-doctor` 0.1 or later.
