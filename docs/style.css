@@ -709,6 +709,22 @@ kbd {
     0 1px 2px rgb(0 0 0 / 0.05),
     0 16px 32px -16px rgb(0 0 0 / 0.18);
   transition: box-shadow 200ms ease;
+  /* Its size is in its markup, so adding a card to the stage lays out and paints that card alone. */
+  contain: strict;
+}
+
+/* Cards without a height are measured once in here, at their content's height. */
+.canvas-probe {
+  position: absolute;
+  width: 300px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.canvas-probe .demo {
+  position: relative;
+  height: auto;
+  contain: none;
 }
 
 .demo-link {
@@ -729,7 +745,11 @@ kbd {
 }
 
 .demo-link span {
+  min-width: 0;
+  overflow: hidden;
   color: var(--faint);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .demo-link .ci:last-child {
@@ -903,6 +923,8 @@ kbd {
   position: absolute;
   inset: 0;
   overflow: hidden;
+  /* Skipped until it shows, so a card added to the stage styles and lays out only its page. */
+  content-visibility: hidden;
   background: var(--card);
   opacity: 0;
   filter: blur(4px);
@@ -925,6 +947,7 @@ kbd {
 
 @media (hover: hover) {
   .demo:has(.demo-md:hover) .demo-source {
+    content-visibility: visible;
     opacity: 1;
     filter: none;
   }
@@ -950,9 +973,6 @@ kbd {
 .demo-include .demo-directive + p,
 .demo-diff tr,
 .demo-diff ins,
-.demo-charts .mark-rect path,
-.demo-charts .layer_1_marks text,
-.demo-charts-line .mark-line path,
 .demo-github-references a {
   animation-duration: 7s;
   animation-timing-function: var(--ease-out);
@@ -979,50 +999,40 @@ kbd {
 }
 
 @keyframes demo-draw {
-  0%,
-  6% {
+  0% {
     clip-path: inset(-150% -150% -150% -150%);
   }
 
-  10% {
+  4% {
     clip-path: inset(-150% -150% -150% 100%);
   }
 
-  11% {
+  5% {
     clip-path: inset(-150% 100% -150% -150%);
   }
 
-  22%,
+  16%,
   100% {
     clip-path: inset(-150% -150% -150% -150%);
   }
 }
 
 @keyframes demo-rise {
-  0%,
-  6% {
+  0% {
     opacity: 1;
     translate: 0;
-    filter: none;
   }
 
+  4%,
   10% {
     opacity: 0;
     translate: 0 6px;
-    filter: blur(4px);
   }
 
-  18% {
-    opacity: 0;
-    translate: 0 6px;
-    filter: blur(4px);
-  }
-
-  26%,
+  18%,
   100% {
     opacity: 1;
     translate: 0;
-    filter: none;
   }
 }
 
@@ -1046,30 +1056,29 @@ kbd {
 
 @keyframes demo-strike {
   0%,
-  12%,
   100% {
     opacity: 1;
   }
 
-  22%,
-  30% {
+  10%,
+  18% {
     opacity: 0.35;
   }
 }
 
 @keyframes demo-slide {
   0%,
-  20% {
+  8% {
     opacity: 1;
     translate: 0;
   }
 
-  24% {
+  12% {
     opacity: 0;
     translate: -12px 0;
   }
 
-  34%,
+  22%,
   100% {
     opacity: 1;
     translate: 0;
@@ -1078,112 +1087,38 @@ kbd {
 
 @keyframes demo-light {
   0%,
-  30%,
-  60%,
+  18%,
+  48%,
   100% {
     filter: none;
   }
 
-  40% {
+  28% {
     filter: brightness(1.35) saturate(1.3);
   }
 }
 
-/* charts: the bars grow from the axis in turn, then their labels; the line draws itself. */
+/* charts: the card turns through its charts while the pointer is on it, fading one into the next. Only opacity and
+   a short slide move, which the compositor draws without repainting the SVG. */
 .demo-charts {
   --z: 0.62;
 }
 
-.demo-charts .mark-rect path {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation-name: demo-grow;
+.demo-variants {
+  display: grid;
+  align-items: start;
 }
 
-.demo-charts .layer_1_marks text {
-  animation-name: demo-fade;
+.demo-variant {
+  grid-area: 1 / 1;
+  transition:
+    opacity 450ms ease,
+    translate 450ms var(--ease-out);
 }
 
-.demo-charts .mark-rect path:nth-child(2),
-.demo-charts .layer_1_marks text:nth-child(2) {
-  animation-delay: 90ms;
-}
-
-.demo-charts .mark-rect path:nth-child(3),
-.demo-charts .layer_1_marks text:nth-child(3) {
-  animation-delay: 180ms;
-}
-
-.demo-charts .mark-rect path:nth-child(4),
-.demo-charts .layer_1_marks text:nth-child(4) {
-  animation-delay: 270ms;
-}
-
-.demo-charts .mark-rect path:nth-child(5),
-.demo-charts .layer_1_marks text:nth-child(5) {
-  animation-delay: 360ms;
-}
-
-@keyframes demo-grow {
-  0%,
-  6% {
-    scale: 1 1;
-  }
-
-  10%,
-  12% {
-    scale: 1 0;
-  }
-
-  24%,
-  100% {
-    scale: 1 1;
-  }
-}
-
-@keyframes demo-fade {
-  0%,
-  6% {
-    opacity: 1;
-  }
-
-  9%,
-  20% {
-    opacity: 0;
-  }
-
-  28%,
-  100% {
-    opacity: 1;
-  }
-}
-
-.demo-charts-line .mark-line path {
-  stroke-dasharray: 1200;
-  animation-name: demo-line;
-  animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
-}
-
-.demo-charts-line .mark-line + .mark-line path,
-.demo-charts-line .mark-line:nth-of-type(2) path {
-  animation-delay: 250ms;
-}
-
-@keyframes demo-line {
-  0%,
-  6% {
-    stroke-dashoffset: 0;
-  }
-
-  9%,
-  12% {
-    stroke-dashoffset: 1200;
-  }
-
-  40%,
-  100% {
-    stroke-dashoffset: 0;
-  }
+.demo-variant:not([data-on]) {
+  opacity: 0;
+  translate: 0 8px;
 }
 
 /* chips: each link turns into its chip in turn. */
@@ -1212,45 +1147,22 @@ kbd {
 }
 
 @keyframes demo-pop {
-  0%,
-  6% {
+  0% {
     opacity: 1;
     scale: 1;
-    filter: none;
   }
 
-  9%,
-  12% {
+  3%,
+  6% {
     opacity: 0;
     scale: 0.6;
-    filter: blur(4px);
   }
 
-  20%,
+  14%,
   100% {
     opacity: 1;
     scale: 1;
-    filter: none;
   }
-}
-
-/* icon: a row of logos, large enough to read as icons. */
-.demo-icon {
-  --z: 1;
-}
-
-.demo-icon p {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.875rem 1rem;
-  margin: 0;
-  font-size: 0;
-}
-
-.demo-icon .ci {
-  --comark-icon-size: 2.25rem;
-  font-size: 1rem;
 }
 
 /* github: the callouts land one after the other; the references light up in turn. */
@@ -1263,7 +1175,21 @@ kbd {
 }
 
 .demo-github-references a {
-  animation-name: demo-pop;
+  border-radius: 4px;
+  animation-name: demo-tint;
+}
+
+@keyframes demo-tint {
+  0%,
+  16%,
+  100% {
+    background-color: transparent;
+  }
+
+  5%,
+  10% {
+    background-color: color-mix(in oklch, #3b82f6 20%, transparent);
+  }
 }
 
 .demo-github-references a:nth-of-type(2) {
@@ -1334,20 +1260,17 @@ kbd {
   31% {
     opacity: 1;
     translate: 0;
-    filter: none;
   }
 
   35%,
   97% {
     opacity: 0;
     translate: 0 4px;
-    filter: blur(2px);
   }
 
   100% {
     opacity: 1;
     translate: 0;
-    filter: none;
   }
 }
 
@@ -1376,17 +1299,14 @@ kbd {
 
 @keyframes demo-zoom {
   0%,
-  14%,
-  58%,
+  48%,
   100% {
     scale: 1;
-    box-shadow: 0 0 0 0 rgb(0 0 0 / 0);
   }
 
-  24%,
-  46% {
+  12%,
+  36% {
     scale: 1.28;
-    box-shadow: 0 18px 40px -12px rgb(0 0 0 / 0.45);
   }
 }
 
@@ -1402,21 +1322,21 @@ kbd {
 }
 
 @keyframes demo-slides {
-  0%,
-  28% {
+  0% {
     translate: 0;
   }
 
-  33%,
-  61% {
+  5%,
+  30% {
     translate: -100% 0;
   }
 
-  66%,
-  94% {
+  35%,
+  60% {
     translate: -200% 0;
   }
 
+  65%,
   100% {
     translate: 0;
   }
@@ -1442,50 +1362,45 @@ kbd {
 
 @keyframes demo-press {
   0%,
-  20%,
-  26%,
+  9%,
   100% {
     scale: 1;
   }
 
-  23% {
+  4% {
     scale: 0.9;
   }
 }
 
 @keyframes demo-icon-out {
   0%,
-  23%,
-  60%,
+  4%,
+  43%,
   100% {
     opacity: 1;
     scale: 1;
-    filter: none;
   }
 
-  27%,
-  56% {
+  8%,
+  39% {
     opacity: 0;
     scale: 0.25;
-    filter: blur(4px);
   }
 }
 
 @keyframes demo-icon-in {
   0%,
-  23%,
-  60%,
+  4%,
+  43%,
   100% {
     opacity: 0;
     scale: 0.25;
-    filter: blur(4px);
   }
 
-  27%,
-  56% {
+  8%,
+  39% {
     opacity: 1;
     scale: 1;
-    filter: none;
   }
 }
 
@@ -1515,19 +1430,18 @@ kbd {
 }
 
 @keyframes demo-unfold {
-  0%,
-  6% {
+  0% {
     opacity: 1;
     clip-path: inset(0);
   }
 
-  10%,
-  14% {
+  4%,
+  8% {
     opacity: 0;
     clip-path: inset(0 0 100% 0);
   }
 
-  26%,
+  20%,
   100% {
     opacity: 1;
     clip-path: inset(0);
@@ -1641,17 +1555,16 @@ kbd {
 }
 
 @keyframes demo-print {
-  0%,
-  4% {
+  0% {
     opacity: 1;
   }
 
-  6%,
-  10% {
+  2%,
+  6% {
     opacity: 0;
   }
 
-  11%,
+  7%,
   100% {
     opacity: 1;
   }
