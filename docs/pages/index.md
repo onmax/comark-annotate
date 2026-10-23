@@ -41,6 +41,14 @@ Moves the build from [webpack](https://webpack.js.org) to [Vite](https://vite.de
 ```
 :::
 
+:::demo{package="icon" height=156}
+```md
+- :icon{name="lucide:circle-check"} Typecheck
+- :icon{name="lucide:circle-check"} Unit tests
+- :icon{name="lucide:circle-x"} e2e on :icon{name="logos:safari"} Safari
+```
+:::
+
 :::demo{package="tabs" height=188}
 ````md
 ::code-group
