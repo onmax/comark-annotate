@@ -88,12 +88,15 @@ const packageOrder = [
   "carousel",
   "tabs",
   "code",
+  "file-tree",
+  "fields",
   "badge",
   "cards",
   "steps",
   "deflist",
   "mark",
   "include",
+  "reading-time",
   "lint",
 ];
 const repo = new URL("../", root);
