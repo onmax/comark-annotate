@@ -7,7 +7,7 @@ import { theme } from "comark-zoom/theme";
 export const css = `@layer comark{${[
   theme(".cm"),
   ".cm{display:block;box-sizing:border-box;max-width:100%;margin:1rem 0}",
-  // Black, as players letterbox, so a video narrower than its frame doesn't sit on a white band before it loads.
-  "video.cm{height:auto;border:1px solid var(--_comark-border);border-radius:var(--_comark-radius);background:#000}",
+  // The accent tint shows where the video will be before its first frame loads.
+  "video.cm{height:auto;border:1px solid var(--_comark-border);border-radius:var(--_comark-radius);background:var(--_comark-accent)}",
   "audio.cm{width:100%}",
 ].join("")}}`;
