@@ -16,6 +16,7 @@ import {
 import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
 import steps, { components as stepsComponents } from "../packages/steps/src/html.ts";
 import cards, { components as cardsComponents } from "../packages/cards/src/html.ts";
+import badge, { components as badgeComponents } from "../packages/badge/src/html.ts";
 import fileTree, { components as fileTreeComponents } from "../packages/file-tree/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
@@ -34,7 +35,8 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   references(config["comark-github"]?.references),
   githubHtml(),
   icon(),
-  fileTree(),
+  badge(),
+  fileTree()
   cards(),
   steps(),
   tabs(),
@@ -51,7 +53,8 @@ export const components = {
   ...embedComponents,
   ...githubComponents,
   ...iconComponents,
-  ...fileTreeComponents,
+  ...badgeComponents,
+  ...fileTreeComponents
   ...cardsComponents,
   ...stepsComponents,
   ...tabsComponents,

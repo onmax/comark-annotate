@@ -40,7 +40,9 @@ describe("comark-file-tree", () => {
       block(".\n|-- src\n|   |-- index.ts\n|   `-- utils\n|       `-- a.ts\n`-- package.json"),
     );
     const asciiTree = await parse(
-      block(".\n+--- src\n|   +--- index.ts\n|   \\--- utils\n|       \\--- a.ts\n\\--- package.json"),
+      block(
+        ".\n+--- src\n|   +--- index.ts\n|   \\--- utils\n|       \\--- a.ts\n\\--- package.json",
+      ),
     );
     const expected = [
       "file-tree",
