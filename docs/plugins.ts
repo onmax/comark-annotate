@@ -14,6 +14,7 @@ import {
   references,
 } from "../packages/github/src/html.ts";
 import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
+import media, { components as mediaComponents } from "../packages/media/src/html.ts";
 import steps, { components as stepsComponents } from "../packages/steps/src/html.ts";
 import cards, { components as cardsComponents } from "../packages/cards/src/html.ts";
 import badge, { components as badgeComponents } from "../packages/badge/src/html.ts";
@@ -22,10 +23,10 @@ import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts
 import type { PlayConfig } from "./config.ts";
 
 // `download` is off in a browser, which may not download another site's images, so the reader's loads them as links.
+// comark-code comes last, so a highlighter can go just before it and draw the lines it marks.
 export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}) => [
   annotate(),
   carousel(),
-  code(config["comark-code"]),
   charts(),
   chips({ download }),
   diff(),
@@ -35,10 +36,12 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   githubHtml(),
   icon(),
   badge(),
+  media(),
   cards(),
   steps(),
   tabs(),
   zoom(config["comark-zoom"]),
+  code(config["comark-code"]),
 ];
 
 export const components = {
@@ -52,6 +55,7 @@ export const components = {
   ...githubComponents,
   ...iconComponents,
   ...badgeComponents,
+  ...mediaComponents,
   ...cardsComponents,
   ...stepsComponents,
   ...tabsComponents,

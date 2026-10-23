@@ -19,33 +19,62 @@ function splitCommands(line: string) {
   const parts: string[] = [];
   let start = 0;
   let quote: "'" | '"' | undefined;
-  const substitutionQuotes: ("'" | '"' | undefined)[] = [];
-  const backtickQuotes: ("'" | '"' | undefined)[] = [];
+  type Substitution =
+    | { kind: "paren"; depth: number; restore: "'" | '"' | undefined }
+    | { kind: "backtick"; restore: "'" | '"' | undefined };
+  const substitutions: Substitution[] = [];
+
   for (let index = 0; index < line.length; index++) {
     const char = line[index];
-    if (backtickQuotes.length) {
+    const substitution = substitutions.at(-1);
+
+    if (substitution?.kind === "backtick") {
       if (char === "\\") index++;
-      else if (char === "`") quote = backtickQuotes.pop();
+      else if (char === "`") {
+        substitutions.pop();
+        quote = substitution.restore;
+      }
       continue;
     }
+
+    if (substitution?.kind === "paren") {
+      if (quote) {
+        if (char === "\\" && quote === '"') index++;
+        else if (char === quote) quote = undefined;
+        continue;
+      }
+      if (char === "\\") {
+        index++;
+      } else if (char === "(") {
+        substitution.depth++;
+      } else if (char === ")") {
+        if (--substitution.depth === 0) {
+          const finished = substitutions.pop();
+          quote = finished?.restore;
+        }
+      } else if (char === "`" {
+        substitutions.push({ kind: "backtick", restore: quote });
+        quote = undefined;
+      } else if (char === "'" || char === '"') {
+        quote = char;
+      }
+      continue;
+    }
+
     if (char === "$" && line[index + 1] === "(" && quote !== "'") {
-      substitutionQuotes.push(quote);
+      substitutions.push({ kind: "paren", depth: 1, restore: quote });
       quote = undefined;
       index++;
       continue;
     }
     if (char === "`" && quote !== "'") {
-      backtickQuotes.push(quote);
+      substitutions.push({ kind: "backtick", restore: quote });
       quote = undefined;
       continue;
     }
     if (quote) {
       if (char === "\\" && quote === '"') index++;
       else if (char === quote) quote = undefined;
-      continue;
-    }
-    if (char === ")" && substitutionQuotes.length) {
-      quote = substitutionQuotes.pop();
       continue;
     }
     if (char === "'" || char === '"') {
