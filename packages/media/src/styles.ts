@@ -39,6 +39,11 @@ export const css = `@layer comark{${[
   // Over a video, the bar floats above its bottom edge, and fades out while it plays unless the pointer is on it.
   ".cm-video>.cm-bar{position:absolute;inset:auto .5rem .5rem;gap:.5rem;padding:.25rem .5rem .25rem .25rem;background:color-mix(in srgb,var(--_comark-background) 85%,transparent);box-shadow:0 1px 3px rgb(0 0 0/.1);backdrop-filter:blur(8px);transition:opacity .2s}",
   ".cm-video[data-playing]:not(:hover,:focus-within)>.cm-bar{opacity:0}",
+  // Over a picture a filled button reads as a blot, so a video's play button is plain like the others, and every button's
+  // corners follow the bar's.
+  ".cm-video .cm-bar button{border-radius:calc(var(--_comark-radius) - .25rem)}",
+  ".cm-video .cm-play{background:none;color:var(--_comark-foreground)}",
+  ".cm-video .cm-bar button:hover{opacity:1;background:color-mix(in srgb,var(--_comark-foreground) 8%,transparent);color:var(--_comark-foreground)}",
   ":is(.cm-mute,.cm-full){border-radius:calc(var(--_comark-radius) - 2px);background:none;color:var(--_comark-muted)}",
   ":is(.cm-mute,.cm-full):hover{background:var(--_comark-accent);color:var(--_comark-foreground)}",
   ".cm-icon-pause,.cm-icon-muted,.cm-icon-exit,[data-playing] .cm-icon-play,[data-muted] .cm-icon-volume,[data-fullscreen] .cm-icon-full{display:none}",
