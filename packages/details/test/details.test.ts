@@ -117,12 +117,10 @@ describe("comark-details", () => {
   it("preserves Comark blocks nested in raw HTML subtrees", async () => {
     const markdown = `<details>\n<summary>Raw</summary>\n\n::collapsible{name="nested"}\nHidden\n::\n</details>\n\n<div>\n::details{summary="Nested"}\nBody\n::\n</div>`;
     const html = body(await render(markdown));
-    expect(html).toContain('<details><summary>Raw</summary>');
-    expect(html).toContain('<div>');
+    expect(html).toContain("<details><summary>Raw</summary>");
+    expect(html).toContain("<div>");
     expect(html).not.toContain('class="cdt"');
     expect(html).not.toContain('data-variant="collapsible"');
     expect(await issues(markdown)).toEqual([]);
   });
-
 });
-
