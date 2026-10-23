@@ -3921,7 +3921,7 @@ main img {
 }
 
 /* Two to a row, so the playground's column is wider than a section's. */
-.sidebar:has(.pages > .presets) {
+.sidebar:has(.pages-foot .presets) {
   grid-template-columns: 3.25rem 21rem;
 }
 

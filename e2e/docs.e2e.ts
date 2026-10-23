@@ -166,12 +166,12 @@ test("hovering the rail shows every section's name over the pages, without movin
   await expect(label).toHaveCSS("opacity", "0");
 });
 
-test("a package's card copies its install command", async ({ page, context }) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+test("a package's card links to its docs without a copy control", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "List" }).click();
-  await page.getByRole("button", { name: "Copy pnpm add comark-github" }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("pnpm add comark-github");
+  const card = page.locator(".grid a", { hasText: "comark-github" });
+  await expect(card).toHaveAttribute("href", "/github/");
+  await expect(page.getByRole("button", { name: "Copy pnpm add comark-github" })).toHaveCount(0);
 });
 
 test("no page scrolls sideways on a phone", async ({ page }) => {
