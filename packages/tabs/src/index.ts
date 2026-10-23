@@ -9,7 +9,7 @@ import {
   type IconData,
   type Icons,
 } from "comark-icon";
-import { defaultManagers, translate, type PackageManager } from "./npm2yarn.ts";
+import { defaultManagers, hasCommand, translate, type PackageManager } from "./npm2yarn.ts";
 
 export type { PackageManager };
 
@@ -239,10 +239,16 @@ function packageManagers(node: ElementNode, walk: Walk) {
   // The block is written in npm, so npm always keeps a tab when another manager loses one.
   if (failed.size && !blocks.some((block) => block[1].filename === "npm"))
     blocks.unshift(["pre", { ...attrs, filename: "npm" }, ["code", { ...codeAttrs }, source]]);
+  if (!hasCommand(source))
+    walk.issues.push({
+      rule: "comark/tabs/no-npm-command",
+      message: `${name} has no npm or npx command, so every tab shows the same code. Write the commands in npm, such as \`npm install\`.`,
+    });
   for (const [command, managers] of failed)
-    walk.issues.push(
-      `${name}: \`${clip(command)}\` has no ${or.format(managers)} form, so ${managers.length > 1 ? "those tabs are" : "that tab is"} left out. Write the block as a \`::code-group{sync="pm"}\` by hand.`,
-    );
+    walk.issues.push({
+      rule: "comark/tabs/no-manager-form",
+      message: `${name}: \`${clip(command)}\` has no ${or.format(managers)} form, so ${managers.length > 1 ? "those tabs are" : "that tab is"} left out. Write the block as a \`::code-group{sync="pm"}\` by hand.`,
+    });
   node[0] = "code-group";
   node[1] = { sync: "pm" };
   node.splice(2, node.length - 2, ...blocks);

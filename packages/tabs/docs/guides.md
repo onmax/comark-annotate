@@ -63,7 +63,7 @@ The plugin adds a problem with any block to `meta.issues`, as [Validation](/guid
 `::code-group` 1, block 2: a code block needs a label. Put it in brackets after the language: ```bash [npm].
 ```
 
-It reports a tab without a label, two tabs with the same label, an `npm2yarn` command a package manager has no form for, an icon it can't draw (in comark-icon's words), content outside every tab (it doesn't render), anything but code blocks in a code group, a block with no tabs, a `:::tabs-item` outside `::tabs` (it renders as plain content), and a prop the block doesn't read. Each one has its own rule in [Doctor](/doctor/). Rendering never throws.
+It reports a tab without a label, two tabs with the same label, an `npm2yarn` command a package manager has no form for, an `npm2yarn` block with no npm command, an icon it can't draw (in comark-icon's words), content outside every tab (it doesn't render), anything but code blocks in a code group, a block with no tabs, a `:::tabs-item` outside `::tabs` (it renders as plain content), and a prop the block doesn't read. Each one has its own rule in [Doctor](/doctor/). Rendering never throws.
 
 ## Zoom
 

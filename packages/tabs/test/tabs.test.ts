@@ -257,6 +257,19 @@ describe("comark-tabs", () => {
       ]);
     });
 
+    it("names the rule of a command with no form and of a block with no npm command", async () => {
+      const { meta } = await parseMarkdown(
+        "```sh npm2yarn\nnpm ci\n```\n\n```sh npm2yarn\npnpm add duck-feeder\n```",
+        { plugins: [tabs()] },
+      );
+      expect(meta.issueRules).toEqual({
+        '`npm2yarn` block 1: `npm ci` has no pnpm, yarn, or bun form, so those tabs are left out. Write the block as a `::code-group{sync="pm"}` by hand.':
+          "comark/tabs/no-manager-form",
+        "`npm2yarn` block 2 has no npm or npx command, so every tab shows the same code. Write the commands in npm, such as `npm install`.":
+          "comark/tabs/no-npm-command",
+      });
+    });
+
     it("leaves a block inside a code group as one tab, and the code groups numbered as written", async () => {
       const html = await markup(
         "```sh npm2yarn\nnpm i x\n```\n\n::code-group\n```sh [npm] npm2yarn\nnpm i x\n```\n\nText\n::",

@@ -64,6 +64,10 @@ function toBun(command: string) {
   return convert(command, "bun").replace(/^(\s*)bun x /, "$1bunx ");
 }
 
+/** Whether the source has a command a manager could write in its own words. */
+export const hasCommand = (source: string) =>
+  source.split("\n").some((line) => splitCommands(line).some((part) => COMMAND.test(part)));
+
 /** The source in each manager's words, or the npm commands it has no form for. */
 export function translate(source: string, manager: PackageManager) {
   if (manager === "npm") return { code: source, failed: [] };
