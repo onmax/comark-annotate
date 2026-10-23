@@ -57,6 +57,7 @@ const packages = [
   ["comark-steps/html", () => import("comark-steps/html"), []],
   ["comark-cards/html", () => import("comark-cards/html"), []],
   ["comark-badge/html", () => import("comark-badge/html"), []],
+  ["comark-qr/html", () => import("comark-qr/html"), []],
   ["comark-fields/html", () => import("comark-fields/html"), []],
   [
     "comark-details/html",
