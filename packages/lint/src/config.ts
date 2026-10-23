@@ -1,6 +1,7 @@
 import type { LintOptions } from "./index.ts";
 
-export type Config = LintOptions;
+/** Every option but `file`, which names one document. */
+export type Config = Omit<LintOptions, "file">;
 
 /** Types a `lint-comark.config.ts`. Its plugins and components are added to the installed comark-plugins packages. */
 export const defineConfig = (config: Config): Config => config;
@@ -52,6 +53,7 @@ const packages = [
     () => import("comark-reading-time").then((module) => ({ ...module, components: {} })),
     [],
   ],
+  ["comark-file-tree/html", () => import("comark-file-tree/html"), []],
   ["comark-tabs/html", () => import("comark-tabs/html"), ["code-group", "tabs-item"]],
   ["comark-zoom/html", () => import("comark-zoom/html"), []],
 ] as const;
@@ -62,8 +64,10 @@ const missing = (error: unknown, name: string) =>
   error.code === "ERR_MODULE_NOT_FOUND" &&
   error.message.match(/Cannot find package '([^']+)'/)?.[1] === name.split("/", 1)[0];
 
-/** The parse plugins and components of every comark-plugins package installed, plus `config`'s. */
-export async function resolveConfig(config: Config = {}): Promise<Required<LintOptions>> {
+/** The parse plugins and components of every comark-plugins package installed, plus `config`'s, and its other options. */
+export async function resolveConfig(
+  config: Config = {},
+): Promise<Config & Required<Pick<LintOptions, "plugins" | "components">>> {
   const loaded = await Promise.all(
     packages.map(async ([name, load, blocks]) => {
       try {
@@ -77,6 +81,7 @@ export async function resolveConfig(config: Config = {}): Promise<Required<LintO
   const found = loaded.filter((entry) => entry !== undefined);
   const extra = config.components ?? [];
   return {
+    ...config,
     plugins: [...found.map(({ module }) => module.default()), ...(config.plugins ?? [])],
     components: [
       ...found.flatMap(({ module, blocks }) => [...Object.keys(module.components), ...blocks]),

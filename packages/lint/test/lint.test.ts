@@ -426,6 +426,10 @@ describe("lint()", () => {
         "comark/empty-link",
         "lint-comark crashed while checking `comark/empty-link`: Cannot read properties of null (reading 'href').",
       ],
+      [
+        "comark/broken-link",
+        "lint-comark crashed while checking `comark/broken-link`: Cannot read properties of null (reading 'href').",
+      ],
       ["comark/unclosed-block", "`::compare` opened on line 1 is never closed."],
     ]);
   });
@@ -451,6 +455,7 @@ describe("lint-comark CLI", () => {
   it("prints file:line:col, the rule, and the fix, and exits with 1 on any problem", async () => {
     const dir = await mkdtemp(join(tmpdir(), "lint-comark-"));
     await writeFile(join(dir, "ok.md"), `::screenshot{src="a.png" alt="A"}\n::\n`);
+    await writeFile(join(dir, "a.png"), "");
     await writeFile(join(dir, "bad.md"), `# Title\n\n::compare\n`);
     expect((await cli(join(dir, "ok.md"))).stdout).toBe("No problems.\n");
     await expect(cli(join(dir, "*.md"))).rejects.toMatchObject({
@@ -499,6 +504,7 @@ describe("lint-comark/doctor", () => {
       files: {
         "docs/page.md": `# Page\n\n::screnshot{src="a.png"}\n::\n\n[Usage](#usage)\n`,
         "docs/ok.mdc": `# Fine\n`,
+        "docs/a.png": "",
         "node_modules/x/README.md": `::broken\n`,
       },
     });
