@@ -25,7 +25,7 @@ Open the preview on your phone: :qr{value="https://pr-123.preview.example.com"}
 
 The parse plugin encodes `value` with [uqr](https://github.com/unjs/uqr), a zero-dependency ES module, and writes the code as one SVG path, so no renderer encodes anything and the page needs no script. Codes are black on white in both color schemes; set `--cqr-size` to resize them.
 
-The plugin adds every problem to `meta.issues`: a `:qr` with no `value`, and one too long to encode. Each issue names its block and says how to fix it.
+The plugin adds every problem to `meta.issues`: a `:qr` with no `value`, one too long to encode, text in its brackets, and a prop it doesn't read. Each issue names its block and says how to fix it.
 
 ## Renderers
 

@@ -6,13 +6,15 @@ import { checkExample, doctorRules, examplesOf } from "../docs/doctor.ts";
 
 const repo = new URL("../", import.meta.url);
 // These pages show code instead: nothing in this repo still reports an issue without its own rule, so plugin-issue's
-// shows a plugin of your own; downloads depend on the network; and a bad `repo` is a plugin option, not Markdown.
+// shows a plugin of your own; downloads depend on the network; a bad `repo` is a plugin option, not Markdown; and a
+// value too long for a QR code is too long for a page.
 const withoutExamples = new Set([
   "comark/plugin-issue",
   "comark/icon/download-failed",
   "comark/chips/missing-avatar",
   "comark/chips/rate-limited",
   "comark/github/invalid-repo",
+  "comark/qr/value-too-long",
 ]);
 
 describe("Doctor pages", () => {

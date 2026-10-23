@@ -6,7 +6,11 @@ import { encode } from "uqr";
 export type QrMeta = {
   /** One readable sentence per problem with a `:qr`. Empty when the document has none. Other plugins add theirs too. */
   issues: string[];
+  /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
+  issueRules: Record<string, string>;
 };
+
+type Issue = { rule: `comark/qr/${string}`; message: string };
 
 /**
  * What a `:qr` becomes, and all its renderers read: the encoded `value`, the code's `size` in modules, and `path`, its
@@ -22,6 +26,8 @@ const text = (value: unknown) =>
     ? ""
     : // SAFETY: undefined, null, objects, and arrays returned above, so only a string, number, or boolean is left.
       String(value as string | number | boolean).trim();
+// Comments render nothing, so they aren't content a `:qr` would drop.
+const isContent = (node: Node) => (Array.isArray(node) ? node[0] !== null : node.trim() !== "");
 const errorText = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
 /** Each row's runs of dark modules as one rectangle, so a code is one short path. */
@@ -37,13 +43,28 @@ function pathOf(data: boolean[][]) {
   return path;
 }
 
-function qr(node: ElementNode, number: number, data: Data, issues: string[]): QrAttributes {
+function qr(node: ElementNode, number: number, data: Data, issues: Issue[]): QrAttributes {
   const name = `\`:qr\` ${number}`;
+  const [, , ...children] = node;
+  if (children.some(isContent))
+    issues.push({
+      rule: "comark/qr/content-dropped",
+      message: `${name} drops the text in its brackets. Put the link in \`value\`, and write any text outside the \`:qr\`.`,
+    });
+  for (const key of Object.keys(node[1])) {
+    const prop = key.replace(/^:/, "");
+    if (prop !== "value" && prop !== "id" && prop !== "class")
+      issues.push({
+        rule: "comark/qr/unknown-prop",
+        message: `${name}: \`${prop}\` isn't a prop of \`:qr\`, so it's ignored. Use \`value\`.`,
+      });
+  }
   const value = text(resolveAttributes(node[1], data, { parseJson: true }).value);
   if (!value) {
-    issues.push(
-      `${name} needs a \`value\` to encode, such as \`:qr{value="https://example.com"}\`.`,
-    );
+    issues.push({
+      rule: "comark/qr/missing-value",
+      message: `${name} needs a \`value\` to encode, such as \`:qr{value="https://example.com"}\`.`,
+    });
     return {};
   }
   try {
@@ -51,7 +72,10 @@ function qr(node: ElementNode, number: number, data: Data, issues: string[]): Qr
     const code = encode(value, { border: 2, ecc: "M" });
     return { value, size: code.size, path: pathOf(code.data) };
   } catch (error) {
-    issues.push(`${name} can't encode its \`value\` (${errorText(error)}). Shorten it.`);
+    issues.push({
+      rule: "comark/qr/value-too-long",
+      message: `${name} can't encode its \`value\` (${errorText(error)}). Shorten it.`,
+    });
     return {};
   }
 }
@@ -65,7 +89,7 @@ export default defineComarkPlugin<void, QrMeta>(() => ({
   post(state) {
     const { tree } = state;
     const data: Data = { frontmatter: tree.frontmatter, meta: tree.meta, data: {}, props: {} };
-    const issues: string[] = [];
+    const issues: Issue[] = [];
     let count = 0;
     const walk = (nodes: Node[], start: number) => {
       for (let index = start; index < nodes.length; index++) {
@@ -80,6 +104,10 @@ export default defineComarkPlugin<void, QrMeta>(() => ({
       }
     };
     walk(tree.nodes, 0);
-    tree.meta.issues = [...(tree.meta.issues ?? []), ...issues];
+    tree.meta.issues = [...(tree.meta.issues ?? []), ...issues.map((issue) => issue.message)];
+    tree.meta.issueRules = {
+      ...tree.meta.issueRules,
+      ...Object.fromEntries(issues.map((issue) => [issue.message, issue.rule])),
+    };
   },
 }));

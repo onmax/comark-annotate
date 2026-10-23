@@ -58,6 +58,22 @@ describe("comark-qr", () => {
     expect(await render(":qr")).not.toContain("cqr");
   });
 
+  it("names each issue's rule, and reports text in its brackets and props it doesn't read", async () => {
+    const { meta, nodes } = await parseMarkdown(
+      ':qr[Scan me]{value="https://example.com" url="https://example.com"} :qr',
+      { plugins: [qr()] },
+    );
+    expect(meta.issueRules).toEqual({
+      "`:qr` 1 drops the text in its brackets. Put the link in `value`, and write any text outside the `:qr`.":
+        "comark/qr/content-dropped",
+      "`:qr` 1: `url` isn't a prop of `:qr`, so it's ignored. Use `value`.":
+        "comark/qr/unknown-prop",
+      '`:qr` 2 needs a `value` to encode, such as `:qr{value="https://example.com"}`.':
+        "comark/qr/missing-value",
+    });
+    expect(JSON.stringify(nodes)).not.toContain("Scan me");
+  });
+
   it("keeps the issues other plugins reported", async () => {
     const earlier = {
       name: "earlier",
