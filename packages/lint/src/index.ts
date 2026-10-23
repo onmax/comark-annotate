@@ -10,9 +10,9 @@ export { defineConfig, resolveConfig, type Config } from "./config.ts";
 export type Rule = keyof typeof catalog;
 
 /** Every rule, with what it checks. */
+// SAFETY: built from every entry of the catalog, whose keys are exactly the rules.
 export const rules = Object.fromEntries(
   Object.entries(catalog).map(([rule, { title }]) => [rule, title]),
-  // SAFETY: built from every entry of the catalog, whose keys are exactly the rules.
 ) as Record<Rule, string>;
 
 export type Diagnostic = {
@@ -512,18 +512,24 @@ function unsafeUrls(nodes: Node[], source: Source): Diagnostic[] {
 }
 
 function duplicateIds(nodes: Node[], source: Source): Diagnostic[] {
-  const seen = new Set<string>();
-  const locate = locator(source);
-  const found: Diagnostic[] = [];
-  for (const [tag, attributes] of elements(nodes)) {
+  const tagged = [...elements(nodes)].flatMap(([tag, attributes]) => {
     const id = text(attributes.id);
-    if (!id) continue;
-    if (!seen.has(id)) {
-      seen.add(id);
-      continue;
-    }
-    // Comark numbers a heading whose id is taken, so a repeat is always one written as `{#id}`.
-    const { line, column } = locate(`#${id}`);
+    return id ? [{ tag, id }] : [];
+  });
+  const total = new Map<string, number>();
+  for (const { id } of tagged) total.set(id, (total.get(id) ?? 0) + 1);
+  const seen = new Map<string, number>();
+  const found: Diagnostic[] = [];
+  for (const { tag, id } of tagged) {
+    const index = seen.get(id) ?? 0;
+    seen.set(id, index + 1);
+    if (!index) continue;
+    // Comark numbers a heading whose id is taken, so the repeats are the ids written as `{#id}`, after the heading's.
+    let writtenIds = 0;
+    while (find(source, `{#${id}`, { nth: writtenIds, from: source.body })) writtenIds++;
+    const nth = index - (total.get(id)! - writtenIds);
+    const at = nth >= 0 ? find(source, `{#${id}`, { nth, from: source.body }) : undefined;
+    const { line, column } = at ?? { line: source.body + 1, column: undefined };
     found.push({
       rule: "comark/duplicate-id",
       line,
@@ -540,14 +546,15 @@ function missingAlts(nodes: Node[], source: Source): Diagnostic[] {
   const found: Diagnostic[] = [];
   for (const [tag, attributes] of elements(nodes)) {
     const src = text(attributes.src);
-    if (tag !== "img" || !src || text(attributes.alt)) continue;
+    // An empty `alt`, written `{alt=""}` or in HTML, marks an image as decoration on purpose.
+    if (tag !== "img" || !src || attributes.alt !== undefined) continue;
     const { line, column } = locate(`](${src}`, src);
     found.push({
       rule: "comark/missing-alt",
       line,
       column,
       message: `The image \`${src}\` on line ${line} has no alt text, so screen readers skip it or read its file name.`,
-      fix: `Describe what it shows between the brackets, as in \`![Pigeons on the roof](${src})\`.`,
+      fix: `Describe what it shows between the brackets, as in \`![Pigeons on the roof](${src})\`, or add \`{alt=""}\` after it if it's only decoration.`,
     });
   }
   return found;
@@ -558,8 +565,7 @@ function emptyLinks(nodes: Node[], source: Source): Diagnostic[] {
   const found: Diagnostic[] = [];
   for (const [tag, attributes, ...children] of elements(nodes)) {
     const href = text(attributes.href);
-    if (tag !== "a" || !href || children.some((child) => isElement(child) || text(child)))
-      continue;
+    if (tag !== "a" || !href || children.some((child) => isElement(child) || text(child))) continue;
     const { line, column } = locate(`](${href}`, href);
     found.push({
       rule: "comark/empty-link",
@@ -580,15 +586,18 @@ function pluginIssues(
   const issues = Array.isArray(meta.issues)
     ? meta.issues.flatMap((issue) => text(issue) || [])
     : [];
-  const named = meta.issueRules instanceof Object ? (meta.issueRules as Record<string, unknown>) : {};
+  const named: Record<string, unknown> =
+    meta.issueRules instanceof Object ? { ...meta.issueRules } : {};
   const locate = locator(source);
   return issues.map((issue) => {
     const rule = text(named[issue]);
+    const known = Object.hasOwn(catalog, rule);
     const { line, column } = place(issue, blocks, locate);
     const sentences = issue.split(/(?<=[.!?])\s+(?=[A-Z`])/);
     return {
       // A rule this version doesn't know, from a newer plugin, still reports.
-      rule: Object.hasOwn(catalog, rule) ? (rule as Rule) : "comark/plugin-issue",
+      // SAFETY: `known` says the catalog, whose keys are exactly the rules, has it.
+      rule: known ? (rule as Rule) : "comark/plugin-issue",
       line,
       column,
       message: sentences.length > 1 ? sentences.slice(0, -1).join(" ") : issue,

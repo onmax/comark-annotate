@@ -410,7 +410,9 @@ async function parsePage(slug: string, section: Section) {
   // A rule page is named by its rule, and the catalog says what it asks for.
   const rule = doctorRule(slug);
   if (rule && Object.keys(document.frontmatter).length)
-    throw new Error(`${file} takes its title from the rule's catalog entry; remove its frontmatter.`);
+    throw new Error(
+      `${file} takes its title from the rule's catalog entry; remove its frontmatter.`,
+    );
   const [title, description, tagline, install, headline] = [
     "title",
     "description",

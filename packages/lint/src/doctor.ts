@@ -6,7 +6,7 @@ import {
   defineRulePack,
 } from "vite-doctor/extension";
 import { lint, resolveConfig, type Config, type Diagnostic, type Rule } from "./index.ts";
-import { catalog } from "./rules/index.ts";
+import { catalog, type RuleInfo } from "./rules/index.ts";
 
 export type DoctorOptions = Config & {
   /** Markdown to check, relative to the project root. Default `**\/*.{md,mdc}`. */
@@ -17,10 +17,11 @@ export type DoctorOptions = Config & {
 
 // SAFETY: built from every entry of the catalog, whose keys are exactly the rules.
 const ids = Object.keys(catalog) as Rule[];
-const ruleOf = new Map(ids.map((id) => [catalog[id].code, id]));
+const info: Record<Rule, RuleInfo> = catalog;
+const ruleOf = new Map<string, Rule>(ids.map((id) => [info[id].code, id]));
 
 const diagnostics = defineDoctorDiagnostics(
-  ids.map((ruleId) => ({ code: catalog[ruleId].code, ruleId })),
+  ids.map((ruleId) => ({ code: info[ruleId].code, ruleId })),
   {
     docsBase: (code) => {
       const rule = ruleOf.get(code);
@@ -63,9 +64,9 @@ export default function comark(options: DoctorOptions = {}) {
     createRule({
       meta: {
         id,
-        title: catalog[id].title,
+        title: info[id].title,
         category: "content",
-        severity: catalog[id].severity ?? "warn",
+        severity: info[id].severity ?? "warn",
         execution: "manifest",
         // The result depends on the comark plugins installed, which the Rule imports instead of reading.
         cacheScope: "none",
@@ -80,7 +81,7 @@ export default function comark(options: DoctorOptions = {}) {
                 if (diagnostic.rule !== id) continue;
                 const start = (starts[diagnostic.line - 1] ?? 0) + (diagnostic.column ?? 1) - 1;
                 ctx.report(
-                  diagnostics.diagnostics[catalog[id].code]({
+                  diagnostics.diagnostics[info[id].code]({
                     why: diagnostic.message,
                     fix: diagnostic.fix,
                   }),

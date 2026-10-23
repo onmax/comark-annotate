@@ -5,12 +5,21 @@ import { describe, expect, it } from "vite-plus/test";
 import { checkExample, doctorRules, examplesOf } from "../docs/doctor.ts";
 
 const repo = new URL("../", import.meta.url);
-// Nothing in this repo still reports an issue without its own rule, so this page shows a plugin of your own instead.
-const withoutExamples = new Set(["comark/plugin-issue"]);
+// These pages show code instead: nothing in this repo still reports an issue without its own rule, so plugin-issue's
+// shows a plugin of your own; downloads depend on the network; and a bad `repo` is a plugin option, not Markdown.
+const withoutExamples = new Set([
+  "comark/plugin-issue",
+  "comark/icon/download-failed",
+  "comark/chips/missing-avatar",
+  "comark/chips/rate-limited",
+  "comark/github/invalid-repo",
+]);
 
 describe("Doctor pages", () => {
   it("has one page per rule and no page without one", () => {
-    const pages = (readdirSync(new URL("docs/pages/doctor/", repo), { recursive: true }) as string[])
+    const pages = (
+      readdirSync(new URL("docs/pages/doctor/", repo), { recursive: true }) as string[]
+    )
       .filter((file) => file.endsWith(".md") && file !== "index.md")
       .map((file) => `doctor/${file.replace(/\.md$/, "")}`)
       .sort();

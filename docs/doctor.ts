@@ -5,15 +5,19 @@ import { fileURLToPath } from "node:url";
 import type { ElementNode, Node } from "comark";
 import { parseMarkdown } from "comark";
 import { textContent } from "comark/utils";
+import { icons as lucide } from "@iconify-json/lucide";
+import cards from "../packages/cards/src/index.ts";
+import icon, { createIcons } from "../packages/icon/src/index.ts";
 import include from "../packages/include/src/index.ts";
 import { lint, type Diagnostic, type Rule } from "../packages/lint/src/index.ts";
-import { catalog } from "../packages/lint/src/rules/index.ts";
+import { catalog, type RuleInfo } from "../packages/lint/src/rules/index.ts";
+import tabs from "../packages/tabs/src/index.ts";
 import { browserPlugins, components } from "./plugins.ts";
 
 const repo = new URL("../", import.meta.url);
 
 /** Every rule, in the catalog's order, with its page's slug under the site and its group in the column. */
-export const doctorRules = Object.entries(catalog).map(([id, info]) => {
+export const doctorRules = Object.entries(catalog as Record<string, RuleInfo>).map(([id, info]) => {
   // SAFETY: the catalog's keys are exactly the rules.
   const rule = id as Rule;
   const path = rule.replace(/^comark\//, "");
@@ -23,13 +27,24 @@ export const doctorRules = Object.entries(catalog).map(([id, info]) => {
 
 export const doctorRule = (slug: string) => doctorRules.find((entry) => entry.slug === slug);
 
-// The include examples read files from docs/doctor-include/, outside the pages so none is linted or built as one.
+// Icons come from lucide alone, so an example's icon problem doesn't depend on the network. The include examples read
+// files from docs/doctor-include/, outside the pages so none is linted or built as one.
+const icons = createIcons({ collections: { lucide }, fetch: false });
+const offline: Record<string, ReturnType<typeof browserPlugins>[number]> = {
+  "comark-icon": icon(icons),
+  "comark-tabs": tabs({ iconResolver: icons }),
+  "comark-cards": cards({ iconResolver: icons }),
+};
 const plugins = () => [
-  ...browserPlugins({}, { download: false }),
+  ...browserPlugins({}, { download: false }).map((plugin) => offline[plugin.name] ?? plugin),
   include({ root: fileURLToPath(new URL("docs/doctor-include/", repo)) }),
 ];
+// comark-tabs turns `::code-group` into `::tabs` and comark-include replaces `:include` while parsing, so no renderer
+// has them.
+const known = [...Object.keys(components), "code-group", "tabs-item", "include"];
 
-export const lintExample = (source: string) => lint(source, { plugins: plugins(), components });
+export const lintExample = (source: string) =>
+  lint(source, { plugins: plugins(), components: known });
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
 
