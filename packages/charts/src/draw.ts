@@ -397,11 +397,11 @@ function dumbbell(chart: Chart, spec: TopLevelSpec) {
     for (const row of rows) {
       if (!row.length) continue;
       const least = Math.min(...row);
-      const need = (guess(format(least), 12) + 24) / width;
-      if (need < 1) nextLow = Math.min(nextLow, (least - need * high) / (1 - need));
+      const need = Math.min(0.9, (guess(format(least), 12) + 24) / width);
+      nextLow = Math.min(nextLow, (least - need * high) / (1 - need));
       const most = Math.max(...row);
-      const highNeed = (guess(format(most), 12) + 24) / width;
-      if (highNeed < 1) nextHigh = Math.max(nextHigh, (most - highNeed * low) / (1 - highNeed));
+      const highNeed = Math.min(0.9, (guess(format(most), 12) + 24) / width);
+      nextHigh = Math.max(nextHigh, (most - highNeed * low) / (1 - highNeed));
     }
     low = nextLow;
     high = nextHigh;
