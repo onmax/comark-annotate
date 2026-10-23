@@ -419,8 +419,24 @@ const pagesOf = (section: Section) =>
     pages: list.slugs.flatMap((slug) => parsed.filter((page) => page.slug === slug)),
   }));
 
-// The playground's presets: every page's top examples, under the section they come from.
-const presets = parsed.flatMap((page) =>
+// Each recipe's example. It uses several packages at once, so it shows under Recipes in the playground and gets
+// its own card on the landing's canvas, which links to the recipe and copies its install command.
+const recipes = parsed
+  .filter((page) => page.slug.startsWith("recipes/"))
+  .flatMap((page) =>
+    page.document.nodes
+      .filter(isElement)
+      .filter(([tag]) => tag === "example")
+      .slice(0, 1)
+      .map(([, attrs, ...children]) => ({
+        page,
+        label: str(attrs.label) || page.title,
+        source: textContent(children.find(isPre) ?? ["pre", {}]),
+      })),
+  );
+
+// The playground's presets: every page's top examples, under the section they come from, then the recipes.
+const packagePresets = parsed.flatMap((page) =>
   page.document.nodes
     .filter(isElement)
     .filter(([tag]) => tag === "examples")
@@ -437,6 +453,16 @@ const presets = parsed.flatMap((page) =>
     }))
     .filter((preset) => playable(preset.source)),
 );
+const presets = [
+  ...packagePresets,
+  ...recipes.map(({ page, label, source }) => ({
+    id: page.slug.replace("/", "-"),
+    label,
+    group: "Recipes",
+    npm: "",
+    source,
+  })),
+];
 // The size of each PNG the pages show, read from its header, so a still reserves its room before the image loads.
 const publicDir = new URL("public/", root);
 const imageSizes = new Map(
@@ -547,9 +573,9 @@ async function demoCard({ pkg, label, source, height, variants = [] }: Demo) {
   const screen = variants.length
     ? `<div class="demo-variants">${[page, ...variants].map((still, i) => `<div class="demo-variant"${i ? "" : " data-on"}>${still}</div>`).join("")}</div>`
     : page;
-  const tag = label ? ` demo-${pkg.slug}-${slugify(label)}` : "";
+  const tag = label ? ` demo-${slugify(pkg.slug)}-${slugify(label)}` : "";
   return (
-    `<article class="demo demo-${pkg.slug}${tag}" data-package="${pkg.slug}"${height ? ` data-h="${height}" style="height:${height}px"` : ""}>` +
+    `<article class="demo demo-${slugify(pkg.slug)}${tag}" data-package="${pkg.slug}"${height ? ` data-h="${height}" style="height:${height}px"` : ""}>` +
     `<a class="demo-link" href="${href(pkg.slug)}" draggable="false" tabindex="-1">${siteIcon(pkg.icon!, 15)}<strong>${escapeHtml(pkg.label)}</strong>${label ? `<span>${escapeHtml(label.toLowerCase())}</span>` : ""}${siteIcon("arrow-up-right", 14)}</a>` +
     `<button type="button" class="demo-md" tabindex="-1" title="Show the Markdown" aria-label="Show the Markdown">${siteIcon("code-xml", 15)}</button>` +
     `<button type="button" class="demo-copy" data-copy="pnpm add ${escapeHtml(pkg.npm!)}" tabindex="-1" title="Copy pnpm add ${escapeHtml(pkg.npm!)}">${copyIcon}${checkIcon}</button>` +
@@ -606,7 +632,21 @@ const packageGrid: NodeHandler = async ([, , ...children]) => {
   const others: Demo[] = pageExamples.filter(
     (example) => example.pkg.slug !== "charts" && !shown.has(example.source.trim()),
   );
-  const demos = await Promise.all(deal([...landingDemos, ...others]).map(demoCard));
+  // A recipe's card is cut to the height of a package's, and its page shows the rest.
+  const recipeCards: Demo[] = recipes.map(({ page, source }) => ({
+    pkg: {
+      slug: page.slug,
+      label: "recipe",
+      group: "",
+      icon: "book-open",
+      npm: page.install.replace(/^pnpm add /, ""),
+      lists: [],
+    },
+    label: page.slug.slice("recipes/".length),
+    source,
+    height: 300,
+  }));
+  const demos = await Promise.all(deal([...landingDemos, ...others, ...recipeCards]).map(demoCard));
   const list = sections
     .filter((section) => section.npm)
     .map(
