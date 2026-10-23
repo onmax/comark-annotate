@@ -5,7 +5,11 @@ import { resolveAttributes } from "comark/render";
 export type FieldsMeta = {
   /** One readable sentence per problem with a `::field`. Empty when the document has none. Other plugins add theirs too. */
   issues: string[];
+  /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
+  issueRules: Record<string, string>;
 };
+
+type Issue = { rule: `comark/fields/${string}`; message: string };
 
 /**
  * What a `::field` becomes: its `name`, `type`, `required` as `"true"`, and `default` as written, all strings. Its
@@ -30,15 +34,27 @@ const text = (value: unknown) =>
 // Comark writes a bare `required` as `:required="true"`, which resolves to `true`.
 const isOn = (value: unknown) => value === true || value === "true" || value === "";
 
-function field(node: ElementNode, number: number, data: Data, issues: string[]) {
+const PROPS = ["name", "type", "required", "default", "description"];
+
+function field(node: ElementNode, number: number, data: Data, issues: Issue[]) {
   const attrs = resolveAttributes(node[1], data, { parseJson: true });
   const result: Record<string, string> = {};
   const name = text(attrs.name);
+  const label = `\`::field\` ${number}${name ? ` (\`${name}\`)` : ""}`;
   if (name) result.name = name;
   else
-    issues.push(
-      `\`::field\` ${number}${attrs.type ? ` (a ${text(attrs.type)})` : ""} has no \`name\`, so readers can't tell what it describes. Write \`::field{name="..."}\`.`,
-    );
+    issues.push({
+      rule: "comark/fields/missing-name",
+      message: `\`::field\` ${number}${attrs.type ? ` (a ${text(attrs.type)})` : ""} has no \`name\`, so readers can't tell what it describes. Write \`::field{name="..."}\`.`,
+    });
+  for (const key of Object.keys(node[1])) {
+    const prop = key.replace(/^:/, "");
+    if (!PROPS.includes(prop) && prop !== "id" && prop !== "class")
+      issues.push({
+        rule: "comark/fields/unknown-prop",
+        message: `${label}: \`${prop}\` isn't a prop of \`::field\`, so it's ignored. Use \`name\`, \`type\`, \`required\`, \`default\`, or \`description\`.`,
+      });
+  }
   const type = text(attrs.type);
   if (type) result.type = type;
   if (isOn(attrs.required)) result.required = "true";
@@ -46,6 +62,11 @@ function field(node: ElementNode, number: number, data: Data, issues: string[]) 
   if (fallback) result.default = fallback;
   const description = text(attrs.description);
   if (description && !childrenOf(node).length) node.push(["p", {}, description]);
+  else if (description)
+    issues.push({
+      rule: "comark/fields/description-ignored",
+      message: `${label} has content, so its \`description\` prop is ignored. Write the description as the field's first paragraph instead.`,
+    });
   node[1] = result;
 }
 
@@ -58,7 +79,7 @@ export default defineComarkPlugin<void, FieldsMeta>(() => ({
   post(state) {
     const { tree } = state;
     const data: Data = { frontmatter: tree.frontmatter, meta: tree.meta, data: {}, props: {} };
-    const issues: string[] = [];
+    const issues: Issue[] = [];
     let count = 0;
     const walk = (nodes: Node[]) => {
       for (const node of nodes) {
@@ -69,6 +90,10 @@ export default defineComarkPlugin<void, FieldsMeta>(() => ({
       }
     };
     walk(tree.nodes);
-    tree.meta.issues = [...(tree.meta.issues ?? []), ...issues];
+    tree.meta.issues = [...(tree.meta.issues ?? []), ...issues.map((issue) => issue.message)];
+    tree.meta.issueRules = {
+      ...tree.meta.issueRules,
+      ...Object.fromEntries(issues.map((issue) => [issue.message, issue.rule])),
+    };
   },
 }));

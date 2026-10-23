@@ -61,6 +61,21 @@ describe("comark-fields", () => {
     ]);
   });
 
+  it("names each issue's rule, and reports props it doesn't use", async () => {
+    const { meta } = await parseMarkdown(
+      '::field{type="string"}\n::\n\n::field{name="pond" typ="string" description="Where ducks live."}\nThe pond to feed.\n::',
+      { plugins: [fields()] },
+    );
+    expect(meta.issueRules).toEqual({
+      '`::field` 1 (a string) has no `name`, so readers can\'t tell what it describes. Write `::field{name="..."}`.':
+        "comark/fields/missing-name",
+      "`::field` 2 (`pond`): `typ` isn't a prop of `::field`, so it's ignored. Use `name`, `type`, `required`, `default`, or `description`.":
+        "comark/fields/unknown-prop",
+      "`::field` 2 (`pond`) has content, so its `description` prop is ignored. Write the description as the field's first paragraph instead.":
+        "comark/fields/description-ignored",
+    });
+  });
+
   it("adds its issues to the ones other plugins found", async () => {
     const before = defineComarkPlugin(() => ({
       name: "before",

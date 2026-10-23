@@ -29,4 +29,4 @@ This is Nuxt UI's syntax. Nuxt UI's field has no `default`, so it ignores that p
 
 ## Issues
 
-The plugin adds a problem to `meta.issues`, as [Validation](/guide/validation/) describes, for a field without a `name`. The issue names the field, by its type when it has one, and says how to fix it.
+The plugin adds a problem to `meta.issues`, as [Validation](/guide/validation/) describes, for a field without a `name`, a prop it doesn't read, and a `description` prop on a field with content, which hides it. Each issue names the field, by its name or else its type, and says how to fix it. Each one has its own rule in [Doctor](/doctor/).
