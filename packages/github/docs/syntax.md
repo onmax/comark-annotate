@@ -18,7 +18,7 @@ description: Callouts, references, and the HTML GitHub allows.
 | `WARNING` | A risk that needs their attention now |
 | `CAUTION` | An action with consequences they can't undo |
 
-The marker is case-insensitive. Callouts work inside lists and other blocks.
+The marker is case-insensitive. Callouts work inside lists and other blocks. A quote marked with any other type, such as `[!INFO]`, stays a plain quote, and `meta.issues` names it, with its own rule in [Doctor](/doctor/).
 
 ## References
 

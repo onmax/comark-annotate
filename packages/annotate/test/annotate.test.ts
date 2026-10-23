@@ -588,4 +588,28 @@ describe("comark-annotate", () => {
       'screenshot "a\\"b.png": `alt` is required. Describe what the screenshot shows.',
     ]);
   });
+
+  it("names each issue's rule for the linter", async () => {
+    const { document } = await run(
+      `::compare
+:::screenshot{src="a.png" alt="A" colour="red"}
+::::annotation{x=0.2 y=0.3 w=0.15 h=0.1}
+Duck
+::::
+:::
+:::screenshot{src="a.png" alt="B"}
+:::
+::`,
+    );
+    expect(document.meta.issues).toEqual([
+      'screenshot 1 ("A"): `colour` isn\'t a prop of `::screenshot`. Valid props: src, alt, title, href, viewport.',
+      'screenshot 1 ("A"), annotation 1: `x`, `y`, `w`, and `h` are all 1 or less, so the box is a speck in the top left corner. They\'re percentages: multiply each by 100, so x=0.25 becomes x=25.',
+      'compare 1: both screenshots show "a.png", so there\'s no change to see. Point the after screenshot at the new capture.',
+    ]);
+    expect(Object.values(document.meta.issueRules)).toEqual([
+      "comark/annotate/unknown-prop",
+      "comark/annotate/box-as-fraction",
+      "comark/annotate/compare-same-image",
+    ]);
+  });
 });

@@ -79,6 +79,23 @@ describe("comark-cards", () => {
     ]);
   });
 
+  it("names each issue's rule in meta.issueRules, with comark-icon's for icons", async () => {
+    const { meta } = await parseMarkdown(
+      '::card{title="A" color="pink" link="/a"}\n::\n\n::card{href="/b"}\n::\n\n::columns{columns="3"}\nA\n::\n\n::card{icon="lucide:nope"}\n::',
+      { plugins: [plugin()] },
+    );
+    expect(meta.issues.map((issue: string) => meta.issueRules[issue])).toEqual([
+      "comark/cards/unknown-prop",
+      "comark/cards/invalid-color",
+      "comark/cards/href-instead-of-to",
+      "comark/cards/unknown-prop",
+      "comark/icon/unknown-icon",
+    ]);
+    expect(meta.issues[0]).toBe(
+      "`::card` 1 (\"A\"): `link` isn't a prop of `::card`, so it's ignored. Use `title`, `description`, `icon`, `to`, `target`, or `color`.",
+    );
+  });
+
   it("adds its issues to the ones other plugins found", async () => {
     const before = defineComarkPlugin(() => ({
       name: "before",

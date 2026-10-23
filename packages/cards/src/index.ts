@@ -2,7 +2,13 @@ import type { ElementNode, Node } from "comark";
 import { defineComarkPlugin } from "comark";
 import { resolveAttributes } from "comark/render";
 import { textContent } from "comark/utils";
-import { createIcons, describeIconProblem, type IconData, type Icons } from "comark-icon";
+import {
+  createIcons,
+  describeIconProblem,
+  iconProblemRule,
+  type IconData,
+  type Icons,
+} from "comark-icon";
 
 export type CardsOptions = {
   /**
@@ -15,7 +21,11 @@ export type CardsOptions = {
 export type CardsMeta = {
   /** One readable sentence per problem with a `::card` or `::columns`. Empty when there are none. Other plugins add theirs too. */
   issues: string[];
+  /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
+  issueRules: Record<string, string>;
 };
+
+type Issue = { rule: `comark/cards/${string}` | `comark/icon/${string}`; message: string };
 
 /** Nuxt UI's colors, which tint a card's icon and border. */
 export const colors = [
@@ -74,7 +84,7 @@ const unwrap = (nodes: Node[]) =>
 
 interface Walk {
   data: Data;
-  issues: string[];
+  issues: Issue[];
   icons: { card: ElementNode; value: string; name: string }[];
   cards: number;
   columns: number;
@@ -82,6 +92,22 @@ interface Walk {
 
 const resolve = (node: ElementNode, walk: Walk) =>
   resolveAttributes(node[1], walk.data, { parseJson: true });
+
+const CARD_PROPS = ["title", "description", "icon", "to", "href", "target", "color"];
+
+// A prop that isn't one, such as `link` or `columns`, is dropped without a trace, so each one is named.
+function unknownProps(node: ElementNode, name: string, block: string, props: string[], walk: Walk) {
+  const known = props.flatMap((prop) => (prop === "href" ? [] : [`\`${prop}\``]));
+  const list = known.length > 1 ? `${known.slice(0, -1).join(", ")}, or ${known.at(-1)}` : known[0];
+  for (const key of Object.keys(node[1])) {
+    const prop = key.replace(/^:/, "");
+    if (!props.includes(prop) && prop !== "id" && prop !== "class")
+      walk.issues.push({
+        rule: "comark/cards/unknown-prop",
+        message: `${name}: \`${prop}\` isn't a prop of \`${block}\`, so it's ignored. Use ${list}.`,
+      });
+  }
+}
 
 function card(node: ElementNode, walk: Walk) {
   const attrs = resolve(node, walk);
@@ -93,26 +119,32 @@ function card(node: ElementNode, walk: Walk) {
   const title = slot ? unwrap(childrenOf(slot)) : text(attrs.title) ? [text(attrs.title)] : [];
   const words = clip(textContent(["p", {}, ...title]));
   const name = `\`::card\` ${++walk.cards}${words ? ` ("${words}")` : ""}`;
+  unknownProps(node, name, "::card", CARD_PROPS, walk);
   const description = text(attrs.description);
   if (!content.some(isContent) && description) content.push(["p", {}, description]);
   const written = text(attrs.color);
   const result: Record<string, string> = {};
   result.color = isColor(written) ? written : "primary";
   if (written && !isColor(written))
-    walk.issues.push(
-      `${name}: \`color\` is "${clip(written)}", so it shows as primary. Write one of ${colors.join(", ")}.`,
-    );
+    walk.issues.push({
+      rule: "comark/cards/invalid-color",
+      message: `${name}: \`color\` is "${clip(written)}", so it shows as primary. Write one of ${colors.join(", ")}.`,
+    });
   let to = text(attrs.to);
   const href = text(attrs.href);
   if (href && !to) {
-    walk.issues.push(
-      `${name}: Nuxt UI links a card with \`to\`, so it ignores \`href\`. Write \`to="${clip(href)}"\` instead.`,
-    );
+    walk.issues.push({
+      rule: "comark/cards/href-instead-of-to",
+      message: `${name}: Nuxt UI links a card with \`to\`, so it ignores \`href\`. Write \`to="${clip(href)}"\` instead.`,
+    });
     to = href;
   }
   // A `javascript:` link would run on a click anywhere on the card.
   if (/^\s*(?:javascript|vbscript|data):/i.test(to)) {
-    walk.issues.push(`${name}: \`to\` must be a page or a web address, so it isn't a link.`);
+    walk.issues.push({
+      rule: "comark/cards/unsafe-link",
+      message: `${name}: \`to\` must be a page or a web address, so it isn't a link.`,
+    });
     to = "";
   }
   if (to) {
@@ -131,13 +163,15 @@ function card(node: ElementNode, walk: Walk) {
 
 function columns(node: ElementNode, walk: Walk) {
   const name = `\`::columns\` ${++walk.columns}`;
+  unknownProps(node, name, "::columns", ["cols"], walk);
   const written = text(resolve(node, walk).cols);
   let cols = "2";
   if (/^[1-6]$/.test(written)) cols = written;
   else if (written)
-    walk.issues.push(
-      `${name}: \`cols\` is "${clip(written)}", so it shows 2 columns. Write a number from 1 to 6.`,
-    );
+    walk.issues.push({
+      rule: "comark/cards/invalid-cols",
+      message: `${name}: \`cols\` is "${clip(written)}", so it shows 2 columns. Write a number from 1 to 6.`,
+    });
   // Each block is a cell, unless `:::column` groups several into one.
   const cells = childrenOf(node)
     .filter(isContent)
@@ -147,7 +181,10 @@ function columns(node: ElementNode, walk: Walk) {
         : ["column", {}, child],
     );
   if (!cells.length)
-    walk.issues.push(`${name} is empty. Put a block inside for each column, or remove it.`);
+    walk.issues.push({
+      rule: "comark/cards/empty-columns",
+      message: `${name} is empty. Put a block inside for each column, or remove it.`,
+    });
   node[1] = { cols };
   node.splice(2, node.length - 2, ...cells);
 }
@@ -169,7 +206,10 @@ async function addIcons(walk: Walk, resolver: Icons) {
     const icon = resolved.get(value);
     if (!icon) continue;
     if ("problem" in icon)
-      walk.issues.push(`${name}, icon "${clip(value)}": ${describeIconProblem(value, icon)}`);
+      walk.issues.push({
+        rule: iconProblemRule(icon),
+        message: `${name}, icon "${clip(value)}": ${describeIconProblem(value, icon)}`,
+      });
     else node[1].icon = icon;
   }
 }
@@ -193,7 +233,14 @@ export default defineComarkPlugin<CardsOptions, CardsMeta>((options = {}) => {
       };
       transform(tree.nodes, walk);
       await addIcons(walk, resolver);
-      tree.meta.issues = [...(tree.meta.issues ?? []), ...walk.issues];
+      tree.meta.issues = [
+        ...(tree.meta.issues ?? []),
+        ...walk.issues.map((issue) => issue.message),
+      ];
+      tree.meta.issueRules = {
+        ...tree.meta.issueRules,
+        ...Object.fromEntries(walk.issues.map((issue) => [issue.message, issue.rule])),
+      };
     },
   };
 });
