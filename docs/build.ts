@@ -97,6 +97,7 @@ const packageOrder = [
   "cards",
   "steps",
   "deflist",
+  "figure",
   "mark",
   "include",
   "outline",
