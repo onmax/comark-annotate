@@ -6,7 +6,6 @@ import { checkExample, doctorRules, examplesOf } from "../docs/doctor.ts";
 
 const repo = new URL("../", import.meta.url);
 // These pages show code instead: nothing in this repo still reports an issue without its own rule, so plugin-issue's
-// shows a plugin of your own; downloads depend on the network; and a bad `repo` is a plugin option, not Markdown.
 // shows a plugin of your own; downloads depend on the network; and bad `repo` and plugin order are options, not Markdown.
 const withoutExamples = new Set([
   "comark/plugin-issue",

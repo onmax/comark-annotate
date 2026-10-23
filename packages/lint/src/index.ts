@@ -516,24 +516,18 @@ function duplicateIds(nodes: Node[], source: Source): Diagnostic[] {
     const id = text(attributes.id);
     return id ? [{ tag, id }] : [];
   });
-  const total = new Map<string, number>();
-  for (const { id } of tagged) total.set(id, (total.get(id) ?? 0) + 1);
   const seen = new Map<string, number>();
   const found: Diagnostic[] = [];
   for (const { tag, id } of tagged) {
     const index = seen.get(id) ?? 0;
     seen.set(id, index + 1);
     if (!index) continue;
-    // Comark numbers a heading whose id is taken, so the repeats are the ids written as `{#id}`, after the heading's.
-    let writtenIds = 0;
-    while (find(source, `{#${id}`, { nth: writtenIds, from: source.body })) writtenIds++;
-    const nth = index - (total.get(id)! - writtenIds);
-    const at =
-      (nth >= 0 ? find(source, `{#${id}`, { nth, from: source.body }) : undefined) ??
-      findAny(source, [`{#${id}`, `id="${id}"`, `id='${id}'`, `id=${id}`], {
-        nth: index,
-        from: source.body,
-      });
+    // IDs may come from heading labels, Comark attributes, or raw HTML. Find the matching
+    // occurrence across all forms so mixed documents stay aligned with the parsed order.
+    const at = findAny(source, [`{#${id}`, `id="${id}"`, `id='${id}'`, `id=${id}`], {
+      nth: index,
+      from: source.body,
+    });
     const { line, column } = at ?? { line: source.body + 1, column: undefined };
     found.push({
       rule: "comark/duplicate-id",
