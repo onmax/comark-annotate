@@ -52,7 +52,7 @@ function splitCommands(line: string) {
           const finished = substitutions.pop();
           quote = finished?.restore;
         }
-      } else if (char === "`" {
+      } else if (char === "`") {
         substitutions.push({ kind: "backtick", restore: quote });
         quote = undefined;
       } else if (char === "'" || char === '"') {
