@@ -47,6 +47,12 @@ describe("comark-media", () => {
     );
     expect(await render(`See ${attachment}`)).not.toContain("<video");
     expect(await render(`[the recording](${attachment})`)).not.toContain("<video");
+    for (const suffix of ["?download=1", "#fragment"]) {
+      const url = `${attachment}${suffix}`;
+      expect(await render(url)).toContain(`<video class="cm" src="${url}"`);
+      expect(await render(`See ${url}`)).not.toContain("<video");
+      expect(await render(`[the recording](${url})`)).not.toContain("<video");
+    }
   });
 
   it("runs before comark-chips and comark-zoom in any order", async () => {

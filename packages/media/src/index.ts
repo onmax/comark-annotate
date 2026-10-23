@@ -26,7 +26,7 @@ type Data = Parameters<typeof resolveAttributes>[1];
 const VIDEO = /\.(?:mp4|webm|mov|m4v)$/i;
 const AUDIO = /\.(?:mp3|wav|ogg|m4a)$/i;
 // GitHub plays an uploaded video when its link sits alone in a paragraph; the address has no extension.
-const ATTACHMENT = /^https:\/\/github\.com\/user-attachments\/assets\/[\w-]+\/?$/;
+const ATTACHMENT = /^https:\/\/github\.com\/user-attachments\/assets\/[\w-]+\/?(?:[?#].*)?$/;
 const FLAGS = ["autoplay", "loop", "muted"] as const;
 const KNOWN = new Set<string>(["src", "alt", "kind", "poster", ...FLAGS]);
 
