@@ -32,7 +32,7 @@ A range is one line, `{7}`, or the first and last lines of a run, `{3-4}`, and a
 
 `sh`, `bash`, `zsh`, `shell`, `console`, and `ansi` blocks are terminals unless their title is a file's name, like `install.sh`. A terminal's header shows its title, if it has one, but not its language. In a [code group](/tabs/components/#code-group) the tab names the block, so a terminal there draws no window.
 
-The options are drawn by the components, with no script but the one the buttons already need: a collapsed range is a `<details>` element. The numbers and the signs come from CSS, so selecting the code and copying it gets only the code.
+The components draw the options with no script beyond the one the buttons already need. A collapsed range is a `<details>` element. The numbers and the signs come from CSS, so selecting the code and copying it gets only the code.
 
 ## Diffs
 
@@ -48,7 +48,7 @@ A `diff` fence with a `lang` is highlighted as that language. Each line's leadin
 ```
 ````
 
-Paste the output of `git diff` as it is: when the block has `@@` hunk headers, the file headers before the first hunk and the hunk headers go. Without `lang`, a `diff` fence stays a diff in Shiki's colors.
+Paste the output of `git diff` as it is. When the block has `@@` hunk headers, the plugin drops the hunk headers and the file headers before the first hunk. Without `lang`, a `diff` fence stays a diff in Shiki's colors.
 
 ## Shiki
 
@@ -58,10 +58,17 @@ List `shiki` before comark-code in `plugins`:
 const render = createHtmlRenderer({ plugins: [shiki(), code()], components });
 ```
 
-Shiki draws every block again from its text, so comark-code marks the lines once Shiki has drawn them. If comark-code comes first, a block keeps its title, frame, and Wrap, but loses its markers, numbers, and collapsed ranges, and the plugin says so in `meta.issues`. Without Shiki, comark-code splits the lines itself.
+Shiki draws every block again from its text, so comark-code marks the lines once Shiki has drawn them. If comark-code comes first, a block keeps its title, frame, and Wrap. It loses its markers, numbers, and collapsed ranges, and the plugin says so in `meta.issues`. Without Shiki, comark-code splits the lines itself.
 
-Shiki's [notation transformers](https://shiki.style/packages/transformers) work too: comark-code styles the lines they mark with `// [!code ++]`, `// [!code --]`, `// [!code highlight]`, `// [!code focus]`, `// [!code error]`, and `// [!code warning]`, and the words `// [!code word:name]` marks.
+Shiki's [notation transformers](https://shiki.style/packages/transformers) work too. comark-code styles the lines they mark with `// [!code ++]`, `// [!code --]`, `// [!code highlight]`, `// [!code focus]`, `// [!code error]`, and `// [!code warning]`, and the words `// [!code word:name]` marks.
 
 ## Issues
 
-The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes, and never throws. A range past the block's last line, one that isn't in braces, a `startLineNumber` that isn't a whole number, and a frame it doesn't draw each get an issue that names the block by its title, or else by its first line, and says how to write it. Each one has its own rule in [Doctor](/doctor/).
+The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes, and never throws:
+
+- A range past the block's last line.
+- A range that isn't in braces.
+- A `startLineNumber` that isn't a whole number.
+- A frame it doesn't draw.
+
+Each issue names the block by its title, or else by its first line, and says how to write it. Each one has its own rule in [Doctor](/doctor/).

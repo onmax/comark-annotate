@@ -41,7 +41,11 @@ Pasted lines are indented like the include, so a partial can sit in a list item:
 | `read(path)` | Reads a file by its POSIX path relative to `root`, and returns its text or `undefined`. It may be async. Default: reads from disk. |
 | `depth` | How many levels of includes may nest. Default `8`. |
 
-Comark doesn't tell plugins where a page lives, so set `base` to its folder. Paths are joined as strings, so `../` can't leave `root` in any runtime, and `read` only gets paths under it. The default reader also refuses a symlink that leads out of `root`; your own `read` has to do that itself if its files can hold symlinks. In a browser or an edge runtime, pass your own `read`:
+Comark doesn't tell plugins where a page lives, so set `base` to its folder.
+
+The plugin joins paths as strings, so `../` can't leave `root` in any runtime, and `read` only gets paths under it. The default reader also refuses a symlink that leads out of `root`. If your own `read` can meet symlinks, it has to refuse them itself.
+
+In a browser or an edge runtime, pass your own `read`:
 
 ```ts
 const files = import.meta.glob("./content/**/*.md", { query: "?raw", import: "default" });

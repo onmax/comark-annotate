@@ -74,4 +74,4 @@ Three plugins, each one on its own:
 
 - `callouts()` draws GitHub's five alerts with an icon, a color, and a title. Text after the marker on its line replaces the title. Comark's built-in [alert plugin](https://comark.dev/plugins/defaults/alert) only tags the quote with its type and leaves the drawing to you.
 - `references({ repo })` links `@user` to the profile and `#123` or `owner/name#123` to the issue or pull request, as GitHub does in comments.
-- `html()` renders raw HTML the way GitHub does: its tags and attributes stay, scripts and anything else it doesn't allow go. Comark renders all raw HTML as written.
+- `html()` renders raw HTML the way GitHub does. GitHub's tags and attributes stay, and scripts and anything else it doesn't allow go. Comark renders all raw HTML as written.

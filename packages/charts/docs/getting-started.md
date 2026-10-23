@@ -15,7 +15,7 @@ import charts, { components } from "comark-charts/html";
 const render = createHtmlRenderer({ plugins: [charts()], components });
 ```
 
-Charts are drawn while parsing, on the server or at build time, by [Flint](https://github.com/microsoft/flint-chart) and [Vega](https://vega.github.io), which the package installs, so the browser runs no chart code. Vue, React, and Svelte have renderers too; see [Renderers](/charts/guides/#renderers).
+[Flint](https://github.com/microsoft/flint-chart) and [Vega](https://vega.github.io) draw each chart while parsing, on the server or at build time, so the browser runs no chart code. The package installs both. Vue, React, and Svelte have renderers too, as [Renderers](/charts/guides/#renderers) shows.
 
 ## Agents
 

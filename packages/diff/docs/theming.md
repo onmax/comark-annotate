@@ -30,7 +30,7 @@ Set them on `.cd`, the root of every diff:
 | `--cd-green` | `#259f56`, `#59d38c` in dark mode | Added lines, their numbers and `+`, the added words, and the count of added lines |
 | `--cd-font` | `ui-monospace, SFMono-Regular, Menlo, Consolas, monospace` | The code, the file's name, and the counts |
 
-Lines take a tint of each color, the changed words a deeper one. The dark shades follow the system's dark mode, so a site that turns dark with a `.dark` class sets them too: `.dark .cd { --cd-red: #fd736d; --cd-green: #59d38c }`.
+Lines take a tint of each color, and the changed words a deeper tint. The dark shades follow the system's dark mode. A site that turns dark with a `.dark` class has to set them too: `.dark .cd { --cd-red: #fd736d; --cd-green: #59d38c }`.
 
 ## Classes and attributes
 
