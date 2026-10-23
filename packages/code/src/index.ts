@@ -124,35 +124,25 @@ export default defineComarkPlugin<CodeOptions, CodeMeta>((options = {}) => {
   const resolver = options.iconResolver ?? createIcons();
   return {
     name: "comark-code",
-    async post(state) {
-      const actions = options.actions ?? [];
-      if (!actions.length) return;
-      const used = new Set<CodeAction>();
-      const blocks: ElementNode[] = [];
-      mark(state.tree.nodes, actions, used, blocks);
-      const icons = [...used].flatMap((action) => (action.icon ? [action.icon] : []));
-      const resolved = icons.length ? await resolver.resolve(icons) : new Map();
-      const issues: { rule: string; message: string }[] = [];
-      const buttons = new Map<CodeAction, ActionButton>();
-      for (const action of used) {
-        const title = action.title || action.label || action.id;
-        const icon = action.icon ? resolved.get(action.icon) : undefined;
-        if (action.icon && icon && "problem" in icon)
-          issues.push({
-            rule: iconProblemRule(icon),
-            message: `The comark-code action "${action.id}" shows "${title}" as text on its code blocks, because it can't draw its icon "${action.icon}": ${describeIconProblem(action.icon, icon)}`,
-          });
-        const drawn = icon && !("problem" in icon) ? icon : undefined;
-        buttons.set(action, {
-          id: action.id,
-          label: action.label || (drawn ? "" : title),
-          title,
-          ...(drawn && { icon: { src: drawn.src, ratio: drawn.ratio, mask: drawn.mask } }),
-        });
+    // Before any `post`, so Shiki highlights the code without its signs.
+    markdownItPost(state) {
+      for (const token of state.tokens) {
+        if (token.type !== "fence") continue;
+        const diff = fromDiff(token.info, token.content);
+        if (diff) Object.assign(token, diff);
       }
-      for (const block of blocks)
-        // SAFETY: `mark` wrote the matched actions on every block it pushed.
-        block[1].actions = (block[1].actions as CodeAction[]).map((action) => buttons.get(action));
+    },
+    async post(state) {
+      const issues: Issue[] = [];
+      const order = (state.options.plugins ?? []).map((plugin) => plugin.name);
+      const early = order.indexOf("shiki") > order.indexOf("comark-code");
+      const unread = blocksOf(state.tree.nodes).filter((pre) => lines(pre, !early, issues));
+      if (early && unread.length)
+        issues.push({
+          rule: "comark/code/listed-before-shiki",
+          message: `${nameOf(unread[0]!)}${unread.length > 1 ? ` and ${unread.length - 1} more` : ""} can't have line markers, numbers, or collapsed ranges, because comark-code is listed before shiki in plugins, and Shiki redraws every block it highlights. List shiki() before comark-code.`,
+        });
+      await act(state.tree.nodes, options.actions ?? [], resolver, issues);
       if (!issues.length) return;
       const { meta } = state.tree;
       meta.issues = [...(meta.issues ?? []), ...issues.map((issue) => issue.message)];
