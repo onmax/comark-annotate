@@ -6,7 +6,11 @@ import { textContent } from "comark/utils";
 export type StepsMeta = {
   /** One readable sentence per problem with a `::steps`. Empty when the document has none. Other plugins add theirs too. */
   issues: string[];
+  /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
+  issueRules: Record<string, string>;
 };
+
+type Issue = { rule: `comark/steps/${string}`; message: string };
 
 /** What a `::steps` becomes: an ordered list whose `start` is set only when its list starts past 1. */
 export type StepsAttributes = { start?: string };
@@ -52,19 +56,28 @@ function describe(node: Node) {
 
 interface Walk {
   data: Data;
-  issues: string[];
+  issues: Issue[];
   count: number;
 }
 
 // The nodes that take the block's place: any content the steps can't hold, then the steps, if there are any.
 function steps(node: ElementNode, name: string, walk: Walk): Node[] {
   const attrs = resolveAttributes(node[1], walk.data, { parseJson: true });
+  for (const key of Object.keys(node[1])) {
+    const prop = key.replace(/^:/, "");
+    if (prop !== "level" && prop !== "id" && prop !== "class")
+      walk.issues.push({
+        rule: "comark/steps/unknown-prop",
+        message: `${name}: \`${prop}\` isn't a prop of \`::steps\`, so it's ignored. Use \`level\`, the level of the headings that start each step.`,
+      });
+  }
   const levelText = text(attrs.level) || "3";
   const level = /^[2-6]$/.test(levelText) ? Number(levelText) : 3;
   if (String(level) !== levelText)
-    walk.issues.push(
-      `${name}: \`level\` must be 2 to 6, the level of the headings that start each step. Write \`level="3"\` for \`###\` headings.`,
-    );
+    walk.issues.push({
+      rule: "comark/steps/invalid-level",
+      message: `${name}: \`level\` must be 2 to 6, the level of the headings that start each step. Write \`level="3"\` for \`###\` headings.`,
+    });
   const marker = "#".repeat(level);
   const content = childrenOf(node).filter(isContent);
   const startsStep = (child: Node) => isElement(child) && child[0] === `h${level}`;
@@ -76,9 +89,10 @@ function steps(node: ElementNode, name: string, walk: Walk): Node[] {
   if (first >= 0) {
     before = content.slice(0, first);
     if (before[0] !== undefined)
-      walk.issues.push(
-        `${name}: ${describe(before[0])} comes before the first \`${marker}\` heading, so it renders above the steps. Move it under a heading, or out of the block.`,
-      );
+      walk.issues.push({
+        rule: "comark/steps/content-before-steps",
+        message: `${name}: ${describe(before[0])} comes before the first \`${marker}\` heading, so it renders above the steps. Move it under a heading, or out of the block.`,
+      });
     for (const child of content.slice(first)) {
       if (startsStep(child)) items.push(["step", {}, child]);
       else items.at(-1)?.push(child);
@@ -93,12 +107,14 @@ function steps(node: ElementNode, name: string, walk: Walk): Node[] {
     const others = [2, 3, 4, 5, 6].find((other) =>
       content.some((child) => isElement(child) && child[0] === `h${other}`),
     );
-    walk.issues.push(
-      `${name} has no \`${marker}\` headings, so it renders as plain content. ` +
+    walk.issues.push({
+      rule: "comark/steps/no-steps",
+      message:
+        `${name} has no \`${marker}\` headings, so it renders as plain content. ` +
         (others
           ? `Its headings are \`${"#".repeat(others)}\`, so write \`::steps{level="${others}"}\`.`
           : `Start each step with a \`${marker} \` heading, or put one numbered list inside.`),
-    );
+    });
   }
   for (const [at, item] of items.entries()) item[1] = { index: String(start + at) };
   if (!items.length) return before;
@@ -131,6 +147,10 @@ export default defineComarkPlugin<void, StepsMeta>(() => ({
       count: 0,
     };
     tree.nodes = transform(tree.nodes, walk);
-    tree.meta.issues = [...(tree.meta.issues ?? []), ...walk.issues];
+    tree.meta.issues = [...(tree.meta.issues ?? []), ...walk.issues.map((issue) => issue.message)];
+    tree.meta.issueRules = {
+      ...tree.meta.issueRules,
+      ...Object.fromEntries(walk.issues.map((issue) => [issue.message, issue.rule])),
+    };
   },
 }));

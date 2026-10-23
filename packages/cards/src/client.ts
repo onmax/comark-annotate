@@ -17,7 +17,8 @@ export const isSafeHref = (value?: string): boolean =>
   !!value && !/^\s*(?:javascript|vbscript|data):/i.test(value);
 
 /** Web URLs open in a new tab, including protocol-relative URLs. */
-export const isExternalHref = (value?: string): boolean => /^(?:https?:\/\/|\/\/)/i.test(value ?? "");
+export const isExternalHref = (value?: string): boolean =>
+  /^(?:https?:\/\/|\/\/)/i.test(value ?? "");
 
 /** The `rel` of a link that opens in a new tab, so the page it opens can't reach back into this one. */
 export const rel = (target?: string): string | undefined =>

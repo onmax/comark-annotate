@@ -35,7 +35,7 @@ The plugin adds a problem with any block to `meta.issues`, as [Validation](/guid
 screenshot "after.png", annotation 2: the box runs past the image edge. Keep x + w and y + h within 100.
 ```
 
-Unknown props are reported with the valid ones, and so is a `:bound` prop that points at missing frontmatter. Bindings to `data` or `props` are left to the renderer.
+Unknown props are reported with the valid ones, and so is a `:bound` prop that points at missing frontmatter. Bindings to `data` or `props` are left to the renderer. Each kind of problem has its own rule in [Doctor](/doctor/), with an example of it and its fix.
 
 ## Theming
 

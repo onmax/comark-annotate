@@ -1,0 +1,97 @@
+// The Doctor section: one page per comark-linter rule, each with Markdown the rule reports and the same Markdown fixed.
+// The build renders them and test/doctor.test.ts checks them, both through `checkExample`.
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import type { ElementNode, Node } from "comark";
+import { parseMarkdown } from "comark";
+import { textContent } from "comark/utils";
+import { icons as lucide } from "@iconify-json/lucide";
+import cards from "../packages/cards/src/index.ts";
+import icon, { createIcons } from "../packages/icon/src/index.ts";
+import include from "../packages/include/src/index.ts";
+import { lint, type Diagnostic, type Rule } from "../packages/lint/src/index.ts";
+import { catalog, type RuleInfo } from "../packages/lint/src/rules/index.ts";
+import tabs from "../packages/tabs/src/index.ts";
+import { browserPlugins, components } from "./plugins.ts";
+
+const repo = new URL("../", import.meta.url);
+
+/** Every rule, in the catalog's order, with its page's slug under the site and its group in the column. */
+export const doctorRules = Object.entries(catalog as Record<string, RuleInfo>).map(([id, info]) => {
+  // SAFETY: the catalog's keys are exactly the rules.
+  const rule = id as Rule;
+  const path = rule.replace(/^comark\//, "");
+  const [group, name] = path.includes("/") ? path.split("/", 2) : ["core", path];
+  return { rule, ...info, slug: `doctor/${path}`, group: group!, name: name! };
+});
+
+export const doctorRule = (slug: string) => doctorRules.find((entry) => entry.slug === slug);
+
+// Icons come from lucide alone, so an example's icon problem doesn't depend on the network. The include examples read
+// files from docs/doctor-include/, outside the pages so none is linted or built as one.
+const icons = createIcons({ collections: { lucide }, fetch: false });
+const offline: Record<string, ReturnType<typeof browserPlugins>[number]> = {
+  "comark-icon": icon(icons),
+  "comark-tabs": tabs({ iconResolver: icons }),
+  "comark-cards": cards({ iconResolver: icons }),
+};
+const plugins = () => [
+  ...browserPlugins({}, { download: false }).map((plugin) => offline[plugin.name] ?? plugin),
+  include({ root: fileURLToPath(new URL("docs/doctor-include/", repo)) }),
+];
+// comark-tabs turns `::code-group` into `::tabs` and comark-include replaces `:include` while parsing, so no renderer
+// has them.
+const known = [...Object.keys(components), "code-group", "tabs-item", "include"];
+
+export const lintExample = (source: string) =>
+  lint(source, { plugins: plugins(), components: known });
+
+const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
+
+/** The Markdown of a rule page's `::incorrect` and `::correct` blocks, in order. */
+export async function examplesOf(slug: string) {
+  const { nodes } = await parseMarkdown(
+    await readFile(new URL(`docs/pages/${slug}.md`, repo), "utf8"),
+  );
+  const found: { kind: "incorrect" | "correct"; source: string }[] = [];
+  const walk = (list: Node[]) => {
+    for (const node of list) {
+      if (!isElement(node)) continue;
+      const [tag, , ...children] = node;
+      if (tag === "incorrect" || tag === "correct") {
+        const pre = children.find((child) => isElement(child) && child[0] === "pre");
+        found.push({ kind: tag, source: pre ? textContent(pre) : "" });
+      } else walk(children);
+    }
+  };
+  walk(nodes);
+  return found;
+}
+
+/**
+ * Lints one example and says what's wrong with it as an example: Markdown marked incorrect must report `rule` and
+ * nothing else, and Markdown marked correct must report nothing.
+ */
+export async function checkExample(
+  rule: Rule,
+  kind: "incorrect" | "correct",
+  source: string,
+): Promise<{ found: Diagnostic[]; problem?: string }> {
+  const found = await lintExample(source);
+  const other = found.filter((diagnostic) => diagnostic.rule !== rule);
+  const list = (diagnostics: Diagnostic[]) =>
+    diagnostics.map((d) => `\n  ${d.rule}: ${d.message} ${d.fix}`).join("");
+  if (!source.trim()) return { found, problem: `its ::${kind} block needs a fenced code block.` };
+  if (kind === "correct")
+    return found.length
+      ? { found, problem: `its ::correct example still reports:${list(found)}` }
+      : { found };
+  if (found.length === other.length)
+    return { found, problem: `its ::incorrect example doesn't report ${rule}.${list(found)}` };
+  if (other.length)
+    return {
+      found,
+      problem: `its ::incorrect example reports other rules too; keep it to ${rule}:${list(other)}`,
+    };
+  return { found };
+}
