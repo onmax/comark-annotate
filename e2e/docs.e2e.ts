@@ -131,11 +131,11 @@ test("the index's canvas switches to the list, and remembers it", async ({ page 
   await page.goto("/");
   const canvas = page.locator(".canvas");
   await expect(canvas).toHaveAttribute("data-view", "canvas");
-  await page.getByRole("button", { name: "List" }).click();
+  await page.getByRole("button", { name: "List", exact: true }).click();
   await expect(page.getByRole("link", { name: /annotate/ }).first()).toBeVisible();
   await page.reload();
   await expect(canvas).toHaveAttribute("data-view", "list");
-  await page.getByRole("button", { name: "Canvas" }).click();
+  await page.getByRole("button", { name: "Canvas", exact: true }).click();
   await expect(canvas).toHaveAttribute("data-view", "canvas");
 });
 

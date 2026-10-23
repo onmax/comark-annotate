@@ -40,6 +40,12 @@ const packages = [
       })),
     [],
   ],
+  // Syntax plugins have no components, and are loaded so their syntax isn't read as something else.
+  [
+    "comark-deflist",
+    () => import("comark-deflist").then((module) => ({ ...module, components: {} })),
+    [],
+  ],
   ["comark-diff/html", () => import("comark-diff/html"), []],
   ["comark-icon/html", () => import("comark-icon/html"), []],
   ["comark-media/html", () => import("comark-media/html"), []],
