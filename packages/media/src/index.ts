@@ -138,7 +138,7 @@ function read(
   if (unknown.length)
     issues.push({
       rule: "comark/media/unknown-prop",
-      message: `${name}: ${unknown.map((key) => `\`${key}\``).join(", ")} ${unknown.length === 1 ? "isn't a" : "aren't"} ${kind} option${unknown.length === 1 ? "" : "s"}, so ${unknown.length === 1 ? "it was" : "they were"} dropped. Use autoplay, loop, muted${kind === "video" ? ", or poster" : ""}.`,
+      message: `${name}: ${unknown.map((key) => `\`${key}\``).join(", ")} ${unknown.length === 1 ? `isn't ${kind === "audio" ? "an" : "a"}` : "aren't"} ${kind} option${unknown.length === 1 ? "" : "s"}, so ${unknown.length === 1 ? "it was" : "they were"} dropped. Use autoplay, loop, muted${kind === "video" ? ", or poster" : ""}.`,
     });
   return result;
 }
