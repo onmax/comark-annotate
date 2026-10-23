@@ -21,6 +21,13 @@ test("a comparison lines up its screenshots and zooms them with their marks and 
   // The notes sit beside the zoomed screenshot, and a mark lights up its note there too.
   const note = page.locator(".cz-aside .ca-notes li").first();
   await expect(note).toBeVisible();
+  // Measured once the zoom has finished opening, since its frame scales in.
+  await page.waitForFunction(() =>
+    document
+      .querySelector(".cz-dialog")!
+      .getAnimations({ subtree: true })
+      .every((animation) => animation.playState !== "running"),
+  );
   const aside = await page.locator(".cz-aside").boundingBox();
   const frame = await page.locator(".cz-item .ca-frame").boundingBox();
   expect(aside!.x).toBeGreaterThanOrEqual(frame!.x + frame!.width - 1);
