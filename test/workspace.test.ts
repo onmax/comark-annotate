@@ -82,6 +82,6 @@ describe.each(withRenderer)("the renderer of packages/%s", (folder) => {
     const preset = read("packages/preset/src/html.ts");
     const local = folder.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
     expect(preset).toContain(`import * as ${local} from "${name}/html"`);
-    expect(preset.slice(preset.indexOf("preset<"))).toMatch(new RegExp(`\\b${folder}\\b`));
+    expect(preset.slice(preset.indexOf("preset<"))).toMatch(new RegExp(`\\b${local}\\b`));
   });
 });

@@ -23,6 +23,7 @@ import * as tabs from "comark-tabs/html";
 import * as zoom from "comark-zoom/html";
 const deflist = { default: deflistPlugin, components: {} };
 const readingTime = { default: readingTimePlugin, components: {} };
+const mediaPart = { default: media.default, components: media.components };
 import { type Preset, type PresetOptions, preset } from "./index.ts";
 
 export type { PresetOptions } from "./index.ts";
@@ -46,7 +47,7 @@ export default (options?: PresetOptions): Preset<NodeHandler> =>
       fields,
       github,
       icon,
-      media,
+      media: mediaPart,
       outline,
       readingTime,
       qr,
