@@ -5,13 +5,7 @@ import {
   defineDoctorExtension,
   defineRulePack,
 } from "vite-doctor/extension";
-import {
-  lintFiles,
-  resolveConfig,
-  type Config,
-  type LintedFile,
-  type Rule,
-} from "./index.ts";
+import { lintFiles, resolveConfig, type Config, type LintedFile, type Rule } from "./index.ts";
 import { catalog, type RuleInfo } from "./rules/index.ts";
 
 export type DoctorOptions = Config & {

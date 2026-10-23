@@ -394,8 +394,8 @@ describe("lint-comark/doctor links", () => {
     expect(
       result.diagnostics.map((diagnostic) => [diagnostic.code, diagnostic.range?.line]),
     ).toEqual([
-      ["COMARK0008", 3],
-      ["COMARK0009", 5],
+      ["COMARK0011", 3],
+      ["COMARK0012", 5],
     ]);
   });
 });
