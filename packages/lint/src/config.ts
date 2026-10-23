@@ -46,6 +46,7 @@ const packages = [
   ["comark-cards/html", () => import("comark-cards/html"), []],
   ["comark-badge/html", () => import("comark-badge/html"), []],
   ["comark-qr/html", () => import("comark-qr/html"), []],
+  ["comark-fields/html", () => import("comark-fields/html"), []],
   [
     "comark-reading-time",
     // It writes only `meta`, so it has no components and nothing to lint, but it runs as the host's would.
