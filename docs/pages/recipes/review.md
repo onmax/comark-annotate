@@ -52,7 +52,7 @@ A reviewer decides whether to approve, so give them the decision first and the e
 
 1. A callout states what changed and why, in a sentence or two. `IMPORTANT` fits a decision, `WARNING` a risk the reviewer should weigh.
 2. A `::compare` shows the change. Mark the problem in red on the before side and the fix on the after side, so the two sets of notes read as one story.
-3. A `::diff` shows the lines that matter. Keep it to a few lines around the change; the pull request already has the full diff.
+3. A `::diff` shows the lines that matter. Keep it to a few lines around the change, since the pull request already has the full diff.
 4. A table of numbers goes in `::zoom`, so a wide one opens at full size.
 5. A link card points to where the reviewer can try it.
 
@@ -66,4 +66,4 @@ Run [comark-linter](/lint/) on the file before you post it, and open the rendere
 
 ## Share it
 
-[Sharing a review](/recipes/share/) puts the document in front of reviewers: on Drop, where they comment on the exact spot, or on a page you host.
+[Sharing a review](/recipes/share/) puts the document in front of reviewers, either on Drop, where they comment on the exact spot, or on a page you host.

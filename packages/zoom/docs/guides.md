@@ -21,7 +21,9 @@ Items in one `group` page through a single zoomed view with a strip of them at t
 
 ## Events
 
-The zoomed view fires `comark-zoom:open`, `comark-zoom:change`, and `comark-zoom:close` on the item. `open` and `change` carry the dialog's `header` and `footer`, and a `layer` over the zoomed content, sized to it, where a host can draw its own pins or controls. `copyOf(element)` finds the copy of a page element in the zoomed view, and `originalOf(element)` goes back, so a pin can follow what it points at. Both return `null` for anything the zoom doesn't show.
+The zoomed view fires `comark-zoom:open`, `comark-zoom:change`, and `comark-zoom:close` on the item. `open` and `change` carry the dialog's `header` and `footer`, and a `layer` over the zoomed content, sized to it, where a host can draw its own pins or controls.
+
+`copyOf(element)` finds the copy of a page element in the zoomed view, and `originalOf(element)` goes back, so a pin can follow what it points at. Both return `null` for anything the zoom doesn't show.
 
 ```ts
 document.addEventListener("comark-zoom:open", (event) => {
@@ -34,7 +36,9 @@ document.addEventListener("comark-zoom:open", (event) => {
 
 ## Captions beside the zoom
 
-`data-zoom-aside` names an element, by selector, that the zoomed view shows beside the item at its own size, so a caption stays readable however far the item zooms. It's the first match that neither holds the item nor sits in it, in its innermost [`data-zoom-context`](/zoom/theming/#styles-from-ancestors) or else its parent. On a narrow screen it sits below. comark-annotate uses it for a screenshot's notes.
+`data-zoom-aside` names an element, by selector, that the zoomed view shows beside the item at its own size. A caption stays readable however far the item zooms. On a narrow screen it sits below. comark-annotate uses it for a screenshot's notes.
+
+The zoom takes the first match that neither holds the item nor sits in it. It looks in the item's innermost [`data-zoom-context`](/zoom/theming/#styles-from-ancestors), or else in its parent.
 
 ```html
 <figure>

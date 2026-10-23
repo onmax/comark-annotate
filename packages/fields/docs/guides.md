@@ -39,4 +39,4 @@ A field is a `<div class="cfl">` with a `.cfl-head` holding `.cfl-name`, `.cfl-t
 | `--comark-radius` | The required tag's corners |
 | `--comark-font` | Text |
 
-The required tag takes shadcn/ui's `--destructive`, or red without it; set `--cfl-required` on `.cfl` to change it. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
+The required tag takes shadcn/ui's `--destructive`, or red without it. Set `--cfl-required` on `.cfl` to change it. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.

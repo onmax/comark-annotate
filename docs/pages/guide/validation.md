@@ -25,7 +25,7 @@ Rendering never throws. A block with a problem renders as well as it can, and th
 
 ## What they report
 
-Each issue names its block the way a reader finds it: by `src`, by title, or by position, and then says what to change.
+Each issue names its block the way a reader would find it, by `src`, title, or position. Then it says what to change.
 
 ```txt
 screenshot "after.png", annotation 2: the box runs past the image edge. Keep x + w and y + h within 100.
@@ -42,9 +42,9 @@ include "./ducks.md": file not found. It resolved to "guide/ducks.md" under the 
 | [tabs](/tabs/guides/#validation) | Tabs without a label or with the same label, content outside every tab, anything but code blocks in a code group, empty blocks, and stray `:::tabs-item` |
 | [include](/include/guides/#validation) | Missing files, paths that leave the root, cycles, and bad `lines` or `region` |
 
-code and zoom have nothing to report: every code block gets its buttons, and anything can zoom. github reports only a `repo` that isn't `owner/name`: a quote that isn't a callout stays a quote, and HTML GitHub doesn't allow is dropped as GitHub drops it.
+code and zoom have nothing to report, because every code block gets its buttons and anything can zoom. github reports only a `repo` that isn't `owner/name`. A quote that isn't a callout stays a quote, and github drops HTML that GitHub doesn't allow, the way GitHub does.
 
-Each plugin also names the rule of every issue in `meta.issueRules`, keyed by the sentence, and [Doctor](/doctor/) has a page per rule with Markdown that triggers it and the same Markdown fixed:
+Each plugin also records the rule of every issue in `meta.issueRules`, keyed by the sentence. [Doctor](/doctor/) has a page per rule, with Markdown that triggers it and the same Markdown fixed:
 
 ```ts
 meta.issueRules['screenshot "after.png", annotation 2: the box runs past the image edge. Keep x + w and y + h within 100.'];
@@ -53,10 +53,12 @@ meta.issueRules['screenshot "after.png", annotation 2: the box runs past the ima
 
 ## Line numbers
 
-`meta.issues` can't say where a problem is, because Comark gives nodes no source positions. [comark-linter](/lint/) finds the line of each issue and adds what Comark forgives silently: blocks never closed, misspelled components, broken anchors, unsafe URLs, repeated ids, images without alt text, and links without text. It reports each issue under its rule, with the rule's code in Vite Doctor. Run it in CI and in [Vite Doctor](/lint/getting-started/#vite-doctor):
+`meta.issues` can't say where a problem is, because Comark gives nodes no source positions. [comark-linter](/lint/) finds the line of each issue. It also checks what Comark forgives silently: blocks never closed, misspelled components, broken anchors, unsafe URLs, repeated ids, images without alt text, and links without text.
+
+It reports each issue under its rule, and Vite Doctor shows the rule's code. Run it in CI and in [Vite Doctor](/lint/getting-started/#vite-doctor):
 
 ```sh
 pnpm lint-comark "docs/**/*.md"
 ```
 
-comark-annotate's own CLI checks only annotate, carousel, and zoom, without line numbers, and also renders a file to a standalone page you can open and screenshot. Use [`comark-annotate render`](/guide/agents/#check-the-result) to look at the marks, and lint-comark for everything else.
+comark-annotate has its own CLI. It checks only annotate, carousel, and zoom, without line numbers, and it renders a file to a standalone page you can open and screenshot. Use [`comark-annotate render`](/guide/agents/#check-the-result) to look at the marks, and lint-comark for everything else.

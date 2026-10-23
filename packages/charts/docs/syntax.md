@@ -11,7 +11,7 @@ description: The table each chart type reads, Vega-Lite specs for any other char
 ::
 ```
 
-Put one table between `::chart` and `::`: a header row, then one row per bar, point, or step. The first column is x, and every other column is a series of numbers, named by its header. Rows are drawn in table order.
+Put one table between `::chart` and `::`, with a header row, then one row per bar, point, or step. The first column is x, and every other column is a series of numbers, named by its header. Rows are drawn in table order.
 
 | Prop | What it does |
 | --- | --- |
@@ -20,7 +20,9 @@ Put one table between `::chart` and `::`: a header row, then one row per bar, po
 | `y` | The columns to draw, separated by commas. Default every column but `x`. |
 | `title` | The chart's caption, and its name for screen readers. |
 
-Cells hold plain numbers, with commas between thousands if you like, such as `1,200`; put units in the header or the title, such as `size (kB)`. x values in the form `2026`, `2026-04`, `2026-04-15`, or an ISO date and time sit on a time axis, and numbers on a number axis, except on bars, steps, and dumbbells, which give each value its own row.
+Cells hold plain numbers, with commas between thousands if you like, such as `1,200`. Put units in the header or the title, such as `size (kB)`.
+
+x values in the form `2026`, `2026-04`, `2026-04-15`, or an ISO date and time sit on a time axis, and numbers sit on a number axis. Bars, steps, and dumbbells are the exception, and give each value its own row.
 
 ## Chart types
 
@@ -35,7 +37,9 @@ Cells hold plain numbers, with commas between thousands if you like, such as `1,
 | `waterfall` | How changes add up to a total. | The starting total, then each change, negative for a drop, then the end total, all in one column. |
 | `pie` | Shares of one whole. | Names, then one column of numbers that aren't negative. |
 
-Bars turn sideways when their labels are long or there are many of them, so file paths and test names stay whole. In a waterfall, the first row is a total, and so is the last when it equals the running sum; the others are changes, green up and red down.
+Bars turn sideways when their labels are long or there are many of them, so file paths and test names stay whole.
+
+In a waterfall, the first row is a total, and so is the last when it equals the running sum. The other rows are changes, green up and red down.
 
 ::examples
 :::example{label="Sideways bars"}
@@ -119,7 +123,7 @@ Bars turn sideways when their labels are long or there are many of them, so file
 
 ## Any chart
 
-For a chart the types don't cover, such as a box plot, a heatmap, or error bands, put a [Vega-Lite](https://vega.github.io/vega-lite/) spec after the table in a `vega-lite` block. The table is still its data, so it stays in the page: each row becomes one data point, with a field per column named by its header.
+For a chart the types don't cover, such as a box plot, a heatmap, or error bands, put a [Vega-Lite](https://vega.github.io/vega-lite/) spec after the table in a `vega-lite` block. The table is still its data, so it stays in the page. Each row becomes one data point, with a field per column named by its header.
 
 ````md
 ::chart{title="Latency per request (ms)"}
@@ -142,11 +146,15 @@ For a chart the types don't cover, such as a box plot, a heatmap, or error bands
 ::
 ````
 
-Leave `data` out of the spec; the table replaces it. Cells that read as numbers become numbers, empty ones null, and the rest stay text. The chart takes the same colors and type as the others wherever the spec sets none, and its own `config` wins. `type`, `x`, `y`, and marks don't apply: name the columns in the spec's `encoding`, and draw notes with a `text` or `rule` layer. The plugin reports a spec that isn't JSON, a `data` it replaced, and a field that's neither a column nor made by a transform. The spec can't load files or URLs, and links in it are dropped.
+Leave `data` out of the spec, because the table replaces it. Cells that read as numbers become numbers, empty ones become null, and the rest stay text.
+
+The chart takes the same colors and type as the other charts wherever the spec sets none, and the spec's own `config` wins. `type`, `x`, `y`, and marks don't apply. Name the columns in the spec's `encoding` instead, and draw notes with a `text` or `rule` layer.
+
+The plugin reports a spec that isn't JSON, a `data` it replaced, and a field that's neither a column nor made by a transform. The spec can't load files or URLs, and the plugin drops links in it.
 
 ## Marks
 
-Point at data with [comark-annotate](/annotate/)'s marks: put an `::annotation` inside the chart, after the table, and name the row it marks with `at`, the row's x value as the table writes it. Add `series` to mark one column's value rather than the whole row.
+Point at data with [comark-annotate](/annotate/)'s marks. Put an `::annotation` inside the chart, after the table, and name the row it marks with `at`, the row's x value as the table writes it. Add `series` to mark one column's value rather than the whole row.
 
 ```md
 ::chart{title="Rubber ducks bought, by team"}
@@ -164,6 +172,8 @@ Bought in bulk after the Tuesday incident.
 | --- | --- |
 | `at` | Required. The x value of the row to mark, copied from the table. |
 | `series` | The column to mark in that row. Without it, the mark covers every series in the row. |
-| `mark`, `color`, `side` | As on a [screenshot](/annotate/components/#annotation): `box`, `circle`, `underline`, `highlight`, `cross`, `check`, or `none`; a named or hex color; and `left`, `right`, or `top` for a side note with an arrow. |
+| `mark`, `color`, `side` | As on a [screenshot](/annotate/components/annotation/): `box`, `circle`, `underline`, `highlight`, `cross`, `check`, or `none`; a named or hex color; and `left`, `right`, or `top` for a side note with an arrow. |
 
-The renderer finds the shape it draws for that value, a bar, a point, a slice, or a step, and draws the mark around it, so marks stay on their data when the numbers change. Notes are numbered under the chart, as under a screenshot, and a marked chart zooms like one. comark-annotate comes with comark-charts, and checks the marks the same way.
+The renderer finds the shape it draws for that value, such as a bar, a point, a slice, or a step, and draws the mark around it. Marks stay on their data when the numbers change.
+
+Notes are numbered under the chart, as under a screenshot, and a marked chart zooms like a screenshot. comark-annotate comes with comark-charts, and checks the marks the same way.

@@ -51,4 +51,6 @@ export default defineDoctorConfig({
 
 ## Codes
 
-Each rule reports with its own code, and the code links to the rule's page in [Doctor](/doctor/). The core rules are `COMARK0001` on, and each package's rules take a hundred of their own: comark-annotate's are `COMARK0101` on, comark-cards' `COMARK0201` on, and so on. Frontmatter Comark can't read and unsafe URLs are errors; the rest are warnings. [Doctor's overview](/doctor/#rules) lists every code.
+Each rule reports with its own code, and the code links to the rule's page in [Doctor](/doctor/). The core rules start at `COMARK0001`, and each package's rules get a hundred codes of their own. comark-annotate's start at `COMARK0101`, comark-cards' at `COMARK0201`, and so on.
+
+Frontmatter Comark can't read and unsafe URLs are errors. The rest are warnings. [Doctor's overview](/doctor/#rules) lists every code.

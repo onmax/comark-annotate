@@ -3,7 +3,15 @@ title: Theming
 description: The shared tokens, the header's own variables, and the classes a page can target.
 ---
 
-The header sits on the code block's own background, so it takes your `pre` styles and Shiki's theme. The title and buttons follow the shared tokens in [Theming](/guide/theming/); two variables of their own size the buttons and the header, and a third sets the title's font. The rules sit in a `comark` CSS layer, so a plain rule of your own wins over any of them. A few rules sit outside it, so they beat a page's own `pre` styles: the `padding-top` that makes room for the header above the first line, the `overflow-x` that clips a marked line's tint, and Wrap's `white-space`. A collapsed range's margins, padding, and border are `!important`, so a page's own `details` and `summary` styles can't push it off the lines.
+The header sits on the code block's own background, so it takes your `pre` styles and Shiki's theme. The title and buttons follow the shared tokens in [Theming](/guide/theming/). Two variables of their own size the buttons and the header, and a third sets the title's font.
+
+The rules sit in a `comark` CSS layer, so a plain rule of your own wins over any of them. A few rules sit outside the layer, so they beat a page's own `pre` styles:
+
+- The `padding-top` that makes room for the header above the first line.
+- The `overflow-x` that clips a marked line's tint.
+- Wrap's `white-space`.
+
+A collapsed range's margins, padding, and border are `!important`, so a page's own `details` and `summary` styles can't push it off the lines.
 
 ## Shared tokens
 
@@ -33,7 +41,7 @@ Set these on `.ck` or any ancestor, such as `:root`:
 
 The dark shades follow the system's dark mode, or a `.dark` class on any ancestor, and a `.light` class keeps the light ones.
 
-The header is the button size plus the inset above and below, and the block's `padding-top` matches it. A marked line is tinted from edge to edge, past the block's padding, so the block clips its overflow. Its sign sits in the block's left padding, which needs to be at least `1.5ch` wide; on a numbered block it sits between the number and the code.
+The header is the button size plus the inset above and below, and the block's `padding-top` matches it. A marked line is tinted from edge to edge, past the block's padding, so the block clips its overflow. Its sign sits in the block's left padding, which needs to be at least `1.5ch` wide. On a numbered block, the sign sits between the number and the code.
 
 ## Classes and attributes
 
