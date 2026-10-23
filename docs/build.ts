@@ -92,6 +92,7 @@ const packageOrder = [
   "cards",
   "steps",
   "include",
+  "reading-time",
   "lint",
   "preset",
 ];
