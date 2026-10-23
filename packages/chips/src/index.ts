@@ -49,15 +49,15 @@ const PROFILES: [provider: string, pattern: RegExp, routes?: Set<string>][] = [
   ],
   [
     "bluesky",
-    /^https?:\/\/bsky\.app\/profile\/((?:[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?\.)*[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?)(?:[/?#]|$)/i,
+    /^https?:\/\/bsky\.app\/profile\/((?:[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?\.)+[a-z](?:[a-z\d-]{0,61}[a-z\d])?)(?:[/?#]|$)/i,
   ],
   [
     "youtube",
-    /^https?:\/\/(?:www\.)?youtube\.com\/@([a-z\d](?:[a-z\d_.-]{0,28}[a-z\d])?)(?:[/?#]|$)/i,
+    /^https?:\/\/(?:www\.)?youtube\.com\/@([a-z\d](?:[a-z\d_.-]{1,28}[a-z\d]))(?:[/?#]|$)/i,
   ],
   [
     "gitlab",
-    /^https?:\/\/gitlab\.com\/([a-z\d](?:[a-z\d_.-]{0,61}[a-z\d_-])?)\/?(?:[?#]|$)/i,
+    /^https?:\/\/gitlab\.com\/([a-z\d](?:[a-z\d_.-]{0,253}[a-z\d_-]))\/?(?:[?#]|$)/i,
     words("dashboard explore help projects search users"),
   ],
 ];

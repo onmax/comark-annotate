@@ -154,12 +154,15 @@ describe("comark-chips", () => {
 
   it("leaves malformed social profile paths as favicon chips", async () => {
     await render(
-      "[bad Bluesky](https://bsky.app/profile/not_a_handle), [bad Bluesky](https://bsky.app/profile/-name), [bad YouTube](https://youtube.com/@-channel), [bad YouTube](https://youtube.com/@channel.), [bad GitLab](https://gitlab.com/a), and [bad GitLab](https://gitlab.com/.name).",
+      "[bad Bluesky](https://bsky.app/profile/not_a_handle), [bad Bluesky](https://bsky.app/profile/-name), [bad Bluesky](https://bsky.app/profile/example), [bad Bluesky](https://bsky.app/profile/example.8), [bad YouTube](https://youtube.com/@a), [bad YouTube](https://youtube.com/@-channel), [bad YouTube](https://youtube.com/@channel.), [bad GitLab](https://gitlab.com/a), and [bad GitLab](https://gitlab.com/.name).",
     );
     expect(requests).not.toEqual(
       expect.arrayContaining([
         "https://unavatar.io/bluesky/not_a_handle?fallback=false",
         "https://unavatar.io/bluesky/-name?fallback=false",
+        "https://unavatar.io/bluesky/example?fallback=false",
+        "https://unavatar.io/bluesky/example.8?fallback=false",
+        "https://unavatar.io/youtube/a?fallback=false",
         "https://unavatar.io/youtube/-channel?fallback=false",
         "https://unavatar.io/youtube/channel.?fallback=false",
         "https://unavatar.io/gitlab/a?fallback=false",
