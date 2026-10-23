@@ -40,7 +40,7 @@ export type CodeOptions = {
 };
 
 export type CodeMeta = {
-  /** One readable sentence per fence it can't read, and per action whose icon can't be drawn. Other plugins add theirs too. */
+  /** One readable sentence per action whose icon can't be drawn. Other plugins add theirs too. */
   issues: string[];
   /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
   issueRules: Record<string, string>;
