@@ -68,7 +68,7 @@ function qr(node: ElementNode, number: number, data: Data, issues: Issue[]): QrA
     return {};
   }
   try {
-    // A quiet zone of two modules, which phones read as well as the four the standard asks for.
+    // Anthony Fu's QR Toolkit defaults: phones read a two-module quiet zone as well as the four the standard asks for.
     const code = encode(value, { border: 2, ecc: "M" });
     return { value, size: code.size, path: pathOf(code.data) };
   } catch (error) {

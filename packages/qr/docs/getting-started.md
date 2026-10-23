@@ -17,4 +17,4 @@ const render = createHtmlRenderer({ plugins: [qr()], components });
 
 For Vue, React, or Svelte, import from `comark-qr/vue`, `comark-qr/react`, or `comark-qr/svelte`; the components add the styles when they mount. Import `comark-qr/style.css` with your styles so a server-rendered page doesn't shift. [Renderers](/guide/renderers/) covers using it with other plugins.
 
-The parse plugin encodes the code with [uqr](https://github.com/unjs/uqr), a zero-dependency ES module of 27 kB (8 kB gzipped), and writes its modules as an SVG path, so no renderer encodes anything.
+The parse plugin encodes the code with [uqr](https://github.com/unjs/uqr), Anthony Fu's zero-dependency ES module of 27 kB (8 kB gzipped) from his [QR Toolkit](https://qrcode.antfu.me), at its defaults, and writes its modules as an SVG path, so no renderer encodes anything.
