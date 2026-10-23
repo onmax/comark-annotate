@@ -9,12 +9,13 @@ import * as code from "comark-code/svelte";
 import * as embed from "comark-embed/svelte";
 import * as github from "comark-github/svelte";
 import * as icon from "comark-icon/svelte";
+import * as media from "comark-media/svelte";
 import * as steps from "comark-steps/svelte";
 import * as tabs from "comark-tabs/svelte";
 import * as zoom from "comark-zoom/svelte";
 
 export default (options) =>
   preset(
-    { badge, cards, carousel, charts, chips, code, embed, github, icon, steps, tabs, zoom },
+    { badge, cards, carousel, charts, chips, code, embed, github, icon, media, steps, tabs, zoom },
     options,
   );

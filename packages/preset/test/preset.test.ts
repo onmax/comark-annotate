@@ -19,6 +19,7 @@ const document = [
   "::steps\n### Install\nRun it.\n::",
   "::code-group\n```sh [pnpm]\npnpm add x\n```\n```sh [npm]\nnpm i x\n```\n::",
   "![A cat](/cat.png)",
+  "![Demo](demo.mp4)",
   '::card{title="Docs" to="/guide"}\nRead it.\n::',
 ].join("\n\n");
 
@@ -30,6 +31,7 @@ const blocks = [
   "data-zoom",
   'class="ccr"',
   'class="cb"',
+  'class="cm"',
 ];
 
 describe("@onmax/comark", () => {

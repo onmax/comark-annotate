@@ -8,6 +8,7 @@ import * as code from "comark-code/react";
 import * as embed from "comark-embed/react";
 import * as github from "comark-github/react";
 import * as icon from "comark-icon/react";
+import * as media from "comark-media/react";
 import * as steps from "comark-steps/react";
 import * as tabs from "comark-tabs/react";
 import * as zoom from "comark-zoom/react";
@@ -21,6 +22,6 @@ type AnyComponent = ComponentType<any>;
 /** Every plugin with components for `@comark/react`, which leaves out annotate and diff. */
 export default (options?: PresetOptions): Preset<AnyComponent> =>
   preset<AnyComponent>(
-    { badge, cards, carousel, charts, chips, code, embed, github, icon, steps, tabs, zoom },
+    { badge, cards, carousel, charts, chips, code, embed, github, icon, media, steps, tabs, zoom },
     options,
   );

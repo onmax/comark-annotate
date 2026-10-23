@@ -10,6 +10,7 @@ import * as diff from "comark-diff/html";
 import * as embed from "comark-embed/html";
 import * as github from "comark-github/html";
 import * as icon from "comark-icon/html";
+import * as media from "comark-media/html";
 import * as steps from "comark-steps/html";
 import * as tabs from "comark-tabs/html";
 import * as zoom from "comark-zoom/html";
@@ -32,6 +33,7 @@ export default (options?: PresetOptions): Preset<NodeHandler> =>
       embed,
       github,
       icon,
+      media,
       steps,
       tabs,
       zoom,

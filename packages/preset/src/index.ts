@@ -34,6 +34,7 @@ export type PresetOptions = {
     | boolean;
   /** Also resolves the icons of cards, tabs, and code actions, so they all share its `collections` and `fetch`. */
   icon?: IconOptions | boolean;
+  media?: boolean;
   steps?: boolean;
   tabs?: TabsOptions | boolean;
   zoom?: ZoomOptions | boolean;
@@ -62,6 +63,7 @@ export type Renderer<C> = {
     components: Record<string, C>;
   };
   icon: Part<C, IconOptions | Icons>;
+  media: Part<C>;
   steps: Part<C>;
   tabs: Part<C, TabsOptions>;
   zoom: Part<C, ZoomOptions>;
@@ -109,6 +111,7 @@ export function preset<C>(renderer: Renderer<C>, options: PresetOptions = {}): P
     if (on(github.html)) plugins.push(renderer.github.html());
   }
   add(renderer.icon, options.icon, icons);
+  add(renderer.media, options.media);
   add(renderer.cards, options.cards, { iconResolver: icons });
   add(renderer.steps, options.steps);
   add(renderer.tabs, options.tabs, { iconResolver: icons, ...optionsOf(options.tabs) });
