@@ -68,11 +68,14 @@ type Names = Map<ElementNode, string>;
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
 const children = ([, , ...rest]: ElementNode): Node[] => rest;
 // Prop values arrive as strings, numbers, or booleans; objects and arrays aren't valid for any prop here. Use
-// typeof rather than instanceof so a revoked or otherwise hostile proxy cannot throw while we classify it.
+// identity with the Object wrapper rather than instanceof so a revoked or otherwise hostile proxy cannot throw while
+// we classify it.
+const isObjectLike = (value: unknown) => value !== null && Object(value) === value;
 const text = (value: unknown) =>
-  value === undefined || value === null || typeof value === "object" || typeof value === "function"
+  value === undefined || value === null || isObjectLike(value)
     ? ""
-    : String(value as string | number | boolean | bigint | symbol).trim();
+    : // SAFETY: undefined, null, objects, and functions returned above, so only a scalar prop value is left.
+      String(value as string | number | boolean | bigint | symbol).trim();
 // Inline, YAML-block, and `:bound` props all land here, parsed the way Comark's own renderers see them.
 const props = (node: ElementNode, data: Data) =>
   resolveAttributes(node[1], data, { parseJson: true });
