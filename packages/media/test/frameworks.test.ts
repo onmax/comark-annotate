@@ -19,12 +19,13 @@ const markdown = [
   "![Standup](standup.m4a)",
   "https://github.com/user-attachments/assets/2f3c0e3e-1c4b-4c3a-9a6b-0b1e2f3a4b5c",
 ].join("\n\n");
-// Drops what differs only in serialization: comments, whitespace between tags, the HTML renderer's inline styles, and
+// Drops what differs only in serialization: comments, whitespace between tags, the HTML renderer's inline styles and
+// script, and
 // how React writes boolean attributes and names, which HTML reads without case.
 const normalize = (html: string) =>
   html
     .replace(/<!--.*?-->/g, "")
-    .replace(/<style[^>]*>.*?<\/style>/g, "")
+    .replace(/<(style|script)[^>]*>.*?<\/\1>/gs, "")
     .replace(
       / (controls|playsinline|autoplay|loop|muted)(?:="")?/gi,
       (_, name: string) => ` ${name.toLowerCase()}`,
@@ -44,8 +45,8 @@ describe("comark-media renderers", async () => {
   const expected = normalize(await renderHtmlFromDocument(value, { components: htmlComponents }));
 
   it("renders a video, audio, and an attachment in HTML", () => {
-    expect(expected.match(/<video class="cm"/g)).toHaveLength(2);
-    expect(expected.match(/<audio class="cm"/g)).toHaveLength(1);
+    expect(expected.match(/<span class="cm cm-video"/g)).toHaveLength(2);
+    expect(expected.match(/<span class="cm cm-audio"/g)).toHaveLength(1);
     expect(expected).toContain("Login &amp; logout");
   });
 

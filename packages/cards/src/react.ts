@@ -1,6 +1,6 @@
 import { Icon, type IconData } from "comark-icon/react";
 import { createElement, type ReactNode, useEffect } from "react";
-import { addStyles, external, rel } from "./client.ts";
+import { addStyles, external, isExternalHref, isSafeHref, rel } from "./client.ts";
 
 export { colors, default } from "./index.ts";
 export type {
@@ -51,15 +51,17 @@ export function Card({
   children,
 }: CardProps) {
   useEffect(addStyles, []);
+  const href = isSafeHref(to) ? to : undefined;
+  const linkTarget = target || (isExternalHref(href) ? "_blank" : undefined);
   return createElement(
     "div",
     { className: "ccr", "data-color": color },
-    to
+    href
       ? createElement("a", {
           className: "ccr-link",
-          href: to,
-          target: target || undefined,
-          rel: rel(target),
+          href,
+          target: linkTarget,
+          rel: rel(linkTarget),
           "aria-label": label,
         })
       : null,

@@ -9,9 +9,18 @@ export type MediaMeta = {
   issueRules: Record<string, string>;
 };
 
+export type MediaOptions = {
+  /**
+   * `styled` gives videos and audio controls on the shared `--comark-*` tokens, which a small script runs; until it
+   * does, and when the file can't play, the browser's own controls show. `native` always uses the browser's controls.
+   * Default `styled`.
+   */
+  controls?: "styled" | "native";
+};
+
 /**
- * What a media file becomes, and all its renderers read. `kind` is `video` or `audio`; `label` is the image's alt. The
- * flags are only present when set.
+ * What a media file becomes, and all its renderers read. `kind` is `video` or `audio`; `label` is the image's alt.
+ * `native` marks a file that keeps the browser's controls. The flags are only present when set.
  */
 export type MediaAttributes = {
   kind?: "video" | "audio";
@@ -21,6 +30,7 @@ export type MediaAttributes = {
   autoplay?: boolean;
   loop?: boolean;
   muted?: boolean;
+  native?: boolean;
 };
 
 type Data = Parameters<typeof resolveAttributes>[1];
@@ -84,7 +94,12 @@ function convert(tokens: ComarkParseTokensState["tokens"]) {
   }
 }
 
-function read(node: ElementNode, data: Data, issues: Issue[]): MediaAttributes {
+function read(
+  node: ElementNode,
+  data: Data,
+  issues: Issue[],
+  options: MediaOptions,
+): MediaAttributes {
   const attrs = resolveAttributes(node[1], data, { parseJson: true });
   const src = text(attrs.src);
   const alt = text(attrs.alt);
@@ -113,6 +128,7 @@ function read(node: ElementNode, data: Data, issues: Issue[]): MediaAttributes {
       message: `${name}: audio has no picture, so \`poster\` was dropped. Remove it.`,
     });
   else if (poster) result.poster = poster;
+  if (options.controls === "native") result.native = true;
   if (result.autoplay && !result.muted)
     issues.push({
       rule: "comark/media/autoplay-without-muted",
@@ -132,7 +148,7 @@ function read(node: ElementNode, data: Data, issues: Issue[]): MediaAttributes {
  * with the alt as its label, as GitLab does. A GitHub `user-attachments` link alone in a paragraph plays too, as on
  * GitHub. Problems are added to `meta.issues`.
  */
-export default defineComarkPlugin<void, MediaMeta>(() => ({
+export default defineComarkPlugin<MediaOptions | undefined, MediaMeta>((options = {}) => ({
   name: "comark-media",
   markdownItPost(state) {
     convert(state.tokens);
@@ -144,7 +160,7 @@ export default defineComarkPlugin<void, MediaMeta>(() => ({
     const walk = (nodes: Node[]) => {
       for (const node of nodes) {
         if (!isElement(node)) continue;
-        if (node[0] === "media") node.splice(1, node.length - 1, read(node, data, issues));
+        if (node[0] === "media") node.splice(1, node.length - 1, read(node, data, issues, options));
         else walk(childrenOf(node));
       }
     };

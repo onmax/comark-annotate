@@ -97,6 +97,7 @@ const packageOrder = [
   "cards",
   "steps",
   "deflist",
+  "figure",
   "mark",
   "include",
   "outline",
@@ -534,7 +535,7 @@ const thumbnails = new Map(
     presets.map(async (preset) => {
       const document = await parseMarkdown(preset.source, { plugins: sitePlugins() });
       const html = (await renderHtmlFromDocument(document, { components })).replace(
-        /<iframe\b[^>]*><\/iframe>|<(video|audio) class="cm"[^>]*>.*?<\/\1>/g,
+        /<iframe\b[^>]*><\/iframe>|<(video|audio) class="cm"[^>]*>.*?<\/\1>|<span class="cm cm-(?:audio|video)"[^>]*>.*?<\/button><\/span><\/span>/g,
         `<span class="preset-player">${siteIcon("tv-minimal-play", 128)}</span>`,
       );
       return [preset.id, stillOf(html, thumbnailStyles)] as const;
@@ -602,8 +603,18 @@ async function renderDemo(slug: string, source: string) {
     /<iframe\b[^>]*><\/iframe>/g,
     `<span class="demo-player"><span class="demo-play">${playIcon}</span></span>`,
   );
-  // Tabs show their strip once their script runs, which a card doesn't have.
-  html = html.replaceAll('<div class="ct"', '<div class="ct" data-tabs-ready');
+  // Tabs show their strip, and players their controls, once their script runs, which a card doesn't have. A video
+  // there drops the browser's controls, which would otherwise show over its own.
+  html = html
+    .replaceAll('<div class="ct"', '<div class="ct" data-tabs-ready')
+    .replace(
+      /<span class="cm cm-video"([^>]*)><video([^>]*?) controls/g,
+      '<span class="cm cm-video" data-media-ready$1><video$2',
+    )
+    .replaceAll('<span class="cm cm-audio"', '<span class="cm cm-audio" data-media-ready');
+  // An include shows what it reads, since the page alone doesn't say.
+  if (slug === "include")
+    html = `<p class="demo-directive"><code>${escapeHtml(source.trim())}</code></p>${html}`;
   return stillOf(html, demoStyles);
 }
 interface Demo {
