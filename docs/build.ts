@@ -94,6 +94,7 @@ const packageOrder = [
   "badge",
   "cards",
   "steps",
+  "deflist",
   "include",
   "outline",
   "reading-time",
