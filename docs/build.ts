@@ -78,6 +78,7 @@ const packageOrder = [
   "tabs",
   "code",
   "include",
+  "toc",
   "lint",
 ];
 const repo = new URL("../", root);
