@@ -39,5 +39,6 @@ The plugin adds every problem to `meta.issues`, as [Validation](/guide/validatio
 - Content before the first heading renders above the steps.
 - A block with no headings at its `level` and no numbered list renders as plain content. When its headings are at another level, the issue names the `level` to write.
 - A `level` outside 2 to 6 falls back to 3.
+- A prop other than `level`, such as `start`, is ignored.
 
-Each issue names its block and says how to fix it.
+Each issue names its block and says how to fix it. Each one has its own rule in [Doctor](/doctor/).

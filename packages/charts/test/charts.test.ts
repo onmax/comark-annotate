@@ -318,6 +318,57 @@ No such column.
     expect(html.match(/class="ca-mark /g)).toHaveLength(1);
   });
 
+  it("reports a mark on an empty cell, which it can't draw", async () => {
+    const markdown = `::chart
+| pond | ducks | geese |
+| --- | --: | --: |
+| north | 12 | 3 |
+| south | 7 | |
+| east | | |
+:::annotation{at="south" series="geese"}
+Nobody counted the geese.
+:::
+:::annotation{at="east"}
+Nobody counted at all.
+:::
+:::annotation{at="south"}
+The ducks are still drawn.
+:::
+::`;
+    expect(await issues(markdown)).toEqual([
+      '`::chart` 1, annotation 1: `at="south"` marks an empty `geese` cell, so the mark isn\'t drawn. Fill in the cell, or mark another row.',
+      '`::chart` 1, annotation 2: `at="east"` marks a row with no numbers, so the mark isn\'t drawn. Fill in the row, or mark another one.',
+    ]);
+  });
+
+  it("names the rule of each issue in meta.issueRules", async () => {
+    const markdown = `${chart(sizes, '{type="donut" colour="red"}')}
+
+::chart
+${months.trim()}
+:::annotation{at="2026-13" color="purple"}
+Nowhere.
+:::
+::
+
+::chart
+${sizes.trim()}
+
+\`\`\`vega-lite
+{"data": {"values": []}, "mark": "bar"}
+\`\`\`
+::`;
+    const { meta } = await parseMarkdown(markdown, { plugins: [charts({ draw: false })] });
+    expect(Object.values(meta.issueRules)).toEqual([
+      "comark/charts/unknown-prop",
+      "comark/charts/unknown-type",
+      "comark/annotate/invalid-color",
+      "comark/charts/invalid-at",
+      "comark/charts/spec-with-data",
+    ]);
+    expect(Object.keys(meta.issueRules)).toEqual(meta.issues);
+  });
+
   it("escapes text from the table in the SVG", async () => {
     const html = await render(
       chart(`
