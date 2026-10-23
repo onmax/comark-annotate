@@ -8,6 +8,7 @@ export interface FigureOptions {
 
 const isElement = (node: Node | undefined): node is ElementNode =>
   Array.isArray(node) && node[0] !== null;
+const isRaw = (node: ElementNode) => Boolean(node[1].$?.html);
 // SAFETY: an element node is [tag, attributes, ...children], so everything after index 1 is a child node.
 const childrenOf = (node: ElementNode) => node.slice(2) as Node[];
 // Comments are arrays with a null tag and render nothing, so they don't keep an image from standing alone.
@@ -18,9 +19,10 @@ const only = (node: ElementNode) => {
 };
 const imageOf = (node: Node | undefined) => {
   if (!isElement(node)) return;
+  if (isRaw(node)) return;
   if (node[0] === "img") return node;
   const inner = node[0] === "a" ? only(node) : undefined;
-  return isElement(inner) && inner[0] === "img" ? inner : undefined;
+  return isElement(inner) && !isRaw(inner) && inner[0] === "img" ? inner : undefined;
 };
 const text = (value: unknown) =>
   value === undefined || value === null || value instanceof Object
@@ -50,6 +52,7 @@ function walk(nodes: Node[], start: number, unwrap: boolean) {
   for (let index = start; index < nodes.length; index++) {
     const node = nodes[index];
     if (!isElement(node)) continue;
+    if (isRaw(node)) continue;
     const [tag] = node;
     if (tag === "p") {
       const picture = only(node);

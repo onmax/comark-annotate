@@ -2,6 +2,7 @@ import { createHtmlRenderer } from "@comark/html";
 import { createMarkdownParser, parseMarkdown, type ComarkPlugin, type ParserOptions } from "comark";
 import { describe, expect, it } from "vite-plus/test";
 import zoom from "../../zoom/src/index.ts";
+import { html } from "../../github/src/raw-html.ts";
 import figure, { type FigureOptions } from "../src/index.ts";
 
 // The renderer indents blocks; the tests compare the markup alone.
@@ -101,5 +102,11 @@ describe("comark-figure", () => {
       ["figure", {}, ["img", { src: "duck.png", alt: "A duck" }], ["figcaption", {}, "Duck"]],
     ]);
     expect(meta.issues).toBeUndefined();
+  });
+
+  it("leaves raw HTML images and their subtrees unchanged", async () => {
+    expect(await render('<p><img src="duck.png" title="Raw caption"></p>', {}, {}, [html(), figure()])).toBe(
+      '<p><img src="duck.png" title="Raw caption"></p>',
+    );
   });
 });

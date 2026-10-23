@@ -12,11 +12,14 @@ function skipMarker(state: StateBlock, line: number) {
   let start = (state.bMarks[line] ?? 0) + (state.tShift[line] ?? 0);
   const max = state.eMarks[line] ?? 0;
   if (start >= max) return -1;
+  // Definition markers must not be indented into a code block.
+  if ((state.sCount[line] ?? 0) - state.blkIndent >= 4) return -1;
   const marker = state.src.charCodeAt(start++);
   if (marker !== 0x7e && marker !== 0x3a) return -1;
   const pos = state.skipSpaces(start);
-  // A space after the marker, and something after the space.
-  if (start === pos || pos >= max) return -1;
+  // Require a separating space when content follows the marker. An empty
+  // definition is valid when the marker is followed by whitespace to EOL.
+  if (start === pos && pos < max) return -1;
   return start;
 }
 
@@ -48,13 +51,17 @@ function deflist(state: StateBlock, startLine: number, endLine: number, silent: 
 
   let nextLine = startLine + 1;
   if (nextLine >= endLine) return false;
-  if (state.isEmpty(nextLine) && ++nextLine >= endLine) return false;
+  let termLoose = false;
+  if (state.isEmpty(nextLine)) {
+    termLoose = true;
+    if (++nextLine >= endLine) return false;
+  }
   if ((state.sCount[nextLine] ?? 0) < state.blkIndent) return false;
   let contentStart = skipMarker(state, nextLine);
   if (contentStart < 0) return false;
 
   const listIndex = state.tokens.length;
-  let tight = true;
+  let tight = !termLoose;
   const listLines: [number, number] = [startLine, 0];
   open(state, "dl", listLines);
 
@@ -134,7 +141,10 @@ function deflist(state: StateBlock, startLine: number, endLine: number, silent: 
     if ((state.sCount[dtLine] ?? 0) < state.blkIndent) break;
     ddLine = dtLine + 1;
     if (ddLine >= endLine) break;
-    if (state.isEmpty(ddLine)) ddLine++;
+    if (state.isEmpty(ddLine)) {
+      tight = false;
+      ddLine++;
+    }
     if (ddLine >= endLine) break;
     if ((state.sCount[ddLine] ?? 0) < state.blkIndent) break;
     contentStart = skipMarker(state, ddLine);

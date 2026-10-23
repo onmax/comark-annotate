@@ -385,10 +385,13 @@ function dumbbell(chart: Chart, spec: TopLevelSpec) {
   let values = ticks(Math.min(...all), Math.max(...all), width);
   let [low, high] = [values[0]!, values.at(-1)!];
   if (low === high) {
-    const room = Math.max(1, Math.abs(low) * 0.1);
+    const center = low;
+    const room = Math.max(1, Math.abs(center) * 0.1);
     low -= room;
     high += room;
     values = ticks(low, high, width);
+    // A narrow axis may not fit four rounded ticks, but the sole data value must remain visible.
+    if (!values.includes(center)) values = [...values, center].sort((a, b) => a - b);
   }
   // Each row's least value is printed left of its dot and its most right of its dot, when the two differ, so the scale
   // leaves each row room for its text, as a share of the span: the least sits `left` of the span in from the low
