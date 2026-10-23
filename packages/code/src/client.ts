@@ -127,10 +127,18 @@ export function start(css: string): () => void {
   function copy(root: Element, code: Element) {
     const text = textOf(code);
     const failed = () => {
-      const range = document.createRange();
-      range.selectNodeContents(code);
-      getSelection()?.removeAllRanges();
-      getSelection()?.addRange(range);
+      // Select the filtered text in a temporary control so the keyboard fallback
+      // has the same contents as the Clipboard API path.
+      const field = document.createElement("textarea");
+      field.value = text;
+      field.setAttribute("readonly", "");
+      field.setAttribute("aria-hidden", "true");
+      field.style.position = "fixed";
+      field.style.inset = "-9999px auto auto -9999px";
+      field.style.opacity = "0";
+      document.body.append(field);
+      field.select();
+      document.addEventListener("copy", () => field.remove(), { once: true, signal });
       say(root, "Couldn't copy, so the code is selected. Press Ctrl+C or ⌘C.", "failed");
     };
     // SAFETY: `clipboard` is missing outside secure contexts, whatever the DOM types say.
