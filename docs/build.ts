@@ -1165,8 +1165,7 @@ function shell(options: {
   const { slug, section } = options;
   const npm = options.npm ?? section.npm;
   const pageHead =
-    options.head ??
-    (npm && section.slug !== "play" ? `\n${[...thumbnailStyles].join("")}` : "");
+    options.head ?? (npm && section.slug !== "play" ? `\n${[...thumbnailStyles].join("")}` : "");
   const nav = rail(section) + column(section, slug);
   const header = `<div class="top-start"><a class="name" href="/">${logo}comark plugins</a>${options.landing ? `<nav class="top-links" aria-label="Site"><a href="/guide/renderers/">Docs</a><a href="/play/">Playground</a><a href="https://drop.vitehub.dev">Drop</a></nav>` : ""}</div>
 <button type="button" class="search-open" aria-haspopup="dialog">${siteIcon("search", 15)}<span class="search-label">Search docs</span><kbd><span class="kbd-mac">⌘K</span><span class="kbd-other">Ctrl K</span></kbd></button>
