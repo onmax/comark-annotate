@@ -20,6 +20,21 @@ export type { PresetOptions } from "./index.ts";
 /** Every plugin with components for `@comark/vue`, which leaves out annotate and diff. */
 export default (options?: PresetOptions): Preset<Component> =>
   preset<Component>(
-    { badge, cards, carousel, charts, chips, code, embed, fields, github, icon, media, steps, tabs, zoom },
+    {
+      badge,
+      cards,
+      carousel,
+      charts,
+      chips,
+      code,
+      embed,
+      fields,
+      github,
+      icon,
+      media,
+      steps,
+      tabs,
+      zoom,
+    },
     options,
   );

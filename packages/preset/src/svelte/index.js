@@ -17,6 +17,21 @@ import * as zoom from "comark-zoom/svelte";
 
 export default (options) =>
   preset(
-    { badge, cards, carousel, charts, chips, code, embed, fields, github, icon, media, steps, tabs, zoom },
+    {
+      badge,
+      cards,
+      carousel,
+      charts,
+      chips,
+      code,
+      embed,
+      fields,
+      github,
+      icon,
+      media,
+      steps,
+      tabs,
+      zoom,
+    },
     options,
   );

@@ -23,6 +23,21 @@ type AnyComponent = ComponentType<any>;
 /** Every plugin with components for `@comark/react`, which leaves out annotate and diff. */
 export default (options?: PresetOptions): Preset<AnyComponent> =>
   preset<AnyComponent>(
-    { badge, cards, carousel, charts, chips, code, embed, fields, github, icon, media, steps, tabs, zoom },
+    {
+      badge,
+      cards,
+      carousel,
+      charts,
+      chips,
+      code,
+      embed,
+      fields,
+      github,
+      icon,
+      media,
+      steps,
+      tabs,
+      zoom,
+    },
     options,
   );
