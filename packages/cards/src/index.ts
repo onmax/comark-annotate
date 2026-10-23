@@ -141,7 +141,7 @@ function card(node: ElementNode, walk: Walk) {
     to = href;
   }
   // A `javascript:` link would run on a click anywhere on the card.
-  if (!isSafeHref(to)) {
+  if (to && !isSafeHref(to)) {
     walk.issues.push({
       rule: "comark/cards/unsafe-link",
       message: `${name}: \`to\` must be a page or a web address, so it isn't a link.`,
