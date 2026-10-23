@@ -93,6 +93,7 @@ const packageOrder = [
   "steps",
   "include",
   "outline",
+  "reading-time",
   "lint",
 ];
 const repo = new URL("../", root);
