@@ -11,6 +11,7 @@ const repo = new URL("../", import.meta.url);
 const withoutExamples = new Set([
   "comark/plugin-issue",
   "comark/dead-url",
+  "comark/code/listed-before-shiki",
   "comark/icon/download-failed",
   "comark/chips/missing-avatar",
   "comark/chips/rate-limited",
