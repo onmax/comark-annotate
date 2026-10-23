@@ -11,3 +11,5 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
     github: config["comark-github"],
     zoom: config["comark-zoom"],
   }).plugins;
+
+export const { components } = onmax();
