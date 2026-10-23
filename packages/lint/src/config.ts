@@ -43,11 +43,8 @@ const packages = [
   ["comark-icon/html", () => import("comark-icon/html"), []],
   ["comark-steps/html", () => import("comark-steps/html"), []],
   ["comark-cards/html", () => import("comark-cards/html"), []],
-  [
-    "comark-details/html",
-    () => import("comark-details/html"),
-    ["details", "accordion-item", "collapsible"],
-  ],
+  ["comark-badge/html", () => import("comark-badge/html"), []],
+  ["comark-details/html", () => import("comark-details/html"), ["details", "accordion-item", "collapsible"]],
   ["comark-tabs/html", () => import("comark-tabs/html"), ["code-group", "tabs-item"]],
   ["comark-zoom/html", () => import("comark-zoom/html"), []],
 ] as const;
