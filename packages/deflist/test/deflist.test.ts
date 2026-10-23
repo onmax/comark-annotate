@@ -52,6 +52,22 @@ describe("comark-deflist", () => {
     );
   });
 
+  it("accepts empty definitions and rejects indented markers", async () => {
+    expect(await render("Term\n:\n\nNext\n: Def.")).toBe(
+      "<dl><dt>Term</dt><dd></dd><dt>Next</dt><dd>Def.</dd></dl>",
+    );
+    expect(await render("Term\n:   \n: Second.")).toBe(
+      "<dl><dt>Term</dt><dd></dd><dd>Second.</dd></dl>",
+    );
+    // autoClose drops a lone `:` that ends the document as an unfinished `:component`, before the plugin runs.
+    expect(await render("Term\n:", { autoClose: false })).toBe("<dl><dt>Term</dt><dd></dd></dl>");
+    // Indented code can't interrupt a paragraph, so the marker line continues the term's paragraph.
+    expect(await render("Term\n    : not a definition")).toBe("<p>Term: not a definition</p>");
+    expect(await render("Term\n\n: Loose.", { autoUnwrap: false })).toBe(
+      "<dl><dt>Term</dt><dd><p>Loose.</p></dd></dl>",
+    );
+  });
+
   it("leaves a colon with no space, or with no term above it, as text", async () => {
     expect(await render("Ratio\n:3 to 1", { registerDefaultPlugins: false })).toBe(
       "<p>Ratio\n:3 to 1</p>".replace("\n", ""),

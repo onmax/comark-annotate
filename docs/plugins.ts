@@ -16,6 +16,7 @@ import {
 } from "../packages/github/src/html.ts";
 import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
 import mark from "../packages/mark/src/index.ts";
+import steps, { components as stepsComponents } from "../packages/steps/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
 import type { PlayConfig } from "./config.ts";
@@ -35,6 +36,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   githubHtml(),
   icon(),
   mark(),
+  steps(),
   tabs(),
   zoom(config["comark-zoom"]),
 ];
@@ -49,6 +51,7 @@ export const components = {
   ...embedComponents,
   ...githubComponents,
   ...iconComponents,
+  ...stepsComponents,
   ...tabsComponents,
   ...zoomComponents,
 };

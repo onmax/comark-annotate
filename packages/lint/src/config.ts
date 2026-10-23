@@ -52,6 +52,7 @@ const packages = [
     () => import("comark-mark").then((module) => ({ ...module, components: {} })),
     [],
   ],
+  ["comark-steps/html", () => import("comark-steps/html"), []],
   ["comark-tabs/html", () => import("comark-tabs/html"), ["code-group", "tabs-item"]],
   ["comark-zoom/html", () => import("comark-zoom/html"), []],
 ] as const;
