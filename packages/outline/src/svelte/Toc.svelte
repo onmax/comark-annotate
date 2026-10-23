@@ -1,7 +1,7 @@
 <!-- `::toc` for `@comark/svelte`. -->
 <script>
   import { onMount } from "svelte";
-  import { addStyles } from "comark-toc/client";
+  import { addStyles } from "comark-outline/client";
 
   let { title = undefined, empty = false, children } = $props();
   onMount(addStyles);

@@ -11,9 +11,9 @@ import embed from "./embed.ts";
 import github from "./github.ts";
 import icon from "./icon.ts";
 import include from "./include.ts";
+import outline from "./outline.ts";
 import steps from "./steps.ts";
 import tabs from "./tabs.ts";
-import toc from "./toc.ts";
 import type { RuleInfo } from "./types.ts";
 
 export type { RuleInfo } from "./types.ts";
@@ -35,5 +35,5 @@ export const catalog = {
   ...steps,
   ...tabs,
   ...badge,
-  ...toc,
+  ...outline,
 } satisfies Record<string, RuleInfo>;

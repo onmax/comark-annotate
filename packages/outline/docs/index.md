@@ -1,8 +1,8 @@
 ---
-title: comark-toc
+title: comark-outline
 description: A table of contents in the body of a page, written in Markdown.
 tagline: Put a contents block where the list should go and get a nested list of links to the page's headings, kept in step with them on every render.
-install: pnpm add comark @comark/html comark-toc
+install: pnpm add comark @comark/html comark-outline
 group: Authoring tools
 icon: list-tree
 blurb: A table of contents in the page

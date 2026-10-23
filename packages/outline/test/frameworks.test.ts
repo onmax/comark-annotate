@@ -38,7 +38,7 @@ const renderers = {
     renderReact(createElement(ReactDocument, { value, components: reactComponents })),
 };
 
-describe("comark-toc renderers", async () => {
+describe("comark-outline renderers", async () => {
   const value = await parseMarkdown(markdown, { plugins: [toc()] });
   const expected = normalize(await renderHtmlFromDocument(value, { components: htmlComponents }));
 

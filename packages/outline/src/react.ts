@@ -3,7 +3,7 @@ import { addStyles } from "./client.ts";
 import type { TocAttributes } from "./index.ts";
 
 export { default } from "./index.ts";
-export type { TocAttributes, TocMeta } from "./index.ts";
+export type { TocAttributes, OutlineMeta } from "./index.ts";
 
 /** `::toc` for `@comark/react`. */
 export function Toc({ title, children }: TocAttributes & { children?: ReactNode }) {

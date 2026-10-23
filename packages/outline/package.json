@@ -1,5 +1,5 @@
 {
-  "name": "comark-toc",
+  "name": "comark-outline",
   "version": "0.3.0",
   "description": "A table of contents in the body of a page: ::toc becomes a nested list of links to the headings. A Comark plugin.",
   "keywords": [
@@ -7,18 +7,19 @@
     "headings",
     "markdown",
     "mdc",
+    "outline",
     "plugin",
     "table-of-contents",
     "toc"
   ],
-  "homepage": "https://comark.onmax.me/toc",
+  "homepage": "https://comark.onmax.me/outline",
   "bugs": "https://github.com/onmax/comark-plugins/issues",
   "license": "MIT",
   "author": "onmax",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/onmax/comark-plugins.git",
-    "directory": "packages/toc"
+    "directory": "packages/outline"
   },
   "files": [
     "dist"
@@ -49,7 +50,7 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "doctor": "vite-doctor . --no-cache --max-warnings 0 --format text",
-    "prepack": "pnpm --filter comark-toc... build"
+    "prepack": "pnpm --filter comark-outline... build"
   },
   "devDependencies": {
     "@comark/html": "catalog:",

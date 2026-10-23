@@ -19,7 +19,7 @@ import steps, { components as stepsComponents } from "../packages/steps/src/html
 import cards, { components as cardsComponents } from "../packages/cards/src/html.ts";
 import badge, { components as badgeComponents } from "../packages/badge/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
-import toc, { components as tocComponents } from "../packages/toc/src/html.ts";
+import outline, { components as outlineComponents } from "../packages/outline/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
 import type { PlayConfig } from "./config.ts";
 
@@ -41,7 +41,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   cards(),
   steps(),
   tabs(),
-  toc(),
+  outline(),
   zoom(config["comark-zoom"]),
   code(config["comark-code"]),
 ];
@@ -61,6 +61,6 @@ export const components = {
   ...cardsComponents,
   ...stepsComponents,
   ...tabsComponents,
-  ...tocComponents,
+  ...outlineComponents,
   ...zoomComponents,
 };

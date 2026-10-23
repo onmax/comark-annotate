@@ -92,7 +92,7 @@ const packageOrder = [
   "cards",
   "steps",
   "include",
-  "toc",
+  "outline",
   "lint",
 ];
 const repo = new URL("../", root);

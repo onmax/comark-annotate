@@ -2,7 +2,7 @@ import { defineComponent, h, onMounted } from "vue";
 import { addStyles } from "./client.ts";
 
 export { default } from "./index.ts";
-export type { TocAttributes, TocMeta } from "./index.ts";
+export type { TocAttributes, OutlineMeta } from "./index.ts";
 
 /** `::toc` for `@comark/vue`. */
 export const Toc = defineComponent({

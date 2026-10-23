@@ -3,14 +3,14 @@ import { defineComarkPlugin } from "comark";
 import { resolveAttributes } from "comark/render";
 import { textContent } from "comark/utils";
 
-export type TocMeta = {
+export type OutlineMeta = {
   /** One readable sentence per problem with a `::toc`. Empty when the document has none. Other plugins add theirs too. */
   issues: string[];
   /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
   issueRules: Record<string, string>;
 };
 
-type Issue = { rule: `comark/toc/${string}`; message: string };
+type Issue = { rule: `comark/outline/${string}`; message: string };
 
 /** What a `::toc` becomes, and all its renderers read. Its children are the nested list of links. */
 export type TocAttributes = { title?: string; empty?: boolean };
@@ -75,14 +75,14 @@ function toc(
   const attrs = resolveAttributes(node[1], data, { parseJson: true });
   if (childrenOf(node).some(isContent))
     issues.push({
-      rule: "comark/toc/content-dropped",
+      rule: "comark/outline/content-dropped",
       message: `${name} drops the content inside it. Close the block with \`::\` on the line after it, and write text outside it.`,
     });
   for (const key of Object.keys(node[1])) {
     const prop = key.replace(/^:/, "");
     if (!PROPS.includes(prop) && prop !== "id" && prop !== "class")
       issues.push({
-        rule: "comark/toc/unknown-prop",
+        rule: "comark/outline/unknown-prop",
         message: `${name}: \`${prop}\` isn't a prop of \`::toc\`, so it's ignored. Use \`depth\` or \`title\`.`,
       });
   }
@@ -90,7 +90,7 @@ function toc(
   const depth = raw ? Number(raw) : 3;
   if (!Number.isInteger(depth) || depth < 2 || depth > 6) {
     issues.push({
-      rule: "comark/toc/invalid-depth",
+      rule: "comark/outline/invalid-depth",
       message: `${name}: \`depth\` must be a whole number from 2 to 6, such as \`depth=3\` for h2 and h3 headings.`,
     });
     return ["toc", { empty: true }];
@@ -98,7 +98,7 @@ function toc(
   const listed = headings.filter((heading) => heading.level >= 2 && heading.level <= depth);
   if (!listed.length) {
     issues.push({
-      rule: "comark/toc/no-headings",
+      rule: "comark/outline/no-headings",
       message: `${name} has no headings from h2 to h${depth} to list. Add \`##\` headings, or remove the block.`,
     });
     return ["toc", { empty: true }];
@@ -111,8 +111,8 @@ function toc(
  * Turns `::toc` into a nested list of links to the document's h2 and h3 headings, or down to `depth`. It reads the
  * headings itself, so it doesn't depend on running after Comark's toc plugin. Problems are added to `meta.issues`.
  */
-export default defineComarkPlugin<void, TocMeta>(() => ({
-  name: "comark-toc",
+export default defineComarkPlugin<void, OutlineMeta>(() => ({
+  name: "comark-outline",
   post(state) {
     const { tree } = state;
     const data: Data = { frontmatter: tree.frontmatter, meta: tree.meta, data: {}, props: {} };

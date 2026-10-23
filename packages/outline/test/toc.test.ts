@@ -19,7 +19,7 @@ const page = [
   "## FAQ",
 ].join("\n\n");
 
-describe("comark-toc", () => {
+describe("comark-outline", () => {
   it("lists the h2 and h3 headings as nested links, and inlines the styles once", async () => {
     const html = await render(`${page}\n\n::toc\n::`);
     expect(await nav(page)).toBe(
@@ -28,7 +28,7 @@ describe("comark-toc", () => {
         '<li><a href="#faq">FAQ</a></li></ul>',
     );
     expect(html).toContain('<nav class="cto" aria-label="Contents">');
-    expect(html.match(/<style data-comark-toc>/g)).toHaveLength(1);
+    expect(html.match(/<style data-comark-outline>/g)).toHaveLength(1);
     expect(html.match(/<nav class="cto"/g)).toHaveLength(2);
     expect(await issues(page)).toEqual([]);
   });
@@ -74,11 +74,11 @@ describe("comark-toc", () => {
     });
     expect(meta.issueRules).toEqual({
       "`::toc` 1: `levels` isn't a prop of `::toc`, so it's ignored. Use `depth` or `title`.":
-        "comark/toc/unknown-prop",
+        "comark/outline/unknown-prop",
       "`::toc` 1 has no headings from h2 to h3 to list. Add `##` headings, or remove the block.":
-        "comark/toc/no-headings",
+        "comark/outline/no-headings",
       "`::toc` 2: `depth` must be a whole number from 2 to 6, such as `depth=3` for h2 and h3 headings.":
-        "comark/toc/invalid-depth",
+        "comark/outline/invalid-depth",
     });
   });
 
