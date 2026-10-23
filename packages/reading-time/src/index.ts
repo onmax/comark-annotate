@@ -18,12 +18,13 @@ export type ReadingTimeMeta = { readingTime: ReadingTime };
 // Chinese, Japanese, and Korean are written without spaces between words, so each character counts as one.
 const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu;
 const WORD = /[\p{L}\p{N}]/u;
+const RAW_CODE = new Set(["pre", "script", "style", "textarea"]);
 
 /** The text of every node but code blocks, with a space between nodes so words in adjacent blocks stay apart. */
 function textOf(nodes: Node[], parts: string[] = []) {
   for (const node of nodes) {
     if (!Array.isArray(node)) parts.push(node);
-    else if (node[0] !== null && node[0] !== "pre") {
+    else if (node[0] !== null && !RAW_CODE.has(node[0])) {
       const [, , ...children] = node;
       textOf(children, parts);
     }
