@@ -52,4 +52,4 @@ A tree is a `<div class="cft">` of nested `<ul>`s. Each entry is an `<li>` with 
 | `--comark-radius` | Corners |
 | `--comark-font` | Notes |
 
-Set `--cft-added`, `--cft-removed`, and `--cft-changed` on `.cft` to change the colors of marked entries. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
+Set `--cft-added`, `--cft-removed`, and `--cft-changed` on `.cft` to change the colors of marked entries; removed entries follow shadcn/ui's `--destructive` by default. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.

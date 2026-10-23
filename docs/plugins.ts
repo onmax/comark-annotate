@@ -35,8 +35,8 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   references(config["comark-github"]?.references),
   githubHtml(),
   icon(),
+  fileTree(),
   badge(),
-  fileTree()
   cards(),
   steps(),
   tabs(),
@@ -53,8 +53,8 @@ export const components = {
   ...embedComponents,
   ...githubComponents,
   ...iconComponents,
+  ...fileTreeComponents,
   ...badgeComponents,
-  ...fileTreeComponents
   ...cardsComponents,
   ...stepsComponents,
   ...tabsComponents,

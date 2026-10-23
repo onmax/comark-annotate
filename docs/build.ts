@@ -77,8 +77,8 @@ const packageOrder = [
   "carousel",
   "tabs",
   "code",
+  "file-tree",
   "badge",
-  "file-tree"
   "cards",
   "steps",
   "include",
