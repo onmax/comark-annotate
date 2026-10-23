@@ -2,7 +2,7 @@ import type { ElementNode, Node } from "comark";
 import { defineComarkPlugin } from "comark";
 import { createIcons, describeIconProblem, iconProblemRule, type Icons } from "comark-icon";
 import type { ActionButton } from "./client.ts";
-import { fromDiff, lines, nameOf } from "./lines.ts";
+import { fromDiff, lines, nameOf, type Issue } from "./lines.ts";
 
 type Shown =
   | {
@@ -40,7 +40,7 @@ export type CodeOptions = {
 };
 
 export type CodeMeta = {
-  /** One readable sentence per action whose icon can't be drawn. Other plugins add theirs too. */
+  /** One readable sentence per fence it can't read, and per action whose icon can't be drawn. Other plugins add theirs too. */
   issues: string[];
   /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
   issueRules: Record<string, string>;
@@ -72,7 +72,7 @@ function mark(nodes: Node[], actions: CodeAction[], used: Set<CodeAction>, block
   }
 }
 
-async function act(nodes: Node[], actions: CodeAction[], resolver: Icons, issues: string[]) {
+async function act(nodes: Node[], actions: CodeAction[], resolver: Icons, issues: Issue[]) {
   if (!actions.length) return;
   const used = new Set<CodeAction>();
   const blocks: ElementNode[] = [];
@@ -84,9 +84,10 @@ async function act(nodes: Node[], actions: CodeAction[], resolver: Icons, issues
     const title = action.title || action.label || action.id;
     const icon = action.icon ? resolved.get(action.icon) : undefined;
     if (action.icon && icon && "problem" in icon)
-      issues.push(
-        `The comark-code action "${action.id}" shows "${title}" as text on its code blocks, because it can't draw its icon "${action.icon}": ${describeIconProblem(action.icon, icon)}`,
-      );
+      issues.push({
+        rule: iconProblemRule(icon),
+        message: `The comark-code action "${action.id}" shows "${title}" as text on its code blocks, because it can't draw its icon "${action.icon}": ${describeIconProblem(action.icon, icon)}`,
+      });
     const drawn = icon && !("problem" in icon) ? icon : undefined;
     buttons.set(action, {
       id: action.id,
@@ -132,17 +133,24 @@ export default defineComarkPlugin<CodeOptions, CodeMeta>((options = {}) => {
       }
     },
     async post(state) {
-      const issues: string[] = [];
+      const issues: Issue[] = [];
       // Shiki redraws each block from its text, so lines rewritten before it runs would lose their highlighting.
       const order = (state.options.plugins ?? []).map((plugin) => plugin.name);
       const early = order.indexOf("shiki") > order.indexOf("comark-code");
       const unread = blocksOf(state.tree.nodes).filter((pre) => lines(pre, !early, issues));
       if (early && unread.length)
-        issues.push(
-          `${nameOf(unread[0]!)}${unread.length > 1 ? ` and ${unread.length - 1} more` : ""} can't have line markers, numbers, or collapsed ranges, because comark-code is listed before shiki in plugins, and Shiki redraws every block it highlights. List shiki() before comark-code.`,
-        );
+        issues.push({
+          rule: "comark/code/listed-before-shiki",
+          message: `${nameOf(unread[0]!)}${unread.length > 1 ? ` and ${unread.length - 1} more` : ""} can't have line markers, numbers, or collapsed ranges, because comark-code is listed before shiki in plugins, and Shiki redraws every block it highlights. List shiki() before comark-code.`,
+        });
       await act(state.tree.nodes, options.actions ?? [], resolver, issues);
-      if (issues.length) state.tree.meta.issues = [...(state.tree.meta.issues ?? []), ...issues];
+      if (!issues.length) return;
+      const { meta } = state.tree;
+      meta.issues = [...(meta.issues ?? []), ...issues.map((issue) => issue.message)];
+      meta.issueRules = {
+        ...meta.issueRules,
+        ...Object.fromEntries(issues.map((issue) => [issue.message, issue.rule])),
+      };
     },
   };
 });

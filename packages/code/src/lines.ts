@@ -18,6 +18,8 @@ const terminals = new Set([
 const frames = new Set(["auto", "code", "terminal", "none"]);
 const markers = ["ins", "del", "mark"] as const;
 
+export type Issue = { rule: `comark/code/${string}` | `comark/icon/${string}`; message: string };
+
 type Word = { key?: string; value?: string; raw: string };
 
 // A word is `key`, `key=value`, `key="value"`, or `key={ranges}`, as Expressive Code writes them.
@@ -162,15 +164,16 @@ function read(
   key: string,
   values: string[],
   count: number,
-  issues: string[],
+  issues: Issue[],
 ): Range[] {
   const ranges: Range[] = [];
   for (const value of values) {
     const inner = /^\{(.*)\}$/s.exec(value)?.[1];
     if (inner === undefined) {
-      issues.push(
-        `${name} has ${key}${value ? `=${value}` : ""}, which isn't a line range, so no line is marked. Write the line numbers in braces, such as ${key}={2-4}.`,
-      );
+      issues.push({
+        rule: "comark/code/invalid-range",
+        message: `${name} has ${key}${value ? `=${value}` : ""}, which isn't a line range, so no line is marked. Write the line numbers in braces, such as ${key}={2-4}.`,
+      });
       continue;
     }
     for (const part of inner.split(",")) {
@@ -178,13 +181,15 @@ function read(
       const start = Number(bounds?.[1]);
       const end = Number(bounds?.[2] ?? bounds?.[1]);
       if (!bounds || start < 1 || end < start)
-        issues.push(
-          `${name} has ${key}={${inner}}, and "${part.trim()}" isn't a line or a range from a lower line to a higher one. Write it like ${key}={2-4}.`,
-        );
+        issues.push({
+          rule: "comark/code/invalid-range",
+          message: `${name} has ${key}={${inner}}, and "${part.trim()}" isn't a line or a range from a lower line to a higher one. Write it like ${key}={2-4}.`,
+        });
       else if (end > count)
-        issues.push(
-          `${name} has ${key}={${inner}}, but it has ${count === 1 ? "1 line" : `${count} lines`}, so line ${end} doesn't exist. Mark lines from 1 to ${count}.`,
-        );
+        issues.push({
+          rule: "comark/code/line-out-of-range",
+          message: `${name} has ${key}={${inner}}, but it has ${count === 1 ? "1 line" : `${count} lines`}, so line ${end} doesn't exist. Mark lines from 1 to ${count}.`,
+        });
       else ranges.push([start, end]);
     }
   }
@@ -211,7 +216,7 @@ const covers = (ranges: Range[], line: number) =>
  * `data-line`, and its newline inside it, so it can take a background, and collapsed ranges inside `<details>`.
  * Returns whether the fence asked for anything that needs the lines.
  */
-export function lines(pre: ElementNode, split: boolean, issues: string[]): boolean {
+export function lines(pre: ElementNode, split: boolean, issues: Issue[]): boolean {
   const attrs = pre[1];
   // SAFETY: Comark writes what follows a fence's language and title as one string.
   const meta = (attrs.meta as string | undefined) ?? "";
@@ -223,9 +228,10 @@ export function lines(pre: ElementNode, split: boolean, issues: string[]): boole
   const language = (written.language ?? "").toLowerCase();
   const filename = written.filename ?? "";
   if (asked.frame && !frames.has(asked.frame))
-    issues.push(
-      `${name} has frame="${asked.frame}", which comark-code doesn't draw. Write frame="terminal", frame="code", or frame="none".`,
-    );
+    issues.push({
+      rule: "comark/code/unknown-frame",
+      message: `${name} has frame="${asked.frame}", which comark-code doesn't draw. Write frame="terminal", frame="code", or frame="none".`,
+    });
   // Like Expressive Code, a shell script named like a file is a file, not a terminal session.
   if (
     asked.frame === "terminal" ||
@@ -255,9 +261,10 @@ export function lines(pre: ElementNode, split: boolean, issues: string[]): boole
   if (asked.start !== undefined) {
     if (/^\d+$/.test(asked.start)) start = Number(asked.start);
     else
-      issues.push(
-        `${name} has startLineNumber=${asked.start}, which isn't a whole number, so its lines are numbered from 1. Write one such as startLineNumber=120.`,
-      );
+      issues.push({
+        rule: "comark/code/invalid-start-line",
+        message: `${name} has startLineNumber=${asked.start}, which isn't a whole number, so its lines are numbered from 1. Write one such as startLineNumber=120.`,
+      });
   }
   const numbers = asked.numbers ?? asked.start !== undefined;
   // SAFETY: Comark writes `{…}` highlights as an array of line numbers.

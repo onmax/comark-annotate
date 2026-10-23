@@ -64,4 +64,4 @@ Shiki's [notation transformers](https://shiki.style/packages/transformers) work 
 
 ## Issues
 
-The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes, and never throws. A range past the block's last line, one that isn't in braces, a `startLineNumber` that isn't a whole number, and a frame it doesn't draw each get an issue that names the block by its title, or else by its first line, and says how to write it.
+The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes, and never throws. A range past the block's last line, one that isn't in braces, a `startLineNumber` that isn't a whole number, and a frame it doesn't draw each get an issue that names the block by its title, or else by its first line, and says how to write it. Each one has its own rule in [Doctor](/doctor/).

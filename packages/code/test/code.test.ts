@@ -286,6 +286,22 @@ describe("comark-code lines", () => {
     ]);
   });
 
+  it("names each issue's rule", async () => {
+    const markdown = `\`\`\`ts [a.ts] ins={9} del=2 startLineNumber=x frame="window"\n${block}`;
+    const { meta } = await parseMarkdown(markdown, { plugins: [shiki(), code()] });
+    expect(meta.issues.map((issue: string) => meta.issueRules[issue])).toEqual([
+      "comark/code/unknown-frame",
+      "comark/code/line-out-of-range",
+      "comark/code/invalid-range",
+      "comark/code/invalid-start-line",
+    ]);
+    const before = await parseMarkdown(markdown, { plugins: [code(), shiki()] });
+    expect(Object.values(before.meta.issueRules)).toEqual([
+      "comark/code/unknown-frame",
+      "comark/code/listed-before-shiki",
+    ]);
+  });
+
   it("says when it's listed before Shiki, and leaves Shiki's highlighting alone", async () => {
     const markdown = `\`\`\`ts [a.ts] ins={1}\n${block}\n\n\`\`\`sh\nls\n\`\`\``;
     expect(await issues(markdown, [code(), shiki()])).toEqual([
