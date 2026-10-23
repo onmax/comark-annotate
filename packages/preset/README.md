@@ -5,7 +5,7 @@
 [![license](https://npmx.dev/api/registry/badge/license/@onmax/comark)](https://npmx.dev/package/@onmax/comark)
 [![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/preset/)
 
-onmax's [Comark](https://comark.dev) preset: every package from [comark-plugins](https://comark.onmax.me) in one install, registered in the order they need, with one icon resolver shared by `:icon`, tabs, and code actions. It ships in lockstep with the plugins, so updating it brings their latest defaults.
+onmax's [Comark](https://comark.dev) preset: every package from [comark-plugins](https://comark.onmax.me) in one install, registered in the order they need, with one icon resolver shared by `:icon`, cards, tabs, and code actions. It ships in lockstep with the plugins, so updating it brings their latest defaults.
 
 ```sh
 pnpm add comark @comark/html @onmax/comark

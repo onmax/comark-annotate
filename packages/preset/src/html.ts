@@ -1,5 +1,6 @@
 import type { NodeHandler } from "comark";
 import * as annotate from "comark-annotate/html";
+import * as cards from "comark-cards/html";
 import * as carousel from "comark-carousel/html";
 import * as charts from "comark-charts/html";
 import * as chips from "comark-chips/html";
@@ -18,6 +19,20 @@ export type { PresetOptions } from "./index.ts";
 /** Every plugin for `@comark/html`, with the `components` to render them. */
 export default (options?: PresetOptions): Preset<NodeHandler> =>
   preset<NodeHandler>(
-    { annotate, carousel, charts, chips, code, diff, embed, github, icon, steps, tabs, zoom },
+    {
+      annotate,
+      cards,
+      carousel,
+      charts,
+      chips,
+      code,
+      diff,
+      embed,
+      github,
+      icon,
+      steps,
+      tabs,
+      zoom,
+    },
     options,
   );

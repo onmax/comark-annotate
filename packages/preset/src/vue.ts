@@ -1,4 +1,5 @@
 import type { Component } from "vue";
+import * as cards from "comark-cards/vue";
 import * as carousel from "comark-carousel/vue";
 import * as charts from "comark-charts/vue";
 import * as chips from "comark-chips/vue";
@@ -16,6 +17,6 @@ export type { PresetOptions } from "./index.ts";
 /** Every plugin with components for `@comark/vue`, which leaves out annotate and diff. */
 export default (options?: PresetOptions): Preset<Component> =>
   preset<Component>(
-    { carousel, charts, chips, code, embed, github, icon, steps, tabs, zoom },
+    { cards, carousel, charts, chips, code, embed, github, icon, steps, tabs, zoom },
     options,
   );

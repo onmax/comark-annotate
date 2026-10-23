@@ -14,6 +14,8 @@ export type PresetOptions = {
   include?: IncludeOptions | boolean;
   /** HTML only: Vue, React, and Svelte have no annotate components. */
   annotate?: boolean;
+  /** Cards draw their icons with the resolver from `icon`'s options. */
+  cards?: boolean;
   carousel?: boolean;
   charts?: ChartsOptions | boolean;
   /** Pass `{ download: false }` when parsing in a browser, which may not download another site's images. */
@@ -29,7 +31,7 @@ export type PresetOptions = {
         html?: boolean;
       }
     | boolean;
-  /** Also resolves the icons of tabs and code actions, so all three share its `collections` and `fetch`. */
+  /** Also resolves the icons of cards, tabs, and code actions, so they all share its `collections` and `fetch`. */
   icon?: IconOptions | boolean;
   steps?: boolean;
   tabs?: TabsOptions | boolean;
@@ -44,6 +46,7 @@ type Part<C, O = void> = { default: (options?: O) => AnyPlugin; components: Reco
 /** One renderer's entry of each package, by the option that turns it on. */
 export type Renderer<C> = {
   annotate?: Part<C>;
+  cards: Part<C, { iconResolver?: Icons }>;
   carousel: Part<C>;
   charts: Part<C, ChartsOptions>;
   chips: Part<C, ChipsOptions>;
@@ -103,6 +106,7 @@ export function preset<C>(renderer: Renderer<C>, options: PresetOptions = {}): P
     if (on(github.html)) plugins.push(renderer.github.html());
   }
   add(renderer.icon, options.icon, icons);
+  add(renderer.cards, options.cards, { iconResolver: icons });
   add(renderer.steps, options.steps);
   add(renderer.tabs, options.tabs, { iconResolver: icons, ...optionsOf(options.tabs) });
   add(renderer.zoom, options.zoom);

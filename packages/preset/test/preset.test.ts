@@ -18,14 +18,23 @@ const document = [
   "::steps\n### Install\nRun it.\n::",
   "::code-group\n```sh [pnpm]\npnpm add x\n```\n```sh [npm]\nnpm i x\n```\n::",
   "![A cat](/cat.png)",
+  '::card{title="Docs" to="/guide"}\nRead it.\n::',
 ].join("\n\n");
+
+const blocks = [
+  'class="cgc"',
+  'class="cs"',
+  'class="ct"',
+  'class="ck"',
+  "data-zoom",
+  'class="ccr"',
+];
 
 describe("@onmax/comark", () => {
   it("renders every plugin's blocks with one install", async () => {
     const { plugins, components } = html(offline);
     const out = await createHtmlRenderer({ plugins, components })(document);
-    for (const block of ['class="cgc"', 'class="cs"', 'class="ct"', 'class="ck"', "data-zoom"])
-      expect(out).toContain(block);
+    for (const block of blocks) expect(out).toContain(block);
   });
 
   it("turns a plugin off, with its components", async () => {
@@ -63,8 +72,7 @@ describe("@onmax/comark", () => {
     ] as const) {
       const value = await parseMarkdown(document, { plugins: preset.plugins });
       const out = await render(value as never, preset.components as never);
-      for (const block of ['class="cgc"', 'class="cs"', 'class="ct"', 'class="ck"', "data-zoom"])
-        expect(out, name).toContain(block);
+      for (const block of blocks) expect(out, name).toContain(block);
     }
   });
 });

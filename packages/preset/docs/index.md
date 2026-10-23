@@ -60,7 +60,7 @@ onmax({
 
 The keys are the packages' names without `comark-`. `github` takes its three plugins by name: `callouts`, `references`, and `html`.
 
-The icon resolver from `icon`'s options also draws the icons of tabs and code actions, so `collections` and `fetch` apply to all three. When you parse in a browser, pass `chips: { download: false }`, since a browser may not download another site's images.
+The icon resolver from `icon`'s options also draws the icons of cards, tabs, and code actions, so its `collections` and `fetch` apply to all of them. When you parse in a browser, pass `chips: { download: false }`, since a browser may not download another site's images.
 
 ## Versions
 

@@ -21,7 +21,7 @@ Each entry exports the parse plugin as `default` and the renderer's `components`
 
 ## Every plugin at once
 
-[`@onmax/comark`](https://npmx.dev/package/@onmax/comark) is onmax's preset: every package in one install, in the order they need, with one icon resolver shared by `:icon`, tabs, and code actions. It returns the `plugins` and `components` for one renderer:
+[`@onmax/comark`](https://npmx.dev/package/@onmax/comark) is onmax's preset: every package in one install, in the order they need, with one icon resolver shared by `:icon`, cards, tabs, and code actions. It returns the `plugins` and `components` for one renderer:
 
 ```ts
 import { createHtmlRenderer } from "@comark/html";
