@@ -11,8 +11,38 @@ export const defaultManagers: PackageManager[] = ["npm", "pnpm", "yarn", "bun"];
 // npm-to-yarn matches `npm` anywhere in what it's given, so `cd my-npm-app` would break: it only sees commands that
 // start a line or follow `&&`, `||`, or `;`.
 const COMMAND = /^\s*np[mx] /;
-const SEPARATOR = /(\s*(?:&&|\|\||;)\s*)/;
 const FAILED = "# couldn't auto-convert command";
+
+// Keep shell separators inside quoted arguments with the argument they belong to. This is intentionally a small
+// scanner rather than a shell parser: npm-to-yarn still owns command conversion, while we only identify boundaries.
+function splitCommands(line: string) {
+  const parts: string[] = [];
+  let start = 0;
+  let quote: "'" | '"' | undefined;
+  for (let index = 0; index < line.length; index++) {
+    const char = line[index];
+    if (quote) {
+      if (char === "\\" && quote === '"') index++;
+      else if (char === quote) quote = undefined;
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      quote = char;
+      continue;
+    }
+    if (char === "\\") {
+      index++;
+      continue;
+    }
+    const separator = line.startsWith("&&", index) || line.startsWith("||", index) ? 2 : char === ";" ? 1 : 0;
+    if (!separator) continue;
+    parts.push(line.slice(start, index), line.slice(index, index + separator));
+    index += separator - 1;
+    start = index + 1;
+  }
+  parts.push(line.slice(start));
+  return parts;
+}
 
 // Bun's docs, Nuxt's, and Starlight's write `bunx` and `bun create astro`, where npm-to-yarn writes `bun x` and
 // `bunx create-astro`. pnpm's form of a create command is already bun's, once it says bun.
@@ -27,8 +57,7 @@ export function translate(source: string, manager: PackageManager) {
   if (manager === "npm") return { code: source, failed: [] };
   const failed: string[] = [];
   const lines = source.split("\n").map((line) =>
-    line
-      .split(SEPARATOR)
+    splitCommands(line)
       .map((part) => {
         if (!COMMAND.test(part)) return part;
         const result = manager === "bun" ? toBun(part) : convert(part, manager);

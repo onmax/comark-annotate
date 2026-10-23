@@ -185,6 +185,13 @@ describe("comark-tabs", () => {
       expect(await issues(markdown)).toEqual([]);
     });
 
+    it("preserves separators inside quoted arguments", async () => {
+      const markdown = '```sh npm2yarn\nnpm run show -- "before; npm install hidden" && npm i\n```';
+      expect(await panels(markdown, { managers: ["pnpm"] })).toEqual([
+        ["pnpm", 'pnpm run show -- "before; npm install hidden" && pnpm add'],
+      ]);
+    });
+
     it("writes bun's commands as Bun's, Nuxt's, and Starlight's docs do", async () => {
       expect(
         await panels(
