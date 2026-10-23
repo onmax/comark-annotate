@@ -156,6 +156,91 @@ describe("comark-tabs", () => {
     expect(document.meta.issues[0]).toBe("An earlier plugin's issue.");
   });
 
+  describe("npm2yarn", () => {
+    const panels = async (markdown: string, options?: TabsOptions) => {
+      const html = (
+        await createHtmlRenderer({ plugins: [tabs(options)], components })(markdown)
+      ).replace(/<style[^>]*>.*?<\/style><script>.*?<\/script>/s, "");
+      return [
+        ...html.matchAll(
+          /<div class="ct-caption">([^<]+)<\/div><pre[^>]*><code[^>]*>(.*?)<\/code>/gs,
+        ),
+      ].map(([, label, code]) => [label, code]);
+    };
+
+    it("turns an npm code block into a code group with a tab per package manager, synced with `pm`", async () => {
+      const markdown = "```sh npm2yarn\nnpm i -D vitest\ncd my-npm-app && npm run dev\n```";
+      const html = await markup(markdown);
+      expect(html).toContain('<div class="ct" data-tabs-code data-tabs-sync="pm">');
+      expect(
+        [...html.matchAll(/role="tab"[^>]*>([^<]+)<\/button>/g)].map(([, label]) => label),
+      ).toEqual(["npm", "pnpm", "yarn", "bun"]);
+      expect(await panels(markdown)).toEqual([
+        ["npm", "npm i -D vitest\ncd my-npm-app && npm run dev"],
+        ["pnpm", "pnpm add -D vitest\ncd my-npm-app && pnpm run dev"],
+        ["yarn", "yarn add --dev vitest\ncd my-npm-app && yarn dev"],
+        ["bun", "bun add --dev vitest\ncd my-npm-app && bun run dev"],
+      ]);
+      expect(html).not.toContain("npm2yarn");
+      expect(await issues(markdown)).toEqual([]);
+    });
+
+    it("writes bun's commands as Bun's, Nuxt's, and Starlight's docs do", async () => {
+      expect(
+        await panels(
+          "```sh npm2yarn\nnpx nuxi@latest module add ui\nnpm create astro@latest -- --template starlight\nnpm init vue@latest\n```",
+          { managers: ["bun"] },
+        ),
+      ).toEqual([
+        [
+          "bun",
+          "bunx nuxi@latest module add ui\nbun create astro --template starlight\nbun create vue",
+        ],
+      ]);
+    });
+
+    it("takes the managers and their order, deno among them", async () => {
+      expect(
+        await panels("```sh npm2yarn\nnpm install comark-tabs\n```", {
+          managers: ["bun", "deno", "npm"],
+        }),
+      ).toEqual([
+        ["bun", "bun add comark-tabs"],
+        ["deno", "deno add comark-tabs"],
+        ["npm", "npm install comark-tabs"],
+      ]);
+    });
+
+    it("keeps the npm tab and reports a command another manager has no form for", async () => {
+      const markdown = "```sh [x] npm2yarn\nnpm i\n```\n\n```sh npm2yarn\nnpm ci\nnpm update\n```";
+      expect(await panels(markdown, { managers: ["pnpm", "deno"] })).toEqual([
+        ["pnpm", "pnpm i"],
+        ["deno", "deno install"],
+        ["npm", "npm ci\nnpm update"],
+        ["deno", "deno ci\ndeno update"],
+      ]);
+      expect(await issues(markdown)).toEqual([
+        '`npm2yarn` block 2: `npm ci` has no pnpm, yarn, or bun form, so those tabs are left out. Write the block as a `::code-group{sync="pm"}` by hand.',
+        '`npm2yarn` block 2: `npm update` has no pnpm, yarn, or bun form, so those tabs are left out. Write the block as a `::code-group{sync="pm"}` by hand.',
+      ]);
+    });
+
+    it("leaves a block inside a code group as one tab, and the code groups numbered as written", async () => {
+      const html = await markup(
+        "```sh npm2yarn\nnpm i x\n```\n\n::code-group\n```sh [npm] npm2yarn\nnpm i x\n```\n\nText\n::",
+      );
+      expect(html.match(/role="tab"/g)).toHaveLength(5);
+      expect(html).not.toContain("npm2yarn");
+      expect(
+        await issues(
+          "```sh npm2yarn\nnpm i x\n```\n\n::code-group\n```sh [npm]\na\n```\n\nText\n::",
+        ),
+      ).toEqual([
+        '`::code-group` 1: only code blocks go inside. Move the paragraph "Text" out, or use `::tabs`.',
+      ]);
+    });
+  });
+
   describe("icons", () => {
     const logos: IconCollection = {
       prefix: "logos",

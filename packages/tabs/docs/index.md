@@ -1,7 +1,7 @@
 ---
 title: comark-tabs
 description: Tabs and code groups, written in Markdown.
-tagline: Tabs of any content, and code blocks grouped by package manager or language, that switch together across the page.
+tagline: Tabs of any content, code blocks grouped by package manager or language, and npm commands in every package manager, that switch together across the page.
 install: pnpm add comark @comark/html comark-tabs
 group: Page behavior
 icon: panels-top-left
@@ -57,6 +57,14 @@ npm install comark-tabs
 yarn add comark-tabs
 ```
 ::
+````
+:::
+
+:::example{label="npm2yarn"}
+````md
+```sh npm2yarn
+npm install -D comark-tabs
+```
 ````
 :::
 ::

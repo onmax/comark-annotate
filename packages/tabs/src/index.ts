@@ -3,6 +3,9 @@ import { defineComarkPlugin } from "comark";
 import { resolveAttributes } from "comark/render";
 import { textContent } from "comark/utils";
 import { createIcons, describeIconProblem, type IconData, type Icons } from "comark-icon";
+import { defaultManagers, translate, type PackageManager } from "./npm2yarn.ts";
+
+export type { PackageManager };
 
 export type TabsOptions = {
   /**
@@ -15,6 +18,10 @@ export type TabsOptions = {
    * its `collections` and `fetch`. By default icons come from the Iconify API.
    */
   iconResolver?: Icons;
+  /**
+   * The tabs an `npm2yarn` code block becomes, in order. Defaults to npm, pnpm, yarn, and bun; add `"deno"` for Deno.
+   */
+  managers?: PackageManager[];
 };
 
 export type TabsMeta = {
@@ -69,6 +76,8 @@ interface Walk {
   groups: number;
   strays: number;
   blocks: number;
+  npm2yarn: number;
+  managers: PackageManager[];
   prefix: string;
 }
 
@@ -83,13 +92,14 @@ function hash(text: string) {
 
 // `icon=logos:pnpm` after a code block's label, quoted or not.
 const ICON = /(?:^|\s)icon=(?:"([^"]*)"|'([^']*)'|(\S+))(?=\s|$)/;
+const NPM2YARN = /(?:^|\s)npm2yarn(?=\s|$)/;
+const or = new Intl.ListFormat("en", { type: "disjunction" });
 
 const resolve = (node: ElementNode, walk: Walk) =>
   resolveAttributes(node[1], walk.data, { parseJson: true });
 
 // A code group is `::tabs` with a code block in each tab, so every renderer handles one shape.
-function codeGroup(node: ElementNode, walk: Walk) {
-  const name = `\`::code-group\` ${++walk.groups}`;
+function codeGroup(node: ElementNode, walk: Walk, name: string) {
   const items: ElementNode[] = [];
   for (const child of childrenOf(node).filter(isContent)) {
     if (!isElement(child) || child[0] !== "pre") {
@@ -107,13 +117,12 @@ function codeGroup(node: ElementNode, walk: Walk) {
     }
     // The tab names the block, so its own title bar doesn't repeat it.
     delete child[1].filename;
-    const meta = text(child[1].meta);
+    // A block in a code group is one tab already, so `npm2yarn` doesn't split it again.
+    const meta = text(child[1].meta).replace(NPM2YARN, " ");
     const icon = ICON.exec(meta);
-    if (icon) {
-      const rest = meta.replace(icon[0], " ").trim();
-      if (rest) child[1].meta = rest;
-      else delete child[1].meta;
-    }
+    const rest = (icon ? meta.replace(icon[0], " ") : meta).trim();
+    if (rest) child[1].meta = rest;
+    else delete child[1].meta;
     items.push([
       "tabs-item",
       icon ? { label, icon: icon[1] ?? icon[2] ?? icon[3] } : { label },
@@ -126,8 +135,10 @@ function codeGroup(node: ElementNode, walk: Walk) {
   return name;
 }
 
-function tabs(node: ElementNode, walk: Walk) {
-  const name = node[0] === "code-group" ? codeGroup(node, walk) : `\`::tabs\` ${++walk.tabs}`;
+function tabs(node: ElementNode, walk: Walk, name?: string) {
+  if (node[0] === "code-group")
+    name = codeGroup(node, walk, name ?? `\`::code-group\` ${++walk.groups}`);
+  name ??= `\`::tabs\` ${++walk.tabs}`;
   const attrs = resolve(node, walk);
   const items: ElementNode[] = [];
   for (const child of childrenOf(node).filter(isContent)) {
@@ -170,6 +181,43 @@ function tabs(node: ElementNode, walk: Walk) {
   node.splice(2, node.length - 2, ...items);
 }
 
+// An `npm2yarn` code block of npm commands becomes a code group with a tab per package manager, synced with the
+// page's other `sync="pm"` blocks. A manager with no form for one of its commands gets no tab.
+function packageManagers(node: ElementNode, walk: Walk) {
+  const name = `\`npm2yarn\` block ${++walk.npm2yarn}`;
+  const attrs = { ...node[1] };
+  const meta = text(attrs.meta).replace(NPM2YARN, " ").trim();
+  if (meta) attrs.meta = meta;
+  else delete attrs.meta;
+  const code = childrenOf(node)[0];
+  const codeAttrs = isElement(code) ? code[1] : {};
+  const source = textContent(node);
+  const blocks: ElementNode[] = [];
+  const failed = new Map<string, PackageManager[]>();
+  for (const manager of walk.managers) {
+    const result = translate(source, manager);
+    for (const command of result.failed)
+      failed.set(command, [...(failed.get(command) ?? []), manager]);
+    if (!result.failed.length)
+      blocks.push([
+        "pre",
+        { ...attrs, filename: manager },
+        ["code", { ...codeAttrs }, result.code],
+      ]);
+  }
+  // The block is written in npm, so npm always keeps a tab when another manager loses one.
+  if (failed.size && !blocks.some((block) => block[1].filename === "npm"))
+    blocks.unshift(["pre", { ...attrs, filename: "npm" }, ["code", { ...codeAttrs }, source]]);
+  for (const [command, managers] of failed)
+    walk.issues.push(
+      `${name}: \`${clip(command)}\` has no ${or.format(managers)} form, so ${managers.length > 1 ? "those tabs are" : "that tab is"} left out. Write the block as a \`::code-group{sync="pm"}\` by hand.`,
+    );
+  node[0] = "code-group";
+  node[1] = { sync: "pm" };
+  node.splice(2, node.length - 2, ...blocks);
+  tabs(node, walk, name);
+}
+
 // Each block gets `icons`, one per tab or null, and each tab its own `icon`, so the strip and the captions both draw it.
 async function addIcons(walk: Walk, resolver: Icons) {
   if (!walk.icons.length) return;
@@ -204,15 +252,16 @@ function normalize(nodes: Node[], walk: Walk, inTabs = false) {
       node[0] = "div";
       node[1] = {};
     }
-    if (node[0] === "tabs" || node[0] === "code-group") tabs(node, walk);
+    if (node[0] === "pre" && NPM2YARN.test(text(node[1].meta))) packageManagers(node, walk);
+    else if (node[0] === "tabs" || node[0] === "code-group") tabs(node, walk);
     normalize(childrenOf(node), walk, node[0] === "tabs");
   }
 }
 
 /**
- * Turns `::tabs` with `:::tabs-item{label}` blocks, and `::code-group` with labelled code blocks, into tabs. Without a
- * script every tab shows under its label; the script adds the tab strip, keys, and `sync`. Problems, such as content
- * outside every tab, are added to `meta.issues`.
+ * Turns `::tabs` with `:::tabs-item{label}` blocks, `::code-group` with labelled code blocks, and code blocks marked
+ * `npm2yarn`, into tabs. Without a script every tab shows under its label; the script adds the tab strip, keys, and
+ * `sync`. Problems, such as content outside every tab, are added to `meta.issues`.
  */
 export default defineComarkPlugin<TabsOptions, TabsMeta>((options = {}) => {
   const resolver = options.iconResolver ?? createIcons();
@@ -231,6 +280,8 @@ export default defineComarkPlugin<TabsOptions, TabsMeta>((options = {}) => {
         groups: 0,
         strays: 0,
         blocks: 0,
+        npm2yarn: 0,
+        managers: options.managers ?? defaultManagers,
         prefix: `ct-${hash(state.markdown)}`,
       };
       normalize(tree.nodes, walk);

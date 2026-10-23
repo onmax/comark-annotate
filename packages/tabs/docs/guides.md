@@ -1,6 +1,6 @@
 ---
 title: Guides
-description: Keys, tabs that sync across a page, icons, validation, and zoom.
+description: Keys, tabs that sync across a page, package managers, icons, validation, and zoom.
 ---
 
 ## Keys
@@ -10,6 +10,16 @@ The tabs follow the [WAI-ARIA tabs pattern](https://www.w3.org/WAI/ARIA/apg/patt
 ## Sync
 
 Blocks with the same `sync` switch together by label, so `::code-group{sync="pm"}` on every install snippet keeps the reader's package manager. The choice is saved in `localStorage` under `comark-tabs:` and the key, and restored on the next page that uses it. When a switch changes the height of blocks above the one the reader clicked, the page scrolls by as much, so the tab stays under the pointer.
+
+## Package managers
+
+A code block marked `npm2yarn` gets a tab for npm, pnpm, yarn, and bun, in that order. Set others, in the order you want, with `managers`; Deno is there to add:
+
+```ts
+tabs({ managers: ["pnpm", "npm", "yarn", "bun", "deno"] });
+```
+
+A command a manager has no form for, such as `npm ci` in pnpm, leaves that manager's tab out, keeps npm's, and adds an issue. Write that block as a `::code-group{sync="pm"}` by hand. Register comark-tabs before Shiki, so Shiki highlights every tab it adds.
 
 ## Icons
 
@@ -53,7 +63,7 @@ The plugin adds a problem with any block to `meta.issues`, as [Validation](/guid
 `::code-group` 1, block 2: a code block needs a label. Put it in brackets after the language: ```bash [npm].
 ```
 
-It reports a tab without a label, two tabs with the same label, an icon it can't draw (in comark-icon's words), content outside every tab (it doesn't render), anything but code blocks in a code group, a block with no tabs, and a `:::tabs-item` outside `::tabs` (it renders as plain content). Rendering never throws.
+It reports a tab without a label, two tabs with the same label, an `npm2yarn` command a package manager has no form for, an icon it can't draw (in comark-icon's words), content outside every tab (it doesn't render), anything but code blocks in a code group, a block with no tabs, and a `:::tabs-item` outside `::tabs` (it renders as plain content). Rendering never throws.
 
 ## Zoom
 
