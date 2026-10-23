@@ -3,13 +3,14 @@ import { theme } from "comark-zoom/theme";
 /**
  * Cards in a two-column grid, in the style of Nuxt UI's prose cards, and columns from `::columns`, on the shared
  * `--comark-*` tokens. A card's color tints its icon and, on a link card, its hovered border; each reads Nuxt UI's
- * `--ui-*` variable when the page has it, then `--ccr-*`. The rules sit in the `comark` layer, so any unlayered rule of
- * the host's wins.
+ * `--ui-*` variable when the page has it, then `--ccr-*`. Primary and error fall back to shadcn/ui's `--primary` and
+ * `--destructive`, and primary then to the foreground, so a card is neutral like the other plugins until the page has a
+ * brand color. The rules sit in the `comark` layer, so any unlayered rule of the host's wins.
  */
 export const css = `@layer comark{${[
   theme(".ccr,.ccr-group,.ccr-columns"),
-  ":where(.ccr){--ccr-primary:var(--ui-primary,#16a34a);--ccr-secondary:var(--ui-secondary,#2563eb);--ccr-success:var(--ui-success,#16a34a);--ccr-info:var(--ui-info,#2563eb);--ccr-warning:var(--ui-warning,#ca8a04);--ccr-error:var(--ui-error,#dc2626);--ccr-neutral:var(--_comark-foreground)}",
-  "@media (prefers-color-scheme:dark){:where(.ccr){--ccr-primary:var(--ui-primary,#4ade80);--ccr-secondary:var(--ui-secondary,#60a5fa);--ccr-success:var(--ui-success,#4ade80);--ccr-info:var(--ui-info,#60a5fa);--ccr-warning:var(--ui-warning,#facc15);--ccr-error:var(--ui-error,#f87171)}}",
+  ":where(.ccr){--ccr-primary:var(--ui-primary,var(--primary,var(--_comark-foreground)));--ccr-secondary:var(--ui-secondary,#2563eb);--ccr-success:var(--ui-success,#16a34a);--ccr-info:var(--ui-info,#2563eb);--ccr-warning:var(--ui-warning,#ca8a04);--ccr-error:var(--ui-error,var(--destructive,#dc2626));--ccr-neutral:var(--_comark-foreground)}",
+  "@media (prefers-color-scheme:dark){:where(.ccr){--ccr-secondary:var(--ui-secondary,#60a5fa);--ccr-success:var(--ui-success,#4ade80);--ccr-info:var(--ui-info,#60a5fa);--ccr-warning:var(--ui-warning,#facc15);--ccr-error:var(--ui-error,var(--destructive,#f87171))}}",
   ".ccr-group,.ccr-columns{display:grid;gap:1.25rem;margin:1.5rem 0}",
   "@media (min-width:40rem){.ccr-group{grid-template-columns:repeat(2,minmax(0,1fr))}",
   ...[2, 3, 4, 5, 6].map(

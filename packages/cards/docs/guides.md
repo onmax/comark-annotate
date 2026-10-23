@@ -23,7 +23,7 @@ The parse plugin replaces each card's attributes with the ones it renders from, 
 
 ## Theming
 
-A card is a `<div class="ccr" data-color="...">`, a group a `<div class="ccr-group">`, and columns a `<div class="ccr-columns" data-cols="...">` of `<div class="ccr-column">`. Each color reads Nuxt UI's variable, such as `--ui-primary`, then its own default; set `--ccr-primary` and the others on `.ccr` to change one. Cards also read these [shared tokens](/guide/theming/):
+A card is a `<div class="ccr" data-color="...">`, a group a `<div class="ccr-group">`, and columns a `<div class="ccr-columns" data-cols="...">` of `<div class="ccr-column">`. Each color reads Nuxt UI's variable, such as `--ui-primary`, then its own default. Primary's default is shadcn/ui's `--primary`, then the foreground, so cards match the page's brand color, or stay neutral without one; set `--ccr-primary` and the others on `.ccr` to change one. Cards also read these [shared tokens](/guide/theming/):
 
 | Token | Used for |
 | --- | --- |
