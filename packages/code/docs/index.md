@@ -6,6 +6,7 @@ install: pnpm add comark @comark/html comark-code
 group: Page behavior
 icon: square-code
 blurb: Copy and wrap buttons on code
+credits: 'Icons from <a href="https://lucide.dev">Lucide</a>.'
 ---
 
 ::examples
@@ -69,10 +70,6 @@ pnpm add comark @comark/html comark-code
 :::
 ::
 
-Each code block gets a header above its first line, with the file's name or the language on the left and the buttons on the right, so they never cover the code. Wrap breaks long lines in that block only, and Copy puts its code on the clipboard. Without a script the header keeps its title and hides the buttons, which couldn't work.
+Each code block gets a header above its first line. The file's name or the language sits on the left and the buttons on the right, so they never cover the code. Copy puts the block's code on the clipboard, and Wrap breaks long lines in that block only. Without a script, the header keeps its title and hides the buttons, since they couldn't work.
 
-Words after the fence's language, written as [Expressive Code](https://expressive-code.com) writes them, mark lines as added, deleted, or worth a look, fold runs of lines away, number the lines, and draw shell sessions as a terminal. A `diff` fence with a `lang` turns pasted `git diff` output into highlighted code with its lines marked. [Syntax](/code/syntax/) lists them.
-
-## Credits
-
-The icons are from [Lucide](https://lucide.dev).
+Words after the fence's language, written the way [Expressive Code](https://expressive-code.com) writes them, mark lines as added, deleted, or worth a look. They can also fold runs of lines away, number the lines, and draw shell sessions as a terminal. A `diff` fence with a `lang` turns pasted `git diff` output into highlighted code with its lines marked. [Syntax](/code/syntax/) lists them all.

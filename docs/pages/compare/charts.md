@@ -6,9 +6,9 @@ tagline: Three Comark plugins draw charts with Vega. In comark-charts you write 
 
 ## One block, two readers
 
-A review document has two readers. People look at the chart. Agents read the numbers: in the Markdown when they write it, and in the page when they check it. A drawing is a poor place to read them: bars are paths, labels show only the values that fit, and whatever numbers it holds are spread across its attributes.
+A review document has two readers. People look at the chart. Agents read the numbers, in the Markdown when they write it and in the page when they check it. A drawing is a poor place to read numbers from. Its bars are paths, its labels show only the values that fit, and the rest are spread across its attributes.
 
-So a `::chart` holds a Markdown table. The renderer draws the chart from it and keeps the table in the page, in the **Data** toggle under the chart. An agent writes a table it already knows how to write, a person sees the chart, and either can check a number against the other.
+So a `::chart` holds a Markdown table. The renderer draws the chart from it and keeps the table in the page, in the **Data** toggle under the chart. An agent writes a table it already knows how to write. A person sees the chart. Either one can check a number against the other.
 
 ::example
 ```md
@@ -90,7 +90,7 @@ The other two plugins draw the same chart from a JSON spec, and the page holds o
 
 ## Which to use
 
-Use comark-charts for documents that agents write or check, such as pull request evidence and reports: the table is the source, and it stays in the page. It lays out the common chart types itself, and draws any other from a Vega-Lite spec over the same table.
+Use comark-charts for documents that agents write or check, such as pull request evidence and reports. The table is the source, and it stays in the page. comark-charts lays out the common chart types itself, and draws any other type from a Vega-Lite spec over the same table.
 
 Use [comark-vega](https://github.com/miguelrk/comark-packages/tree/main/packages/comark-vega) for full Vega specs, data that isn't a table, such as maps, or interactive charts in a Vue app.
 

@@ -31,4 +31,4 @@ blurb: Videos, audio, and live code
 :::
 ::
 
-The plugin reads the player's address from the link alone, so a document renders the same offline, in tests, and at build time. The link stays under every player, so the page still makes sense in a feed reader or where iframes are blocked, and in print each player gives way to its address.
+The plugin reads the player's address from the link alone, so a document renders the same offline, in tests, and at build time. The link stays under every player, so the page still makes sense in a feed reader or where iframes are blocked. In print, each player gives way to its address.

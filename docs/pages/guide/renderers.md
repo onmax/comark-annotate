@@ -17,7 +17,11 @@ tagline: Register every plugin you use in one renderer. The same markup comes ou
 | [tabs](/tabs/) | `comark-tabs/html` | `comark-tabs/vue` | `comark-tabs/react` | `comark-tabs/svelte` |
 | [zoom](/zoom/) | `comark-zoom/html` | `comark-zoom/vue` | `comark-zoom/react` | `comark-zoom/svelte` |
 
-Each entry exports the parse plugin as `default` and the renderer's `components`. Annotate renders only to HTML: a screenshot's notes are Markdown, and a Vue, React, or Svelte version would each copy the whole figure. So marks on a chart, which annotate draws, show only in `@comark/html`; the other renderers draw the chart without them. [include](/include/) has no components, since what it pastes renders like the rest of the page, so it works with any renderer. [lint](/lint/) checks documents and doesn't render them.
+Each entry exports the parse plugin as `default` and the renderer's `components`.
+
+Annotate renders only to HTML. A screenshot's notes are Markdown, and a Vue, React, or Svelte version would each have to copy the whole figure. Annotate also draws the marks on a chart, so those marks show only in `@comark/html`. The other renderers draw the chart without them.
+
+[include](/include/) has no components, because what it pastes renders like the rest of the page. It works with any renderer. [lint](/lint/) checks documents and doesn't render them.
 
 ## Every plugin at once
 
@@ -57,13 +61,17 @@ const render = createHtmlRenderer({
 });
 ```
 
-Put `include` first: it pastes files into the Markdown before the others read it. `callouts()` is named `alert`, so it takes the place of Comark's built-in alert plugin wherever you list it. Annotate brings zoom and carousel with it, so screenshots and comparisons zoom without `zoom()`; add `zoom()` when content images and `::zoom` blocks should zoom too.
+Put `include` first, because it pastes files into the Markdown before the others read it. `callouts()` is named `alert`, so it takes the place of Comark's built-in alert plugin wherever you list it.
+
+Annotate brings zoom and carousel with it, so screenshots and comparisons zoom without `zoom()`. Add `zoom()` when content images and `::zoom` blocks should zoom too.
 
 ## Scripts and styles
 
 Nothing needs a script to read. Zoom, carousel, tabs, code, and annotate add behavior on top: zooming, arrows and keys, switching tabs, copying and wrapping code, hover and copy. Callouts and embeds need only styles.
 
-The HTML renderers inline each plugin's styles, and its script if it has one, once per document. The Vue, React, and Svelte components start the script when they mount and stop it when the last one unmounts, and add the styles the same way. Import each package's `style.css`, such as `comark-zoom/style.css`, with your styles when you render on a server, so the page doesn't shift when the components mount.
+The HTML renderers inline each plugin's styles, and its script if it has one, once per document.
+
+The Vue, React, and Svelte components add the styles and start the script when they mount. They stop the script when the last one unmounts. When you render on a server, import each package's `style.css`, such as `comark-zoom/style.css`, with your own styles, so the page doesn't shift when the components mount.
 
 Without a renderer, call `start()` from `comark-zoom/client` once on a page with `data-zoom` elements. It adds the styles and returns a function that stops it.
 

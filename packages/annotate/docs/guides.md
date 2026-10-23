@@ -5,9 +5,12 @@ description: Side notes, placing marks, and validation.
 
 ## Side notes
 
-`side="left"`, `side="right"`, or `side="top"` moves a note out of the list and next to or above the image, with a hand-drawn arrow to its mark. Pair it with `mark="none"` to point without drawing a box. Side notes have no number because the arrow links them. In a compare, only notes above keep their arrow. On narrow screens they drop under the image, the arrows hide, and each note and its target get a matching letter.
+`side="left"`, `side="right"`, or `side="top"` moves a note out of the list to beside or above the image, with a hand-drawn arrow to its mark. Add `mark="none"` to point at something without drawing a box. Side notes have no number, because the arrow already links them to their mark.
 
-Notes on the same side need room. The plugin reports side notes whose marks sit close together vertically, since they would likely overlap. It can't measure the text, so check the rendered page too, and move one note to the other side or into the list.
+- In a compare, only notes above the image keep their arrow.
+- On narrow screens, side notes drop under the image and the arrows hide. Each note and its target get a matching letter instead.
+
+Notes on the same side need room. The plugin reports side notes whose marks sit close together vertically, since they would likely overlap. It can't measure the text, so check the rendered page too. If two notes collide, move one to the other side or into the list.
 
 ## Placing marks
 
@@ -25,18 +28,27 @@ const box = {
 
 For a full-page screenshot, add the scroll offset and divide by the page size instead.
 
-Numbers place themselves. Each one sits on a corner of its mark, so it reads as that mark's number and not as the number of whatever is next to it. It takes the first corner, in the order top left, top right, bottom left, bottom right, that keeps it off the other numbers, marks, and arrows. Where it would hang past the image's edge, it lines up with the mark's edge instead. Set `viewport` on the screenshot so the corners are judged against the image's real shape. When marks crowd one spot so closely that two numbers overlap at every corner, the plugin reports both annotations.
+Numbers place themselves. Each sits on a corner of its mark, so it reads as that mark's number and not its neighbor's. It tries top left, top right, bottom left, then bottom right, and takes the first corner clear of other numbers, marks, and arrows. If it would hang past the image's edge, it lines up with the mark's edge instead.
+
+Set `viewport` on the screenshot so the plugin judges the corners against the image's real shape. If marks crowd so close that two numbers overlap at every corner, the plugin reports both annotations.
 
 ## Validation
 
-The plugin adds a problem with any block to `meta.issues`, as [Validation](/guide/validation/) describes. A screenshot goes by its `src`, or by its position and `alt` when another screenshot shares it; an annotation goes by its position in its screenshot:
+The plugin adds a problem with any block to `meta.issues`, as [Validation](/guide/validation/) describes. Each issue names its block. A screenshot goes by its `src`, or by its position and `alt` when another screenshot has the same `src`. An annotation goes by its position in its screenshot:
 
 ```txt
 screenshot "after.png", annotation 2: the box runs past the image edge. Keep x + w and y + h within 100.
 ```
 
-Unknown props are reported with the valid ones, and so is a `:bound` prop that points at missing frontmatter. Bindings to `data` or `props` are left to the renderer. Each kind of problem has its own rule in [Doctor](/doctor/), with an example of it and its fix.
+The plugin reports an unknown prop with a list of the valid ones, and a `:bound` prop that points at missing frontmatter. It leaves bindings to `data` or `props` to the renderer. Each kind of problem has its own rule in [Doctor](/doctor/), with an example and its fix.
 
 ## Theming
 
-Screenshots and comparisons follow the shared tokens in [Theming](/guide/theming/). The mark colors are separate from the theme, because each one means something: a plain `.ca { --ca-color: #0070f3; --ca-solid: #0070f3; --ca-ink: #fff }` changes the default marks, arrows, and notes (`--ca-color`), stamps (`--ca-solid`), and stamp numbers (`--ca-ink`), and `--ca-red`, `--ca-amber`, `--ca-green`, `--ca-blue`, and `--ca-gray` change the named ones. Side notes and labels are handwritten in Caveat, which comes inlined with the styles, about 32 KB once per page. `--ca-note-font` sets another family, `--ca-note-font: inherit` uses the page font, and `--ca-note-size` and `--ca-label-size` set their sizes.
+Screenshots and comparisons follow the shared tokens in [Theming](/guide/theming/). The mark colors stay separate from the theme, because each one means something.
+
+- `--ca-color`, `--ca-solid`, and `--ca-ink` on `.ca` change the default marks, arrows, and notes, their stamps, and the stamp numbers.
+- `--ca-red`, `--ca-amber`, `--ca-green`, `--ca-blue`, and `--ca-gray` change the named colors.
+- Side notes and labels are handwritten in Caveat, which comes inlined with the styles, about 32 KB once per page. `--ca-note-font` sets another family, and `--ca-note-font: inherit` uses the page font.
+- `--ca-note-size` and `--ca-label-size` set the size of notes and labels.
+
+The annotate [Theming](/annotate/theming/) page lists every variable and class.

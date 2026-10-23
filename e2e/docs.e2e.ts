@@ -72,7 +72,7 @@ test("the index's canvas drags, coasts, and opens the card it was clicked on", a
   await expect(page).toHaveURL(card!.href);
 });
 
-test("the index's canvas shows every example once on screen, each at its own height", async ({
+test("the index's canvas has a card for every playground example, each once on screen and at its own height", async ({
   page,
 }) => {
   await page.goto("/");
@@ -87,45 +87,44 @@ test("the index's canvas shows every example once on screen, each at its own hei
       );
     });
     return {
-      cards:
-        document.querySelector<HTMLTemplateElement>("template.canvas-cards")!.content.children
-          .length,
-      onScreen: seen.map((demo) => demo.querySelector(".demo-source")!.textContent),
+      cards: [
+        ...document.querySelector<HTMLTemplateElement>("template.canvas-cards")!.content.children,
+      ].map((demo) => (demo as HTMLElement).dataset.example!),
+      onScreen: seen.map((demo) => demo.dataset.example),
       unsized: live.filter((demo) => !demo.style.height).length,
     };
   });
-  // The landing's demos and every package page's examples.
-  expect(cards).toBeGreaterThan(40);
+  await page.goto("/play/");
+  const presets = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLAnchorElement>(".pages [data-preset]")].map(
+      (link) => link.dataset.preset!,
+    ),
+  );
+  expect(presets.length).toBeGreaterThan(40);
+  expect(presets.filter((id) => !cards.includes(id))).toEqual([]);
   expect(onScreen.length).toBeGreaterThan(8);
   expect(new Set(onScreen).size).toBe(onScreen.length);
   expect(unsized).toBe(0);
 });
 
-test("a chart card turns through its charts while the pointer is on it", async ({ page }) => {
+test("the index's canvas holds still under the pointer", async ({ page }) => {
   await page.goto("/");
   await page.locator(".canvas-viewport").scrollIntoViewIfNeeded();
-  // A chart card in view, placed where the pointer can reach it.
-  const at = await page.evaluate(() => {
-    const stage = document.querySelector<HTMLElement>(".canvas-stage")!;
-    const card = document
-      .querySelector<HTMLTemplateElement>("template.canvas-cards")!
-      .content.querySelector(".demo-charts")!
-      .cloneNode(true) as HTMLElement;
-    const [, x, y] = /translate3d\((-?[\d.]+)px, ?(-?[\d.]+)px/
-      .exec(stage.style.transform)!
-      .map(Number);
-    card.style.left = `${-x + 400}px`;
-    card.style.top = `${-y + 40}px`;
-    card.style.zIndex = "5";
-    card.id = "turning";
-    stage.append(card);
-    const r = card.getBoundingClientRect();
-    return { x: r.left + r.width / 2, y: r.top + 80 };
-  });
-  const on = page.locator("#turning .demo-variant[data-on]");
-  const first = await on.innerHTML();
-  await page.mouse.move(at.x, at.y);
-  await expect.poll(() => on.innerHTML(), { timeout: 3000 }).not.toBe(first);
+  const box = (await page.locator(".canvas-viewport").boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2 + 20, { steps: 4 });
+  const running = await page.evaluate(() =>
+    document
+      .getAnimations()
+      .filter((animation) =>
+        (animation.effect as KeyframeEffect | null)?.target?.closest?.(".canvas-stage"),
+      )
+      .map((animation) => {
+        const target = (animation.effect as KeyframeEffect).target!;
+        return `${target.tagName}.${target.getAttribute("class")} ${animation instanceof CSSTransition ? animation.transitionProperty : animation instanceof CSSAnimation ? animation.animationName : "script"}`;
+      }),
+  );
+  expect(running).toEqual([]);
 });
 
 test("the index's canvas switches to the list, and remembers it", async ({ page }) => {
@@ -166,12 +165,12 @@ test("hovering the rail shows every section's name over the pages, without movin
   await expect(label).toHaveCSS("opacity", "0");
 });
 
-test("a package's card copies its install command", async ({ page, context }) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+test("a package's card links to its docs without a copy control", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "List", exact: true }).click();
-  await page.getByRole("button", { name: "Copy pnpm add comark-github" }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("pnpm add comark-github");
+  await page.getByRole("button", { name: "List" }).click();
+  const card = page.locator(".grid a", { has: page.getByText("github", { exact: true }) });
+  await expect(card).toHaveAttribute("href", "/github/");
+  await expect(page.getByRole("button", { name: "Copy pnpm add comark-github" })).toHaveCount(0);
 });
 
 test("no page scrolls sideways on a phone", async ({ page }) => {

@@ -52,6 +52,7 @@
     "comark-charts": "workspace:^",
     "comark-chips": "workspace:^",
     "comark-code": "workspace:^",
+    "comark-deflist": "workspace:^",
     "comark-details": "workspace:^",
     "comark-diff": "workspace:^",
     "comark-embed": "workspace:^",
@@ -61,13 +62,12 @@
     "comark-icon": "workspace:^",
     "comark-include": "workspace:^",
     "comark-media": "workspace:^",
+    "comark-outline": "workspace:^",
+    "comark-qr": "workspace:^",
+    "comark-reading-time": "workspace:^",
     "comark-steps": "workspace:^",
     "comark-tabs": "workspace:^",
-    "comark-zoom": "workspace:^",
-    "comark-deflist": "workspace:^",
-    "comark-outline": "workspace:^",
-    "comark-reading-time": "workspace:^",
-    "comark-qr": "workspace:^"
+    "comark-zoom": "workspace:^"
   },
   "devDependencies": {
     "@comark/html": "catalog:",

@@ -115,10 +115,12 @@ export function preset<C>(renderer: Renderer<C>, options: PresetOptions = {}): P
   add(renderer.code, options.code, { iconResolver: icons, ...optionsOf(options.code) });
   add(renderer.charts, options.charts);
   add(renderer.chips, options.chips);
+  add(renderer.details, options.details);
   add(renderer.diff, options.diff);
   add(renderer.deflist, options.deflist);
   add(renderer.embed, options.embed);
   add(renderer.fields, options.fields);
+  add(renderer.fileTree, options.fileTree);
   if (on(options.github)) {
     const github = optionsOf(options.github) ?? {};
     if (on(github.callouts)) {
