@@ -88,6 +88,7 @@ const packageOrder = [
   "carousel",
   "tabs",
   "code",
+  "fields",
   "badge",
   "cards",
   "steps",

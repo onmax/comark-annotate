@@ -25,6 +25,7 @@ export type PresetOptions = {
   /** HTML only: Vue, React, and Svelte have no diff components. */
   diff?: boolean;
   embed?: boolean;
+  fields?: boolean;
   github?:
     | {
         callouts?: CalloutsOptions | boolean;
@@ -56,6 +57,7 @@ export type Renderer<C> = {
   code: Part<C, CodeOptions>;
   diff?: Part<C>;
   embed: Part<C>;
+  fields: Part<C>;
   github: {
     callouts: (options?: CalloutsOptions) => AnyPlugin;
     references: (options?: ReferencesOptions) => AnyPlugin;
@@ -100,6 +102,7 @@ export function preset<C>(renderer: Renderer<C>, options: PresetOptions = {}): P
   add(renderer.chips, options.chips);
   add(renderer.diff, options.diff);
   add(renderer.embed, options.embed);
+  add(renderer.fields, options.fields);
   if (on(options.github)) {
     const github = optionsOf(options.github) ?? {};
     if (on(github.callouts)) {

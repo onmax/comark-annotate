@@ -6,6 +6,7 @@ import * as charts from "comark-charts/vue";
 import * as chips from "comark-chips/vue";
 import * as code from "comark-code/vue";
 import * as embed from "comark-embed/vue";
+import * as fields from "comark-fields/vue";
 import * as github from "comark-github/vue";
 import * as icon from "comark-icon/vue";
 import * as media from "comark-media/vue";
@@ -19,6 +20,6 @@ export type { PresetOptions } from "./index.ts";
 /** Every plugin with components for `@comark/vue`, which leaves out annotate and diff. */
 export default (options?: PresetOptions): Preset<Component> =>
   preset<Component>(
-    { badge, cards, carousel, charts, chips, code, embed, github, icon, media, steps, tabs, zoom },
+    { badge, cards, carousel, charts, chips, code, embed, fields, github, icon, media, steps, tabs, zoom },
     options,
   );
