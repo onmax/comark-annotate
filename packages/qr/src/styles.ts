@@ -1,11 +1,15 @@
+import { theme } from "comark-zoom/theme";
+
 /**
- * A QR code as an inline block, dark modules on white whatever the page's scheme, since a phone's camera reads dark on
- * light best. Override `--cqr-size` to resize it. The rules sit in the `comark` layer, so any unlayered rule of the
- * host's wins.
+ * A QR code as an inline block on a bordered tile, on the shared `--comark-*` tokens. The modules are black on white
+ * whatever the page's scheme, since a phone's camera reads dark on light best. Override `--cqr-size` to resize it. The
+ * rules sit in the `comark` layer, so any unlayered rule of the host's wins.
  */
 export const css = `@layer comark{${[
+  theme(".cqr"),
   ":where(.cqr){--cqr-size:8rem}",
   ".cqr{display:inline-block;width:var(--cqr-size);max-width:100%;vertical-align:middle;line-height:0}",
-  ".cqr svg{display:block;width:100%;height:auto;border-radius:4px;background:#fff;color:#000;shape-rendering:crispEdges}",
+  // Capped, so a large radius can't round off the quiet zone into the finder patterns.
+  ".cqr svg{display:block;box-sizing:border-box;width:100%;height:auto;border:1px solid var(--_comark-border);border-radius:min(calc(var(--_comark-radius) - 4px),.5rem);background:#fff;color:#000;shape-rendering:crispEdges}",
   "@media print{.cqr svg{-webkit-print-color-adjust:exact;print-color-adjust:exact}}",
 ].join("")}}`;

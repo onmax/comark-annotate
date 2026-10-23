@@ -1,6 +1,6 @@
 ---
 title: Guides
-description: Preview links in review documents, and sizing.
+description: Preview links in review documents, sizing, and theming.
 ---
 
 ## Preview links in review documents
@@ -23,7 +23,9 @@ Codes are 8rem wide by default. Set `--cqr-size` on `.cqr` or any element above 
 }
 ```
 
-The code is always black on white, since phones read dark modules on a light ground best. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
+## Theming
+
+The code sits on a tile that reads the [shared tokens](/guide/theming/): `--comark-border` for its 1px border and `--comark-radius` for its corners, capped at `0.5rem` so they can't round into the code. The modules are always black on white, in both color schemes, since phones read dark modules on a light ground best. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
 
 | Class | Element |
 | --- | --- |

@@ -646,6 +646,9 @@ importers:
       comark:
         specifier: 'catalog:'
         version: 0.8.1(shiki@4.5.0)
+      comark-zoom:
+        specifier: workspace:*
+        version: link:../zoom
       react:
         specifier: 'catalog:'
         version: 19.3.1

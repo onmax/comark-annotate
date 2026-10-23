@@ -61,6 +61,7 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "comark": "catalog:",
+    "comark-zoom": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:",
     "svelte": "catalog:",
