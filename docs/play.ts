@@ -287,7 +287,7 @@ function setTheme(next: Theme) {
     input.value = theme.tokens[(input.dataset.token ?? "") as keyof Theme["tokens"]] ?? "";
   extraCss.value = theme.css;
   // Extra CSS stays folded until there is some to show.
-  if (theme.css) extraCss.closest("details")?.setAttribute("open", "");
+  extraCss.closest("details")?.toggleAttribute("open", Boolean(theme.css));
   showTheme();
   markTheme();
 }
