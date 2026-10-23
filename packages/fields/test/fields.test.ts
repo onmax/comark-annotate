@@ -49,6 +49,17 @@ describe("comark-fields", () => {
     );
   });
 
+  it("keeps a parent's description before nested properties", async () => {
+    const html = body(
+      await render(
+        '::field{name="options" type="object" description="The available options."}\n:::field{name="sync" type="string"}\n:::\n::',
+      ),
+    );
+    expect(html).toContain(
+      '<div class="cfl-body"><p>The available options.</p><div class="cfl"><div class="cfl-head"><code class="cfl-name">sync</code>',
+    );
+  });
+
   it("shows `description` when a field has no content, and escapes what it shows", async () => {
     const html = body(await render('::field{name="<x>" description="From a prop."}\n::'));
     expect(html).toContain('<code class="cfl-name">&lt;x&gt;</code>');
