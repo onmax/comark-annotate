@@ -57,5 +57,6 @@ The plugin adds every problem to `meta.issues`, as [Validation](/guide/validatio
 - A `to` that runs a script, such as `javascript:`, which doesn't link.
 - A `color` it doesn't know, which shows as primary.
 - A `cols` outside 1 to 6, an empty `::columns`, and an icon comark-icon can't draw.
+- A prop `::card` or `::columns` doesn't read, such as `link` or `columns`, which is ignored.
 
-Each issue names its block, by its title when it has one, and says how to fix it.
+Each issue names its block, by its title when it has one, and says how to fix it. Each one has its own rule in [Doctor](/doctor/).

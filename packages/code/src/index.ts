@@ -1,6 +1,6 @@
 import type { ElementNode, Node } from "comark";
 import { defineComarkPlugin } from "comark";
-import { createIcons, describeIconProblem, type Icons } from "comark-icon";
+import { createIcons, describeIconProblem, iconProblemRule, type Icons } from "comark-icon";
 import type { ActionButton } from "./client.ts";
 import { fromDiff, lines, nameOf } from "./lines.ts";
 
@@ -37,6 +37,13 @@ export type CodeOptions = {
    * share its `collections` and `fetch`. By default icons come from the Iconify API.
    */
   iconResolver?: Icons;
+};
+
+export type CodeMeta = {
+  /** One readable sentence per action whose icon can't be drawn. Other plugins add theirs too. */
+  issues: string[];
+  /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
+  issueRules: Record<string, string>;
 };
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
@@ -112,7 +119,7 @@ function blocksOf(nodes: Node[], found: ElementNode[] = []) {
  * can't draw, are added to `meta.issues`; the icon's button shows the title instead. List it after `shiki`, which
  * redraws every block it highlights.
  */
-export default defineComarkPlugin<CodeOptions>((options = {}) => {
+export default defineComarkPlugin<CodeOptions, CodeMeta>((options = {}) => {
   const resolver = options.iconResolver ?? createIcons();
   return {
     name: "comark-code",

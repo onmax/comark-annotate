@@ -117,6 +117,15 @@ describe("comark-code", () => {
     ]);
   });
 
+  it("names its icon issue's rule after comark-icon's", async () => {
+    const options = {
+      iconResolver,
+      actions: [{ id: "share", icon: "lucide:nope", title: "Share" }],
+    };
+    const { meta } = await parseMarkdown(sh, { plugins: [code(options)] });
+    expect(meta.issueRules).toEqual({ [meta.issues[0]]: "comark/icon/unknown-icon" });
+  });
+
   it("escapes an action's id and label, and never leaks `actions` onto the block", async () => {
     const html = await markup(sh, { actions: [{ id: 'a"b', label: "<Run & go>" }] });
     expect(html).toContain('data-code-action="a&quot;b">&lt;Run &amp; go&gt;</button>');

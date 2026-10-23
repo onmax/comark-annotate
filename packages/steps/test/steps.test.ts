@@ -73,6 +73,22 @@ describe("comark-steps", () => {
     expect(html.match(/<li class="cs-step">/g)).toHaveLength(3);
   });
 
+  it("names each issue's rule in meta.issueRules", async () => {
+    const { meta } = await parseMarkdown(
+      '::steps{level="h3" start="2"}\nFirst.\n\n### Install\n::\n\n::steps\nJust text.\n::',
+      { plugins: [steps()] },
+    );
+    expect(meta.issues.map((issue: string) => meta.issueRules[issue])).toEqual([
+      "comark/steps/unknown-prop",
+      "comark/steps/invalid-level",
+      "comark/steps/content-before-steps",
+      "comark/steps/no-steps",
+    ]);
+    expect(meta.issues[0]).toBe(
+      "`::steps` 1: `start` isn't a prop of `::steps`, so it's ignored. Use `level`, the level of the headings that start each step.",
+    );
+  });
+
   it("adds its issues to the ones other plugins found", async () => {
     const before = defineComarkPlugin(() => ({
       name: "before",

@@ -3,7 +3,7 @@ import { parts, start, withoutOwn as strip } from "./client.ts";
 import { css } from "./styles.ts";
 
 export { default } from "./index.ts";
-export type { CodeAction, CodeOptions } from "./index.ts";
+export type { CodeAction, CodeMeta, CodeOptions } from "./index.ts";
 export type { CodeActionDetail } from "./client.ts";
 
 // Each render gets a fresh `state.context`, so a document carries the script once.

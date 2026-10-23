@@ -25,7 +25,7 @@ code({
 });
 ```
 
-An icon that can't be drawn goes in `meta.issues`, and its button shows the title as text instead.
+An icon that can't be drawn goes in `meta.issues`, under the same [Doctor](/doctor/) rule as an `:icon`'s, and its button shows the title as text instead.
 
 Your app decides what an action does. `onCodeAction()` from `comark-code/client` calls your function with the block's code and language whenever that action's button is clicked, and returns a function that stops it:
 

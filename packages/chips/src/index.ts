@@ -20,7 +20,11 @@ export interface ChipsOptions {
 export type ChipsMeta = {
   /** One readable sentence per problem with a chip. Other plugins add theirs too. */
   issues: string[];
+  /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
+  issueRules: Record<string, string>;
 };
+
+type Issue = { rule: `comark/chips/${string}`; message: string };
 
 /** The node a chip is. After parsing, its attributes are `href`, `kind` (`avatar` or `favicon`), `src`, and `title`. */
 export const CHIP_TAG = "chip";
@@ -73,6 +77,7 @@ const NAMED = /^([a-z][a-z\d-]*):(?!\/\/)(\S+)$/i;
 // Text in these is a link, a chip, or code already, so it stays as written.
 const SKIP = new Set(["a", CHIP_TAG, "code", "pre", "script", "style"]);
 const WEB = /^https?:\/\//i;
+const BARE_LOGIN = new RegExp(`^${LOGIN}$`, "i");
 
 const isElement = (node: Node | undefined): node is ElementNode =>
   Array.isArray(node) && node[0] !== null;
@@ -193,13 +198,14 @@ export default defineComarkPlugin<ChipsOptions | undefined, ChipsMeta>((options)
       const found = new Map<ElementNode, string>();
       collect(tree.nodes, 0, found);
       if (!found.size) return;
-      const issues: string[] = [];
+      const issues: Issue[] = [];
       const chips = [...found].flatMap(([node, where]) => {
         const href = text(node[1].href);
         if (!WEB.test(href)) {
-          issues.push(
-            `${where}: \`href\` must be a web address, such as \`href="https://vite.dev"\`.`,
-          );
+          issues.push({
+            rule: "comark/chips/invalid-href",
+            message: `${where}: \`href\` must be a web address, such as \`href="https://vite.dev"\`.`,
+          });
           return [];
         }
         const custom = text(node[1].avatar);
@@ -208,7 +214,10 @@ export default defineComarkPlugin<ChipsOptions | undefined, ChipsMeta>((options)
         try {
           host = new URL(href).host;
         } catch {
-          issues.push(`${where}: \`href\` must be a valid web address.`);
+          issues.push({
+            rule: "comark/chips/invalid-href",
+            message: `${where}: \`href\` must be a valid web address.`,
+          });
           return [];
         }
         const image = account
@@ -216,6 +225,12 @@ export default defineComarkPlugin<ChipsOptions | undefined, ChipsMeta>((options)
             ? accountImage(account.login)
             : unavatar(account)
           : custom || siteImage(host);
+        // Only a bare login, the slip for `@login`, is reported: a path such as `/me.png` is an image on the site that serves it.
+        if (custom && !account && BARE_LOGIN.test(custom))
+          issues.push({
+            rule: "comark/chips/invalid-avatar",
+            message: `${where}: \`avatar="${custom}"\` is neither an image URL nor an account, so the chip shows a broken image. Write \`avatar="@${custom}"\` for a GitHub account, or \`avatar="https://…"\` for an image.`,
+          });
         const kind = custom || account ? "avatar" : "favicon";
         return [{ node, where, href, image, kind, account }];
       });
@@ -229,16 +244,18 @@ export default defineComarkPlugin<ChipsOptions | undefined, ChipsMeta>((options)
       for (const { node, where, href, image, kind, account } of chips) {
         let result = images.get(image) ?? { src: image };
         if ("status" in result && result.status === 429) {
-          issues.push(
-            `${where}: ${new URL(image).host} turned the download away for now (HTTP 429), so readers' browsers load the image. Build again later; once downloaded, it's cached for a week.`,
-          );
+          issues.push({
+            rule: "comark/chips/rate-limited",
+            message: `${where}: ${new URL(image).host} turned the download away for now (HTTP 429), so readers' browsers load the image. Build again later; once downloaded, it's cached for a week.`,
+          });
           result = { src: image };
         } else if ("status" in result && kind === "avatar")
-          issues.push(
-            account
+          issues.push({
+            rule: "comark/chips/missing-avatar",
+            message: account
               ? `${where}: there's no avatar at ${image} (HTTP ${result.status}). Check the ${NAMES.get(account.provider) ?? `${account.provider} name`}, or set \`avatar\` to an image URL.`
               : `${where}: its \`avatar\` image answered HTTP ${result.status}. Fix the URL, or remove \`avatar\`.`,
-          );
+          });
         const title = text(node[1].title);
         node[1] = {
           href,
@@ -247,7 +264,11 @@ export default defineComarkPlugin<ChipsOptions | undefined, ChipsMeta>((options)
           ...(title && { title }),
         };
       }
-      tree.meta.issues = [...(tree.meta.issues ?? []), ...issues];
+      tree.meta.issues = [...(tree.meta.issues ?? []), ...issues.map((issue) => issue.message)];
+      tree.meta.issueRules = {
+        ...tree.meta.issueRules,
+        ...Object.fromEntries(issues.map((issue) => [issue.message, issue.rule])),
+      };
     },
   };
 });
