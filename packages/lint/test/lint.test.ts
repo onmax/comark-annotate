@@ -373,14 +373,15 @@ describe("lint-comark CLI", () => {
 
   it("adds a config's components to the installed packages'", async () => {
     const dir = await mkdtemp(join(tmpdir(), "lint-comark-"));
-    await writeFile(join(dir, "steps.md"), `::steps\n::\n`);
+    await writeFile(join(dir, "pigeon-coop.md"), `::pigeon-coop\n::\n`);
     await writeFile(
       join(dir, "lint-comark.config.mjs"),
-      `export default { components: ["steps"] };\n`,
+      `export default { components: ["pigeon-coop"] };\n`,
     );
-    await expect(cli(join(dir, "steps.md"))).rejects.toMatchObject({ code: 1 });
+    await expect(cli(join(dir, "pigeon-coop.md"))).rejects.toMatchObject({ code: 1 });
     expect(
-      (await cli(join(dir, "steps.md"), "--config", join(dir, "lint-comark.config.mjs"))).stdout,
+      (await cli(join(dir, "pigeon-coop.md"), "--config", join(dir, "lint-comark.config.mjs")))
+        .stdout,
     ).toBe("No problems.\n");
   });
 });
