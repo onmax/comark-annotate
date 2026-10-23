@@ -77,9 +77,9 @@ const packageOrder = [
   "carousel",
   "tabs",
   "code",
+  "steps",
   "deflist",
   "figure",
-  "steps",
   "include",
   "lint",
 ];
