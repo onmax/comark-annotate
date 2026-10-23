@@ -9,16 +9,16 @@ export type MediaMeta = {
 
 export type MediaOptions = {
   /**
-   * `styled` gives audio a player on the shared `--comark-*` tokens, which a small script runs; until it does, and when
-   * the file can't play, the browser's own player shows. `native` always uses the browser's player. Default `styled`.
-   * Videos always use the browser's player.
+   * `styled` gives videos and audio controls on the shared `--comark-*` tokens, which a small script runs; until it
+   * does, and when the file can't play, the browser's own controls show. `native` always uses the browser's controls.
+   * Default `styled`.
    */
-  audio?: "styled" | "native";
+  controls?: "styled" | "native";
 };
 
 /**
  * What a media file becomes, and all its renderers read. `kind` is `video` or `audio`; `label` is the image's alt.
- * `native` marks audio that keeps the browser's player. The flags are only present when set.
+ * `native` marks a file that keeps the browser's controls. The flags are only present when set.
  */
 export type MediaAttributes = {
   kind?: "video" | "audio";
@@ -120,7 +120,7 @@ function read(
   if (poster && kind === "audio")
     issues.push(`${name}: audio has no picture, so \`poster\` was dropped. Remove it.`);
   else if (poster) result.poster = poster;
-  if (kind === "audio" && options.audio === "native") result.native = true;
+  if (options.controls === "native") result.native = true;
   if (result.autoplay && !result.muted)
     issues.push(
       `${name}: browsers only start ${kind === "video" ? "a video" : "audio"} by itself when it's muted. Add \`muted\`, or remove \`autoplay\`.`,

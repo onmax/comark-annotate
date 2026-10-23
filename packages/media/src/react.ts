@@ -19,11 +19,10 @@ export function Media({
   useEffect(() => start(css), []);
   if ((kind !== "video" && kind !== "audio") || !src) return null;
   const video = kind === "video";
-  const player = !video && !native;
   const element = createElement(
     kind,
     {
-      className: player ? undefined : "cm",
+      className: native ? "cm" : undefined,
       src,
       controls: true,
       playsInline: video || undefined,
@@ -36,17 +35,20 @@ export function Media({
     },
     createElement("a", { href: src }, label || src),
   );
-  if (!player) return element;
+  if (native) return element;
   return createElement(
     "span",
     {
-      className: "cm cm-audio",
+      className: `cm cm-${kind}`,
       role: label ? "group" : undefined,
       "aria-label": label || undefined,
     },
     element,
     // The script updates the controls in place, so React doesn't own them.
-    createElement("span", { className: "cm-bar", dangerouslySetInnerHTML: { __html: controls } }),
+    createElement("span", {
+      className: "cm-bar",
+      dangerouslySetInnerHTML: { __html: controls(kind) },
+    }),
   );
 }
 

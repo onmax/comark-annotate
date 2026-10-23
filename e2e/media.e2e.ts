@@ -1,5 +1,6 @@
 import { createHtmlRenderer } from "@comark/html";
-import { expect, type Page, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+import { expect, type Page, type Route, test } from "@playwright/test";
 import media, { components } from "../packages/media/src/html.ts";
 
 const render = createHtmlRenderer({ plugins: [media()], components });
@@ -22,24 +23,26 @@ const silence = (() => {
   wav.writeUInt32LE(bytes, 40);
   return wav;
 })();
-// The page loads `silence.wav` from a route, since a Markdown image's src must end in `.wav`. Chromium only seeks in a
-// file whose server answers byte ranges, as real hosts do.
-const open = async (page: Page, markdown: string, options: { script?: boolean } = {}) => {
-  await page.route("**/silence.wav*", (route) => {
-    const [, from = "0", to] =
-      /bytes=(\d+)-(\d*)/.exec(route.request().headers().range ?? "") ?? [];
-    const start = Number(from);
-    const end = to ? Number(to) : silence.length - 1;
-    return route.fulfill({
-      status: 206,
-      body: silence.subarray(start, end + 1),
-      headers: {
-        "accept-ranges": "bytes",
-        "content-range": `bytes ${start}-${end}/${silence.length}`,
-        "content-type": "audio/wav",
-      },
-    });
+const clip = await readFile(new URL("clip.webm", import.meta.url));
+// The page loads its files from routes, since a Markdown image's src must end in a media extension. Chromium only
+// seeks in a file whose server answers byte ranges, as real hosts do.
+const serve = (body: Buffer, type: string) => (route: Route) => {
+  const [, from = "0", to] = /bytes=(\d+)-(\d*)/.exec(route.request().headers().range ?? "") ?? [];
+  const start = Number(from);
+  const end = to ? Number(to) : body.length - 1;
+  return route.fulfill({
+    status: 206,
+    body: body.subarray(start, end + 1),
+    headers: {
+      "accept-ranges": "bytes",
+      "content-range": `bytes ${start}-${end}/${body.length}`,
+      "content-type": type,
+    },
   });
+};
+const open = async (page: Page, markdown: string, options: { script?: boolean } = {}) => {
+  await page.route("**/silence.wav*", serve(silence, "audio/wav"));
+  await page.route("**/clip.webm", serve(clip, "video/webm"));
   await page.route("**/missing.wav", (route) => route.fulfill({ status: 404 }));
   let html = await render(markdown);
   if (options.script === false) html = html.replace(/<script>[\s\S]*?<\/script>/g, "");
@@ -78,6 +81,34 @@ test("an audio player plays, pauses, and seeks with its own controls", async ({ 
   await expect(player.getByRole("button", { name: "Unmute" })).toBeVisible();
 });
 
+test("a video plays with its own controls, from its bar or a click, and goes full screen", async ({
+  page,
+}) => {
+  await open(page, "![A gray clip](clip.webm)");
+  const player = page.getByRole("group", { name: "A gray clip" });
+  const video = player.locator("video");
+  await expect(player.locator(".cm-time").last()).toHaveText("0:04");
+  expect(await video.evaluate((element: HTMLVideoElement) => element.controls)).toBe(false);
+
+  await player.getByRole("button", { name: "Play" }).click();
+  await expect(player).toHaveAttribute("data-playing");
+  await video.click();
+  await expect(player).not.toHaveAttribute("data-playing");
+
+  await player.getByRole("button", { name: "Full screen" }).click();
+  await expect(player).toHaveAttribute("data-fullscreen");
+  await player.getByRole("button", { name: "Exit full screen" }).click();
+  await expect(player).not.toHaveAttribute("data-fullscreen");
+});
+
+test("one player with sound plays at a time, and a muted loop plays on", async ({ page }) => {
+  await open(page, "![Loop](clip.webm){autoplay loop muted}\n\n![One](silence.wav)");
+  await expect(page.getByRole("group", { name: "Loop" })).toHaveAttribute("data-playing");
+  await page.getByRole("group", { name: "One" }).getByRole("button", { name: "Play" }).click();
+  await expect(page.getByRole("group", { name: "One" })).toHaveAttribute("data-playing");
+  await expect(page.getByRole("group", { name: "Loop" })).toHaveAttribute("data-playing");
+});
+
 test("one audio player plays at a time", async ({ page }) => {
   await open(page, "![One](silence.wav)\n\n![Two](silence.wav?two)");
   await page.getByRole("group", { name: "One" }).getByRole("button", { name: "Play" }).click();
@@ -89,10 +120,13 @@ test("one audio player plays at a time", async ({ page }) => {
 test("the browser's player shows without the script, and when the file can't play", async ({
   page,
 }) => {
-  await open(page, "![Silence](silence.wav)", { script: false });
+  await open(page, "![Silence](silence.wav)\n\n![A gray clip](clip.webm)", { script: false });
   const player = page.getByRole("group", { name: "Silence" });
   await expect(player.locator("audio")).toBeVisible();
   await expect(player.locator(".cm-bar")).toBeHidden();
+  const clip = page.getByRole("group", { name: "A gray clip" });
+  await expect(clip.locator("video")).toHaveAttribute("controls");
+  await expect(clip.locator(".cm-bar")).toBeHidden();
 
   await open(page, "![Missing](missing.wav)");
   const missing = page.getByRole("group", { name: "Missing" });

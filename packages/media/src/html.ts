@@ -23,9 +23,8 @@ const media: NodeHandler = ([, attrs], state) => {
   const styles = styled.has(state.context) ? "" : `<style data-comark-media>${css}</style>`;
   styled.add(state.context);
   const video = kind === "video";
-  const player = !video && !native;
   const element =
-    `<${kind}${player ? "" : ' class="cm"'} src="${attr(src)}" controls${video ? " playsinline" : ""} preload="metadata"` +
+    `<${kind}${native ? ' class="cm"' : ""} src="${attr(src)}" controls${video ? " playsinline" : ""} preload="metadata"` +
     (poster && video ? ` poster="${attr(poster)}"` : "") +
     (autoplay ? " autoplay" : "") +
     (loop ? " loop" : "") +
@@ -33,12 +32,12 @@ const media: NodeHandler = ([, attrs], state) => {
     (label ? ` aria-label="${attr(label)}"` : "") +
     // Only a browser that can't play the file shows this.
     `><a href="${attr(src)}">${attr(label || src)}</a></${kind}>`;
-  if (!player) return styles + element;
+  if (native) return styles + element;
   // The styles come inline before the script, so the script has nothing to add.
   const script = started.has(state.context) ? "" : `<script>(${start.toString()})("")</script>`;
   started.add(state.context);
-  return `${styles}<span class="cm cm-audio"${label ? ` role="group" aria-label="${attr(label)}"` : ""}>${element}<span class="cm-bar">${controls}</span></span>${script}`;
+  return `${styles}<span class="cm cm-${kind}"${label ? ` role="group" aria-label="${attr(label)}"` : ""}>${element}<span class="cm-bar">${controls(kind)}</span></span>${script}`;
 };
 
-/** The HTML renderer for videos and audio. Pass it as `components`; it inlines the styles, and the player's script, once per document. */
+/** The HTML renderer for videos and audio. Pass it as `components`; it inlines the styles and the players' script once per document. */
 export const components: Record<"media", NodeHandler> = { media };

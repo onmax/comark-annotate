@@ -26,7 +26,6 @@ export const Media = defineComponent({
       const { kind, src, label } = props;
       if ((kind !== "video" && kind !== "audio") || !src) return null;
       const video = kind === "video";
-      const player = !video && !props.native;
       const attrs = {
         src,
         controls: true,
@@ -39,19 +38,15 @@ export const Media = defineComponent({
         "aria-label": label || undefined,
       };
       const fallback = [h("a", { href: src }, label || src)];
-      // Vue writes `class=""` for an empty class, which the other renderers don't.
-      const element = player
-        ? h(kind, attrs, fallback)
-        : h(kind, { class: "cm", ...attrs }, fallback);
-      if (!player) return element;
+      if (props.native) return h(kind, { class: "cm", ...attrs }, fallback);
       return h(
         "span",
         {
-          class: "cm cm-audio",
+          class: `cm cm-${kind}`,
           role: label ? "group" : undefined,
           "aria-label": label || undefined,
         },
-        [element, h("span", { class: "cm-bar", innerHTML: controls })],
+        [h(kind, attrs, fallback), h("span", { class: "cm-bar", innerHTML: controls(kind) })],
       );
     };
   },

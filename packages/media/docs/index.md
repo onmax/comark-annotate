@@ -27,4 +27,4 @@ The alert sound the reviewer asked for:
 :::
 ::
 
-A screen recording is often the clearest evidence in a pull request. The plugin plays it where it sits and loads only the first frame until the reader presses play. Videos use the browser's own controls. Audio gets a player that matches the page, with the browser's own as its fallback. Nothing about the syntax is new: GitLab already plays an image that points at a video, and GitHub plays an uploaded video's link.
+A screen recording is often the clearest evidence in a pull request. The plugin plays it where it sits and loads only the first frame until the reader presses play. Its controls match the page, with the browser's own as their fallback. Nothing about the syntax is new: GitLab already plays an image that points at a video, and GitHub plays an uploaded video's link.
