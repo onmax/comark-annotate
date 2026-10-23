@@ -63,7 +63,8 @@ function field(node: ElementNode, number: number, data: Data, issues: Issue[]) {
   const description = text(attrs.description);
   const children = childrenOf(node);
   const hasNestedFields = children.some((child) => isElement(child) && child[0] === "field");
-  if (description && (!children.length || hasNestedFields)) node.splice(2, 0, ["p", {}, description]);
+  if (description && (!children.length || hasNestedFields))
+    node.splice(2, 0, ["p", {}, description]);
   else if (description)
     issues.push({
       rule: "comark/fields/description-ignored",
