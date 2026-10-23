@@ -24,4 +24,4 @@ Write two ordinary fenced blocks, before then after, and nothing else inside. Le
 
 Keep both blocks to the lines around the change; the plugin reports a block over 200 lines, two blocks in different languages or files, and a diff with no change. The line numbers and the `+` and `−` come from CSS, so copying a selection copies only the code. With Comark's `shiki` plugin, both blocks keep their highlighting, and a line a block highlights, like `` ```ts {2} ``, stays highlighted. One diff shows one file and takes no unified diff: it's for a change a reader should see, which a few lines before and after show best.
 
-The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes. Each issue names its diff, by its file, and says how to fix it.
+The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes. Each issue names its diff, by its file, and says how to fix it. Each kind has its own rule in [Doctor](/doctor/).

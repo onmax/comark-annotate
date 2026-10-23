@@ -38,7 +38,7 @@ Pass `download: false` where parsing runs in a browser: most sites don't let a p
 
 Avatars from X, Bluesky, YouTube, GitLab, and `avatar="provider:name"` come from [unavatar.io](https://unavatar.io), which answers 25 downloads a day for each IP address without a plan. Each image counts once a week, thanks to the cache. When it says no, the chip keeps the URL for the reader's browser and `meta.issues` says to build again. A CI that starts with no `node_modules` downloads everything every time; set `cache` to a folder you commit, such as `.comark/chips`, and it downloads only the images that are new. GitHub avatars and favicons have no such limit.
 
-An avatar that answers with an HTTP error, such as an `@user` with no GitHub account, is reported in `meta.issues`. A site without a favicon gets a chip with no image.
+An avatar that answers with an HTTP error, such as an `@user` with no GitHub account, is reported in `meta.issues`. A site without a favicon gets a chip with no image. Each problem has its own rule in [Doctor](/doctor/).
 
 ## Other renderers
 
