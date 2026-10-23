@@ -16,6 +16,7 @@ import {
 import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
 import steps, { components as stepsComponents } from "../packages/steps/src/html.ts";
 import cards, { components as cardsComponents } from "../packages/cards/src/html.ts";
+import badge, { components as badgeComponents } from "../packages/badge/src/html.ts";
 import fields, { components as fieldsComponents } from "../packages/fields/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
@@ -35,6 +36,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   githubHtml(),
   icon(),
   fields(),
+  badge(),
   cards(),
   steps(),
   tabs(),
@@ -52,6 +54,7 @@ export const components = {
   ...githubComponents,
   ...iconComponents,
   ...fieldsComponents,
+  ...badgeComponents,
   ...cardsComponents,
   ...stepsComponents,
   ...tabsComponents,
