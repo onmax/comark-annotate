@@ -19,10 +19,10 @@ import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts
 import type { PlayConfig } from "./config.ts";
 
 // `download` is off in a browser, which may not download another site's images, so the reader's loads them as links.
+// comark-code comes last, so a highlighter can go just before it and draw the lines it marks.
 export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}) => [
   annotate(),
   carousel(),
-  code(config["comark-code"]),
   charts(),
   chips({ download }),
   diff(),
@@ -33,6 +33,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   icon(),
   tabs(),
   zoom(config["comark-zoom"]),
+  code(config["comark-code"]),
 ];
 
 export const components = {
