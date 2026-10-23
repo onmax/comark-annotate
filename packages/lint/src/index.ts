@@ -518,16 +518,36 @@ function duplicateIds(nodes: Node[], source: Source): Diagnostic[] {
   });
   const seen = new Map<string, number>();
   const found: Diagnostic[] = [];
+  const locations = (id: string): { line: number; column: number }[] => {
+    const matches: { line: number; column: number }[] = [];
+    const explicit = [`{#${id}`, `id="${id}"`, `id='${id}'`, `id=${id}`];
+    for (let line = source.body; line < source.prose.length; line++) {
+      const text = source.prose[line]!;
+      for (const needle of explicit) {
+        for (let column = text.indexOf(needle); column !== -1; column = text.indexOf(needle, column + 1))
+          matches.push({ line: line + 1, column: column + 1 });
+      }
+      const heading = /^( {0,3})#{1,6}\s+(.+?)\s*$/.exec(text);
+      if (heading && !/\s\{#[^}]+\}\s*$/.test(heading[2]!)) {
+        const slug = heading[2]!
+          .toLowerCase()
+          .replace(/[`*_~\[\]()]/g, "")
+          .replace(/[^\p{L}\p{N}\s-]/gu, "")
+          .trim()
+          .replace(/\s+/g, "-");
+        if (slug === id) matches.push({ line: line + 1, column: heading[0].indexOf(heading[2]!) + 1 });
+      }
+    }
+    return matches.sort((a, b) => a.line - b.line || a.column - b.column);
+  };
+  const byId = new Map<string, { line: number; column: number }[]>();
   for (const { tag, id } of tagged) {
     const index = seen.get(id) ?? 0;
     seen.set(id, index + 1);
     if (!index) continue;
-    // IDs may come from heading labels, Comark attributes, or raw HTML. Find the matching
-    // occurrence across all forms so mixed documents stay aligned with the parsed order.
-    const at = findAny(source, [`{#${id}`, `id="${id}"`, `id='${id}'`, `id=${id}`], {
-      nth: index,
-      from: source.body,
-    });
+    // IDs may come from heading labels, Comark attributes, or raw HTML. Keep all forms in
+    // source order so a mixed document points at the duplicate element itself.
+    const at = (byId.get(id) ?? (byId.set(id, locations(id)), byId.get(id)!))[index];
     const { line, column } = at ?? { line: source.body + 1, column: undefined };
     found.push({
       rule: "comark/duplicate-id",
