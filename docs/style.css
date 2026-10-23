@@ -888,7 +888,96 @@ kbd {
   -webkit-user-select: none;
 }
 
-/* A diff and a chart are drawn at a page's width, so they zoom out further to fit. */
+.demo-source pre {
+  margin: 0;
+  padding: 0.875rem 1rem;
+  border-radius: 0;
+  background: none !important;
+  box-shadow: none;
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (hover: hover) {
+  .demo:has(.demo-md:hover) .demo-source {
+    content-visibility: visible;
+    opacity: 1;
+    filter: none;
+  }
+}
+
+/* What each card does on a loop, built from the plugins' own markup. Each loop starts and ends on the page as it
+   renders, so a still frame never hides anything. */
+.demo-annotate .ca-mark,
+.demo-carousel .cc-track,
+.demo-lint .term-line,
+.demo-zoom img,
+.demo-embed .demo-progress,
+.demo-embed .demo-play,
+.demo-code .ck-copy svg,
+.demo-code .ck-copy,
+.demo-tabs .ct-tab,
+.demo-tabs .ct-panel,
+.demo-include .ck,
+.demo-include .ck ~ *,
+.demo-include .demo-directive + p,
+.demo-diff tr,
+.demo-diff ins,
+.demo-github-references a {
+  animation-duration: 7s;
+  animation-timing-function: var(--ease-out);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+
+/* annotate: the marks redraw themselves one after the other, so only one is ever being drawn. */
+.demo-annotate .ca-mark {
+  animation-name: demo-draw;
+  animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.demo-annotate .ca-mark[data-n="2"] {
+  animation-delay: 450ms;
+}
+
+.demo-annotate .ca-mark[data-n="3"] {
+  animation-delay: 900ms;
+}
+
+.demo-annotate .ca-mark[data-n="4"] {
+  animation-delay: 1350ms;
+}
+
+.demo-annotate .ca-mark[data-n="5"] {
+  animation-delay: 1800ms;
+}
+
+.demo-annotate .ca-mark[data-n="6"] {
+  animation-delay: 2250ms;
+}
+
+@keyframes demo-draw {
+  0% {
+    clip-path: inset(-150% -150% -150% -150%);
+  }
+
+  4% {
+    clip-path: inset(-150% -150% -150% 100%);
+  }
+
+  5% {
+    clip-path: inset(-150% 100% -150% -150%);
+  }
+
+  16%,
+  100% {
+    clip-path: inset(-150% -150% -150% -150%);
+  }
+}
+
+/* diff: the old line fades, and the new one slides in with its change lit. */
 .demo-diff {
   --z: 0.72;
 }
@@ -897,10 +986,346 @@ kbd {
   --z: 0.62;
 }
 
-/* code: its bar shows on hover on a page, and a card has no hover. */
+.demo-variants {
+  display: grid;
+  align-items: start;
+}
+
+.demo-variant {
+  grid-area: 1 / 1;
+  transition:
+    opacity 450ms ease,
+    translate 450ms var(--ease-out);
+}
+
+.demo-variant:not([data-on]) {
+  opacity: 0;
+  translate: 0 8px;
+}
+
+/* chips and icons: the chips hold still and each one's favicon or avatar nudges in turn, as icons do. */
+.demo-chips .cp-img,
+.demo-icon .ci {
+  animation: demo-nudge 3.5s var(--ease-out) infinite both;
+}
+
+.demo-chips .cp:nth-of-type(2) .cp-img,
+.demo-icon .ci:nth-of-type(2) {
+  animation-delay: 150ms;
+}
+
+.demo-chips .cp:nth-of-type(3) .cp-img,
+.demo-icon .ci:nth-of-type(3) {
+  animation-delay: 300ms;
+}
+
+.demo-chips .cp:nth-of-type(4) .cp-img,
+.demo-icon .ci:nth-of-type(4) {
+  animation-delay: 450ms;
+}
+
+.demo-icon .ci:nth-of-type(5) {
+  animation-delay: 600ms;
+}
+
+/* github: each callout's icon nudges in turn, and the references light up in turn. The callout itself stays, so
+   the card never goes blank. */
+.demo-github .cgc-icon {
+  animation: demo-nudge 3.5s var(--ease-out) infinite both;
+}
+
+.demo-github .cgc + .cgc .cgc-icon {
+  animation-delay: 300ms;
+}
+
+@keyframes demo-nudge {
+  0%,
+  18%,
+  100% {
+    scale: 1;
+  }
+
+  6% {
+    scale: 1.25;
+  }
+}
+
+.demo-github-references a {
+  border-radius: 4px;
+  animation-name: demo-tint;
+}
+
+@keyframes demo-tint {
+  0%,
+  16%,
+  100% {
+    background-color: transparent;
+  }
+
+  5%,
+  10% {
+    background-color: color-mix(in oklch, #3b82f6 20%, transparent);
+  }
+}
+
+.demo-github-references a:nth-of-type(2) {
+  animation-delay: 140ms;
+}
+
+.demo-github-references a:nth-of-type(3) {
+  animation-delay: 280ms;
+}
+
+/* tabs: the code group steps through its tabs. */
+.demo-tabs .ct .ct-panel[data-inactive] {
+  display: block;
+}
+
+.demo-tabs .ct {
+  display: grid;
+}
+
+.demo-tabs .ct-list {
+  grid-area: 1 / 1;
+}
+
+.demo-tabs .ct-panel {
+  grid-area: 2 / 1;
+  animation-name: demo-panel;
+  animation-duration: 6s;
+  animation-timing-function: ease;
+}
+
+.demo-tabs .ct-tab {
+  animation-name: demo-tab;
+  animation-duration: 6s;
+  animation-timing-function: ease;
+}
+
+/* Started part of the way through, so each tab waits its turn off. The list is the group's first child, so the
+   second tab's panel is its third. */
+.demo-tabs .ct-tab:nth-child(2),
+.demo-tabs .ct-panel:nth-child(3) {
+  animation-delay: -4s;
+}
+
+.demo-tabs .ct-tab:nth-child(3),
+.demo-tabs .ct-panel:nth-child(4) {
+  animation-delay: -2s;
+}
+
+@keyframes demo-tab {
+  0%,
+  31% {
+    background: var(--_comark-background);
+    color: var(--_comark-foreground);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, var(--_comark-border), var(--_comark-foreground) 8%);
+  }
+
+  35%,
+  100% {
+    background: transparent;
+    color: var(--_comark-muted);
+    box-shadow: inset 0 0 0 1px transparent;
+  }
+}
+
+@keyframes demo-panel {
+  0%,
+  31% {
+    opacity: 1;
+    translate: 0;
+  }
+
+  35%,
+  97% {
+    opacity: 0;
+    translate: 0 4px;
+  }
+
+  100% {
+    opacity: 1;
+    translate: 0;
+  }
+}
+
+/* zoom: the image lifts out of the page and settles back. */
+.demo-zoom .demo-page {
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+
+.demo-zoom p {
+  width: 100%;
+  margin: 0;
+}
+
+.demo-zoom img {
+  display: block;
+  max-width: 100%;
+}
+
+.demo-zoom img {
+  border-radius: 6px;
+  animation-name: demo-zoom;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes demo-zoom {
+  0%,
+  48%,
+  100% {
+    scale: 1;
+  }
+
+  12%,
+  36% {
+    scale: 1.28;
+  }
+}
+
+/* carousel: the track steps through its slides. */
+.demo-carousel .cc-track {
+  animation-name: demo-slides;
+  animation-duration: 9s;
+  animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.demo-carousel .cc-count {
+  visibility: hidden;
+}
+
+@keyframes demo-slides {
+  0% {
+    translate: 0;
+  }
+
+  5%,
+  30% {
+    translate: -100% 0;
+  }
+
+  35%,
+  60% {
+    translate: -200% 0;
+  }
+
+  65%,
+  100% {
+    translate: 0;
+  }
+}
+
+/* code: the copy button is pressed and turns into its check. */
 .demo-code .ck-bar,
 .demo-include .ck-bar {
   opacity: 1;
+}
+
+/* A card is too narrow to scroll, so its code wraps. */
+.demo-page pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* embed: a still of the player, playing. The still fills whatever frame the embed's size gives it. */
+.demo-page .ce-frame:has(.demo-player) {
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
+
+.demo-code .ck-copy svg:last-child {
+  animation-name: demo-icon-in;
+}
+
+@keyframes demo-press {
+  0%,
+  9%,
+  100% {
+    scale: 1;
+  }
+
+  4% {
+    scale: 0.9;
+  }
+}
+
+@keyframes demo-icon-out {
+  0%,
+  4%,
+  43%,
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+
+  8%,
+  39% {
+    opacity: 0;
+    scale: 0.25;
+  }
+}
+
+@keyframes demo-icon-in {
+  0%,
+  4%,
+  43%,
+  100% {
+    opacity: 0;
+    scale: 0.25;
+  }
+
+  8%,
+  39% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* include: the directive, then what it reads unfolding under it. */
+.demo-directive {
+  margin: 0 0 0.875rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  background: var(--soft);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: 0.8125rem;
+}
+
+.demo-directive code {
+  padding: 0;
+  background: none;
+  overflow-wrap: anywhere;
+}
+
+.demo-include .demo-directive + p,
+.demo-include .ck {
+  animation-name: demo-unfold;
+}
+
+.demo-include .ck {
+  animation-delay: 150ms;
+}
+
+@keyframes demo-unfold {
+  0% {
+    opacity: 1;
+    clip-path: inset(0);
+  }
+
+  4%,
+  8% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+
+  20%,
+  100% {
+    opacity: 1;
+    clip-path: inset(0);
+  }
 }
 
 /* A card is too narrow to scroll, so its code wraps. */
@@ -1445,20 +1870,68 @@ kbd {
   font-weight: 500;
 }
 
-/* The package's examples as the playground shows them, under its pages, each a still that opens in the playground. */
-.pages-examples {
-  margin-top: 1.75rem;
+/* The package's examples as the playground shows them, folded at the foot of the column, clear of the last page. */
+.pages-foot {
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
+.pages-play {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.pages-play::-webkit-details-marker {
+  display: none;
 }
 
 .pages-count {
   margin-left: auto;
   color: var(--faint);
-  font-weight: 400;
   font-variant-numeric: tabular-nums;
 }
 
-.pages-examples + .presets {
+.pages-play::after {
+  content: "";
+  width: 0.375rem;
+  height: 0.375rem;
+  margin-left: 0.25rem;
+  border: solid currentColor;
+  border-width: 0 1.5px 1.5px 0;
+  rotate: -45deg;
+  transition: rotate 150ms var(--ease-out);
+}
+
+.pages-foot[open] .pages-play::after {
+  rotate: 45deg;
+}
+
+.pages-play:hover,
+.pages-foot[open] .pages-play {
+  background: var(--soft);
+  color: var(--fg);
+}
+
+.pages-foot .presets {
+  grid-template-columns: minmax(0, 1fr);
   margin-top: 0.5rem;
+}
+
+/* The playground fits each still to its card with a script; here the column's width is known. */
+.pages-foot .preset-page {
+  transform: scale(0.32);
 }
 
 /* Not the links inside a preset's still, which keep the look the plugins give them. */
@@ -3421,7 +3894,7 @@ main img {
 }
 
 /* Two to a row, so the playground's column is wider than a section's. */
-.sidebar:has(.pages .presets) {
+.sidebar:has(.pages-foot .presets) {
   grid-template-columns: 3.25rem 21rem;
 }
 

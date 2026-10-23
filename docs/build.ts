@@ -775,7 +775,7 @@ const rail = (current: Section) =>
     )}<a class="rail-drop" href="https://drop.vitehub.dev/?utm_source=comark-plugins&amp;utm_medium=sidebar"><img src="/drop.svg" alt="" width="18" height="18"><span class="rail-label"><strong>Review on Drop</strong><span>Comment on the exact spot</span></span></a></nav>`;
 // The second column: the current section's pages, or the playground's presets.
 const column = (section: Section, current: string) => {
-  // A package's examples, under its pages as the playground lists them; each opens there.
+  // A package's examples, folded at the foot of its column as the playground lists them; each opens there.
   const examples = presets.filter((preset) => preset.group === section.label);
   const presetCard = (preset: (typeof presets)[number], href: string) =>
     `<div class="preset"><div class="preset-thumb" aria-hidden="true" inert><div class="preset-page">${thumbnails.get(preset.id) ?? ""}</div></div><a data-preset="${preset.id}" href="${href}">${escapeHtml(preset.label)}</a></div>`;
@@ -806,7 +806,7 @@ const column = (section: Section, current: string) => {
     )
     .join(
       "",
-    )}${section.npm && examples.length ? `<p class="nav-group pages-examples">${siteIcon("flask-conical", 14)}Examples<span class="pages-count">${examples.length}</span></p><div class="presets">${examples.map((preset) => presetCard(preset, `/play/#preset=${preset.id}`)).join("")}</div>` : ""}</nav>`;
+    )}${section.npm && examples.length ? `<details class="pages-foot"><summary class="pages-play">${siteIcon("flask-conical", 15)}Examples<span class="pages-count">${examples.length}</span></summary><div class="presets">${examples.map((preset) => presetCard(preset, `/play/#preset=${preset.id}`)).join("")}</div></details>` : ""}</nav>`;
 };
 // Previous and next page in the section.
 function pager(page: Page) {
