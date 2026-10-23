@@ -24,7 +24,7 @@ const RAW_CODE = new Set(["pre", "script", "style", "textarea"]);
 function textOf(nodes: Node[], parts: string[] = []) {
   for (const node of nodes) {
     if (!Array.isArray(node)) parts.push(node);
-    else if (typeof node[0] === "string" && !RAW_CODE.has(node[0].toLowerCase())) {
+    else if (node[0] !== null && !RAW_CODE.has(node[0].toLowerCase())) {
       const [, , ...children] = node;
       textOf(children, parts);
     }
