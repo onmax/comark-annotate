@@ -2,7 +2,7 @@ import type { ComarkPlugin, ElementNode, MarkdownDocument, Node } from "comark";
 import { parseMarkdown } from "comark";
 import { htmlTags } from "./html-tags.ts";
 import { catalog } from "./rules/index.ts";
-import { find, read, type Source } from "./source.ts";
+import { find, findAny, read, type Source } from "./source.ts";
 
 export { defineConfig, resolveConfig, type Config } from "./config.ts";
 
@@ -530,7 +530,10 @@ function duplicateIds(nodes: Node[], source: Source): Diagnostic[] {
     const nth = index - (total.get(id)! - writtenIds);
     const at =
       (nth >= 0 ? find(source, `{#${id}`, { nth, from: source.body }) : undefined) ??
-      find(source, id, { nth: index, from: source.body, attribute: true });
+      findAny(source, [`{#${id}`, `id="${id}"`, `id='${id}'`, `id=${id}`], {
+        nth: index,
+        from: source.body,
+      });
     const { line, column } = at ?? { line: source.body + 1, column: undefined };
     found.push({
       rule: "comark/duplicate-id",
@@ -546,11 +549,15 @@ function duplicateIds(nodes: Node[], source: Source): Diagnostic[] {
 function missingAlts(nodes: Node[], source: Source): Diagnostic[] {
   const locate = locator(source);
   const found: Diagnostic[] = [];
+  const occurrences = new Map<string, number>();
   for (const [tag, attributes] of elements(nodes)) {
     const src = text(attributes.src);
+    const nth = occurrences.get(src) ?? 0;
+    if (src) occurrences.set(src, nth + 1);
     // An empty `alt`, written `{alt=""}` or in HTML, marks an image as decoration on purpose.
     if (tag !== "img" || !src || attributes.alt !== undefined) continue;
-    const { line, column } = locate(`](${src}`, src);
+    const at = findAny(source, [`](${src}`, `src="${src}"`, `src='${src}'`, `src=${src}`], { nth });
+    const { line, column } = at ?? locate(`](${src}`, src);
     found.push({
       rule: "comark/missing-alt",
       line,
@@ -565,12 +572,18 @@ function missingAlts(nodes: Node[], source: Source): Diagnostic[] {
 function emptyLinks(nodes: Node[], source: Source): Diagnostic[] {
   const locate = locator(source);
   const found: Diagnostic[] = [];
+  const occurrences = new Map<string, number>();
   for (const [tag, attributes, ...children] of elements(nodes)) {
     const href = text(attributes.href);
+    const nth = occurrences.get(href) ?? 0;
+    if (href) occurrences.set(href, nth + 1);
     const named = text(attributes["aria-label"]);
     if (tag !== "a" || !href || named || children.some((child) => isElement(child) || text(child)))
       continue;
-    const { line, column } = locate(`](${href}`, href);
+    const at = findAny(source, [`](${href}`, `href="${href}"`, `href='${href}'`, `href=${href}`], {
+      nth,
+    });
+    const { line, column } = at ?? locate(`](${href}`, href);
     found.push({
       rule: "comark/empty-link",
       line,

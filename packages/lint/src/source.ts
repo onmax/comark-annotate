@@ -69,3 +69,38 @@ export function find(
   }
   return undefined;
 }
+
+/** Find the nth occurrence of any of several source forms, in document order. */
+export function findAny(
+  source: Source,
+  needles: string[],
+  {
+    nth = 0,
+    from = 0,
+    to = source.prose.length,
+    attribute = false,
+  }: { nth?: number; from?: number; to?: number; attribute?: boolean } = {},
+): { line: number; column: number } | undefined {
+  const matches: { line: number; column: number }[] = [];
+  for (let index = from; index < Math.min(to, source.prose.length); index++) {
+    const line = source.prose[index]!;
+    for (const needle of needles) {
+      for (let at = line.indexOf(needle); at !== -1; at = line.indexOf(needle, at + 1)) {
+        if (
+          [...needles].some(
+            (other) =>
+              other !== needle &&
+              other.length > needle.length &&
+              line.slice(at, at + other.length) === other,
+          )
+        )
+          continue;
+        if (/[\w-]/.test(line[at + needle.length] ?? "") && /[\w-]$/.test(needle)) continue;
+        if (attribute && !/["'=(<]/.test(line[at - 1] ?? "")) continue;
+        matches.push({ line: index + 1, column: at + 1 });
+      }
+    }
+  }
+  matches.sort((a, b) => a.line - b.line || a.column - b.column);
+  return matches[nth];
+}
