@@ -9,6 +9,7 @@ import {
   type IconData,
   type Icons,
 } from "comark-icon";
+import { isExternalHref, isSafeHref } from "./client.ts";
 
 export type CardsOptions = {
   /**
@@ -140,7 +141,7 @@ function card(node: ElementNode, walk: Walk) {
     to = href;
   }
   // A `javascript:` link would run on a click anywhere on the card.
-  if (/^\s*(?:javascript|vbscript|data):/i.test(to)) {
+  if (to && !isSafeHref(to)) {
     walk.issues.push({
       rule: "comark/cards/unsafe-link",
       message: `${name}: \`to\` must be a page or a web address, so it isn't a link.`,
@@ -149,7 +150,7 @@ function card(node: ElementNode, walk: Walk) {
   }
   if (to) {
     result.to = to;
-    const target = text(attrs.target) || (/^https?:\/\//i.test(to) ? "_blank" : "");
+    const target = text(attrs.target) || (isExternalHref(to) ? "_blank" : "");
     if (target) result.target = target;
     if (target === "_blank") result.external = "true";
     result.label = words || "Card link";

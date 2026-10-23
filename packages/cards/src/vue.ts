@@ -1,6 +1,6 @@
 import { defineComponent, h, onMounted, type PropType } from "vue";
 import { Icon, type IconData } from "comark-icon/vue";
-import { addStyles, external, rel } from "./client.ts";
+import { addStyles, external, isExternalHref, isSafeHref, rel } from "./client.ts";
 
 export { colors, default } from "./index.ts";
 export type {
@@ -47,12 +47,12 @@ export const Card = defineComponent({
     onMounted(addStyles);
     return () =>
       h("div", { class: "ccr", "data-color": props.color }, [
-        props.to
+        isSafeHref(props.to)
           ? h("a", {
               class: "ccr-link",
               href: props.to,
-              target: props.target || undefined,
-              rel: rel(props.target),
+              target: props.target || (isExternalHref(props.to) ? "_blank" : undefined),
+              rel: rel(props.target || (isExternalHref(props.to) ? "_blank" : undefined)),
               "aria-label": props.label,
             })
           : null,

@@ -15,13 +15,19 @@ export interface Annotation {
   h: number;
   mark: Mark;
   color?: string;
-  /** Pull the note out beside or above the image, joined to the mark by an arrow. */
-  side?: "left" | "right" | "top";
+  /** Pull the note out beside, above, or below the image, joined to the mark by an arrow. */
+  side?: Side;
+  /** Where a side note sits along its margin, as a percentage of the image: across for top and bottom, down for left and right. */
+  at?: number;
+  /** The point the arrow lands on, as percentages of the image. Without it the arrow meets the mark's edge. */
+  to?: { x: number; y: number };
   note: Node[];
 }
 
 export interface Screenshot {
   src: string;
+  /** The color of every mark that doesn't set its own. */
+  ink?: string;
   alt: string;
   title?: string;
   href?: string;
@@ -37,6 +43,7 @@ export type Mode = (typeof MODES)[number];
 
 export interface Compare {
   title?: string;
+  ink?: string;
   mode: Mode;
   shots: Screenshot[];
 }
@@ -45,7 +52,7 @@ export interface Compare {
 export type Data = Parameters<typeof resolveAttributes>[1];
 
 /** Named colors, each with one meaning. Anything else must be a hex color. */
-export const PALETTE = ["red", "amber", "green", "blue", "gray"] as const;
+export const PALETTE = ["red", "amber", "green", "blue", "violet", "gray"] as const;
 
 /** One problem: the comark-linter rule it falls under, and the sentence that names its block and the fix. */
 export type Issue = { rule: `comark/annotate/${string}`; message: string };
@@ -60,12 +67,15 @@ type Names = Map<ElementNode, string>;
 // Comark text nodes are strings, elements are arrays, and comments are arrays with a null tag.
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
 const children = ([, , ...rest]: ElementNode): Node[] => rest;
-// Prop values arrive as strings, numbers, or booleans; objects and arrays aren't valid for any prop here.
+// Prop values arrive as strings, numbers, or booleans; objects and arrays aren't valid for any prop here. Use
+// identity with the Object wrapper rather than instanceof so a revoked or otherwise hostile proxy cannot throw while
+// we classify it.
+const isObjectLike = (value: unknown) => value !== null && Object(value) === value;
 const text = (value: unknown) =>
-  value === undefined || value === null || value instanceof Object
+  value === undefined || value === null || isObjectLike(value)
     ? ""
-    : // SAFETY: undefined, null, objects, and arrays returned above, so only a string, number, or boolean is left.
-      String(value as string | number | boolean).trim();
+    : // SAFETY: undefined, null, objects, and functions returned above, so only a scalar prop value is left.
+      String(value as string | number | boolean | bigint | symbol).trim();
 // Inline, YAML-block, and `:bound` props all land here, parsed the way Comark's own renderers see them.
 const props = (node: ElementNode, data: Data) =>
   resolveAttributes(node[1], data, { parseJson: true });
@@ -86,6 +96,15 @@ function isHttp(url: string) {
 }
 // Quotes what an author wrote, so a quote inside it can't blur where the name ends.
 const quote = (value: string) => JSON.stringify(value);
+// Invalid bound values can be circular, contain a BigInt, or throw while being stringified.
+// Keep diagnostics best-effort so malformed props never escape the parser.
+const describe = (value: unknown) => {
+  try {
+    return String(value);
+  } catch {
+    return "<unprintable value>";
+  }
+};
 const named = new Set<string>(PALETTE);
 // Alpha hex colors are left out: a transparent one would hide the mark.
 const isColor = (color: string) => named.has(color) || /^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(color);
@@ -99,18 +118,18 @@ const hasContent = (nodes: Node[]): boolean =>
   );
 // Allow half a percent of rounding error when an agent converts pixels to percentages.
 const EDGE = 100.5;
-const SIDES = ["left", "right", "top"] as const;
-type Side = (typeof SIDES)[number];
+const SIDES = ["left", "right", "top", "bottom"] as const;
+export type Side = (typeof SIDES)[number];
 // Notes on one side closer than this would likely overlap: % of the image height for left and right, of its
-// width for top. A heuristic, since the text itself can't be measured.
-const SIDE_GAP = { left: 12, right: 12, top: 25 };
+// width for top and bottom. A heuristic, since the text itself can't be measured.
+const SIDE_GAP = { left: 12, right: 12, top: 25, bottom: 25 };
 // styles.ts links marks and notes for this many annotations per screenshot or compare.
 export const MAX_LINKED = 40;
 
 const PROPS = {
-  screenshot: ["src", "alt", "title", "href", "viewport"],
-  compare: ["title", "mode"],
-  annotation: ["x", "y", "w", "h", "mark", "color", "side"],
+  screenshot: ["src", "alt", "title", "href", "viewport", "ink"],
+  compare: ["title", "mode", "ink"],
+  annotation: ["x", "y", "w", "h", "mark", "color", "side", "at", "to"],
 } as const;
 type Block = keyof typeof PROPS;
 // Comark's own attributes, which a host may style or test by, so they aren't reported.
@@ -120,12 +139,14 @@ const HINTS: Record<Block, Record<string, string>> = {
   screenshot: {
     label: "Did you mean `title`?",
     url: "Did you mean `href`?",
+    color: "Did you mean `ink`? It colors every mark in the screenshot.",
     caption: "Write the caption as Markdown inside the block, after the annotations.",
     width: "The image keeps its own size; set `viewport` to record the capture size.",
     height: "The image keeps its own size; set `viewport` to record the capture size.",
   },
   compare: {
     label: "Did you mean `title`?",
+    color: "Did you mean `ink`? It colors every mark in the compare.",
     viewport: "Set `viewport` on each screenshot instead.",
   },
   annotation: {
@@ -134,6 +155,8 @@ const HINTS: Record<Block, Record<string, string>> = {
     colour: "Did you mean `color`?",
     left: "Did you mean `x`?",
     top: "Did you mean `y`?",
+    target: "Did you mean `to`?",
+    point: "Did you mean `to`?",
     label: "Write the note as the block's content.",
     title: "Write the note as the block's content.",
     note: "Write the note as the block's content.",
@@ -217,7 +240,10 @@ export function readScreenshot(
   issues: Issue[],
   data: Data,
   names: Names = new Map(),
-  start: { n: number; number: number; sides?: readonly Side[] } = { n: 1, number: 1 },
+  start: { n: number; number: number; sides?: readonly Side[]; ink?: string } = {
+    n: 1,
+    number: 1,
+  },
 ): Screenshot & { viewport?: { width: number; height: number } } {
   let number = start.number;
   const where = names.get(node) ?? "screenshot";
@@ -249,6 +275,8 @@ export function readScreenshot(
       rule: "comark/annotate/invalid-viewport",
       message: `\`viewport\` must be the capture size in pixels, like 1440x900 (got ${quote(viewport)}).`,
     });
+  const own = readInk(attrs, problems);
+  const ink = own ?? start.ink;
   issues.push(...within(where, problems));
 
   const annotations: Annotation[] = [];
@@ -269,7 +297,7 @@ export function readScreenshot(
           rule: "comark/annotate/too-many-annotations",
           message: `${where}: more than ${MAX_LINKED} annotations in one screenshot or compare. Hovering stops linking marks to notes after ${MAX_LINKED}; split it into several screenshots.`,
         });
-      annotations.push({ ...annotation, n, number: stamp });
+      annotations.push({ ...annotation, color: annotation.color ?? ink, n, number: stamp });
     } else caption.push(child);
   }
   const nestedProblems: Issue[] = [];
@@ -282,10 +310,7 @@ export function readScreenshot(
           ? [
               {
                 index: index + 1,
-                at:
-                  side === "top"
-                    ? annotation.x + annotation.w / 2
-                    : annotation.y + annotation.h / 2,
+                at: noteAt(annotation),
               },
             ]
           : [],
@@ -295,7 +320,7 @@ export function readScreenshot(
       if (centers[i]!.at - centers[i - 1]!.at < SIDE_GAP[side])
         issues.push({
           rule: "comark/annotate/side-notes-overlap",
-          message: `${where}: the ${side} notes for annotations ${centers[i - 1]!.index} and ${centers[i]!.index} would overlap. Move one to the other side or leave it under the image.`,
+          message: `${where}: the ${side} notes for annotations ${centers[i - 1]!.index} and ${centers[i]!.index} would overlap. Move one along with \`at\`, to another side, or under the image.`,
         });
   }
   const aspect = size ? Number(size[2]) / Number(size[1]) : undefined;
@@ -309,6 +334,7 @@ export function readScreenshot(
     alt,
     title: text(attrs.title) || undefined,
     href: isHttp(href) ? href : undefined,
+    ink,
     aspect,
     viewport: size ? { width: Number(size[1]), height: Number(size[2]) } : undefined,
     annotations,
@@ -362,7 +388,96 @@ function readAnnotation(node: ElementNode, problems: Issue[], data: Data): Omit<
         "`x`, `y`, `w`, and `h` are all 1 or less, so the box is a speck in the top left corner. They're percentages: multiply each by 100, so x=0.25 becomes x=25.",
     });
 
-  return { ...box, ...readMark(node, attrs, problems) };
+  const mark = readMark(node, attrs, problems);
+  const at = readAt(attrs, problems);
+  const to = readTo(attrs, problems);
+  if ((at !== undefined || to) && !mark.side)
+    problems.push({
+      rule: "comark/annotate/needs-side",
+      message: `\`${at === undefined ? "to" : "at"}\` places a side note and its arrow, so it needs a \`side\`. Add \`side="top"\`, \`"bottom"\`, \`"left"\`, or \`"right"\`.`,
+    });
+  return { ...box, ...mark, at, to };
+}
+
+const PERCENT = /^(?:\d+(?:\.\d*)?|\.\d+)$/;
+const percent = (raw: string) => (PERCENT.test(raw) ? Number(raw) : Number.NaN);
+const nonText = (value: unknown) => {
+  return value !== undefined && value !== null && value !== "" && !text(value);
+};
+
+function readAt(attrs: Record<string, unknown>, problems: Issue[]) {
+  const value = attrs.at;
+  if (nonText(value)) {
+    problems.push({
+      rule: "comark/annotate/invalid-position",
+      message: `\`at\` must be where the note sits along its margin, a percentage of the image from 0 to 100 (got ${quote(describe(value))}).`,
+    });
+    return undefined;
+  }
+  const raw = text(value);
+  if (!raw) return undefined;
+  const parsed = percent(raw);
+  if (parsed <= 100) return parsed;
+  problems.push({
+    rule: "comark/annotate/invalid-position",
+    message: `\`at\` must be where the note sits along its margin, a percentage of the image from 0 to 100 (got ${quote(raw)}).`,
+  });
+  return undefined;
+}
+
+function readTo(attrs: Record<string, unknown>, problems: Issue[]) {
+  const value = attrs.to;
+  if (nonText(value)) {
+    problems.push({
+      rule: "comark/annotate/invalid-position",
+      message: `\`to\` must be the point the arrow lands on, as two percentages of the image from 0 to 100, like to="42,18" (got ${quote(describe(value))}).`,
+    });
+    return undefined;
+  }
+  const raw = text(value);
+  if (!raw) return undefined;
+  const [x, y, extra] = raw.split(/\s*,\s*|\s+/).map(percent);
+  if (x! <= 100 && y! <= 100 && extra === undefined) return { x: x!, y: y! };
+  problems.push({
+    rule: "comark/annotate/invalid-position",
+    message: `\`to\` must be the point the arrow lands on, as two percentages of the image from 0 to 100, like to="42,18" (got ${quote(raw)}).`,
+  });
+  return undefined;
+}
+
+function readInk(attrs: Record<string, unknown>, problems: Issue[]) {
+  const value = attrs.ink;
+  if (nonText(value)) {
+    problems.push({
+      rule: "comark/annotate/invalid-color",
+      message: `\`ink\` must be ${PALETTE.join(", ")}, or a 3- or 6-digit hex color like #8b5cf6 (got ${quote(describe(value))}).`,
+    });
+    return undefined;
+  }
+  const ink = text(value);
+  if (!ink) return undefined;
+  if (isColor(ink)) return ink;
+  problems.push({
+    rule: "comark/annotate/invalid-color",
+    message: `\`ink\` must be ${PALETTE.join(", ")}, or a 3- or 6-digit hex color like #8b5cf6 (got ${quote(ink)}).`,
+  });
+  return undefined;
+}
+
+/** Where the arrow of a side note lands: its \`to\` point, or else the middle of the mark's edge that faces the note. */
+export function target(annotation: Pick<Annotation, "x" | "y" | "w" | "h" | "side" | "to">) {
+  if (annotation.to) return annotation.to;
+  const { x, y, w, h, side } = annotation;
+  if (side === "left") return { x, y: y + h / 2 };
+  if (side === "right") return { x: x + w, y: y + h / 2 };
+  return { x: x + w / 2, y: side === "bottom" ? y + h : y };
+}
+
+/** Where a side note sits along its margin: its \`at\`, or else level with where its arrow lands. */
+export function noteAt(annotation: Pick<Annotation, "x" | "y" | "w" | "h" | "side" | "to" | "at">) {
+  if (annotation.at !== undefined) return annotation.at;
+  const point = target(annotation);
+  return annotation.side === "left" || annotation.side === "right" ? point.y : point.x;
 }
 
 /**
@@ -391,13 +506,13 @@ export function readMark(
   if (side && !knownSide)
     problems.push({
       rule: "comark/annotate/invalid-side",
-      message: `\`side\` must be left, right, or top (got ${quote(side)}).`,
+      message: `\`side\` must be left, right, top, or bottom (got ${quote(side)}).`,
     });
   if (mark === "none" && !side && !unresolved(node, attrs, "side"))
     problems.push({
       rule: "comark/annotate/invisible-mark",
       message:
-        '`mark="none"` draws nothing, so without a `side` note nothing points at the spot. Add `side="left"`, `"right"`, or `"top"`, or pick a visible mark such as `box`.',
+        '`mark="none"` draws nothing, so without a `side` note nothing points at the spot. Add `side="top"`, `"bottom"`, `"left"`, or `"right"`, or pick a visible mark such as `box`.',
     });
   const note = children(node);
   if (!hasContent(note))
@@ -440,12 +555,13 @@ export function readCompare(
   const attrs = props(node, data);
   const problems: Issue[] = [];
   checkProps("compare", node, attrs, problems, data);
+  const ink = readInk(attrs, problems);
   issues.push(...within(where, problems));
   const mode = text(attrs.mode) || "columns";
   const known = MODES.find((item) => item === mode);
   // A note beside one screenshot of a pair would sit against the other one and narrow its own image, and in a slider
-  // its arrow would cross the divider. Those notes join the numbered list; a note above stays in its own column.
-  const sides = known === "slider" ? [] : (["top"] as const);
+  // its arrow would cross the divider. Those notes join the numbered list; notes above and below stay in their column.
+  const sides = known === "slider" ? [] : (["top", "bottom"] as const);
   const shots: Screenshot[] = [];
   const viewports: { name: string; size?: { width: number; height: number } }[] = [];
   for (const child of children(node)) {
@@ -455,6 +571,7 @@ export function readCompare(
         n: 1 + all.length,
         number: 1 + all.filter((annotation) => annotation.number).length,
         sides,
+        ink,
       });
       shots.push({ ...shot, title: shot.title ?? (shots.length ? "After" : "Before") });
       viewports.push({ name: names.get(child) ?? "screenshot", size: viewport });
@@ -490,7 +607,7 @@ export function readCompare(
       rule: "comark/annotate/invalid-mode",
       message: `${where}: \`mode\` is ${quote(mode)}, which isn't a compare mode. Use \`columns\` (side by side, the default) or \`slider\`.`,
     });
-  return { title: text(attrs.title) || undefined, mode: known ?? "columns", shots };
+  return { title: text(attrs.title) || undefined, ink, mode: known ?? "columns", shots };
 }
 
 // Every screenshot is named by its src when no other screenshot shares it, and otherwise by its position and alt.
