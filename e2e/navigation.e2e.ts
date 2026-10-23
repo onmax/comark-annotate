@@ -51,3 +51,27 @@ test("the landing canvas paints its cards centered after a client navigation", a
   expect(new Set(positions.seen).size).toBe(1);
   expect(positions.seen[0]).toBe(positions.expected);
 });
+
+test("a page change jumps to its scroll position instead of sliding there", async ({ page }) => {
+  // Both pages are taller than the position, so the browser doesn't clamp it while the next one comes in.
+  await page.goto("/charts/syntax/");
+  await page.evaluate(() => window.scrollTo({ top: 1200, behavior: "instant" }));
+  // Every scroll position from the link's click, or going back, until the page has settled.
+  const frames = (back: boolean) =>
+    page.evaluate(async (back) => {
+      const seen = new Set([Math.round(scrollY)]);
+      if (back) history.back();
+      else
+        document.querySelector<HTMLAnchorElement>('.sidebar a[href="/guide/renderers/"]')!.click();
+      const start = performance.now();
+      while (performance.now() - start < 1500) {
+        await new Promise(requestAnimationFrame);
+        seen.add(Math.round(scrollY));
+      }
+      return [...seen];
+    }, back);
+  expect(await frames(false)).toEqual([1200, 0]);
+  await expect(page).toHaveURL(/\/guide\/renderers\/$/);
+  expect(await frames(true)).toEqual([0, 1200]);
+  await expect(page).toHaveURL(/\/charts\/syntax\/$/);
+});
