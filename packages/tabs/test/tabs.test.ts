@@ -219,7 +219,7 @@ describe("comark-tabs", () => {
 
     it("preserves separators inside backtick substitutions", async () => {
       const markdown =
-        '```sh npm2yarn\nnpm run show -- `printf before; npm install hidden` && npm i\n```';
+        "```sh npm2yarn\nnpm run show -- `printf before; npm install hidden` && npm i\n```";
       expect(await panels(markdown, { managers: ["pnpm"] })).toEqual([
         ["pnpm", "pnpm run show -- `printf before; npm install hidden` && pnpm i"],
       ]);
@@ -227,9 +227,9 @@ describe("comark-tabs", () => {
 
     it("keeps escaped backticks and nested substitutions opaque", async () => {
       const markdown =
-        '```sh npm2yarn\nnpm run show -- "`printf \`before; npm install hidden\``" && npm i\n```';
+        '```sh npm2yarn\nnpm run show -- "`printf \\`before; npm install hidden\\`" && npm i\n```';
       expect(await panels(markdown, { managers: ["pnpm"] })).toEqual([
-        ["pnpm", 'pnpm run show -- "`printf \`before; npm install hidden\``" && pnpm i'],
+        ["pnpm", "pnpm run show -- \"`printf \\`before; npm install hidden\\`\" && pnpm i"],
       ]);
     });
 
