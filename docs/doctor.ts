@@ -39,9 +39,16 @@ const plugins = () => [
   ...browserPlugins({}, { download: false }).map((plugin) => offline[plugin.name] ?? plugin),
   include({ root: fileURLToPath(new URL("docs/doctor-include/", repo)) }),
 ];
-// comark-tabs turns `::code-group` into `::tabs` and comark-include replaces `:include` while parsing, so no renderer
-// has them.
-const known = [...Object.keys(components), "code-group", "tabs-item", "include"];
+// comark-tabs turns `::code-group` into `::tabs`, comark-include replaces `:include`, and comark-details turns its
+// items and collapsibles into `disclosure` while parsing, so no renderer has them.
+const known = [
+  ...Object.keys(components),
+  "code-group",
+  "tabs-item",
+  "include",
+  "accordion-item",
+  "collapsible",
+];
 
 export const lintExample = (source: string) =>
   lint(source, { plugins: plugins(), components: known });
