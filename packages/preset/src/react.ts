@@ -13,6 +13,7 @@ import * as fields from "comark-fields/react";
 import * as github from "comark-github/react";
 import * as icon from "comark-icon/react";
 import * as media from "comark-media/react";
+import * as qr from "comark-qr/react";
 import * as steps from "comark-steps/react";
 import * as tabs from "comark-tabs/react";
 import * as outline from "comark-outline/react";
@@ -47,6 +48,7 @@ export default (options?: PresetOptions): Preset<AnyComponent> =>
       media,
       outline,
       readingTime,
+      qr,
       steps,
       tabs,
       zoom,

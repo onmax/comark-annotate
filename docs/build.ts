@@ -84,6 +84,7 @@ const packageOrder = [
   "media",
   "github",
   "icon",
+  "qr",
   "zoom",
   "carousel",
   "tabs",

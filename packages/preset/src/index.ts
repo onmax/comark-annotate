@@ -44,6 +44,7 @@ export type PresetOptions = {
   media?: boolean;
   outline?: boolean;
   readingTime?: ReadingTimeOptions | boolean;
+  qr?: boolean;
   steps?: boolean;
   tabs?: TabsOptions | boolean;
   zoom?: ZoomOptions | boolean;
@@ -79,6 +80,7 @@ export type Renderer<C> = {
   media: Part<C>;
   outline: Part<C>;
   readingTime: Part<C, ReadingTimeOptions>;
+  qr: Part<C>;
   steps: Part<C>;
   tabs: Part<C, TabsOptions>;
   zoom: Part<C, ZoomOptions>;
@@ -131,6 +133,7 @@ export function preset<C>(renderer: Renderer<C>, options: PresetOptions = {}): P
   add(renderer.media, options.media);
   add(renderer.outline, options.outline);
   add(renderer.readingTime, options.readingTime);
+  add(renderer.qr, options.qr);
   add(renderer.cards, options.cards, { iconResolver: icons });
   add(renderer.steps, options.steps);
   add(renderer.tabs, options.tabs, { iconResolver: icons, ...optionsOf(options.tabs) });

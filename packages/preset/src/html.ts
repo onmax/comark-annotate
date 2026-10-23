@@ -15,6 +15,7 @@ import * as fields from "comark-fields/html";
 import * as github from "comark-github/html";
 import * as icon from "comark-icon/html";
 import * as media from "comark-media/html";
+import * as qr from "comark-qr/html";
 import * as outline from "comark-outline/html";
 import readingTimePlugin from "comark-reading-time";
 import * as steps from "comark-steps/html";
@@ -41,7 +42,6 @@ export default (options?: PresetOptions): Preset<NodeHandler> =>
       deflist,
       embed,
       details,
-      // file-tree
       fileTree,
       fields,
       github,
@@ -49,6 +49,7 @@ export default (options?: PresetOptions): Preset<NodeHandler> =>
       media,
       outline,
       readingTime,
+      qr,
       steps,
       tabs,
       zoom,

@@ -66,7 +66,8 @@
     "comark-zoom": "workspace:^",
     "comark-deflist": "workspace:^",
     "comark-outline": "workspace:^",
-    "comark-reading-time": "workspace:^"
+    "comark-reading-time": "workspace:^",
+    "comark-qr": "workspace:^"
   },
   "devDependencies": {
     "@comark/html": "catalog:",

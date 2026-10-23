@@ -13,6 +13,7 @@ import * as fields from "comark-fields/vue";
 import * as github from "comark-github/vue";
 import * as icon from "comark-icon/vue";
 import * as media from "comark-media/vue";
+import * as qr from "comark-qr/vue";
 import * as steps from "comark-steps/vue";
 import * as tabs from "comark-tabs/vue";
 import * as outline from "comark-outline/vue";
@@ -44,6 +45,7 @@ export default (options?: PresetOptions): Preset<Component> =>
       media,
       outline,
       readingTime,
+      qr,
       steps,
       tabs,
       zoom,

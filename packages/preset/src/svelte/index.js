@@ -14,6 +14,7 @@ import * as fields from "comark-fields/svelte";
 import * as github from "comark-github/svelte";
 import * as icon from "comark-icon/svelte";
 import * as media from "comark-media/svelte";
+import * as qr from "comark-qr/svelte";
 import * as steps from "comark-steps/svelte";
 import * as tabs from "comark-tabs/svelte";
 import * as outline from "comark-outline/svelte";
@@ -42,6 +43,7 @@ export default (options) =>
       media,
       outline,
       readingTime,
+      qr,
       steps,
       tabs,
       zoom,
