@@ -53,6 +53,7 @@
     "comark-embed": "workspace:*",
     "comark-github": "workspace:*",
     "comark-icon": "workspace:*",
+    "comark-mark": "workspace:*",
     "comark-tabs": "workspace:*",
     "comark-zoom": "workspace:*",
     "vite-doctor": "catalog:"
@@ -69,6 +70,7 @@
     "comark-embed": "workspace:^",
     "comark-github": "workspace:^",
     "comark-icon": "workspace:^",
+    "comark-mark": "workspace:^",
     "comark-tabs": "workspace:^",
     "comark-zoom": "workspace:^",
     "vite-doctor": "^0.1.0"
@@ -102,6 +104,9 @@
       "optional": true
     },
     "comark-icon": {
+      "optional": true
+    },
+    "comark-mark": {
       "optional": true
     },
     "comark-tabs": {
