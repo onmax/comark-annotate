@@ -5,6 +5,7 @@ import { resolveAttributes } from "comark/render";
 export type MediaMeta = {
   /** One readable sentence per problem with a video or audio file. Empty when the document has none. Other plugins add theirs too. */
   issues: string[];
+  issueRules: Record<string, string>;
 };
 
 /**
@@ -22,6 +23,7 @@ export type MediaAttributes = {
 };
 
 type Data = Parameters<typeof resolveAttributes>[1];
+type Issue = { message: string; rule: `comark/media/${string}` };
 
 const VIDEO = /\.(?:mp4|webm|mov|m4v)$/i;
 const AUDIO = /\.(?:mp3|wav|ogg|m4a)$/i;
@@ -81,7 +83,7 @@ function convert(tokens: ComarkParseTokensState["tokens"]) {
   }
 }
 
-function read(node: ElementNode, data: Data, issues: string[]): MediaAttributes {
+function read(node: ElementNode, data: Data, issues: Issue[]): MediaAttributes {
   const attrs = resolveAttributes(node[1], data, { parseJson: true });
   const src = text(attrs.src);
   const alt = text(attrs.alt);
@@ -89,31 +91,38 @@ function read(node: ElementNode, data: Data, issues: string[]): MediaAttributes 
   const name =
     attrs.alt === undefined ? `The ${kind || "media"} link ${src}` : `\`![${alt}](${src})\``;
   if (kind !== "video" && kind !== "audio") {
-    issues.push(
-      `${name}: \`src\` must end in .mp4, .webm, .mov, .m4v, .mp3, .wav, .ogg, or .m4a to play.`,
-    );
+    issues.push({
+      message: `${name}: \`src\` must end in .mp4, .webm, .mov, .m4v, .mp3, .wav, .ogg, or .m4a to play.`,
+      rule: "comark/media/invalid-src",
+    });
     return {};
   }
   const result: MediaAttributes = { kind, src };
   if (alt) result.label = alt;
   else if (attrs.alt !== undefined)
-    issues.push(
-      `${name} has no label. Describe the ${kind} in the brackets, like \`![Signing in with a passkey](${src})\`.`,
-    );
+    issues.push({
+      message: `${name} has no label. Describe the ${kind} in the brackets, like \`![Signing in with a passkey](${src})\`.`,
+      rule: "comark/media/missing-label",
+    });
   for (const flag of FLAGS) if (on(attrs[flag])) result[flag] = true;
   const poster = text(attrs.poster);
   if (poster && kind === "audio")
-    issues.push(`${name}: audio has no picture, so \`poster\` was dropped. Remove it.`);
+    issues.push({
+      message: `${name}: audio has no picture, so \`poster\` was dropped. Remove it.`,
+      rule: "comark/media/audio-poster",
+    });
   else if (poster) result.poster = poster;
   if (result.autoplay && !result.muted)
-    issues.push(
-      `${name}: browsers only start ${kind === "video" ? "a video" : "audio"} by itself when it's muted. Add \`muted\`, or remove \`autoplay\`.`,
-    );
+    issues.push({
+      message: `${name}: browsers only start ${kind === "video" ? "a video" : "audio"} by itself when it's muted. Add \`muted\`, or remove \`autoplay\`.`,
+      rule: "comark/media/autoplay-unmuted",
+    });
   const unknown = Object.keys(attrs).filter((key) => !KNOWN.has(key));
   if (unknown.length)
-    issues.push(
-      `${name}: ${unknown.map((key) => `\`${key}\``).join(", ")} ${unknown.length === 1 ? "isn't a" : "aren't"} ${kind} option${unknown.length === 1 ? "" : "s"}, so ${unknown.length === 1 ? "it was" : "they were"} dropped. Use autoplay, loop, muted${kind === "video" ? ", or poster" : ""}.`,
-    );
+    issues.push({
+      message: `${name}: ${unknown.map((key) => `\`${key}\``).join(", ")} ${unknown.length === 1 ? "isn't a" : "aren't"} ${kind} option${unknown.length === 1 ? "" : "s"}, so ${unknown.length === 1 ? "it was" : "they were"} dropped. Use autoplay, loop, muted${kind === "video" ? ", or poster" : ""}.`,
+      rule: "comark/media/unknown-prop",
+    });
   return result;
 }
 
@@ -130,7 +139,7 @@ export default defineComarkPlugin<void, MediaMeta>(() => ({
   post(state) {
     const { tree } = state;
     const data: Data = { frontmatter: tree.frontmatter, meta: tree.meta, data: {}, props: {} };
-    const issues: string[] = [];
+    const issues: Issue[] = [];
     const walk = (nodes: Node[]) => {
       for (const node of nodes) {
         if (!isElement(node)) continue;
@@ -139,6 +148,10 @@ export default defineComarkPlugin<void, MediaMeta>(() => ({
       }
     };
     walk(tree.nodes);
-    tree.meta.issues = [...(tree.meta.issues ?? []), ...issues];
+    tree.meta.issues = [...(tree.meta.issues ?? []), ...issues.map((issue) => issue.message)];
+    tree.meta.issueRules = {
+      ...tree.meta.issueRules,
+      ...Object.fromEntries(issues.map((issue) => [issue.message, issue.rule])),
+    };
   },
 }));
