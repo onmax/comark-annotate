@@ -389,10 +389,13 @@ function readAnnotation(node: ElementNode, problems: Issue[], data: Data): Omit<
 
 const PERCENT = /^(?:\d+(?:\.\d*)?|\.\d+)$/;
 const percent = (raw: string) => (PERCENT.test(raw) ? Number(raw) : Number.NaN);
+const nonText = (value: unknown) => {
+  return value !== undefined && value !== null && value !== "" && !text(value);
+};
 
 function readAt(attrs: Record<string, unknown>, problems: Issue[]) {
   const value = attrs.at;
-  if (value !== undefined && value !== null && typeof value === "object") {
+  if (nonText(value)) {
     problems.push({
       rule: "comark/annotate/invalid-position",
       message: `\`at\` must be where the note sits along its margin, a percentage of the image from 0 to 100 (got ${quote(JSON.stringify(value))}).`,
@@ -412,7 +415,7 @@ function readAt(attrs: Record<string, unknown>, problems: Issue[]) {
 
 function readTo(attrs: Record<string, unknown>, problems: Issue[]) {
   const value = attrs.to;
-  if (value !== undefined && value !== null && typeof value === "object") {
+  if (nonText(value)) {
     problems.push({
       rule: "comark/annotate/invalid-position",
       message: `\`to\` must be the point the arrow lands on, as two percentages of the image from 0 to 100, like to="42,18" (got ${quote(JSON.stringify(value))}).`,
@@ -432,7 +435,7 @@ function readTo(attrs: Record<string, unknown>, problems: Issue[]) {
 
 function readInk(attrs: Record<string, unknown>, problems: Issue[]) {
   const value = attrs.ink;
-  if (value !== undefined && value !== null && typeof value === "object") {
+  if (nonText(value)) {
     problems.push({
       rule: "comark/annotate/invalid-color",
       message: `\`ink\` must be ${PALETTE.join(", ")}, or a 3- or 6-digit hex color like #8b5cf6 (got ${quote(JSON.stringify(value))}).`,
