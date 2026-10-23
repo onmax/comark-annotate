@@ -56,8 +56,8 @@
     "comark-embed": "workspace:^",
     "comark-github": "workspace:^",
     "comark-icon": "workspace:^",
-    "comark-media": "workspace:^",
     "comark-include": "workspace:^",
+    "comark-media": "workspace:^",
     "comark-steps": "workspace:^",
     "comark-tabs": "workspace:^",
     "comark-zoom": "workspace:^"
