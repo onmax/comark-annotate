@@ -15,4 +15,4 @@ import carousel, { components } from "comark-carousel/html";
 const render = createHtmlRenderer({ plugins: [carousel()], components });
 ```
 
-For Vue, React, or Svelte, import from `comark-carousel/vue`, `comark-carousel/react`, or `comark-carousel/svelte`, and import `comark-carousel/style.css` and `comark-zoom/style.css` with your styles when you render on a server. [Renderers](/guide/renderers/) covers the rest.
+For Vue, React, or Svelte, import from `comark-carousel/vue`, `comark-carousel/react`, or `comark-carousel/svelte`. When you render on a server, import `comark-carousel/style.css` and `comark-zoom/style.css` with your own styles. [Renderers](/guide/renderers/) covers the rest.

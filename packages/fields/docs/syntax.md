@@ -23,10 +23,16 @@ A key shared by blocks that switch together.
 | `default` | Its default, shown in code. `:default="0"` and `:default='{"a":1}'` show as written. |
 | `description` | The text shown when the field has no content of its own. |
 
-The content inside a `::field` is its description, and `:::field` blocks inside it describe an object's properties. `::field-group` sets fields one under another with a line between them; a field works on its own too.
+The content inside a `::field` is its description, and `:::field` blocks inside it describe an object's properties. `::field-group` sets fields one under another with a line between them. A field works on its own too.
 
 This is Nuxt UI's syntax. Nuxt UI's field has no `default`, so it ignores that prop.
 
 ## Issues
 
-The plugin adds a problem to `meta.issues`, as [Validation](/guide/validation/) describes, for a field without a `name`, a prop it doesn't read, and a `description` prop on a field with content, which hides it. Each issue names the field, by its name or else its type, and says how to fix it. Each one has its own rule in [Doctor](/doctor/).
+The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes:
+
+- A field without a `name`.
+- A prop it doesn't read.
+- A `description` prop on a field with content, which hides the prop.
+
+Each issue names the field, by its name or else its type, and says how to fix it. Each one has its own rule in [Doctor](/doctor/).

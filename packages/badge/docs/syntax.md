@@ -17,8 +17,14 @@ Write a badge inline, with its text in brackets, or as Nuxt UI's block `::badge`
 | --- | --- |
 | `color` | One of `primary`, the default, `secondary`, `success`, `info`, `warning`, `error`, and `neutral`. |
 
-Nuxt UI's prose badge is always primary; the `color` prop is this plugin's, and Nuxt UI ignores it.
+Nuxt UI's prose badge is always primary. The `color` prop is this plugin's own, and Nuxt UI ignores it.
 
 ## Issues
 
-The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes: a `color` it doesn't know, which shows as primary and lists the ones it does, a prop it doesn't read, and an empty badge. Each issue names its badge by its text and says how to fix it, and each has its own rule in [Doctor](/doctor/).
+The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes:
+
+- A `color` it doesn't know. The badge shows as primary, and the issue lists the colors it knows.
+- A prop it doesn't read.
+- An empty badge.
+
+Each issue names its badge by its text and says how to fix it. Each one has its own rule in [Doctor](/doctor/).

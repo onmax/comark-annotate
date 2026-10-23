@@ -21,4 +21,6 @@ With `@comark/vue` or `@comark/react`, read `meta.readingTime` from the parsed d
 
 ## Choose a speed
 
-200 words a minute is a cautious pace for technical prose. For light reading, 230 to 250 is closer to how adults read; for review documents dense with code and names, keep the default or go lower. A page of CJK text counts characters, which most readers get through faster than 200 a minute, so a site mostly in Chinese or Japanese may want a higher `wordsPerMinute`.
+200 words a minute is a cautious pace for technical prose. For light reading, 230 to 250 is closer to how adults read. For review documents dense with code and names, keep the default or go lower.
+
+A page of CJK text counts characters, and most readers get through more than 200 of those a minute. A site mostly in Chinese or Japanese may want a higher `wordsPerMinute`.

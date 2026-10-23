@@ -91,6 +91,8 @@ export default defineNuxtConfig({
     componentIslands: true,
     // Nuxt 5's default: the first load reads the payload inlined in the HTML, and client navigations fetch `_payload.json`.
     payloadExtraction: "client",
+    // Lets the header's npmx chip move from one package's name to the next; docs/style.css animates only that.
+    viewTransition: true,
   },
   css: ["~~/style.css"],
   runtimeConfig: {

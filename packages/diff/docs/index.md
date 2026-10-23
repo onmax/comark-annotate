@@ -41,4 +41,4 @@ export const MAX_FILTERS = 3;
 :::
 ::
 
-The header shows the file and how many lines were added and removed. Removed lines are red and added lines green, and within a pair of changed lines, the words that changed are marked a shade deeper. The line numbers and the `+` and `−` come from CSS, so copying a selection copies only the code.
+The header shows the file and how many lines were added and removed. Removed lines are red and added lines green. Within a pair of changed lines, the words that changed are a shade deeper. The line numbers and the `+` and `−` come from CSS, so copying a selection copies only the code.
