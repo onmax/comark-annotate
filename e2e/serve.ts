@@ -8,7 +8,7 @@ const output = new URL("../docs/dist/", import.meta.url).pathname;
 // Nitro writes static assets below `public/`; older Nuxt output placed them
 // directly in the configured directory. Supporting both keeps the test server
 // aligned with the generated output used by each supported Nuxt version.
-const root = existsSync(join(output, "public")) ? join(output, "public") : output;
+const publicRoot = join(output, "public");
 const types: Record<string, string> = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -23,15 +23,22 @@ createServer(async (request, response) => {
   const path = normalize(
     decodeURIComponent(new URL(request.url ?? "/", "http://x").pathname),
   ).replace(/^(\.\.[/\\])+/, "");
-  const file = join(root, path.endsWith("/") ? `${path}index.html` : path);
-  try {
-    const body = await readFile(file);
-    response
-      .writeHead(200, {
-        "content-type": types[extname(file)] ?? "application/octet-stream",
-      })
-      .end(body);
-  } catch {
-    response.writeHead(404).end("Not found");
+  const relative = path.endsWith("/") ? `${path}index.html` : path;
+  // Nitro has emitted pages beside `public` in some versions and under it in others.
+  // Try both roots so the test server mirrors either static layout.
+  for (const root of [publicRoot, output]) {
+    const file = join(root, relative);
+    try {
+      const body = await readFile(file);
+      response
+        .writeHead(200, {
+          "content-type": types[extname(file)] ?? "application/octet-stream",
+        })
+        .end(body);
+      return;
+    } catch {
+      // Try the other Nitro output root.
+    }
   }
+  response.writeHead(404).end("Not found");
 }).listen(Number(process.env.E2E_PORT ?? 4173), "127.0.0.1");
