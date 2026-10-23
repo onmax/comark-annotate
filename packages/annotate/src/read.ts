@@ -67,12 +67,12 @@ type Names = Map<ElementNode, string>;
 // Comark text nodes are strings, elements are arrays, and comments are arrays with a null tag.
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
 const children = ([, , ...rest]: ElementNode): Node[] => rest;
-// Prop values arrive as strings, numbers, or booleans; objects and arrays aren't valid for any prop here.
+// Prop values arrive as strings, numbers, or booleans; objects and arrays aren't valid for any prop here. Use
+// typeof rather than instanceof so a revoked or otherwise hostile proxy cannot throw while we classify it.
 const text = (value: unknown) =>
-  value === undefined || value === null || value instanceof Object
+  value === undefined || value === null || typeof value === "object" || typeof value === "function"
     ? ""
-    : // SAFETY: undefined, null, objects, and arrays returned above, so only a string, number, or boolean is left.
-      String(value as string | number | boolean).trim();
+    : String(value as string | number | boolean | bigint | symbol).trim();
 // Inline, YAML-block, and `:bound` props all land here, parsed the way Comark's own renderers see them.
 const props = (node: ElementNode, data: Data) =>
   resolveAttributes(node[1], data, { parseJson: true });

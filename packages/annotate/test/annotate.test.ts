@@ -395,6 +395,20 @@ describe("comark-annotate", () => {
     expect(html).toContain("left:30%;top:40%;width:10%;height:10%");
   });
 
+  it("does not throw when bound position and ink values are revoked proxies", async () => {
+    const document = await parseMarkdown(
+      `::screenshot{src="a.png" alt="A" :ink="data.value"}\n:::annotation{x=10 y=10 w=10 h=10 side="top" :at="data.value" :to="data.value"}\nNote\n:::\n::`,
+      { plugins: [annotate()] },
+    );
+    const value = Proxy.revocable({}, {}).proxy;
+    // Revoke after the binding is set up so each reader sees the same hostile object.
+    const revoked = Proxy.revocable(value, {});
+    revoked.revoke();
+    await expect(
+      renderHtmlFromDocument(document, { components, data: { value: revoked.proxy } }),
+    ).resolves.toContain("a.png");
+  });
+
   it("reports inherited object keys as marks instead of crashing", async () => {
     const { issues, html } = await run(
       `::screenshot{src="a.png" alt="A"}\n:::annotation{x=1 y=1 w=10 h=10 mark="toString"}\nNote\n:::\n::`,
