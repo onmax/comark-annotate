@@ -70,5 +70,6 @@ The plugin adds every problem to `meta.issues`, as [Validation](/guide/validatio
 - An item without a `label`, a `defaultValue` that isn't an item's position, and a `type` that isn't `single` or `multiple`.
 - An `:::accordion-item` outside `::accordion` renders on its own.
 - An empty `::collapsible`, and an icon comark-icon can't draw.
+- A prop the block doesn't read, such as a misspelled `summary`.
 
-Each issue names its block and says how to fix it.
+Each issue names its block and says how to fix it. Each one has its own rule in [Doctor](/doctor/).

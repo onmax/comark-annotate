@@ -103,6 +103,22 @@ describe("comark-details", () => {
     ]);
   });
 
+  it("names each issue's rule, and reports props it doesn't read", async () => {
+    const { meta } = await parseMarkdown(
+      '::details{sumary="Why?"}\nText.\n::\n\n::accordion{type="one"}\n:::accordion-item{label="A" icon="lucide:nope"}\nA\n:::\n::',
+      { plugins: [plugin()] },
+    );
+    expect(Object.values(meta.issueRules)).toEqual([
+      "comark/details/unknown-prop",
+      "comark/details/missing-summary",
+      "comark/details/invalid-type",
+      "comark/icon/unknown-icon",
+    ]);
+    expect(Object.keys(meta.issueRules)[0]).toBe(
+      "`::details` 1: `sumary` isn't a prop of `::details`, so it's ignored. Use `summary`, `open`, or `icon`.",
+    );
+  });
+
   it("adds its issues to the ones other plugins found", async () => {
     const before = defineComarkPlugin(() => ({
       name: "before",

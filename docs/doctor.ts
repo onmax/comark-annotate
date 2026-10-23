@@ -7,6 +7,7 @@ import { parseMarkdown } from "comark";
 import { textContent } from "comark/utils";
 import { icons as lucide } from "@iconify-json/lucide";
 import cards from "../packages/cards/src/index.ts";
+import details from "../packages/details/src/index.ts";
 import icon, { createIcons } from "../packages/icon/src/index.ts";
 import include from "../packages/include/src/index.ts";
 import { lint, type Diagnostic, type Rule } from "../packages/lint/src/index.ts";
@@ -34,14 +35,22 @@ const offline: Record<string, ReturnType<typeof browserPlugins>[number]> = {
   "comark-icon": icon(icons),
   "comark-tabs": tabs({ iconResolver: icons }),
   "comark-cards": cards({ iconResolver: icons }),
+  "comark-details": details({ iconResolver: icons }),
 };
 const plugins = () => [
   ...browserPlugins({}, { download: false }).map((plugin) => offline[plugin.name] ?? plugin),
   include({ root: fileURLToPath(new URL("docs/doctor-include/", repo)) }),
 ];
-// comark-tabs turns `::code-group` into `::tabs` and comark-include replaces `:include` while parsing, so no renderer
-// has them.
-const known = [...Object.keys(components), "code-group", "tabs-item", "include"];
+// comark-tabs turns `::code-group` into `::tabs`, comark-include replaces `:include`, and comark-details turns its
+// items and collapsibles into `disclosure` while parsing, so no renderer has them.
+const known = [
+  ...Object.keys(components),
+  "code-group",
+  "tabs-item",
+  "include",
+  "accordion-item",
+  "collapsible",
+];
 
 export const lintExample = (source: string) =>
   lint(source, { plugins: plugins(), components: known });

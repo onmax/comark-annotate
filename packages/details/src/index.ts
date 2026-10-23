@@ -2,7 +2,13 @@ import type { ElementNode, Node } from "comark";
 import { defineComarkPlugin } from "comark";
 import { resolveAttributes } from "comark/render";
 import { textContent } from "comark/utils";
-import { createIcons, describeIconProblem, type IconData, type Icons } from "comark-icon";
+import {
+  createIcons,
+  describeIconProblem,
+  iconProblemRule,
+  type IconData,
+  type Icons,
+} from "comark-icon";
 
 export type DetailsOptions = {
   /**
@@ -15,7 +21,11 @@ export type DetailsOptions = {
 export type DetailsMeta = {
   /** One readable sentence per problem with a `::details`, `::accordion`, or `::collapsible`. Empty when there are none. */
   issues: string[];
+  /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
+  issueRules: Record<string, string>;
 };
+
+type Issue = { rule: `comark/details/${string}` | `comark/icon/${string}`; message: string };
 
 /**
  * What `::details`, each `:::accordion-item`, and `::collapsible` become: a `disclosure` node, drawn as `<details>`,
@@ -82,7 +92,7 @@ function hash(source: string) {
 
 interface Walk {
   data: Data;
-  issues: string[];
+  issues: Issue[];
   icons: { summary: ElementNode; value: string; name: string }[];
   counts: Record<string, number>;
   prefix: string;
@@ -93,6 +103,32 @@ const resolve = (node: ElementNode, walk: Walk) =>
 const nameOf = (tag: string, walk: Walk) =>
   `\`::${tag}\` ${(walk.counts[tag] = (walk.counts[tag] ?? 0) + 1)}`;
 
+const PROPS = {
+  details: ["summary", "open", "icon"],
+  accordion: ["type", "defaultValue"],
+  "accordion-item": ["label", "icon", "description"],
+  collapsible: ["name", "openText", "closeText", "icon"],
+};
+const or = (words: string[]) => {
+  const quoted = words.map((word) => `\`${word}\``);
+  return quoted.length > 2
+    ? `${quoted.slice(0, -1).join(", ")}, or ${quoted.at(-1)}`
+    : quoted.join(" or ");
+};
+
+// A misspelled `summary` or `label` is dropped without a trace, so each prop that isn't one is named.
+function unknownProps(node: ElementNode, block: keyof typeof PROPS, name: string, walk: Walk) {
+  const props = PROPS[block];
+  for (const key of Object.keys(node[1])) {
+    const prop = key.replace(/^:/, "");
+    if (!props.includes(prop) && prop !== "id" && prop !== "class")
+      walk.issues.push({
+        rule: "comark/details/unknown-prop",
+        message: `${name}: \`${prop}\` isn't a prop of \`${block === "accordion-item" ? ":::" : "::"}${block}\`, so it's ignored. Use ${or(props)}.`,
+      });
+  }
+}
+
 function summary(label: Node[], icon: string, name: string, walk: Walk, extra = {}): ElementNode {
   const node: ElementNode = ["disclosure-summary", { ...extra }, ...label];
   if (icon) walk.icons.push({ summary: node, value: icon, name });
@@ -101,6 +137,7 @@ function summary(label: Node[], icon: string, name: string, walk: Walk, extra = 
 
 function details(node: ElementNode, walk: Walk) {
   const name = nameOf("details", walk);
+  unknownProps(node, "details", name, walk);
   const attrs = resolve(node, walk);
   const children = childrenOf(node);
   const slot = children.find((child) => isTemplate(child, "summary"));
@@ -111,9 +148,10 @@ function details(node: ElementNode, walk: Walk) {
   let label: Node[] = slot ? childrenOf(slot) : [];
   if (!label.some(isContent)) label = text(attrs.summary) ? [text(attrs.summary)] : [];
   if (!label.length) {
-    walk.issues.push(
-      `${name} has no summary, so it shows "Details". Write \`::details{summary="..."}\`, or a \`#summary\` slot.`,
-    );
+    walk.issues.push({
+      rule: "comark/details/missing-summary",
+      message: `${name} has no summary, so it shows "Details". Write \`::details{summary="..."}\`, or a \`#summary\` slot.`,
+    });
     label = ["Details"];
   }
   node[0] = "disclosure";
@@ -123,9 +161,13 @@ function details(node: ElementNode, walk: Walk) {
 
 function collapsible(node: ElementNode, walk: Walk) {
   const name = nameOf("collapsible", walk);
+  unknownProps(node, "collapsible", name, walk);
   const attrs = resolve(node, walk);
   if (!childrenOf(node).some(isContent))
-    walk.issues.push(`${name} is empty. Put the content it hides inside it, or remove it.`);
+    walk.issues.push({
+      rule: "comark/details/empty-collapsible",
+      message: `${name} is empty. Put the content it hides inside it, or remove it.`,
+    });
   const head = summary([text(attrs.name) || "properties"], text(attrs.icon), name, walk, {
     show: text(attrs.openText) || "Show",
     hide: text(attrs.closeText) || "Hide",
@@ -143,43 +185,50 @@ function opened(value: unknown, count: number, name: string, walk: Walk) {
     const at = Number(written);
     if (written && Number.isInteger(at) && at >= 0 && at < count) open.add(at);
     else
-      walk.issues.push(
-        `${name}: \`defaultValue\` "${clip(written)}" isn't an item. Write each item's position from 0, such as \`:defaultValue='["0"]'\`.`,
-      );
+      walk.issues.push({
+        rule: "comark/details/invalid-default-value",
+        message: `${name}: \`defaultValue\` "${clip(written)}" isn't an item. Write each item's position from 0, such as \`:defaultValue='["0"]'\`.`,
+      });
   }
   return open;
 }
 
 function accordion(node: ElementNode, walk: Walk) {
   const name = nameOf("accordion", walk);
+  unknownProps(node, "accordion", name, walk);
   const attrs = resolve(node, walk);
   const type = text(attrs.type) || "multiple";
   if (type !== "single" && type !== "multiple")
-    walk.issues.push(
-      `${name}: \`type\` is "${clip(type)}". Write \`type="single"\` to keep one item open, or leave it out.`,
-    );
+    walk.issues.push({
+      rule: "comark/details/invalid-type",
+      message: `${name}: \`type\` is "${clip(type)}". Write \`type="single"\` to keep one item open, or leave it out.`,
+    });
   const items: ElementNode[] = [];
   for (const child of childrenOf(node).filter(isContent)) {
     if (isElement(child) && child[0] === "accordion-item") items.push(child);
     else
-      walk.issues.push(
-        `${name}: put each item in \`:::accordion-item{label="..."}\`. Found ${describe(child)} outside an item, so it doesn't render.`,
-      );
+      walk.issues.push({
+        rule: "comark/details/content-outside-item",
+        message: `${name}: put each item in \`:::accordion-item{label="..."}\`. Found ${describe(child)} outside an item, so it doesn't render.`,
+      });
   }
   if (!items.length)
-    walk.issues.push(
-      `${name} has no items. Put \`:::accordion-item{label="..."}\` blocks inside it, or remove it.`,
-    );
+    walk.issues.push({
+      rule: "comark/details/empty-accordion",
+      message: `${name} has no items. Put \`:::accordion-item{label="..."}\` blocks inside it, or remove it.`,
+    });
   const open = opened(attrs.defaultValue, items.length, name, walk);
   const shared = type === "single" ? `${walk.prefix}-${walk.counts.accordion}` : "";
   for (const [index, item] of items.entries()) {
+    unknownProps(item, "accordion-item", `${name}, item ${index + 1}`, walk);
     const props = resolve(item, walk);
     let label = text(props.label);
     if (!label) {
       label = `Item ${index + 1}`;
-      walk.issues.push(
-        `${name}, item ${index + 1}: \`label\` is required. Write \`:::accordion-item{label="..."}\`.`,
-      );
+      walk.issues.push({
+        rule: "comark/details/missing-label",
+        message: `${name}, item ${index + 1}: \`label\` is required. Write \`:::accordion-item{label="..."}\`.`,
+      });
     }
     const description = text(props.description);
     const body = childrenOf(item).some(isContent)
@@ -207,9 +256,10 @@ function accordion(node: ElementNode, walk: Walk) {
 
 function stray(node: ElementNode, walk: Walk) {
   const label = text(resolve(node, walk).label);
-  walk.issues.push(
-    `\`:::accordion-item\` ${(walk.counts.stray = (walk.counts.stray ?? 0) + 1)}${label ? ` ("${clip(label)}")` : ""} sits outside \`::accordion\`, so it renders on its own. Wrap it in \`::accordion\`.`,
-  );
+  walk.issues.push({
+    rule: "comark/details/stray-accordion-item",
+    message: `\`:::accordion-item\` ${(walk.counts.stray = (walk.counts.stray ?? 0) + 1)}${label ? ` ("${clip(label)}")` : ""} sits outside \`::accordion\`, so it renders on its own. Wrap it in \`::accordion\`.`,
+  });
   const body = childrenOf(node);
   node[0] = "disclosure";
   node[1] = { variant: "details" };
@@ -237,7 +287,10 @@ async function addIcons(walk: Walk, resolver: Icons) {
     const icon = resolved.get(value);
     if (!icon) continue;
     if ("problem" in icon)
-      walk.issues.push(`${name}, icon "${clip(value)}": ${describeIconProblem(value, icon)}`);
+      walk.issues.push({
+        rule: iconProblemRule(icon),
+        message: `${name}, icon "${clip(value)}": ${describeIconProblem(value, icon)}`,
+      });
     else node[1].icon = icon;
   }
 }
@@ -261,7 +314,14 @@ export default defineComarkPlugin<DetailsOptions, DetailsMeta>((options = {}) =>
       };
       transform(tree.nodes, walk);
       await addIcons(walk, resolver);
-      tree.meta.issues = [...(tree.meta.issues ?? []), ...walk.issues];
+      tree.meta.issues = [
+        ...(tree.meta.issues ?? []),
+        ...walk.issues.map((issue) => issue.message),
+      ];
+      tree.meta.issueRules = {
+        ...tree.meta.issueRules,
+        ...Object.fromEntries(walk.issues.map((issue) => [issue.message, issue.rule])),
+      };
     },
   };
 });
