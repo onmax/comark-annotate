@@ -75,6 +75,22 @@ Peak coffee.
 ```
 :::
 
+:::example{label="Performance"}
+```md
+::chart{type="dumbbell" title="Largest Contentful Paint per page, before and after lazy-loading the editor (ms)"}
+| page | before | after |
+| --- | --: | --: |
+| home | 2,480 | 1,120 |
+| docs | 2,910 | 1,340 |
+| blog post | 2,050 | 980 |
+| playground | 4,350 | 4,100 |
+::::annotation{at="playground" series="after" mark="circle" color="red"}
+The playground opens the editor right away, so it stays slow.
+::::
+::
+```
+:::
+
 :::example{label="Waterfall"}
 ```md
 ::chart{type="waterfall" title="Rubber ducks in the office this quarter"}

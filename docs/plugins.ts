@@ -25,6 +25,7 @@ import readingTime from "../packages/reading-time/src/index.ts";
 import fileTree, { components as fileTreeComponents } from "../packages/file-tree/src/html.ts";
 import details, { components as detailsComponents } from "../packages/details/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
+import outline, { components as outlineComponents } from "../packages/outline/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
 import type { PlayConfig } from "./config.ts";
 
@@ -53,6 +54,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   // It only writes `meta.readingTime`, so it changes nothing the pages or the playground show.
   readingTime(),
   tabs(),
+  outline(),
   zoom(config["comark-zoom"]),
   code(config["comark-code"]),
 ];
@@ -75,5 +77,6 @@ export const components = {
   ...cardsComponents,
   ...stepsComponents,
   ...tabsComponents,
+  ...outlineComponents,
   ...zoomComponents,
 };

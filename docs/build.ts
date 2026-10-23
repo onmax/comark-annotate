@@ -97,6 +97,7 @@ const packageOrder = [
   "deflist",
   "mark",
   "include",
+  "outline",
   "reading-time",
   "lint",
 ];
