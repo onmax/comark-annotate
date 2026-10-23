@@ -73,6 +73,7 @@ const packageOrder = [
   "embed",
   "github",
   "icon",
+  "qr",
   "zoom",
   "carousel",
   "tabs",
