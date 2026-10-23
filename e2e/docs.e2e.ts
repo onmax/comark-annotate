@@ -132,11 +132,11 @@ test("the index's canvas switches to the list, and remembers it", async ({ page 
   await page.goto("/");
   const canvas = page.locator(".canvas");
   await expect(canvas).toHaveAttribute("data-view", "canvas");
-  await page.getByRole("button", { name: "List" }).click();
+  await page.getByRole("button", { name: "List", exact: true }).click();
   await expect(page.getByRole("link", { name: /annotate/ }).first()).toBeVisible();
   await page.reload();
   await expect(canvas).toHaveAttribute("data-view", "list");
-  await page.getByRole("button", { name: "Canvas" }).click();
+  await page.getByRole("button", { name: "Canvas", exact: true }).click();
   await expect(canvas).toHaveAttribute("data-view", "canvas");
 });
 
@@ -169,7 +169,7 @@ test("hovering the rail shows every section's name over the pages, without movin
 test("a package's card copies its install command", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/");
-  await page.getByRole("button", { name: "List" }).click();
+  await page.getByRole("button", { name: "List", exact: true }).click();
   await page.getByRole("button", { name: "Copy pnpm add comark-github" }).click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("pnpm add comark-github");
 });
