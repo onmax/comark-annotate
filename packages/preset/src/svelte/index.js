@@ -7,6 +7,8 @@ import * as charts from "comark-charts/svelte";
 import * as chips from "comark-chips/svelte";
 import * as code from "comark-code/svelte";
 import * as embed from "comark-embed/svelte";
+import * as details from "comark-details/svelte";
+import * as fileTree from "comark-file-tree/svelte";
 import * as fields from "comark-fields/svelte";
 import * as github from "comark-github/svelte";
 import * as icon from "comark-icon/svelte";
@@ -25,6 +27,8 @@ export default (options) =>
       chips,
       code,
       embed,
+      details,
+      fileTree,
       fields,
       github,
       icon,

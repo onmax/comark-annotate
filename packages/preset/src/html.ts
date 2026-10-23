@@ -8,6 +8,8 @@ import * as chips from "comark-chips/html";
 import * as code from "comark-code/html";
 import * as diff from "comark-diff/html";
 import * as embed from "comark-embed/html";
+import * as details from "comark-details/html";
+import * as fileTree from "comark-file-tree/html";
 import * as fields from "comark-fields/html";
 import * as github from "comark-github/html";
 import * as icon from "comark-icon/html";
@@ -32,6 +34,8 @@ export default (options?: PresetOptions): Preset<NodeHandler> =>
       code,
       diff,
       embed,
+      details,
+      fileTree,
       fields,
       github,
       icon,

@@ -2,6 +2,8 @@ import type { ComarkPlugin } from "comark";
 import type { ChartsOptions } from "comark-charts";
 import type { ChipsOptions } from "comark-chips";
 import type { CodeOptions } from "comark-code";
+import type { DetailsOptions } from "comark-details";
+import type { FileTreeOptions } from "comark-file-tree";
 import type { CalloutsOptions, ReferencesOptions } from "comark-github";
 import { createIcons, type IconOptions, type Icons } from "comark-icon";
 import include, { type IncludeOptions } from "comark-include";
@@ -25,6 +27,8 @@ export type PresetOptions = {
   /** HTML only: Vue, React, and Svelte have no diff components. */
   diff?: boolean;
   embed?: boolean;
+  details?: DetailsOptions | boolean;
+  fileTree?: FileTreeOptions | boolean;
   fields?: boolean;
   github?:
     | {
@@ -57,6 +61,8 @@ export type Renderer<C> = {
   code: Part<C, CodeOptions>;
   diff?: Part<C>;
   embed: Part<C>;
+  details: Part<C, DetailsOptions>;
+  fileTree: Part<C, FileTreeOptions>;
   fields: Part<C>;
   github: {
     callouts: (options?: CalloutsOptions) => AnyPlugin;

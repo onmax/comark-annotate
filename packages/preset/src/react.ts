@@ -6,6 +6,8 @@ import * as charts from "comark-charts/react";
 import * as chips from "comark-chips/react";
 import * as code from "comark-code/react";
 import * as embed from "comark-embed/react";
+import * as details from "comark-details/react";
+import * as fileTree from "comark-file-tree/react";
 import * as fields from "comark-fields/react";
 import * as github from "comark-github/react";
 import * as icon from "comark-icon/react";
@@ -31,6 +33,8 @@ export default (options?: PresetOptions): Preset<AnyComponent> =>
       chips,
       code,
       embed,
+      details,
+      fileTree,
       fields,
       github,
       icon,

@@ -6,6 +6,8 @@ import * as charts from "comark-charts/vue";
 import * as chips from "comark-chips/vue";
 import * as code from "comark-code/vue";
 import * as embed from "comark-embed/vue";
+import * as details from "comark-details/vue";
+import * as fileTree from "comark-file-tree/vue";
 import * as fields from "comark-fields/vue";
 import * as github from "comark-github/vue";
 import * as icon from "comark-icon/vue";
@@ -28,6 +30,8 @@ export default (options?: PresetOptions): Preset<Component> =>
       chips,
       code,
       embed,
+      details,
+      fileTree,
       fields,
       github,
       icon,
