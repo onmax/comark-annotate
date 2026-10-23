@@ -47,6 +47,19 @@ describe("comark-badge", () => {
     ]);
   });
 
+  it("names each issue's rule, and reports a prop it doesn't read", async () => {
+    const { meta } = await parseMarkdown(':badge[Beta]{color="purple" size="sm"} :badge{}', {
+      plugins: [badge()],
+    });
+    expect(meta.issueRules).toEqual({
+      "`:badge` 1 (\"Beta\"): `size` isn't a prop of `:badge`, so it's ignored. Use `color`.":
+        "comark/badge/unknown-prop",
+      '`:badge` 1 ("Beta"): `color` is "purple", so it shows as primary. Write one of primary, secondary, success, info, warning, error, neutral.':
+        "comark/badge/invalid-color",
+      "`:badge` 2 is empty. Write its text in brackets: `:badge[New]`.": "comark/badge/empty-badge",
+    });
+  });
+
   it("drops `{#id .class}`", async () => {
     const html = body(await render(':badge[x]{#x .y color="info"}'));
     expect(html).toBe('<span class="cb" data-color="info">x</span>');

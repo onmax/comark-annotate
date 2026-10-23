@@ -46,7 +46,12 @@ export default defineDoctorConfig({ extends: ["auto"], extensions: [comark()] })
 | `comark/malformed-attributes` | `COMARK0003` | An unclosed `{`, or a key set twice |
 | `comark/broken-anchor` | `COMARK0004` | A `#fragment` that matches no heading or id |
 | `comark/invalid-frontmatter` | `COMARK0005` | Frontmatter that isn't valid YAML |
-| `comark/plugin-issue` | `COMARK0006` | Each problem a plugin adds to `meta.issues` |
+| `comark/plugin-issue` | `COMARK0006` | A plugin's problem that names no rule of its own |
 | `comark/unsafe-url` | `COMARK0007` | A `javascript:`, `vbscript:`, or non-image `data:` URL |
+| `comark/duplicate-id` | `COMARK0008` | An id two elements share |
+| `comark/missing-alt` | `COMARK0009` | An image without alt text |
+| `comark/empty-link` | `COMARK0010` | A link without text |
+
+Each comark-plugins package adds one rule per kind of problem its plugin reports, named in `meta.issueRules`, with a code in its own hundred. [Doctor](https://comark.onmax.me/doctor/) has a page for every rule.
 
 Comark gives parsed nodes no positions, so block components take their line from the parser's tokens and everything else is found by searching the source.
