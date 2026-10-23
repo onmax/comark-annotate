@@ -73,7 +73,8 @@ export function translate(source: string, manager: PackageManager) {
       .map((part) => {
         if (!COMMAND.test(part)) return part;
         const result = manager === "bun" ? toBun(part) : convert(part, manager);
-        if (!result.includes(FAILED)) return result;
+        // npm-to-yarn trims what it converts, which would glue the command to the `&&` after it.
+        if (!result.includes(FAILED)) return result.trimEnd() + part.slice(part.trimEnd().length);
         failed.push(part.trim());
         return part;
       })

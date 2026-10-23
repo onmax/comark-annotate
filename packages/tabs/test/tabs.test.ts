@@ -188,7 +188,7 @@ describe("comark-tabs", () => {
     it("preserves separators inside quoted arguments", async () => {
       const markdown = '```sh npm2yarn\nnpm run show -- "before; npm install hidden" && npm i\n```';
       expect(await panels(markdown, { managers: ["pnpm"] })).toEqual([
-        ["pnpm", 'pnpm run show -- "before; npm install hidden" && pnpm add'],
+        ["pnpm", 'pnpm run show "before; npm install hidden" && pnpm i'],
       ]);
     });
 
@@ -196,7 +196,7 @@ describe("comark-tabs", () => {
       const markdown =
         '```sh npm2yarn\nnpm run show -- "$(printf "before; npm install hidden")" && npm i\n```';
       expect(await panels(markdown, { managers: ["pnpm"] })).toEqual([
-        ["pnpm", 'pnpm run show -- "$(printf "before; npm install hidden")" && pnpm add'],
+        ["pnpm", 'pnpm run show "$(printf "before; npm install hidden")" && pnpm i'],
       ]);
     });
 
