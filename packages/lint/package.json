@@ -45,6 +45,7 @@
     "comark": "catalog:",
     "comark-annotate": "workspace:*",
     "comark-badge": "workspace:*",
+    "comark-cards": "workspace:*",
     "comark-carousel": "workspace:*",
     "comark-charts": "workspace:*",
     "comark-chips": "workspace:*",
@@ -62,6 +63,7 @@
     "comark": "^0.8.0",
     "comark-annotate": "workspace:^",
     "comark-badge": "workspace:^",
+    "comark-cards": "workspace:^",
     "comark-carousel": "workspace:^",
     "comark-charts": "workspace:^",
     "comark-chips": "workspace:^",
@@ -104,6 +106,9 @@
       "optional": true
     },
     "comark-steps": {
+      "optional": true
+    },
+    "comark-cards": {
       "optional": true
     },
     "comark-badge": {

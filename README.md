@@ -10,6 +10,7 @@
 | --- | --- |
 | [`comark-annotate`](./packages/annotate) | Hand-drawn marks, numbered notes, and arrows on screenshots, and before/after comparisons. |
 | [`comark-badge`](./packages/badge) | Badges for versions and statuses, inline as `:badge[deprecated]{color="warning"}` or as Nuxt UI's block `::badge`, in Nuxt UI's seven colors. |
+| [`comark-cards`](./packages/cards) | Cards, link cards, and columns in Nuxt UI's syntax, with no script. |
 | [`comark-carousel`](./packages/carousel) | A carousel of any Markdown content, with arrows, a counter, keys, and zoom. |
 | [`comark-charts`](./packages/charts) | Charts from Markdown tables. |
 | [`comark-chips`](./packages/chips) | Links and `@user` mentions as chips with the site's favicon or the person's avatar, inlined while parsing. |

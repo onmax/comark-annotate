@@ -78,6 +78,7 @@ const packageOrder = [
   "tabs",
   "code",
   "badge",
+  "cards",
   "steps",
   "include",
   "lint",
