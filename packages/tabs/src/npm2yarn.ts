@@ -20,12 +20,23 @@ function splitCommands(line: string) {
   let start = 0;
   let quote: "'" | '"' | undefined;
   const substitutionQuotes: ("'" | '"' | undefined)[] = [];
+  const backtickQuotes: ("'" | '"' | undefined)[] = [];
   for (let index = 0; index < line.length; index++) {
     const char = line[index];
+    if (backtickQuotes.length) {
+      if (char === "\\") index++;
+      else if (char === "`") quote = backtickQuotes.pop();
+      continue;
+    }
     if (char === "$" && line[index + 1] === "(" && quote !== "'") {
       substitutionQuotes.push(quote);
       quote = undefined;
       index++;
+      continue;
+    }
+    if (char === "`" && quote !== "'") {
+      backtickQuotes.push(quote);
+      quote = undefined;
       continue;
     }
     if (quote) {

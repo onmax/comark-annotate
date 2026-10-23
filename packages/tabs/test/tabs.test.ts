@@ -217,6 +217,14 @@ describe("comark-tabs", () => {
       ]);
     });
 
+    it("preserves separators inside backtick substitutions", async () => {
+      const markdown =
+        '```sh npm2yarn\nnpm run show -- `printf before; npm install hidden` && npm i\n```';
+      expect(await panels(markdown, { managers: ["pnpm"] })).toEqual([
+        ["pnpm", "pnpm run show -- `printf before; npm install hidden` && pnpm i"],
+      ]);
+    });
+
     it("writes bun's commands as Bun's, Nuxt's, and Starlight's docs do", async () => {
       expect(
         await panels(
