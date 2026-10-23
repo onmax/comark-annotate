@@ -31,7 +31,7 @@ export const css = `@layer comark{${[
   // The words come from attributes, so the summary reads "properties" alone where the styles don't load.
   ".cdt-toggle::before{content:attr(data-show)}",
   ".cdt[open]>.cdt-summary .cdt-toggle::before{content:attr(data-hide)}",
-  ".cdt[data-variant='collapsible']>.cdt-summary+*{margin-top:.5rem}",
+  ".cdt[data-variant='collapsible']>.cdt-summary+*{margin-top:.5rem!important}",
   "@media (prefers-reduced-motion:reduce){.cdt-summary::after{transition:none}}",
   "@media print{.cdt-summary::after{display:none}}",
 ].join("")}}`;
