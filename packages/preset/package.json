@@ -63,7 +63,10 @@
     "comark-media": "workspace:^",
     "comark-steps": "workspace:^",
     "comark-tabs": "workspace:^",
-    "comark-zoom": "workspace:^"
+    "comark-zoom": "workspace:^",
+    "comark-deflist": "workspace:^",
+    "comark-outline": "workspace:^",
+    "comark-reading-time": "workspace:^"
   },
   "devDependencies": {
     "@comark/html": "catalog:",

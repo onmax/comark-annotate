@@ -51,6 +51,7 @@
     "comark-charts": "workspace:*",
     "comark-chips": "workspace:*",
     "comark-code": "workspace:*",
+    "comark-deflist": "workspace:*",
     "comark-details": "workspace:*",
     "comark-diff": "workspace:*",
     "comark-embed": "workspace:*",
@@ -59,6 +60,7 @@
     "comark-github": "workspace:*",
     "comark-icon": "workspace:*",
     "comark-media": "workspace:*",
+    "comark-outline": "workspace:*",
     "comark-reading-time": "workspace:*",
     "comark-steps": "workspace:*",
     "comark-tabs": "workspace:*",
@@ -75,6 +77,7 @@
     "comark-charts": "workspace:^",
     "comark-chips": "workspace:^",
     "comark-code": "workspace:^",
+    "comark-deflist": "workspace:^",
     "comark-details": "workspace:^",
     "comark-diff": "workspace:^",
     "comark-embed": "workspace:^",
@@ -83,6 +86,7 @@
     "comark-github": "workspace:^",
     "comark-icon": "workspace:^",
     "comark-media": "workspace:^",
+    "comark-outline": "workspace:^",
     "comark-reading-time": "workspace:^",
     "comark-steps": "workspace:^",
     "comark-tabs": "workspace:^",
@@ -106,6 +110,9 @@
       "optional": true
     },
     "comark-code": {
+      "optional": true
+    },
+    "comark-deflist": {
       "optional": true
     },
     "comark-diff": {
@@ -145,6 +152,9 @@
       "optional": true
     },
     "comark-tabs": {
+      "optional": true
+    },
+    "comark-outline": {
       "optional": true
     },
     "comark-zoom": {

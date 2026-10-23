@@ -6,6 +6,7 @@ import * as charts from "comark-charts/react";
 import * as chips from "comark-chips/react";
 import * as code from "comark-code/react";
 import * as embed from "comark-embed/react";
+import deflistPlugin from "comark-deflist";
 import * as details from "comark-details/react";
 import * as fileTree from "comark-file-tree/react";
 import * as fields from "comark-fields/react";
@@ -14,7 +15,11 @@ import * as icon from "comark-icon/react";
 import * as media from "comark-media/react";
 import * as steps from "comark-steps/react";
 import * as tabs from "comark-tabs/react";
+import * as outline from "comark-outline/react";
+import readingTimePlugin from "comark-reading-time";
 import * as zoom from "comark-zoom/react";
+const deflist = { default: deflistPlugin, components: {} };
+const readingTime = { default: readingTimePlugin, components: {} };
 import { type Preset, type PresetOptions, preset } from "./index.ts";
 
 export type { PresetOptions } from "./index.ts";
@@ -33,12 +38,15 @@ export default (options?: PresetOptions): Preset<AnyComponent> =>
       chips,
       code,
       embed,
+      deflist,
       details,
       fileTree,
       fields,
       github,
       icon,
       media,
+      outline,
+      readingTime,
       steps,
       tabs,
       zoom,

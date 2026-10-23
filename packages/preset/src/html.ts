@@ -7,6 +7,7 @@ import * as charts from "comark-charts/html";
 import * as chips from "comark-chips/html";
 import * as code from "comark-code/html";
 import * as diff from "comark-diff/html";
+import deflistPlugin from "comark-deflist";
 import * as embed from "comark-embed/html";
 import * as details from "comark-details/html";
 import * as fileTree from "comark-file-tree/html";
@@ -14,9 +15,13 @@ import * as fields from "comark-fields/html";
 import * as github from "comark-github/html";
 import * as icon from "comark-icon/html";
 import * as media from "comark-media/html";
+import * as outline from "comark-outline/html";
+import readingTimePlugin from "comark-reading-time";
 import * as steps from "comark-steps/html";
 import * as tabs from "comark-tabs/html";
 import * as zoom from "comark-zoom/html";
+const deflist = { default: deflistPlugin, components: {} };
+const readingTime = { default: readingTimePlugin, components: {} };
 import { type Preset, type PresetOptions, preset } from "./index.ts";
 
 export type { PresetOptions } from "./index.ts";
@@ -33,13 +38,17 @@ export default (options?: PresetOptions): Preset<NodeHandler> =>
       chips,
       code,
       diff,
+      deflist,
       embed,
       details,
+      // file-tree
       fileTree,
       fields,
       github,
       icon,
       media,
+      outline,
+      readingTime,
       steps,
       tabs,
       zoom,

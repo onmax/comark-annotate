@@ -3,6 +3,7 @@ import type { ChartsOptions } from "comark-charts";
 import type { ChipsOptions } from "comark-chips";
 import type { CodeOptions } from "comark-code";
 import type { DetailsOptions } from "comark-details";
+import type { ReadingTimeOptions } from "comark-reading-time";
 import type { FileTreeOptions } from "comark-file-tree";
 import type { CalloutsOptions, ReferencesOptions } from "comark-github";
 import { createIcons, type IconOptions, type Icons } from "comark-icon";
@@ -28,6 +29,7 @@ export type PresetOptions = {
   diff?: boolean;
   embed?: boolean;
   details?: DetailsOptions | boolean;
+  deflist?: boolean;
   fileTree?: FileTreeOptions | boolean;
   fields?: boolean;
   github?:
@@ -40,6 +42,8 @@ export type PresetOptions = {
   /** Also resolves the icons of cards, tabs, and code actions, so they all share its `collections` and `fetch`. */
   icon?: IconOptions | boolean;
   media?: boolean;
+  outline?: boolean;
+  readingTime?: ReadingTimeOptions | boolean;
   steps?: boolean;
   tabs?: TabsOptions | boolean;
   zoom?: ZoomOptions | boolean;
@@ -62,6 +66,7 @@ export type Renderer<C> = {
   diff?: Part<C>;
   embed: Part<C>;
   details: Part<C, DetailsOptions>;
+  deflist: Part<C>;
   fileTree: Part<C, FileTreeOptions>;
   fields: Part<C>;
   github: {
@@ -72,6 +77,8 @@ export type Renderer<C> = {
   };
   icon: Part<C, IconOptions | Icons>;
   media: Part<C>;
+  outline: Part<C>;
+  readingTime: Part<C, ReadingTimeOptions>;
   steps: Part<C>;
   tabs: Part<C, TabsOptions>;
   zoom: Part<C, ZoomOptions>;
@@ -107,6 +114,7 @@ export function preset<C>(renderer: Renderer<C>, options: PresetOptions = {}): P
   add(renderer.charts, options.charts);
   add(renderer.chips, options.chips);
   add(renderer.diff, options.diff);
+  add(renderer.deflist, options.deflist);
   add(renderer.embed, options.embed);
   add(renderer.fields, options.fields);
   if (on(options.github)) {
@@ -121,6 +129,8 @@ export function preset<C>(renderer: Renderer<C>, options: PresetOptions = {}): P
   }
   add(renderer.icon, options.icon, icons);
   add(renderer.media, options.media);
+  add(renderer.outline, options.outline);
+  add(renderer.readingTime, options.readingTime);
   add(renderer.cards, options.cards, { iconResolver: icons });
   add(renderer.steps, options.steps);
   add(renderer.tabs, options.tabs, { iconResolver: icons, ...optionsOf(options.tabs) });
