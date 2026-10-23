@@ -17,4 +17,4 @@ The list starts at h2, since a page's h1 is usually its title. Each heading sits
 
 `[[toc]]`, as markdown-it-toc writes it, isn't read: in Comark `[[...]]` is a span, and the block syntax is the one every other plugin uses.
 
-The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes: a `depth` outside 2 to 6, content inside the block (it's dropped), and a page with no headings to list (it renders nothing). Each issue names its block and says how to fix it.
+The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes: a `depth` outside 2 to 6, a prop it doesn't read, content inside the block (it's dropped), and a page with no headings to list (it renders nothing). Each issue names its block and says how to fix it, and each has its own rule in [Doctor](/doctor/).

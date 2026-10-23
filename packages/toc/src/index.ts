@@ -6,7 +6,11 @@ import { textContent } from "comark/utils";
 export type TocMeta = {
   /** One readable sentence per problem with a `::toc`. Empty when the document has none. Other plugins add theirs too. */
   issues: string[];
+  /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
+  issueRules: Record<string, string>;
 };
+
+type Issue = { rule: `comark/toc/${string}`; message: string };
 
 /** What a `::toc` becomes, and all its renderers read. Its children are the nested list of links. */
 export type TocAttributes = { title?: string; empty?: boolean };
@@ -19,6 +23,7 @@ interface Heading {
 }
 
 const HEADING = /^h([1-6])$/;
+const PROPS = ["depth", "title"];
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
 const childrenOf = ([, , ...rest]: ElementNode): Node[] => rest;
 // Comments render nothing, so they aren't content a toc would drop.
@@ -64,27 +69,38 @@ function toc(
   number: number,
   data: Data,
   headings: Heading[],
-  issues: string[],
+  issues: Issue[],
 ): ElementNode {
   const name = `\`::toc\` ${number}`;
   const attrs = resolveAttributes(node[1], data, { parseJson: true });
   if (childrenOf(node).some(isContent))
-    issues.push(
-      `${name} drops the content inside it. Close the block with \`::\` on the line after it, and write text outside it.`,
-    );
+    issues.push({
+      rule: "comark/toc/content-dropped",
+      message: `${name} drops the content inside it. Close the block with \`::\` on the line after it, and write text outside it.`,
+    });
+  for (const key of Object.keys(node[1])) {
+    const prop = key.replace(/^:/, "");
+    if (!PROPS.includes(prop) && prop !== "id" && prop !== "class")
+      issues.push({
+        rule: "comark/toc/unknown-prop",
+        message: `${name}: \`${prop}\` isn't a prop of \`::toc\`, so it's ignored. Use \`depth\` or \`title\`.`,
+      });
+  }
   const raw = text(attrs.depth);
   const depth = raw ? Number(raw) : 3;
   if (!Number.isInteger(depth) || depth < 2 || depth > 6) {
-    issues.push(
-      `${name}: \`depth\` must be a whole number from 2 to 6, such as \`depth=3\` for h2 and h3 headings.`,
-    );
+    issues.push({
+      rule: "comark/toc/invalid-depth",
+      message: `${name}: \`depth\` must be a whole number from 2 to 6, such as \`depth=3\` for h2 and h3 headings.`,
+    });
     return ["toc", { empty: true }];
   }
   const listed = headings.filter((heading) => heading.level >= 2 && heading.level <= depth);
   if (!listed.length) {
-    issues.push(
-      `${name} has no headings from h2 to h${depth} to list. Add \`##\` headings, or remove the block.`,
-    );
+    issues.push({
+      rule: "comark/toc/no-headings",
+      message: `${name} has no headings from h2 to h${depth} to list. Add \`##\` headings, or remove the block.`,
+    });
     return ["toc", { empty: true }];
   }
   const title = text(attrs.title);
@@ -101,7 +117,7 @@ export default defineComarkPlugin<void, TocMeta>(() => ({
     const { tree } = state;
     const data: Data = { frontmatter: tree.frontmatter, meta: tree.meta, data: {}, props: {} };
     const headings = headingsOf(tree.nodes);
-    const issues: string[] = [];
+    const issues: Issue[] = [];
     let count = 0;
     const walk = (nodes: Node[], start: number) => {
       for (let index = start; index < nodes.length; index++) {
@@ -115,6 +131,10 @@ export default defineComarkPlugin<void, TocMeta>(() => ({
       }
     };
     walk(tree.nodes, 0);
-    tree.meta.issues = [...(tree.meta.issues ?? []), ...issues];
+    tree.meta.issues = [...(tree.meta.issues ?? []), ...issues.map((issue) => issue.message)];
+    tree.meta.issueRules = {
+      ...tree.meta.issueRules,
+      ...Object.fromEntries(issues.map((issue) => [issue.message, issue.rule])),
+    };
   },
 }));

@@ -13,6 +13,7 @@ import icon from "./icon.ts";
 import include from "./include.ts";
 import steps from "./steps.ts";
 import tabs from "./tabs.ts";
+import toc from "./toc.ts";
 import type { RuleInfo } from "./types.ts";
 
 export type { RuleInfo } from "./types.ts";
@@ -34,4 +35,5 @@ export const catalog = {
   ...steps,
   ...tabs,
   ...badge,
+  ...toc,
 } satisfies Record<string, RuleInfo>;

@@ -68,6 +68,20 @@ describe("comark-toc", () => {
     expect(await render("::toc\n::")).not.toContain("cto");
   });
 
+  it("names each issue's rule, and reports a prop it doesn't read", async () => {
+    const { meta } = await parseMarkdown("::toc{levels=4}\n::\n\n::toc{depth=9}\n::", {
+      plugins: [toc()],
+    });
+    expect(meta.issueRules).toEqual({
+      "`::toc` 1: `levels` isn't a prop of `::toc`, so it's ignored. Use `depth` or `title`.":
+        "comark/toc/unknown-prop",
+      "`::toc` 1 has no headings from h2 to h3 to list. Add `##` headings, or remove the block.":
+        "comark/toc/no-headings",
+      "`::toc` 2: `depth` must be a whole number from 2 to 6, such as `depth=3` for h2 and h3 headings.":
+        "comark/toc/invalid-depth",
+    });
+  });
+
   it("keeps the issues other plugins reported", async () => {
     const earlier = {
       name: "earlier",
