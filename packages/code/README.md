@@ -23,6 +23,22 @@ The components replace how `pre` renders, and keep the block's own markup inside
 
 Copy writes the code to the clipboard and shows a check. When the page can't write to it, such as over plain http, it selects the code and says to press Ctrl+C or ⌘C. Wrap breaks long lines in that block until it's pressed again.
 
+## Lines
+
+Words after the fence's language, written the way [Expressive Code](https://expressive-code.com) writes them, mark lines, fold them, and frame the block:
+
+````md
+```ts title="src/zoom.ts" del={3} ins={4} mark={1} showLineNumbers
+function close() {
+  dialog.close();
+  history.back();
+  if (opened) history.back();
+}
+```
+````
+
+`ins`, `del`, and `mark` tint lines green, red, or gray; `collapse` folds a range into a `<details>`; `showLineNumbers` and `startLineNumber=120` number the lines; `title` names the block like `[file]`; `wrap` starts it wrapped. Shell blocks are drawn as a terminal, and `frame="none"` turns that off. A ```` ```diff lang="ts" ```` fence takes pasted `git diff` output, highlights it as TypeScript, and marks its `+` and `-` lines. Comark's Shiki plugin redraws every block, so list `shiki()` before `code()`. A range the plugin can't read goes in `meta.issues`.
+
 ## Actions
 
 Each action is a button on the code blocks in its `languages`, or on every block without them. It shows a `label`, an Iconify `icon`, or both; an icon-only button needs a `title`:

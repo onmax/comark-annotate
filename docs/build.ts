@@ -36,10 +36,13 @@ const contentPlugins = () => [
   ...sitePlugins(),
 ];
 // The site's own links stay plain; chips show in the examples and the playground.
-const plugins = [
-  ...contentPlugins().filter((plugin) => plugin.name !== "comark-chips"),
+// Shiki goes before comark-code, the last plugin, which marks the lines Shiki drew.
+const highlighted = (list: ReturnType<typeof contentPlugins>) => [
+  ...list.slice(0, -1),
   shiki({ themes: { light, dark } }),
+  ...list.slice(-1),
 ];
+const plugins = highlighted(contentPlugins().filter((plugin) => plugin.name !== "comark-chips"));
 
 // The site's own icons, drawn the way `:icon` draws them: Lucide's, and annotate's, a hand-drawn loop like its marks.
 const ownIcons = {
@@ -227,10 +230,7 @@ const exampleWithout =
     const source = textContent(pre);
     // Highlighted like the page, so a diff in an example keeps its colors.
     const preview = await parseMarkdown(source, {
-      plugins: [
-        ...contentPlugins().filter((plugin) => !without.includes(plugin.name)),
-        shiki({ themes: { light, dark } }),
-      ],
+      plugins: highlighted(contentPlugins().filter((plugin) => !without.includes(plugin.name))),
     });
     if (preview.meta.issues.length)
       throw new Error(`Example "${str(attrs.label)}":\n${preview.meta.issues.join("\n")}`);
