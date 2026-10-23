@@ -1,7 +1,7 @@
 {
   "name": "comark-linter",
   "version": "0.3.0",
-  "description": "Finds unclosed blocks, unknown components, broken anchors, and plugin issues in Comark documents. A library, a CLI, and a Vite Doctor extension.",
+  "description": "Finds unclosed blocks, unknown components, broken links and anchors, local URLs, and plugin issues in Comark documents. A library, a CLI, and a Vite Doctor extension.",
   "keywords": [
     "comark",
     "lint",
@@ -53,6 +53,7 @@
     "comark-diff": "workspace:*",
     "comark-embed": "workspace:*",
     "comark-fields": "workspace:*",
+    "comark-file-tree": "workspace:*",
     "comark-github": "workspace:*",
     "comark-icon": "workspace:*",
     "comark-media": "workspace:*",
@@ -74,6 +75,7 @@
     "comark-diff": "workspace:^",
     "comark-embed": "workspace:^",
     "comark-fields": "workspace:^",
+    "comark-file-tree": "workspace:^",
     "comark-github": "workspace:^",
     "comark-icon": "workspace:^",
     "comark-media": "workspace:^",
@@ -127,6 +129,9 @@
       "optional": true
     },
     "comark-reading-time": {
+      "optional": true
+    },
+    "comark-file-tree": {
       "optional": true
     },
     "comark-tabs": {

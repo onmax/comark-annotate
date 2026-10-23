@@ -5,7 +5,7 @@ import {
   defineDoctorExtension,
   defineRulePack,
 } from "vite-doctor/extension";
-import { lint, resolveConfig, type Config, type Diagnostic, type Rule } from "./index.ts";
+import { lintFiles, resolveConfig, type Config, type LintedFile, type Rule } from "./index.ts";
 import { catalog, type RuleInfo } from "./rules/index.ts";
 
 export type DoctorOptions = Config & {
@@ -41,19 +41,20 @@ export default function comark(options: DoctorOptions = {}) {
     ...config
   } = options;
 
-  // Every Rule reads the same results; the first one to run lints the files.
+  // Every Rule reads the same results; the first one to run lints the files. Rules may only read through `ctx.fs`,
+  // so links are checked through it too. The URL cache is written with node:fs, since `ctx.fs` can't write.
   const lintProject = (ctx: RuleContext) => {
     const key = `lint-comark:${ctx.project.root}`;
-    let results =
-      ctx.cache.get<Promise<{ file: string; text: string; found: Diagnostic[] }[]>>(key);
+    let results = ctx.cache.get<Promise<LintedFile[]>>(key);
     if (!results) {
       results = resolveConfig(config).then((resolved) =>
-        Promise.all(
-          ctx.fs.glob(include, { exclude }).map(async (file) => {
-            const text = ctx.fs.readText(file) ?? "";
-            return { file, text, found: await lint(text, resolved) };
-          }),
-        ),
+        lintFiles(ctx.fs.glob(include, { exclude }), {
+          ...resolved,
+          root: ctx.project.root,
+          read: (path) => ctx.fs.readText(path),
+          exists: (path) => ctx.fs.exists(path),
+          list: (path) => ctx.fs.readDir(path)?.map((entry) => entry.name),
+        }),
       );
       ctx.cache.set(key, results);
     }
@@ -70,11 +71,12 @@ export default function comark(options: DoctorOptions = {}) {
         execution: "manifest",
         // The result depends on the comark plugins installed, which the Rule imports instead of reading.
         cacheScope: "none",
+        ...(id === "comark/dead-url" && { determinism: "env-dependent" as const }),
       },
       create(ctx) {
         return {
           async onProjectEnd() {
-            for (const { file, text, found } of await lintProject(ctx)) {
+            for (const { file, text = "", diagnostics: found } of await lintProject(ctx)) {
               const starts = [0];
               for (const match of text.matchAll(/\n/g)) starts.push(match.index + 1);
               for (const diagnostic of found) {
