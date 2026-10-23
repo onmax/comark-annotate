@@ -52,6 +52,15 @@ describe("comark-deflist", () => {
     );
   });
 
+  it("accepts empty definitions and rejects indented markers", async () => {
+    expect(await render("Term\n:")) .toBe("<dl><dt>Term</dt><dd></dd></dl>");
+    expect(await render("Term\n:   ")) .toBe("<dl><dt>Term</dt><dd></dd></dl>");
+    expect(await render("Term\n    : not a definition")).toContain("<pre>");
+    expect(await render("Term\n\n: Loose.", { autoUnwrap: false })).toBe(
+      "<dl><dt>Term</dt><dd><p>Loose.</p></dd></dl>",
+    );
+  });
+
   it("leaves a colon with no space, or with no term above it, as text", async () => {
     expect(await render("Ratio\n:3 to 1", { registerDefaultPlugins: false })).toBe(
       "<p>Ratio\n:3 to 1</p>".replace("\n", ""),
