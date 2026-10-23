@@ -44,6 +44,7 @@
   "devDependencies": {
     "comark": "catalog:",
     "comark-annotate": "workspace:*",
+    "comark-cards": "workspace:*",
     "comark-carousel": "workspace:*",
     "comark-charts": "workspace:*",
     "comark-chips": "workspace:*",
@@ -59,6 +60,7 @@
   "peerDependencies": {
     "comark": "^0.8.0",
     "comark-annotate": "workspace:^",
+    "comark-cards": "workspace:^",
     "comark-carousel": "workspace:^",
     "comark-charts": "workspace:^",
     "comark-chips": "workspace:^",
@@ -97,6 +99,9 @@
       "optional": true
     },
     "comark-icon": {
+      "optional": true
+    },
+    "comark-cards": {
       "optional": true
     },
     "comark-tabs": {
