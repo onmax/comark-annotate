@@ -318,6 +318,10 @@ describe("comark/duplicate-id", () => {
   it("passes headings Comark numbers itself", async () => {
     expect(await check(`## Setup\n\n## Setup`)).toEqual([]);
   });
+
+  it("places repeated HTML ids on the duplicate attribute", async () => {
+    expect((await check(`<div id="panel">one</div>\n\n<div id="panel">two</div>`)).map(({ line }) => line)).toEqual([3]);
+  });
 });
 
 describe("comark/missing-alt", () => {

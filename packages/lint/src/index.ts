@@ -528,7 +528,9 @@ function duplicateIds(nodes: Node[], source: Source): Diagnostic[] {
     let writtenIds = 0;
     while (find(source, `{#${id}`, { nth: writtenIds, from: source.body })) writtenIds++;
     const nth = index - (total.get(id)! - writtenIds);
-    const at = nth >= 0 ? find(source, `{#${id}`, { nth, from: source.body }) : undefined;
+    const at =
+      (nth >= 0 ? find(source, `{#${id}`, { nth, from: source.body }) : undefined) ??
+      find(source, id, { nth: index, from: source.body, attribute: true });
     const { line, column } = at ?? { line: source.body + 1, column: undefined };
     found.push({
       rule: "comark/duplicate-id",
