@@ -55,6 +55,7 @@
     "comark-github": "workspace:*",
     "comark-icon": "workspace:*",
     "comark-media": "workspace:*",
+    "comark-reading-time": "workspace:*",
     "comark-steps": "workspace:*",
     "comark-tabs": "workspace:*",
     "comark-zoom": "workspace:*",
@@ -74,6 +75,7 @@
     "comark-github": "workspace:^",
     "comark-icon": "workspace:^",
     "comark-media": "workspace:^",
+    "comark-reading-time": "workspace:^",
     "comark-steps": "workspace:^",
     "comark-tabs": "workspace:^",
     "comark-zoom": "workspace:^",
@@ -117,6 +119,9 @@
       "optional": true
     },
     "comark-badge": {
+      "optional": true
+    },
+    "comark-reading-time": {
       "optional": true
     },
     "comark-tabs": {
