@@ -25,7 +25,7 @@ code({
 });
 ```
 
-An icon that can't be drawn goes in `meta.issues`, and its button shows the title as text instead.
+An icon that can't be drawn goes in `meta.issues`, under the same [Doctor](/doctor/) rule as an `:icon`'s, and its button shows the title as text instead.
 
 Your app decides what an action does. `onCodeAction()` from `comark-code/client` calls your function with the block's code and language whenever that action's button is clicked, and returns a function that stops it:
 
@@ -41,8 +41,8 @@ The plugin does nothing else, so `code()` with no actions only adds Copy and Wra
 
 ## Copy
 
-Copy takes the code's text as written, without the highlighting. A check confirms it, and a status line tells screen readers. When the page can't write to the clipboard, such as over plain http, it selects the code instead and says to press Ctrl+C or ⌘C.
+Copy takes the code's text as written, without the highlighting, the line numbers, the lines marked `del`, or the row that counts a collapsed range's lines, so a diff copies as the code after the change. Your actions get the same text. A check confirms it, and a status line tells screen readers. When the page can't write to the clipboard, such as over plain http, it selects the code instead and says to press Ctrl+C or ⌘C.
 
 ## Wrap
 
-Wrap breaks long lines in its own block and stays on until it's pressed again, and it isn't saved for the next visit.
+Wrap breaks long lines in its own block and stays on until it's pressed again, and it isn't saved for the next visit. A block whose fence says `wrap` starts with it on. A numbered line wraps under its own code, not under its number.
