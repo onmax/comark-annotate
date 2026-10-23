@@ -813,7 +813,9 @@ function pluginIssues(
     ? meta.issues.flatMap((issue) => text(issue) || [])
     : [];
   const named: Record<string, unknown> =
-    meta.issueRules instanceof Object ? { ...meta.issueRules } : {};
+    meta.issueRules instanceof Object
+      ? (Object.assign({}, meta.issueRules) as Record<string, unknown>)
+      : {};
   const locate = locator(source);
   return issues.map((issue) => {
     const rule = text(named[issue]);
