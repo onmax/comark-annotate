@@ -98,7 +98,7 @@ const STATES = new Map<string, EntryState>([
   ["~", "changed"],
 ]);
 // What `tree` draws before a name: `│   ` and spaces for each level above, then `├── ` or `└── `, or the same in ASCII.
-const BRANCHES = /^(?:[│|][\s ]{2,3}|[\s ])*(?:[├└|`](?:──|--)[─-]*[\s ]?)?/u;
+const BRANCHES = /^(?:[│|][\s ]{2,3}|[\s ])*(?:[├└|`+\\](?:──|--)[─-]*[\s ]?)?/u;
 const NOTE = /\s+#\s+(.*)$/;
 // The summary `tree` prints last.
 const SUMMARY = /^\d+ director(?:y|ies)(?:, \d+ files?)?$/;

@@ -39,6 +39,9 @@ describe("comark-file-tree", () => {
     const ascii = await parse(
       block(".\n|-- src\n|   |-- index.ts\n|   `-- utils\n|       `-- a.ts\n`-- package.json"),
     );
+    const asciiTree = await parse(
+      block(".\n+--- src\n|   +--- index.ts\n|   \\--- utils\n|       \\--- a.ts\n\\--- package.json"),
+    );
     const expected = [
       "file-tree",
       {},
@@ -56,6 +59,7 @@ describe("comark-file-tree", () => {
     ];
     expect(unicode.nodes).toEqual([expected]);
     expect(ascii.nodes).toEqual([expected]);
+    expect(asciiTree.nodes).toEqual([expected]);
     expect(unicode.meta.issues).toEqual([]);
   });
 
