@@ -44,4 +44,4 @@ A key shared by blocks that switch together.
 
 Each entry exports the parse plugin as `default` and the renderer's `components`. The Vue, React, and Svelte components add the styles when they mount; import `comark-fields/style.css` with your styles so a server-rendered page doesn't shift.
 
-The styles follow shadcn/ui: they read its CSS variables, such as `--muted-foreground` and `--border`, when the page has them, and use its neutral theme otherwise. Set the shared `--comark-*` tokens to theme every plugin at once; the rules sit in a `comark` CSS layer, so any plain rule of your own wins.
+The styles follow shadcn/ui: they read its CSS variables, such as `--muted-foreground` and `--border`, when the page has them, and use its neutral theme otherwise. Set the shared `--comark-*` tokens to theme every plugin at once; the rules sit in a `comark` CSS layer, so any plain rule of your own wins, except the top and bottom margins of a field's description, which are `!important`, because a page's own paragraph and list margins are almost always unlayered and would open a gap under the name. Override those with `!important` too.
