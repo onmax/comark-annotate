@@ -9,6 +9,7 @@ import core from "./core.ts";
 import diff from "./diff.ts";
 import embed from "./embed.ts";
 import fields from "./fields.ts";
+import fileTree from "./file-tree.ts";
 import github from "./github.ts";
 import icon from "./icon.ts";
 import include from "./include.ts";
@@ -38,4 +39,5 @@ export const catalog = {
   ...badge,
   ...qr,
   ...fields,
+  ...fileTree,
 } satisfies Record<string, RuleInfo>;
