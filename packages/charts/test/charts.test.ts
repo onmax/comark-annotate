@@ -162,6 +162,23 @@ describe("comark-charts", () => {
     );
   });
 
+  it("keeps an equal dumbbell value on its expanded axis", async () => {
+    const html = await render(
+      chart(
+        `
+| activity | before | after |
+| --- | --: | --: |
+| waiting | 100 | 100 |
+| done | 100 | 100 |`,
+        '{type="dumbbell"}',
+      ),
+    );
+    const axis = [...html.matchAll(/class="mark-text role-axis-label"[^>]*>(.*?)<\/g/gs)]
+      .flatMap(([, inside]) => [...inside!.matchAll(/<text[^>]*>([^<]+)<\/text>/g)])
+      .map(([, text]) => text);
+    expect(axis).toContain("100");
+  });
+
   it("names every month, with the year on the first and wherever it turns", async () => {
     const html = await render(
       chart(`

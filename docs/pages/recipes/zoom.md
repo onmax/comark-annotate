@@ -5,7 +5,7 @@ tagline: Wrap screenshots in ::zoom blocks with one group, and the reader pages 
 install: pnpm add comark @comark/html comark-annotate comark-zoom
 ---
 
-::example
+::example{label="Zoom group"}
 ```md
 At 640px, moon phase and vibes push the filters onto a second row.
 

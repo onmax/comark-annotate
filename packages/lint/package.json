@@ -44,6 +44,8 @@
   "devDependencies": {
     "comark": "catalog:",
     "comark-annotate": "workspace:*",
+    "comark-badge": "workspace:*",
+    "comark-cards": "workspace:*",
     "comark-carousel": "workspace:*",
     "comark-charts": "workspace:*",
     "comark-chips": "workspace:*",
@@ -52,6 +54,7 @@
     "comark-embed": "workspace:*",
     "comark-github": "workspace:*",
     "comark-icon": "workspace:*",
+    "comark-steps": "workspace:*",
     "comark-tabs": "workspace:*",
     "comark-zoom": "workspace:*",
     "vite-doctor": "catalog:"
@@ -59,6 +62,8 @@
   "peerDependencies": {
     "comark": "^0.8.0",
     "comark-annotate": "workspace:^",
+    "comark-badge": "workspace:^",
+    "comark-cards": "workspace:^",
     "comark-carousel": "workspace:^",
     "comark-charts": "workspace:^",
     "comark-chips": "workspace:^",
@@ -67,6 +72,7 @@
     "comark-embed": "workspace:^",
     "comark-github": "workspace:^",
     "comark-icon": "workspace:^",
+    "comark-steps": "workspace:^",
     "comark-tabs": "workspace:^",
     "comark-zoom": "workspace:^",
     "vite-doctor": "^0.1.0"
@@ -97,6 +103,15 @@
       "optional": true
     },
     "comark-icon": {
+      "optional": true
+    },
+    "comark-steps": {
+      "optional": true
+    },
+    "comark-cards": {
+      "optional": true
+    },
+    "comark-badge": {
       "optional": true
     },
     "comark-tabs": {
