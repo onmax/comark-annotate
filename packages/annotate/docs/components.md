@@ -83,14 +83,14 @@ With `mode="slider"`, the two screenshots share one frame: Before shows left of 
 ::compare{title="Toolbar alignment"}
 :::screenshot{src="/before.png" alt="Toolbar wrapping" viewport="640x250"}
 ::::annotation{x=22.4 y=50.4 w=13.3 h=20.6 mark="circle" color="red"}
-::compare
-:::screenshot{src="/before.png" alt="Toolbar wrapping"}
-::::annotation{x=22.4 y=50.4 w=13.3 h=20.6 color="red"}
 **Apply** sits lower than the chips.
 ::::
 :::
 
-:::screenshot{src="/after.png" alt="Toolbar on one row"}
+:::screenshot{src="/after.png" alt="Toolbar on one row" viewport="640x250"}
+::::annotation{x=82.5 y=34.8 w=10.5 h=14.2 mark="check" color="green"}
+Fixed.
+::::
 :::
 ::
 ```
