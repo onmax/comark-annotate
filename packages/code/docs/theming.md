@@ -3,18 +3,19 @@ title: Theming
 description: The shared tokens, the header's own variables, and the classes a page can target.
 ---
 
-The header sits on the code block's own background, so it takes your `pre` styles and Shiki's theme. The title and buttons follow the shared tokens in [Theming](/guide/theming/); two variables of their own size the buttons and the header, and a third sets the title's font. The rules sit in a `comark` CSS layer, so a plain rule of your own wins over any of them. Two rules sit outside it, so they beat a page's own `pre` styles: the `padding-top` that makes room for the header above the first line, and Wrap's `white-space`.
+The header sits on the code block's own background, so it takes your `pre` styles and Shiki's theme. The title and buttons follow the shared tokens in [Theming](/guide/theming/); two variables of their own size the buttons and the header, and a third sets the title's font. The rules sit in a `comark` CSS layer, so a plain rule of your own wins over any of them. A few rules sit outside it, so they beat a page's own `pre` styles: the `padding-top` that makes room for the header above the first line, the `overflow-x` that clips a marked line's tint, and Wrap's `white-space`. A collapsed range's margins, padding, and border are `!important`, so a page's own `details` and `summary` styles can't push it off the lines.
 
 ## Shared tokens
 
 | Token | Used for |
 | --- | --- |
-| `--comark-muted` | The title, and the buttons' icons and labels |
-| `--comark-foreground` | Hovered buttons' icons and labels, and the status line's background |
+| `--comark-muted` | The title, the buttons' icons and labels, line numbers, a collapsed range's line, and a terminal's dots |
+| `--comark-foreground` | Hovered buttons' icons and labels, the status line's background, and the tint of `mark` lines, highlighted words, and collapsed ranges |
 | `--comark-background` | The status line's text |
+| `--comark-border` | The line under a terminal's header |
 | `--comark-accent` | Hovered buttons, and Wrap while it's on |
-| `--comark-ring` | The focus ring on the buttons |
-| `--comark-radius` | The buttons' and the status line's corners |
+| `--comark-ring` | The focus ring on the buttons and on a collapsed range |
+| `--comark-radius` | The buttons', the status line's, and highlighted words' corners |
 | `--comark-font` | Action labels and the status line |
 
 ## Variables
@@ -29,6 +30,8 @@ Set these on `.ck` or any ancestor, such as `:root`:
 | `--ck-green` | `#259f56`, `#59d38c` in dark mode | Lines marked `ins`, and their `+` |
 | `--ck-red` | `#ee3533`, `#fd736d` in dark mode | Lines marked `del`, and their `−`, and Shiki's errors |
 | `--ck-yellow` | `#d49b00`, `#f5c84b` in dark mode | Shiki's warnings |
+
+The dark shades follow the system's dark mode, or a `.dark` class on any ancestor, and a `.light` class keeps the light ones.
 
 The header is the button size plus the inset above and below, and the block's `padding-top` matches it. A marked line is tinted from edge to edge, past the block's padding, so the block clips its overflow. Its sign sits in the block's left padding, which needs to be at least `1.5ch` wide; on a numbered block it sits between the number and the code.
 
