@@ -98,7 +98,8 @@ export function start(css: string): () => void {
     moving.add(player);
     const frame = () => {
       draw(player);
-      if (!signal.aborted && !mediaOf(player)?.paused) requestAnimationFrame(frame);
+      if (!signal.aborted && player.isConnected && !mediaOf(player)?.paused)
+        requestAnimationFrame(frame);
       else moving.delete(player);
     };
     frame();
@@ -172,8 +173,7 @@ export function start(css: string): () => void {
       if (button.classList.contains("cm-mute")) {
         media.muted = !media.muted;
         if (!media.muted && !media.paused) pauseAudible(media);
-      }
-      else if (button.classList.contains("cm-full")) {
+      } else if (button.classList.contains("cm-full")) {
         if (document.fullscreenElement === player) document.exitFullscreen().catch(() => {});
         else if (document.fullscreenEnabled) player.requestFullscreen().catch(() => {});
         // An iPhone only shows a video full screen, with its own controls.
@@ -236,7 +236,25 @@ export function start(css: string): () => void {
   );
 
   sync();
-  const observer = new MutationObserver(() => sync());
+  let syncQueued = false;
+  const observer = new MutationObserver((records) => {
+    if (
+      !records.some((record) =>
+        [...record.addedNodes].some((node) =>
+          node instanceof Element
+            ? node.matches(players) || node.querySelector(players)
+            : node instanceof DocumentFragment && node.querySelector(players),
+        ),
+      ) ||
+      syncQueued
+    )
+      return;
+    syncQueued = true;
+    queueMicrotask(() => {
+      syncQueued = false;
+      if (!signal.aborted) sync();
+    });
+  });
   observer.observe(document, { childList: true, subtree: true });
 
   const state = {

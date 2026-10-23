@@ -52,7 +52,7 @@ const open = async (page: Page, markdown: string, options: { script?: boolean } 
       body: `<!doctype html><html><body style="width:32rem;margin:2rem">${html}</body></html>`,
     }),
   );
-  await page.goto("http://media.test/");
+  await page.goto("http://media.test/", { waitUntil: "domcontentloaded" });
 };
 
 test("an audio player plays, pauses, and seeks with its own controls", async ({ page }) => {
