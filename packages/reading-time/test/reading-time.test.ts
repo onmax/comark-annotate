@@ -27,6 +27,17 @@ describe("comark-reading-time", () => {
     expect(countWords("漢字 and 한국어")).toBe(6);
   });
 
+  it("leaves raw HTML code blocks out", async () => {
+    expect(
+      await timeOf(
+        "<script>const hidden = 'words'</script>\n\n<style>.hidden { content: 'words' }</style>\n\n<textarea>hidden words</textarea>\n\nVisible words",
+      ),
+    ).toEqual({
+      words: 2,
+      minutes: 1,
+    });
+  });
+
   it("leaves punctuation, frontmatter, and comments out", async () => {
     expect(
       await timeOf(
