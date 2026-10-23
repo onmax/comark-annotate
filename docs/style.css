@@ -2973,8 +2973,9 @@ li {
   text-wrap: pretty;
 }
 
-/* Unlayered, these would beat the embed's and the chips' own link styles, which the page shows off. */
-a:where(:not(.ce-card, .ce a, .cp)) {
+/* Unlayered, these would beat the embed's, the chips', and the table of contents' own link styles, which the page shows
+   off. */
+a:where(:not(.ce-card, .ce a, .cp, .cto a)) {
   color: var(--fg);
   text-decoration: underline;
   text-decoration-color: var(--line);
@@ -2983,7 +2984,7 @@ a:where(:not(.ce-card, .ce a, .cp)) {
   transition: text-decoration-color 150ms ease;
 }
 
-a:where(:not(.ce-card, .ce a, .cp)):hover {
+a:where(:not(.ce-card, .ce a, .cp, .cto a)):hover {
   text-decoration-color: var(--fg);
 }
 

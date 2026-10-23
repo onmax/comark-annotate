@@ -14,6 +14,8 @@ import fileTree from "./file-tree.ts";
 import github from "./github.ts";
 import icon from "./icon.ts";
 import include from "./include.ts";
+import media from "./media.ts";
+import outline from "./outline.ts";
 import qr from "./qr.ts";
 import steps from "./steps.ts";
 import tabs from "./tabs.ts";
@@ -38,6 +40,8 @@ export const catalog = {
   ...steps,
   ...tabs,
   ...badge,
+  ...outline,
+  ...media,
   ...qr,
   ...fields,
   ...fileTree,

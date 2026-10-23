@@ -97,6 +97,7 @@ const packageOrder = [
   "steps",
   "deflist",
   "include",
+  "outline",
   "reading-time",
   "lint",
 ];
