@@ -30,8 +30,8 @@ Deploy freeze
 
 ## Tight and loose
 
-A definition holding one paragraph renders its text straight inside `<dd>`. With more blocks, each paragraph keeps its `<p>`. With Comark's `autoUnwrap: false`, a loose list, one with a blank line inside a definition, keeps `<p>` in every definition, as markdown-it-deflist does.
+A definition holding one paragraph renders its text straight inside `<dd>`. With more blocks, each paragraph keeps its `<p>`. With Comark's `autoUnwrap: false`, a loose list keeps `<p>` in every definition. A list is loose when a blank line sits inside a definition or between a term and its definition.
 
 ## What isn't a definition
 
-A colon with no space after it, such as `:3 to 1` or a `:component`, stays text, and so does a `: line` with no term above it.
+A colon with no space after it, such as `:3 to 1` or a `:component`, stays text, and so does a `: line` with no term above it or one indented four spaces past the term. A marker with nothing after it is an empty definition.
