@@ -13,7 +13,9 @@
     muted = false,
     native = false,
   } = $props();
-  onMount(() => start(css));
+  onMount(() => {
+    if ((kind === "video" || kind === "audio") && src && !native) return start(css);
+  });
 </script>
 
 {#if kind === "video" && src && native}

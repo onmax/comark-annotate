@@ -20,7 +20,10 @@ export const Media = defineComponent({
   },
   setup(props) {
     let stop = () => {};
-    onMounted(() => (stop = start(css)));
+    onMounted(() => {
+      if ((props.kind === "video" || props.kind === "audio") && props.src && !props.native)
+        stop = start(css);
+    });
     onBeforeUnmount(() => stop());
     return () => {
       const { kind, src, label } = props;

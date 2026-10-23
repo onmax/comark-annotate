@@ -16,8 +16,9 @@ export function Media({
   muted,
   native,
 }: MediaAttributes) {
-  useEffect(() => start(css), []);
-  if ((kind !== "video" && kind !== "audio") || !src) return null;
+  const valid = (kind === "video" || kind === "audio") && Boolean(src);
+  useEffect(() => (valid && !native ? start(css) : undefined), [valid, native]);
+  if (!valid) return null;
   const video = kind === "video";
   const element = createElement(
     kind,
