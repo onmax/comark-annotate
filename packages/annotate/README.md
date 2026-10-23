@@ -66,4 +66,4 @@ pnpm docs:build  # render docs/index.md into docs/dist
 
 ## Credits
 
-comark-annotate is MIT licensed. The hand-drawn marks come from [AnnotationKit](https://annotationkit.vercel.app), and [Comark](https://comark.dev) by the Comark team does the parsing and rendering.
+comark-annotate is MIT licensed. The hand-drawn marks come from [AnnotationKit](https://annotationkit.vercel.app), and it is built on [Comark](https://comark.dev), which does the parsing and rendering. It is an independent project, not part of Comark.
