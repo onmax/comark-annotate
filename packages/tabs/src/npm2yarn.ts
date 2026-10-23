@@ -16,6 +16,16 @@ const FAILED = "# couldn't auto-convert command";
 // Keep shell separators inside quoted arguments with the argument they belong to. This is intentionally a small
 // scanner rather than a shell parser: npm-to-yarn still owns command conversion, while we only identify boundaries.
 function splitCommands(line: string) {
+  const hasClosingBacktick = (from: number) => {
+    for (let index = from + 1; index < line.length; index++) {
+      if (line[index] === "\\") {
+        index++;
+      } else if (line[index] === "`") {
+        return true;
+      }
+    }
+    return false;
+  };
   const parts: string[] = [];
   let start = 0;
   let quote: "'" | '"' | undefined;
@@ -67,7 +77,7 @@ function splitCommands(line: string) {
       index++;
       continue;
     }
-    if (char === "`" && quote !== "'") {
+    if (char === "`" && quote !== "'" && hasClosingBacktick(index)) {
       substitutions.push({ kind: "backtick", restore: quote });
       quote = undefined;
       continue;
