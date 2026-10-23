@@ -1,7 +1,7 @@
 <!-- `::card` for `@comark/svelte`. -->
 <script>
   import { onMount } from "svelte";
-  import { addStyles, external as arrow, rel } from "comark-cards/client";
+  import { addStyles, external as arrow, isExternalHref, isSafeHref, rel } from "comark-cards/client";
   import { Icon } from "comark-icon/svelte";
 
   let {
@@ -14,6 +14,8 @@
     children,
   } = $props();
   onMount(addStyles);
+  const href = isSafeHref(to) ? to : undefined;
+  const linkTarget = target || (isExternalHref(href) ? "_blank" : undefined);
 </script>
 
-<div class="ccr" data-color={color}>{#if to}<a class="ccr-link" href={to} target={target || undefined} rel={rel(target)} aria-label={label}></a>{/if}{#if icon?.src}<Icon {...icon} />{/if}{#if external}<svg class="ccr-external" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={arrow} /></svg>{/if}{@render children?.()}</div>
+<div class="ccr" data-color={color}>{#if href}<a class="ccr-link" href={href} target={linkTarget} rel={rel(linkTarget)} aria-label={label}></a>{/if}{#if icon?.src}<Icon {...icon} />{/if}{#if external}<svg class="ccr-external" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={arrow} /></svg>{/if}{@render children?.()}</div>
