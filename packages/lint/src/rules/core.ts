@@ -9,7 +9,7 @@ export default {
   },
   "comark/broken-anchor": {
     code: "COMARK0004",
-    title: "Link `#fragments` to a heading or id in the document",
+    title: "Link `#fragments` to a heading or id in the document they name",
   },
   "comark/invalid-frontmatter": {
     code: "COMARK0005",
@@ -25,4 +25,10 @@ export default {
   "comark/duplicate-id": { code: "COMARK0008", title: "Give each element its own id" },
   "comark/missing-alt": { code: "COMARK0009", title: "Describe every image in its alt text" },
   "comark/empty-link": { code: "COMARK0010", title: "Give every link text" },
+  "comark/broken-link": { code: "COMARK0011", title: "Link files that exist" },
+  "comark/blocked-url": {
+    code: "COMARK0012",
+    title: "Keep local, private, tunnel, and preview URLs out of links",
+  },
+  "comark/dead-url": { code: "COMARK0013", title: "Link pages that still answer" },
 } satisfies Record<`comark/${string}`, RuleInfo>;
