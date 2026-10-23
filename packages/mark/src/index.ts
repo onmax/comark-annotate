@@ -86,11 +86,10 @@ function restoreUnresolvedFootnoteRefs(state: {
     if (
       value[0] === "span" &&
       value.length === 3 &&
-      typeof value[2] === "string" &&
-      /^\^[^\s\]^]+$/.test(value[2]) &&
-      (!definitions || !definitions.has(value[2].slice(1)))
+      /^\^[^\s\]^]+$/.test(String(value[2])) &&
+      (!definitions || !definitions.has(String(value[2]).slice(1)))
     )
-      return `[${value[2]}]`;
+      return `[${String(value[2])}]`;
     return value.map(rewrite);
   };
   state.tree.nodes = state.tree.nodes.map(rewrite);
@@ -107,6 +106,7 @@ function superscript(state: StateInline, silent: boolean) {
   // The link/reference rule may consume `[` before this rule runs, so inspect the
   // pending text and most recently emitted token as well as the raw source.
   const previous = state.tokens[state.tokens.length - 1];
+  // SAFETY: Comark's inline state exposes the pending text at runtime but omits it from its type.
   const pending = (state as StateInline & { pending?: string }).pending;
   if (
     state.src.charCodeAt(start - 1) === BRACKET ||
