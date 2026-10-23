@@ -15,4 +15,4 @@ import embed, { components } from "comark-embed/html";
 const render = createHtmlRenderer({ plugins: [embed()], components });
 ```
 
-For Vue, React, or Svelte, import from `comark-embed/vue`, `comark-embed/react`, or `comark-embed/svelte`; the components add the styles when they mount. Import `comark-embed/style.css` with your styles so a server-rendered page doesn't shift. [Renderers](/guide/renderers/) covers using it with other plugins.
+For Vue, React, or Svelte, import from `comark-embed/vue`, `comark-embed/react`, or `comark-embed/svelte`. The components add the styles when they mount. When you render on a server, import `comark-embed/style.css` with your own styles so the page doesn't shift. [Renderers](/guide/renderers/) covers using it with other plugins.

@@ -52,4 +52,6 @@ A tree is a `<div class="cft">` of nested `<ul>`s. Each entry is an `<li>` with 
 | `--comark-radius` | Corners |
 | `--comark-font` | Notes |
 
-Set `--cft-added`, `--cft-removed`, and `--cft-changed` on `.cft` to change the colors of marked entries; removed entries follow shadcn/ui's `--destructive` by default. The rules sit in a `comark` CSS layer, so any plain rule of your own wins, except the spacing that draws the tree: the margins, padding, and bullets of its lists, `details`, and `summary` are `!important`, because a page's own list styles are almost always unlayered and would push entries off their guide lines. Override those with `!important` too.
+Set `--cft-added`, `--cft-removed`, and `--cft-changed` on `.cft` to change the colors of marked entries. Removed entries follow shadcn/ui's `--destructive` by default.
+
+The rules sit in a `comark` CSS layer, so any plain rule of your own wins, except the spacing that draws the tree. The margins, padding, and bullets of its lists, `details`, and `summary` are `!important`. A page's own list styles are almost always unlayered and would push entries off their guide lines. Override those with `!important` too.

@@ -32,14 +32,18 @@ chips({
 });
 ```
 
-Pass `download: false` where parsing runs in a browser: most sites don't let a page download their images, so each chip would try and then fall back to its URL anyway.
+Pass `download: false` where parsing runs in a browser. Most sites don't let a page download their images, so each chip would try and then fall back to its URL anyway.
 
 ## Rate limits
 
-Avatars from X, Bluesky, YouTube, GitLab, and `avatar="provider:name"` come from [unavatar.io](https://unavatar.io), which answers 25 downloads a day for each IP address without a plan. Each image counts once a week, thanks to the cache. When it says no, the chip keeps the URL for the reader's browser and `meta.issues` says to build again. A CI that starts with no `node_modules` downloads everything every time; set `cache` to a folder you commit, such as `.comark/chips`, and it downloads only the images that are new. GitHub avatars and favicons have no such limit.
+Avatars from X, Bluesky, YouTube, GitLab, and `avatar="provider:name"` come from [unavatar.io](https://unavatar.io), which answers 25 downloads a day for each IP address without a plan. With the cache, each image counts once a week. GitHub avatars and favicons have no such limit.
 
-An avatar that answers with an HTTP error, such as an `@user` with no GitHub account, is reported in `meta.issues`. A site without a favicon gets a chip with no image. Each problem has its own rule in [Doctor](/doctor/).
+When unavatar.io says no, the chip keeps the URL for the reader's browser, and `meta.issues` says to build again.
+
+A CI that starts with no `node_modules` downloads everything every time. Set `cache` to a folder you commit, such as `.comark/chips`, and it downloads only the images that are new.
+
+`meta.issues` reports an avatar that answers with an HTTP error, such as an `@user` with no GitHub account. A site without a favicon gets a chip with no image. Each problem has its own rule in [Doctor](/doctor/).
 
 ## Other renderers
 
-For Vue, React, or Svelte, import from `comark-chips/vue`, `comark-chips/react`, or `comark-chips/svelte`; the components add the styles when they mount. Import `comark-chips/style.css` with your styles so a server-rendered page doesn't shift. [Renderers](/guide/renderers/) covers using it with other plugins.
+For Vue, React, or Svelte, import from `comark-chips/vue`, `comark-chips/react`, or `comark-chips/svelte`. The components add the styles when they mount. When you render on a server, import `comark-chips/style.css` with your own styles so the page doesn't shift. [Renderers](/guide/renderers/) covers using it with other plugins.

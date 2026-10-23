@@ -44,7 +44,7 @@ The zoomed view sits at the end of `body`, so set these on `:root`, `body`, or `
 
 ## Styles from ancestors
 
-The zoomed copy leaves the page, so it loses rules that match through its ancestors, such as `.post img`. An item that needs them names those ancestors with `data-zoom-context`, a selector, and the copy goes inside empty copies of every ancestor that matches:
+The zoomed copy leaves the page, so it loses rules that match through its ancestors, such as `.post img`. An item that needs them names those ancestors with `data-zoom-context`, a selector. The copy then goes inside empty copies of every ancestor that matches:
 
 ```html
 <article class="post">

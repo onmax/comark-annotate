@@ -221,7 +221,7 @@ describe("comark-tabs", () => {
       const markdown =
         "```sh npm2yarn\nnpm run show -- `printf before; npm install hidden` && npm i\n```";
       expect(await panels(markdown, { managers: ["pnpm"] })).toEqual([
-        ["pnpm", "pnpm run show -- `printf before; npm install hidden` && pnpm i"],
+        ["pnpm", "pnpm run show `printf before; npm install hidden` && pnpm i"],
       ]);
     });
 
@@ -229,7 +229,7 @@ describe("comark-tabs", () => {
       const markdown =
         '```sh npm2yarn\nnpm run show -- "`printf \\`before; npm install hidden\\`" && npm i\n```';
       expect(await panels(markdown, { managers: ["pnpm"] })).toEqual([
-        ["pnpm", 'pnpm run show -- "`printf \\`before; npm install hidden\\`" && pnpm i'],
+        ["pnpm", 'pnpm run show "`printf \\`before; npm install hidden\\`" && pnpm i'],
       ]);
     });
 

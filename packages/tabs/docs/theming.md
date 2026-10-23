@@ -3,7 +3,7 @@ title: Theming
 description: The shared tokens, the tab strip's own variables, and the classes a page can target.
 ---
 
-The tab strip is a segmented control in the style of shadcn/ui, on the shared tokens in [Theming](/guide/theming/), and five variables of its own change the strip, the open tab, and the space under them. The rules sit in a `comark` CSS layer, so a plain rule of your own wins over any of them.
+The tab strip is a segmented control in the style of shadcn/ui, and follows the shared tokens in [Theming](/guide/theming/). Five variables of its own change the strip, the open tab, and the space under them. The rules sit in a `comark` CSS layer, so a plain rule of your own wins over any of them.
 
 ## Shared tokens
 

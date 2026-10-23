@@ -3,7 +3,7 @@ title: Theming
 description: The color of each callout type, and the classes a callout carries.
 ---
 
-Callouts follow shadcn/ui's Alert: a bordered card with the icon and title in the type's color. References and the HTML GitHub allows render as plain elements, so your page's styles apply to them. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
+Callouts follow shadcn/ui's Alert, a bordered card with the icon and title in the type's color. References and the HTML GitHub allows render as plain elements, so your page's styles apply to them. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
 
 ## Shared tokens
 

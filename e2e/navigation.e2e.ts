@@ -12,8 +12,19 @@ test("client navigation preserves the app and reinitializes page scripts", async
   await page.locator(".sidebar").getByRole("link", { name: "annotate", exact: true }).click();
   await expect(page).toHaveURL(/\/annotate\/$/);
   await expect(page.locator("h1")).toHaveText("comark-annotate");
+  // The npmx chip's view transition holds the pointer until it ends.
+  await page.waitForFunction(
+    () =>
+      !document
+        .getAnimations()
+        .some((animation) =>
+          (animation.effect as KeyframeEffect | null)?.pseudoElement?.startsWith(
+            "::view-transition",
+          ),
+        ),
+  );
   // The body came as island JSON, so its zoom script had to run again for a mark to open the zoom.
-  await page.locator(".ca-compare .ca-mark").first().click({ force: true });
+  await page.locator("main .ca-compare .ca-mark").first().click({ force: true });
   await expect(page.locator(".cz-dialog")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.locator(".cz-dialog")).toHaveCount(0);
