@@ -14,6 +14,7 @@ import {
   references,
 } from "../packages/github/src/html.ts";
 import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
+import steps, { components as stepsComponents } from "../packages/steps/src/html.ts";
 import badge, { components as badgeComponents } from "../packages/badge/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
@@ -33,6 +34,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   githubHtml(),
   icon(),
   badge(),
+  steps(),
   tabs(),
   zoom(config["comark-zoom"]),
 ];
@@ -48,6 +50,7 @@ export const components = {
   ...githubComponents,
   ...iconComponents,
   ...badgeComponents,
+  ...stepsComponents,
   ...tabsComponents,
   ...zoomComponents,
 };
