@@ -110,7 +110,11 @@ function matches(pattern: Pattern, written: string, url: URL | undefined): boole
   if (wildcard ? !hostname.endsWith(`.${host.toLowerCase()}`) : hostname !== host.toLowerCase())
     return false;
   if (port && port !== (url.port || (url.protocol === "https:" ? "443" : "80"))) return false;
-  return !path || url.pathname === path || url.pathname.startsWith(path.endsWith("/") ? path : `${path}/`);
+  return (
+    !path ||
+    url.pathname === path ||
+    url.pathname.startsWith(path.endsWith("/") ? path : `${path}/`)
+  );
 }
 
 const isMarkdown = (path: string) => /\.mdc?$/i.test(path);

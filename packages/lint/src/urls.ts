@@ -62,10 +62,12 @@ export async function checkUrls(
   );
   // A TLS error needs a connection, so it proves the network is up as well as a status does.
   const reached = [...fresh.values()].some((answer) => "status" in answer || isTls(answer.code));
-  const probe = await once(PROBE, settings.timeout, "HEAD");
-  if (fresh.size && !reached && !("status" in probe || isTls(probe.code))) {
-    console.warn("lint-comark: the network is unreachable, so comark/dead-url checked no URLs.");
-    return undefined;
+  if (fresh.size && !reached) {
+    const probe = await once(PROBE, settings.timeout, "HEAD");
+    if (!("status" in probe || isTls(probe.code))) {
+      console.warn("lint-comark: the network is unreachable, so comark/dead-url checked no URLs.");
+      return undefined;
+    }
   }
   if (file) {
     for (const [url, answer] of fresh)
