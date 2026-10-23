@@ -18,8 +18,10 @@ export const css = `@layer comark{${[
   ".cdt-summary .ci{flex:none;font-size:1rem;color:var(--_comark-muted)}",
   ".cdt-summary::after{content:'';flex:none;box-sizing:border-box;width:.5rem;height:.5rem;margin-inline-start:auto;border:solid var(--_comark-muted);border-width:0 1.5px 1.5px 0;rotate:45deg;translate:0 -.125rem;transition:rotate .2s,translate .2s}",
   ".cdt[open]>.cdt-summary::after{rotate:225deg;translate:0 .125rem}",
-  ".cdt>.cdt-summary+*{margin-top:0}",
-  ".cdt>:last-child{margin-bottom:0}",
+  // A page's paragraph and list margins are almost always unlayered, so only `!important` keeps them from opening a gap
+  // under the summary or above the box's bottom edge.
+  ".cdt>.cdt-summary+*{margin-top:0!important}",
+  ".cdt>:last-child{margin-bottom:0!important}",
   ".cdt[data-variant='collapsible']{padding:0;border:0;background:none}",
   ".cdt[data-variant='collapsible']>.cdt-summary{display:inline-flex;gap:.375rem;margin:0;padding:.25rem 0;color:var(--_comark-muted);font-size:.875rem}",
   ".cdt[data-variant='collapsible']>.cdt-summary:hover{color:var(--_comark-foreground)}",
