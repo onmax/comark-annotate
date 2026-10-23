@@ -26,6 +26,7 @@ export type MediaAttributes = {
 };
 
 type Data = Parameters<typeof resolveAttributes>[1];
+type Issue = { message: string; rule: `comark/media/${string}` };
 
 const VIDEO = /\.(?:mp4|webm|mov|m4v)$/i;
 const AUDIO = /\.(?:mp3|wav|ogg|m4a)$/i;

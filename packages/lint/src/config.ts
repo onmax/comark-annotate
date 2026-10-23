@@ -40,6 +40,12 @@ const packages = [
       })),
     [],
   ],
+  // Syntax plugins have no components, and are loaded so their syntax isn't read as something else.
+  [
+    "comark-deflist",
+    () => import("comark-deflist").then((module) => ({ ...module, components: {} })),
+    [],
+  ],
   ["comark-diff/html", () => import("comark-diff/html"), []],
   ["comark-icon/html", () => import("comark-icon/html"), []],
   ["comark-media/html", () => import("comark-media/html"), []],
@@ -48,6 +54,11 @@ const packages = [
   ["comark-badge/html", () => import("comark-badge/html"), []],
   ["comark-fields/html", () => import("comark-fields/html"), []],
   [
+    "comark-details/html",
+    () => import("comark-details/html"),
+    ["details", "accordion-item", "collapsible"],
+  ],
+  [
     "comark-reading-time",
     // It writes only `meta`, so it has no components and nothing to lint, but it runs as the host's would.
     () => import("comark-reading-time").then((module) => ({ ...module, components: {} })),
@@ -55,6 +66,7 @@ const packages = [
   ],
   ["comark-file-tree/html", () => import("comark-file-tree/html"), []],
   ["comark-tabs/html", () => import("comark-tabs/html"), ["code-group", "tabs-item"]],
+  ["comark-outline/html", () => import("comark-outline/html"), []],
   ["comark-zoom/html", () => import("comark-zoom/html"), []],
 ] as const;
 

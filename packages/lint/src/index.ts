@@ -246,7 +246,7 @@ function checkDocument({ source, found, parsed }: Document, options: LintOptions
       );
     check("comark/broken-anchor", () => brokenAnchors(document.nodes, source));
     check("comark/unsafe-url", () => unsafeUrls(document.nodes, source));
-    check("comark/duplicate-id", () => duplicateIds(document.nodes, source));
+    check("comark/duplicate-id", () => duplicateIds(document.nodes, source, options.headingIds));
     check("comark/missing-alt", () => missingAlts(document.nodes, source));
     check("comark/empty-link", () => emptyLinks(document.nodes, source));
     check("comark/plugin-issue", () => pluginIssues(document.meta, source, blocks()));
@@ -678,7 +678,7 @@ function unsafeUrls(nodes: Node[], source: Source): Diagnostic[] {
   return found;
 }
 
-function duplicateIds(nodes: Node[], source: Source): Diagnostic[] {
+function duplicateIds(nodes: Node[], source: Source, headingIds?: HeadingIdsOption): Diagnostic[] {
   const tagged = [...elements(nodes)].flatMap(([tag, attributes]) => {
     const id = text(attributes.id);
     return id ? [{ tag, id }] : [];
@@ -687,23 +687,48 @@ function duplicateIds(nodes: Node[], source: Source): Diagnostic[] {
   const found: Diagnostic[] = [];
   const locations = (id: string): { line: number; column: number }[] => {
     const matches: { line: number; column: number }[] = [];
-    const explicit = [`{#${id}`, `id="${id}"`, `id='${id}'`, `id=${id}`];
+    const explicit = [
+      `{#${id}`,
+      `{id="${id}"}`,
+      `{id='${id}'}`,
+      `{id=${id}}`,
+      `id="${id}"`,
+      `id='${id}'`,
+      `id=${id}`,
+    ];
+    let ancestors: { level: number; text: string }[] = [];
+    const slug = (value: string) => {
+      const clean = value
+        .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+        .replace(/`([^`]*)`/g, "$1")
+        .replace(/[*_~]/g, "")
+        .replace(/[^\p{L}\p{M}\p{N}\s-]/gu, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .toLowerCase();
+      return /^\d/.test(clean) ? `_${clean}` : clean;
+    };
     for (let line = source.body; line < source.prose.length; line++) {
-      const text = source.prose[line]!;
+      const value = source.prose[line]!;
       for (const needle of explicit) {
-        for (let column = text.indexOf(needle); column !== -1; column = text.indexOf(needle, column + 1))
-          matches.push({ line: line + 1, column: column + 1 });
+        const at = value.indexOf(needle);
+        if (at !== -1) matches.push({ line: line + 1, column: at + 1 });
       }
-      const heading = /^( {0,3})#{1,6}\s+(.+?)\s*$/.exec(text);
-      if (heading && !/\s\{#[^}]+\}\s*$/.test(heading[2]!)) {
-        const slug = heading[2]!
-          .toLowerCase()
-          .replace(/[`*_~\[\]()]/g, "")
-          .replace(/[^\p{L}\p{N}\s-]/gu, "")
-          .trim()
-          .replace(/\s+/g, "-");
-        if (slug === id) matches.push({ line: line + 1, column: heading[0].indexOf(heading[2]!) + 1 });
-      }
+      const heading = /^( {0,3})(#{1,6})\s+(.+?)\s*$/.exec(value);
+      if (!heading) continue;
+      const level = heading[2]!.length;
+      const content = heading[3]!.replace(/\s+\{#[^}]+\}\s*$/, "");
+      while (ancestors.at(-1) && ancestors.at(-1)!.level >= level) ancestors.pop();
+      const generated = slug(
+        headingIds === "nested" && level >= 3
+          ? [...ancestors.filter((item) => item.level >= 2).map((item) => item.text), content].join(
+              " ",
+            )
+          : content,
+      );
+      if (generated === id)
+        matches.push({ line: line + 1, column: heading[0].indexOf(heading[3]!) + 1 });
+      ancestors.push({ level, text: content });
     }
     return matches.sort((a, b) => a.line - b.line || a.column - b.column);
   };
