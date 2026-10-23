@@ -28,7 +28,6 @@ import type { PlayConfig } from "./config.ts";
 export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}) => [
   annotate(),
   carousel(),
-  code(config["comark-code"]),
   deflist(),
   charts(),
   chips({ download }),
