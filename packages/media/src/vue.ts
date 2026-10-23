@@ -23,12 +23,11 @@ export const Media = defineComponent({
     const sync = () => {
       stop();
       stop = () => {};
-      if ((props.kind === "video" || props.kind === "audio") && props.src && !props.native) stop = start(css);
+      if ((props.kind === "video" || props.kind === "audio") && props.src && !props.native)
+        stop = start(css);
     };
-    onMounted(() => {
-      sync();
-      watch(() => [props.kind, props.src, props.native], sync);
-    });
+    watch(() => [props.kind, props.src, props.native], sync);
+    onMounted(sync);
     onBeforeUnmount(() => stop());
     return () => {
       const { kind, src, label } = props;
