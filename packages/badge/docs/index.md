@@ -27,4 +27,4 @@ Use `useFetch` instead. :badge[v4]{color="info"} :badge[stable]{color="success"}
 :::
 ::
 
-A badge is a `<span>` in a tint of its color with text in the color, so it reads on light and dark pages. On a Nuxt UI page, it takes the app's `--ui-primary` and the other color variables.
+A badge is a `<span>` in a tint of its color with text in the color, so it reads on light and dark pages. Primary follows the page's shadcn/ui `--primary`, or the text color without one, and on a Nuxt UI page every color takes the app's `--ui-*` variable.
