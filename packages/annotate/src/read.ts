@@ -93,6 +93,15 @@ function isHttp(url: string) {
 }
 // Quotes what an author wrote, so a quote inside it can't blur where the name ends.
 const quote = (value: string) => JSON.stringify(value);
+// Invalid bound values can be circular, contain a BigInt, or throw while being stringified.
+// Keep diagnostics best-effort so malformed props never escape the parser.
+const describe = (value: unknown) => {
+  try {
+    return String(value);
+  } catch {
+    return "<unprintable value>";
+  }
+};
 const named = new Set<string>(PALETTE);
 // Alpha hex colors are left out: a transparent one would hide the mark.
 const isColor = (color: string) => named.has(color) || /^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(color);
@@ -398,7 +407,7 @@ function readAt(attrs: Record<string, unknown>, problems: Issue[]) {
   if (nonText(value)) {
     problems.push({
       rule: "comark/annotate/invalid-position",
-      message: `\`at\` must be where the note sits along its margin, a percentage of the image from 0 to 100 (got ${quote(JSON.stringify(value))}).`,
+      message: `\`at\` must be where the note sits along its margin, a percentage of the image from 0 to 100 (got ${quote(describe(value))}).`,
     });
     return undefined;
   }
@@ -418,7 +427,7 @@ function readTo(attrs: Record<string, unknown>, problems: Issue[]) {
   if (nonText(value)) {
     problems.push({
       rule: "comark/annotate/invalid-position",
-      message: `\`to\` must be the point the arrow lands on, as two percentages of the image from 0 to 100, like to="42,18" (got ${quote(JSON.stringify(value))}).`,
+      message: `\`to\` must be the point the arrow lands on, as two percentages of the image from 0 to 100, like to="42,18" (got ${quote(describe(value))}).`,
     });
     return undefined;
   }
@@ -438,7 +447,7 @@ function readInk(attrs: Record<string, unknown>, problems: Issue[]) {
   if (nonText(value)) {
     problems.push({
       rule: "comark/annotate/invalid-color",
-      message: `\`ink\` must be ${PALETTE.join(", ")}, or a 3- or 6-digit hex color like #8b5cf6 (got ${quote(JSON.stringify(value))}).`,
+      message: `\`ink\` must be ${PALETTE.join(", ")}, or a 3- or 6-digit hex color like #8b5cf6 (got ${quote(describe(value))}).`,
     });
     return undefined;
   }
