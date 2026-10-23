@@ -122,6 +122,22 @@ describe("comark-file-tree", () => {
     ]);
   });
 
+  it("names each issue's rule, and reports a prop it doesn't read", async () => {
+    const { meta } = await parse(
+      `::file-tree{title="Pond"}\n- ducks.ts\n::\n\n${block("")}\n\n::file-tree\nSee below.\n\n\`\`\`\nb.ts\n\`\`\`\n::`,
+    );
+    expect(meta.issueRules).toEqual({
+      "`::file-tree` 1: `title` isn't a prop of `::file-tree`, which takes none, so it's ignored. Remove it.":
+        "comark/file-tree/unknown-prop",
+      "`::file-tree` 1 holds a Markdown list, which turns names like `__init__.py` bold and drops `[id].vue`. Write the tree in a fenced block.":
+        "comark/file-tree/list-instead-of-fence",
+      "`::file-tree` 2's fenced block is empty. Write one entry per line.":
+        "comark/file-tree/empty-tree",
+      '`::file-tree` 3: only one fenced block goes inside, so the paragraph "See below." doesn\'t render. Move it out of the block.':
+        "comark/file-tree/content-dropped",
+    });
+  });
+
   it("draws icons from comark-icon by name, then extension, when given a resolver", async () => {
     const files: IconCollection = {
       prefix: "files",

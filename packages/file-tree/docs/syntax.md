@@ -38,5 +38,6 @@ The plugin adds every problem to `meta.issues`, as [Validation](/guide/validatio
 - A Markdown list instead of a fence renders as the list, with the fix: write the tree in a fenced block.
 - Content beside the fence doesn't render.
 - An empty fence, or a block with nothing in it.
+- A prop, which the block doesn't read.
 
-Each issue names its block and says how to fix it.
+Each issue names its block and says how to fix it. Each one has its own rule in [Doctor](/doctor/).

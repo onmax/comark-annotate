@@ -19,7 +19,11 @@ export type FileTreeOptions = {
 export type FileTreeMeta = {
   /** One readable sentence per problem with a `::file-tree`. Empty when the document has none. Other plugins add theirs too. */
   issues: string[];
+  /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
+  issueRules: Record<string, string>;
 };
+
+type Issue = { rule: `comark/file-tree/${string}`; message: string };
 
 /** How an entry changed: written as `+`, `-`, or `~` before its name. */
 export type EntryState = "added" | "removed" | "changed";
@@ -190,7 +194,15 @@ function describe(node: Node) {
 }
 
 // The nodes that take the block's place: the tree, or what was written instead of one, so nothing is lost.
-function fileTree(node: ElementNode, name: string, issues: string[]): Node[] {
+function fileTree(node: ElementNode, name: string, issues: Issue[]): Node[] {
+  for (const key of Object.keys(node[1])) {
+    const prop = key.replace(/^:/, "");
+    if (prop !== "id" && prop !== "class")
+      issues.push({
+        rule: "comark/file-tree/unknown-prop",
+        message: `${name}: \`${prop}\` isn't a prop of \`::file-tree\`, which takes none, so it's ignored. Remove it.`,
+      });
+  }
   const content = childrenOf(node).filter(isContent);
   const blocks = content.filter((child) => isElement(child) && child[0] === "pre");
   const [block] = blocks;
@@ -198,18 +210,29 @@ function fileTree(node: ElementNode, name: string, issues: string[]): Node[] {
     const list = content.find((child) => isElement(child) && /^[ou]l$/.test(child[0]));
     issues.push(
       list
-        ? `${name} holds a Markdown list, which turns names like \`__init__.py\` bold and drops \`[id].vue\`. Write the tree in a fenced block.`
-        : `${name} has no tree. Write the tree in a fenced block inside it, one entry per line.`,
+        ? {
+            rule: "comark/file-tree/list-instead-of-fence",
+            message: `${name} holds a Markdown list, which turns names like \`__init__.py\` bold and drops \`[id].vue\`. Write the tree in a fenced block.`,
+          }
+        : {
+            rule: "comark/file-tree/empty-tree",
+            message: `${name} has no tree. Write the tree in a fenced block inside it, one entry per line.`,
+          },
     );
     return content;
   }
   for (const child of content)
     if (child !== block)
-      issues.push(
-        `${name}: only one fenced block goes inside, so ${describe(child)} doesn't render. Move it out of the block.`,
-      );
+      issues.push({
+        rule: "comark/file-tree/content-dropped",
+        message: `${name}: only one fenced block goes inside, so ${describe(child)} doesn't render. Move it out of the block.`,
+      });
   const tree = readTree(textContent(block));
-  if (!tree.length) issues.push(`${name}'s fenced block is empty. Write one entry per line.`);
+  if (!tree.length)
+    issues.push({
+      rule: "comark/file-tree/empty-tree",
+      message: `${name}'s fenced block is empty. Write one entry per line.`,
+    });
   node.splice(1, node.length - 1, {}, ...tree);
   return [node];
 }
@@ -228,7 +251,7 @@ export default defineComarkPlugin<FileTreeOptions, FileTreeMeta>((options = {}) 
     name: "comark-file-tree",
     async post(state) {
       const { tree } = state;
-      const issues: string[] = [];
+      const issues: Issue[] = [];
       let count = 0;
       const transform = (nodes: Node[]): Node[] =>
         nodes.flatMap((node) => {
@@ -250,7 +273,11 @@ export default defineComarkPlugin<FileTreeOptions, FileTreeMeta>((options = {}) 
           if (icon && "src" in icon) item[1].icon = icon;
         }
       }
-      tree.meta.issues = [...(tree.meta.issues ?? []), ...issues];
+      tree.meta.issues = [...(tree.meta.issues ?? []), ...issues.map((issue) => issue.message)];
+      tree.meta.issueRules = {
+        ...tree.meta.issueRules,
+        ...Object.fromEntries(issues.map((issue) => [issue.message, issue.rule])),
+      };
     },
   };
 });
