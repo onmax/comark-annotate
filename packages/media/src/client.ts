@@ -109,6 +109,13 @@ export function start(css: string): () => void {
       if (mediaOf(player)?.paused === false) animate(player);
     });
 
+  const pauseAudible = (except: HTMLMediaElement) =>
+    document
+      .querySelectorAll<HTMLMediaElement>(".cm-audio>audio,.cm-video>video")
+      .forEach((media) => {
+        if (media !== except && !media.muted) media.pause();
+      });
+
   // Media events don't bubble, but they still pass the document on the way down, so one listener there sees them all.
   const redraw = (event: Event) => {
     const player = playerOf(event.target);
@@ -134,12 +141,17 @@ export function start(css: string): () => void {
       const started = player && mediaOf(player);
       if (!player || !started) return;
       // One recording with sound at a time, since two can't be followed. A muted loop reads like a picture, so it plays on.
-      if (!started.muted)
-        for (const media of document.querySelectorAll<HTMLMediaElement>(
-          ".cm-audio>audio,.cm-video>video",
-        ))
-          if (media !== started && !media.muted) media.pause();
+      if (!started.muted) pauseAudible(started);
       animate(player);
+    },
+    { capture: true, signal },
+  );
+
+  document.addEventListener(
+    "volumechange",
+    (event) => {
+      const media = event.target instanceof HTMLMediaElement ? event.target : null;
+      if (media && !media.muted && !media.paused) pauseAudible(media);
     },
     { capture: true, signal },
   );
@@ -157,7 +169,10 @@ export function start(css: string): () => void {
       const player = playerOf(button);
       const media = player && mediaOf(player);
       if (!button || !player || !media) return;
-      if (button.classList.contains("cm-mute")) media.muted = !media.muted;
+      if (button.classList.contains("cm-mute")) {
+        media.muted = !media.muted;
+        if (!media.muted && !media.paused) pauseAudible(media);
+      }
       else if (button.classList.contains("cm-full")) {
         if (document.fullscreenElement === player) document.exitFullscreen().catch(() => {});
         else if (document.fullscreenEnabled) player.requestFullscreen().catch(() => {});
@@ -221,6 +236,8 @@ export function start(css: string): () => void {
   );
 
   sync();
+  const observer = new MutationObserver(() => sync());
+  observer.observe(document, { childList: true, subtree: true });
 
   const state = {
     users: 1,
@@ -228,6 +245,7 @@ export function start(css: string): () => void {
     stop: () => {
       if (--state.users > 0) return;
       listeners.abort();
+      observer.disconnect();
       style?.remove();
       for (const player of document.querySelectorAll(players)) {
         player.removeAttribute("data-media-ready");
