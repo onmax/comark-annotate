@@ -92,6 +92,7 @@ const packageOrder = [
   "cards",
   "steps",
   "include",
+  "reading-time",
   "lint",
 ];
 const repo = new URL("../", root);
