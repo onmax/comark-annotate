@@ -31,4 +31,4 @@ Ask [Anthony](https://antfu.me){avatar="@antfu"}, or read the [guide](https://vi
 
 Every web link becomes a chip with its site's favicon, and every `@user` a chip with their GitHub avatar that links to their profile. A link into a GitHub account or repository shows the account's avatar, and a link into an X, Bluesky, YouTube, or GitLab account shows theirs through [unavatar.io](https://unavatar.io).
 
-The images are downloaded while parsing and inlined, so the page asks no other site for them, and kept on disk so the next build asks no one either. One that can't be downloaded, such as in a browser that blocks the request, stays a link for the reader's browser to load.
+The plugin downloads the images while parsing and inlines them, so the page asks no other site for them. It keeps them on disk, so the next build asks no one either. An image it can't download, such as in a browser that blocks the request, stays a link for the reader's browser to load.

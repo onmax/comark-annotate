@@ -1,6 +1,5 @@
 <!-- Videos and audio for `@comark/svelte`. -->
 <script>
-  import { onMount } from "svelte";
   import { controls, css, start } from "comark-media/client";
 
   let {
@@ -13,8 +12,11 @@
     muted = false,
     native = false,
   } = $props();
-  onMount(() => {
-    if ((kind === "video" || kind === "audio") && src && !native) return start(css);
+  $effect(() => {
+    if ((kind === "video" || kind === "audio") && src && !native) {
+      const stop = start(css);
+      return stop;
+    }
   });
 </script>
 

@@ -11,7 +11,15 @@ The plugin checks every icon while parsing and adds the problems to `meta.issues
 `:icon` 1 ("lucide:aple"): The `lucide` set has no icon `aple`. Find its name at https://icones.js.org/collection/lucide.
 ```
 
-It reports an icon without a `name`, a name that isn't `set:name` or a URL, a set or icon Iconify doesn't have, a request that failed, and a prop `:icon` doesn't read. Each one has its own rule in [Doctor](/doctor/). Rendering never throws.
+It reports:
+
+- An icon without a `name`.
+- A name that isn't `set:name` or a URL.
+- A set or icon Iconify doesn't have.
+- A request that failed.
+- A prop `:icon` doesn't read.
+
+Each one has its own rule in [Doctor](/doctor/). Rendering never throws.
 
 ## Icons in another plugin
 
@@ -32,4 +40,4 @@ for (const [name, icon] of resolved) {
 
 Put each sentence in `meta.issues` and its rule from `iconProblemRule()` in `meta.issueRules`, so comark-linter reports the problem under the same rule as an `:icon`'s.
 
-Its renderers draw each icon with this package's: `iconHtml()` and `iconStyles(state)` from `comark-icon/html`, and the `Icon` component from `comark-icon/vue`, `/react`, and `/svelte`. The icons then look and size the same as `:icon`.
+Draw each icon in your renderers with this package's helpers, so the icons look and size the same as `:icon`. Use `iconHtml()` and `iconStyles(state)` from `comark-icon/html`, and the `Icon` component from `comark-icon/vue`, `/react`, and `/svelte`.

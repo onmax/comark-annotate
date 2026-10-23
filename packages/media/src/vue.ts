@@ -1,4 +1,4 @@
-import { defineComponent, h, onBeforeUnmount, onMounted } from "vue";
+import { defineComponent, h, onBeforeUnmount, onMounted, watch } from "vue";
 import { controls, css, start } from "./client.ts";
 
 export { default } from "./index.ts";
@@ -20,9 +20,14 @@ export const Media = defineComponent({
   },
   setup(props) {
     let stop = () => {};
+    const sync = () => {
+      stop();
+      stop = () => {};
+      if ((props.kind === "video" || props.kind === "audio") && props.src && !props.native) stop = start(css);
+    };
     onMounted(() => {
-      if ((props.kind === "video" || props.kind === "audio") && props.src && !props.native)
-        stop = start(css);
+      sync();
+      watch(() => [props.kind, props.src, props.native], sync);
     });
     onBeforeUnmount(() => stop());
     return () => {

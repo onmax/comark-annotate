@@ -35,6 +35,7 @@ catalog:
   "@types/node": ^24.0.0
   vite: npm:@voidzero-dev/vite-plus-core@^1.1.0
   vite-plus: ^1.1.0
+  "@vite-hub/source": 0.0.4
 
 overrides:
   vite: "catalog:"
@@ -49,3 +50,6 @@ minimumReleaseAgeExclude:
 allowBuilds:
   esbuild: false
   msgpackr-extract: true
+
+patchedDependencies:
+  "@vite-hub/source@0.0.4": patches/@vite-hub__source@0.0.4.patch
