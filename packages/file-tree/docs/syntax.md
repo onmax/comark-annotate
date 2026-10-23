@@ -29,7 +29,7 @@ Write one entry per line in a fenced block inside `::file-tree`. Any language, o
 
 ## Why a fenced block
 
-Starlight writes its file tree as a Markdown list, but in Comark a list loses names: `__init__.py` turns bold, `[id].vue` becomes a span, and a `- #notes.md` line opens a slot that swallows every entry after it. Inside a fence, every character stays.
+Starlight writes its file tree as a Markdown list, but in Comark a list mangles names. `__init__.py` turns bold, `[id].vue` becomes a span, and a `- #notes.md` line opens a slot that swallows every entry after it. Inside a fence, every character stays.
 
 ## Issues
 

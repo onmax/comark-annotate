@@ -60,7 +60,7 @@ test("opening and closing the zoom doesn't shift the page sideways", async ({ pa
   const heading = page.locator("h1");
   const left = await heading.evaluate((node) => node.getBoundingClientRect().left);
 
-  await page.locator(".cc-slide").first().click();
+  await page.locator("main .cc-slide").first().click();
   await expect(page.locator(".cz-dialog")).toBeVisible();
   expect(await heading.evaluate((node) => node.getBoundingClientRect().left)).toBe(left);
   await page.keyboard.press("Escape");
@@ -182,7 +182,7 @@ test("a zoomed block has the background behind it, so the page doesn't show betw
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await fixture(page, await render("::zoom\n| A | B |\n| - | - |\n| 1 | 2 |\n::"));
-  await page.locator(".cz").click();
+  await page.locator("main .cz").click();
   const copy = page.locator(".cz-item > .cz");
   await expect(copy).toHaveCSS("background-color", "rgb(255, 255, 255)");
 });

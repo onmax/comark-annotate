@@ -60,4 +60,4 @@ packages/
 :::
 ::
 
-The tree is written in a fenced block, so names stay as they are: `__init__.py` isn't bold and `[slug].vue` isn't a span. Folders are open `<details>`, so a reader folds the ones they don't need with no script.
+You write the tree in a fenced block, so names stay as they are. `__init__.py` isn't bold, and `[slug].vue` isn't a span. Folders are open `<details>`, so a reader folds the ones they don't need with no script.

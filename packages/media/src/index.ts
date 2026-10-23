@@ -9,8 +9,6 @@ export type MediaMeta = {
   issueRules: Record<string, string>;
 };
 
-type Issue = { rule: `comark/media/${string}`; message: string };
-
 /**
  * What a media file becomes, and all its renderers read. `kind` is `video` or `audio`; `label` is the image's alt. The
  * flags are only present when set.

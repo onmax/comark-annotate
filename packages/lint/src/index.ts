@@ -717,6 +717,7 @@ function duplicateIds(nodes: Node[], source: Source, headingIds?: HeadingIdsOpti
       const heading = /^( {0,3})(#{1,6})\s+(.+?)\s*$/.exec(value);
       if (!heading) continue;
       const level = heading[2]!.length;
+      const explicitId = /\s+\{#([^}]+)\}\s*$/.exec(heading[3]!)?.[1];
       const content = heading[3]!.replace(/\s+\{#[^}]+\}\s*$/, "");
       while (ancestors.at(-1) && ancestors.at(-1)!.level >= level) ancestors.pop();
       const generated = slug(
@@ -726,7 +727,9 @@ function duplicateIds(nodes: Node[], source: Source, headingIds?: HeadingIdsOpti
             )
           : content,
       );
-      if (generated === id)
+      // An explicit heading label is the parser's sole source for this ID when it
+      // matches the generated slug; do not count that heading twice.
+      if (generated === id && explicitId !== id)
         matches.push({ line: line + 1, column: heading[0].indexOf(heading[3]!) + 1 });
       ancestors.push({ level, text: content });
     }

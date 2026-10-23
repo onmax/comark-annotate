@@ -125,4 +125,13 @@ Week 15 is missing for the pigeons.
 :::
 ::
 
-Hover a mark or a note to highlight the other, and click a screenshot to zoom it. To share one, use its Copy button or press Ctrl+C (⌘C on a Mac) while it's focused; you get a PNG of the screenshot with its marks and notes. The browser's own Copy Image on the screenshot copies the same PNG once the pointer has been over it. If the image comes from another origin, its server has to send CORS headers. In an iframe, the frame needs `allow="clipboard-write"`. A comparison shows its screenshots side by side, or one at a time on a narrow page, and they zoom as one gallery; a slider lays one over the other, and you drag the divider between them. The page reads the same without a script; [zoom](/zoom/) and [carousel](/carousel/) come with the package. To page through screenshots spread across a page, or show a flow one step at a time, see the [recipes](/recipes/zoom/).
+Hover a mark to highlight its note, or a note to highlight its mark. Click a screenshot to zoom it.
+
+To share a screenshot, press its Copy button, or focus it and press Ctrl+C (⌘C on a Mac). You get a PNG with the marks and notes drawn in. The browser's own Copy Image gives you the same PNG once the pointer has been over the screenshot. Copying needs setup in two cases:
+
+- An image from another origin needs CORS headers from its server.
+- A page in an iframe needs `allow="clipboard-write"` on the frame.
+
+A comparison shows its screenshots side by side, or one at a time on a narrow page, and zooms them as one gallery. A slider stacks the two screenshots, and you drag the divider to reveal one or the other.
+
+Everything reads the same without a script. [zoom](/zoom/) and [carousel](/carousel/) come with the package. To page through screenshots spread across a page, or show a flow one step at a time, see the [recipes](/recipes/zoom/).

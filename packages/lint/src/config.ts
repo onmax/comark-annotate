@@ -48,10 +48,16 @@ const packages = [
   ],
   ["comark-diff/html", () => import("comark-diff/html"), []],
   ["comark-icon/html", () => import("comark-icon/html"), []],
+  [
+    "comark-mark",
+    () => import("comark-mark").then((module) => ({ ...module, components: {} })),
+    [],
+  ],
   ["comark-media/html", () => import("comark-media/html"), []],
   ["comark-steps/html", () => import("comark-steps/html"), []],
   ["comark-cards/html", () => import("comark-cards/html"), []],
   ["comark-badge/html", () => import("comark-badge/html"), []],
+  ["comark-qr/html", () => import("comark-qr/html"), []],
   ["comark-fields/html", () => import("comark-fields/html"), []],
   [
     "comark-details/html",

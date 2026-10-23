@@ -3,7 +3,7 @@ title: Theming
 description: The height of apps, the width of Shorts, and the classes of players and cards.
 ---
 
-Players sit in a bordered frame with their link under it, and cards follow shadcn/ui's Item: a globe, the title, and the host. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
+Players sit in a bordered frame with their link under it. Cards follow shadcn/ui's Item, with a globe, the title, and the host. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
 
 ## Shared tokens
 
