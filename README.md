@@ -4,7 +4,7 @@
 
 # comark-plugins
 
-[Comark](https://comark.dev) plugins for review documents. Each package is published on its own and all of them share one version.
+Plugins for review documents, built on [Comark](https://comark.dev). This is an independent project by [@onmax](https://github.com/onmax), not made by the Comark team. Each package is published on its own and all of them share one version.
 
 | Package | What it does |
 | --- | --- |

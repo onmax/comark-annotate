@@ -611,7 +611,7 @@ const packageGrid: NodeHandler = async ([, , ...children]) => {
     .filter((section) => section.npm)
     .map(
       (section) =>
-        `<li><a href="${href(section.slug)}">${siteIcon(section.icon, 24)}<strong>${escapeHtml(section.label)}</strong><span>${escapeHtml(section.blurb ?? "")}</span></a><button type="button" class="grid-copy" data-copy="pnpm add ${escapeHtml(section.npm!)}" aria-label="Copy pnpm add ${escapeHtml(section.npm!)}">${copyIcon}</button></li>`,
+        `<li><a href="${href(section.slug)}"><span class="grid-icon">${siteIcon(section.icon, 20)}</span><strong>${escapeHtml(section.label)}</strong><span>${escapeHtml(section.blurb ?? "")}</span><span class="grid-arrow">${siteIcon("arrow-up-right", 16)}</span></a></li>`,
     )
     .join("");
   return (
@@ -691,6 +691,10 @@ const rail = (current: Section) =>
     )}<a class="rail-drop" href="https://drop.vitehub.dev/?utm_source=comark-plugins&amp;utm_medium=sidebar"><img src="/drop.svg" alt="" width="18" height="18"><span class="rail-label"><strong>Review on Drop</strong><span>Comment on the exact spot</span></span></a></nav>`;
 // The second column: the current section's pages, or the playground's presets.
 const column = (section: Section, current: string) => {
+  // A package's examples, folded at the foot of its column as the playground lists them; each opens there.
+  const examples = presets.filter((preset) => preset.group === section.label);
+  const presetCard = (preset: (typeof presets)[number], href: string) =>
+    `<div class="preset"><div class="preset-thumb" aria-hidden="true" inert><div class="preset-page">${thumbnails.get(preset.id) ?? ""}</div></div><a data-preset="${preset.id}" href="${href}">${escapeHtml(preset.label)}</a></div>`;
   const lists =
     section.slug === "play"
       ? [...new Set(presets.map((preset) => preset.group))].map((group) => ({
@@ -699,10 +703,7 @@ const column = (section: Section, current: string) => {
           links: [
             `<div class="presets">${presets
               .filter((preset) => preset.group === group)
-              .map(
-                (preset) =>
-                  `<div class="preset"><div class="preset-thumb" aria-hidden="true" inert><div class="preset-page">${thumbnails.get(preset.id) ?? ""}</div></div><a data-preset="${preset.id}" href="#preset=${preset.id}">${escapeHtml(preset.label)}</a></div>`,
-              )
+              .map((preset) => presetCard(preset, `#preset=${preset.id}`))
               .join("")}</div>`,
           ],
         }))
@@ -714,8 +715,6 @@ const column = (section: Section, current: string) => {
               `<a${page.slug === current ? ' aria-current="page"' : ""} href="${href(page.slug)}">${escapeHtml(page.label)}</a>`,
           ),
         }));
-  // A package with examples opens its first one in the playground.
-  const preset = presets.find((preset) => preset.group === section.label);
   return `<nav class="pages" aria-label="${escapeHtml(section.label)}"><p class="pages-title">${escapeHtml(section.npm ?? section.label)}</p>${lists
     .map(
       (list) =>
@@ -723,7 +722,7 @@ const column = (section: Section, current: string) => {
     )
     .join(
       "",
-    )}${section.npm && preset ? `<div class="pages-foot"><a class="pages-play" href="/play/#preset=${preset.id}">${siteIcon("flask-conical", 15)}Open in playground</a></div>` : ""}</nav>`;
+    )}${section.npm && examples.length ? `<details class="pages-foot"><summary class="pages-play">${siteIcon("flask-conical", 15)}Examples<span class="pages-count">${examples.length}</span></summary><div class="presets">${examples.map((preset) => presetCard(preset, `/play/#preset=${preset.id}`)).join("")}</div></details>` : ""}</nav>`;
 };
 // Previous and next page in the section.
 function pager(page: Page) {
@@ -799,7 +798,6 @@ const copied = async button => {
     if (copyTokens.get(button) === token) button.classList.remove("copied");
   }, 1200);
 };
-for (const button of document.querySelectorAll(".grid-copy")) button.addEventListener("click", () => copied(button));
 // The index's canvas: columns of package cards without end, each running through every card from its own start, so
 // neighbours differ from column to column. Only the cards in view are in the page, cloned from the template as they
 // come in, at heights known before any is shown. It holds still: it follows a drag and coasts to rest after it, and
@@ -1289,7 +1287,7 @@ ${colorTokens.map((token) => tokenRow(token, capitalize(token), `<input type="co
 ${tokenRow("radius", "Radius", `<input type="range" data-slider="radius" min="0" max="1.5" step="0.125" value="0.625" aria-label="Radius in rem">`)}
 ${tokenRow("font", "Font", "<span></span>")}
 </div>
-<div class="play-theme-field play-theme-extra"><label for="play-theme-css">Extra CSS</label><p>Each plugin's own variables, like <code>--cc-*</code> or <code>--ck-*</code>, or any rule, applied to the preview.</p><textarea id="play-theme-css" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder=":root { --cc-gap: 2rem; --ck-inset: 0.5rem }"></textarea></div>
+<details class="play-theme-field play-theme-extra"><summary>Extra CSS</summary><p>Each plugin's own variables, like <code>--cc-*</code> or <code>--ck-*</code>, or any rule, applied to the preview.</p><textarea id="play-theme-css" aria-label="Extra CSS" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder=":root { --cc-gap: 2rem; --ck-inset: 0.5rem }"></textarea></details>
 </div>`;
 
 // The playground opens on the first preset, rendered here so it shows before the script loads.

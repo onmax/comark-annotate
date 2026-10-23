@@ -1,8 +1,8 @@
 ---
 title: Comark plugins
 description: Plugins for Comark that make review documents easier to read.
-headline: Review documents, written in Markdown.
-tagline: Annotated screenshots, code changes, charts, and more for Comark. Each plugin is its own package.
+headline: Comark plugins for review documents.
+tagline: Annotated screenshots, code changes, charts, and more, written in Markdown. Each plugin is its own package.
 install: pnpm add comark @comark/html comark-annotate
 ---
 
@@ -158,7 +158,7 @@ Thanks @onmax: this fixes #51, and onmax/comark-plugins#73 builds on it.
 ::hero
 ## Made for agents. Read by people.
 
-Your agent writes the review as Markdown: a note, a screenshot with marks, a table, a suggested change. Your team reads the page, and the next agent reads the same Markdown back. When a block is wrong, the plugins name it and say how to fix it, so the agent fixes it before anyone reads the page.
+Your agent writes the review in Markdown and your team reads the page. When a block is wrong, the plugins say how to fix it.
 
 ````md
 > [!TIP] Decision

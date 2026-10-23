@@ -402,7 +402,7 @@ kbd {
   position: relative;
 }
 
-.menu summary {
+.menu > summary {
   display: grid;
   place-items: center;
   width: 2.5rem;
@@ -413,12 +413,12 @@ kbd {
   cursor: pointer;
 }
 
-.menu summary::-webkit-details-marker {
+.menu > summary::-webkit-details-marker {
   display: none;
 }
 
-.menu summary:hover,
-.menu[open] summary {
+.menu > summary:hover,
+.menu[open] > summary {
   background: var(--soft);
   color: var(--fg);
 }
@@ -646,23 +646,12 @@ kbd {
   translate: -50% 0;
 }
 
-.canvas-bar .seg {
-  padding: 0;
-  box-shadow: none;
-  background: none;
-}
-
 .canvas-bar .seg button {
   display: grid;
   place-items: center;
   width: 2.25rem;
-  height: 2.25rem;
+  height: 2rem;
   padding: 0;
-  border-radius: 9px;
-}
-
-.canvas-bar .seg .indicator {
-  border-radius: 9px;
 }
 
 .canvas[data-view="list"] .canvas-viewport {
@@ -689,9 +678,11 @@ kbd {
   display: flex;
   position: static;
   width: fit-content;
-  margin: 1rem auto 0;
+  margin: 1.5rem auto 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
   translate: none;
-  box-shadow: 0 0 0 1px var(--line);
   backdrop-filter: none;
 }
 
@@ -957,9 +948,6 @@ kbd {
    renders, so a still frame never hides anything. */
 .demo-annotate .ca-mark,
 .demo-carousel .cc-track,
-.demo-chips .cp,
-.demo-icon .ci,
-.demo-github .cgc,
 .demo-lint .term-line,
 .demo-zoom img,
 .demo-embed .demo-progress,
@@ -980,22 +968,30 @@ kbd {
   animation-fill-mode: both;
 }
 
-/* annotate: the marks draw themselves in, one after the other, and the notes follow. */
+/* annotate: the marks redraw themselves one after the other, so only one is ever being drawn. */
 .demo-annotate .ca-mark {
   animation-name: demo-draw;
   animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 .demo-annotate .ca-mark[data-n="2"] {
-  animation-delay: 300ms;
+  animation-delay: 450ms;
 }
 
-.demo-annotate .ca-notes li {
-  animation: demo-rise 7s var(--ease-out) infinite both;
+.demo-annotate .ca-mark[data-n="3"] {
+  animation-delay: 900ms;
 }
 
-.demo-annotate .ca-notes li[data-n="2"] {
-  animation-delay: 300ms;
+.demo-annotate .ca-mark[data-n="4"] {
+  animation-delay: 1350ms;
+}
+
+.demo-annotate .ca-mark[data-n="5"] {
+  animation-delay: 1800ms;
+}
+
+.demo-annotate .ca-mark[data-n="6"] {
+  animation-delay: 2250ms;
 }
 
 @keyframes demo-draw {
@@ -1014,25 +1010,6 @@ kbd {
   16%,
   100% {
     clip-path: inset(-150% -150% -150% -150%);
-  }
-}
-
-@keyframes demo-rise {
-  0% {
-    opacity: 1;
-    translate: 0;
-  }
-
-  4%,
-  10% {
-    opacity: 0;
-    translate: 0 6px;
-  }
-
-  18%,
-  100% {
-    opacity: 1;
-    translate: 0;
   }
 }
 
@@ -1121,57 +1098,51 @@ kbd {
   translate: 0 8px;
 }
 
-/* chips: each link turns into its chip in turn. */
-.demo-chips .cp,
+/* chips and icons: the chips hold still and each one's favicon or avatar nudges in turn, as icons do. */
+.demo-chips .cp-img,
 .demo-icon .ci {
-  animation-name: demo-pop;
+  animation: demo-nudge 3.5s var(--ease-out) infinite both;
 }
 
-.demo-chips .cp:nth-of-type(2),
+.demo-chips .cp:nth-of-type(2) .cp-img,
 .demo-icon .ci:nth-of-type(2) {
-  animation-delay: 120ms;
+  animation-delay: 150ms;
 }
 
-.demo-chips .cp:nth-of-type(3),
+.demo-chips .cp:nth-of-type(3) .cp-img,
 .demo-icon .ci:nth-of-type(3) {
-  animation-delay: 240ms;
+  animation-delay: 300ms;
 }
 
-.demo-chips .cp:nth-of-type(4),
+.demo-chips .cp:nth-of-type(4) .cp-img,
 .demo-icon .ci:nth-of-type(4) {
-  animation-delay: 360ms;
+  animation-delay: 450ms;
 }
 
 .demo-icon .ci:nth-of-type(5) {
-  animation-delay: 480ms;
+  animation-delay: 600ms;
 }
 
-@keyframes demo-pop {
-  0% {
-    opacity: 1;
-    scale: 1;
-  }
+/* github: each callout's icon nudges in turn, and the references light up in turn. The callout itself stays, so
+   the card never goes blank. */
+.demo-github .cgc-icon {
+  animation: demo-nudge 3.5s var(--ease-out) infinite both;
+}
 
-  3%,
-  6% {
-    opacity: 0;
-    scale: 0.6;
-  }
+.demo-github .cgc + .cgc .cgc-icon {
+  animation-delay: 300ms;
+}
 
-  14%,
+@keyframes demo-nudge {
+  0%,
+  18%,
   100% {
-    opacity: 1;
     scale: 1;
   }
-}
 
-/* github: the callouts land one after the other; the references light up in turn. */
-.demo-github .cgc {
-  animation-name: demo-rise;
-}
-
-.demo-github .cgc + .cgc {
-  animation-delay: 160ms;
+  6% {
+    scale: 1.25;
+  }
 }
 
 .demo-github-references a {
@@ -1417,7 +1388,7 @@ kbd {
 .demo-directive code {
   padding: 0;
   background: none;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .demo-include .demo-directive + p,
@@ -1448,7 +1419,18 @@ kbd {
   }
 }
 
-/* embed: a still of the player, playing. */
+/* A card is too narrow to scroll, so its code wraps. */
+.demo-page pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* embed: a still of the player, playing. The still fills whatever frame the embed's size gives it. */
+.demo-page .ce-frame:has(.demo-player) {
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
+
 .demo-player {
   position: relative;
   display: grid;
@@ -1579,31 +1561,32 @@ kbd {
   }
 }
 
-/* The packages as a list: tiles sharing their borders, each one link. */
+/* The packages as a list: tiles sharing their borders, each one link, with an arrow that comes in on hover. */
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 0;
   padding: 0;
-  border-top: 1px solid var(--line);
-  border-left: 1px solid var(--line);
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 0 0 1px var(--line);
   list-style: none;
 }
 
 .grid li {
   display: flex;
-  position: relative;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  box-shadow:
+    1px 0 0 var(--line),
+    0 1px 0 var(--line);
 }
 
 .grid a {
   display: grid;
   flex: 1;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.125rem 1rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.125rem 0.875rem;
   align-items: center;
-  padding: 1.5rem;
+  padding: 1.25rem 1.25rem 1.25rem 1rem;
   color: var(--muted);
   font-size: 0.875rem;
   line-height: 1.5;
@@ -1611,14 +1594,38 @@ kbd {
   transition: background-color 150ms ease;
 }
 
-.grid .ci {
+.grid-icon {
+  display: grid;
   grid-row: span 2;
-  color: var(--faint);
-  transition: color 150ms ease;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 10px;
+  background: var(--soft);
+  color: var(--fg);
+  transition: background-color 150ms ease;
 }
 
 .grid strong {
+  grid-column: 2;
+  color: var(--fg);
   font: 500 0.875rem/1.4 var(--mono);
+}
+
+.grid a > span:not([class]) {
+  grid-column: 2;
+  text-wrap: pretty;
+}
+
+.grid-arrow {
+  display: flex;
+  grid-area: 1 / 3 / span 2;
+  color: var(--faint);
+  opacity: 0;
+  translate: -0.25rem 0.25rem;
+  transition:
+    opacity 200ms ease,
+    translate 200ms var(--ease-out);
 }
 
 .grid a:focus-visible {
@@ -1626,42 +1633,18 @@ kbd {
   outline-offset: -2px;
 }
 
-.grid-copy {
-  position: absolute;
-  right: 0.75rem;
-  bottom: 0.75rem;
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.grid-copy:hover {
-  background: var(--soft);
-  color: var(--fg);
-}
-
-.grid-copy:focus-visible {
-  outline: 2px solid var(--fg);
-  outline-offset: -2px;
-}
-
-.grid-copy.copied {
-  color: #16a34a;
-}
-
 @media (hover: hover) {
   .grid a:hover {
     background: var(--soft);
   }
 
-  .grid a:hover .ci {
-    color: var(--fg);
+  .grid a:hover .grid-icon {
+    background: var(--bg);
+  }
+
+  .grid a:hover .grid-arrow {
+    opacity: 1;
+    translate: 0;
   }
 }
 
@@ -1973,26 +1956,68 @@ kbd {
   font-weight: 500;
 }
 
-/* Opens the section's first example in the playground. */
-/* At the foot of the column, clear of the last page. */
+/* The package's examples as the playground shows them, folded at the foot of the column, clear of the last page. */
 .pages-foot {
   margin-top: auto;
   padding-top: 1.5rem;
 }
 
-.pages a.pages-play {
+.pages-play {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.625rem;
+  border-radius: 8px;
   box-shadow: inset 0 0 0 1px var(--line);
   color: var(--muted);
+  font-size: 0.8125rem;
   font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
 }
 
-.pages a.pages-play:hover {
+.pages-play::-webkit-details-marker {
+  display: none;
+}
+
+.pages-count {
+  margin-left: auto;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.pages-play::after {
+  content: "";
+  width: 0.375rem;
+  height: 0.375rem;
+  margin-left: 0.25rem;
+  border: solid currentColor;
+  border-width: 0 1.5px 1.5px 0;
+  rotate: -45deg;
+  transition: rotate 150ms var(--ease-out);
+}
+
+.pages-foot[open] .pages-play::after {
+  rotate: 45deg;
+}
+
+.pages-play:hover,
+.pages-foot[open] .pages-play {
   background: var(--soft);
   color: var(--fg);
+}
+
+.pages-foot .presets {
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 0.5rem;
+}
+
+/* The playground fits each still to its card with a script; here the column's width is known. */
+.pages-foot .preset-page {
+  transform: scale(0.32);
 }
 
 /* Not the links inside a preset's still, which keep the look the plugins give them. */
@@ -3211,13 +3236,13 @@ blockquote {
 }
 
 .seg .indicator {
-  top: 2px;
-  bottom: 2px;
-  border-radius: 6px;
+  top: 3px;
+  bottom: 3px;
+  border-radius: 7px;
   background: var(--bg);
   box-shadow:
-    0 0 0 1px var(--line),
-    0 1px 2px rgb(0 0 0 / 0.06);
+    0 0 0 0.5px rgb(0 0 0 / 0.06),
+    0 1px 3px rgb(0 0 0 / 0.1);
 }
 
 .seg button {
@@ -3257,30 +3282,40 @@ blockquote {
   box-shadow: 0 0 0 1px var(--line);
 }
 
+/* A switch: one soft track and a raised thumb on the choice, with no lines between them. */
 .seg {
   display: inline-flex;
-  padding: 2px;
-  border-radius: 8px;
+  padding: 3px;
+  border-radius: 10px;
   background: var(--soft);
-  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 .seg button {
   padding: 0.2rem 0.65rem;
   border: 0;
-  border-radius: 6px;
+  border-radius: 7px;
   background: none;
   color: var(--muted);
   font: 500 0.75rem/1.5 var(--sans);
   cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.seg button:hover,
+.seg [aria-pressed="true"] {
+  color: var(--fg);
 }
 
 .seg [aria-pressed="true"] {
   background: var(--bg);
   box-shadow:
-    0 0 0 1px var(--line),
-    0 1px 2px rgb(0 0 0 / 0.06);
-  color: var(--fg);
+    0 0 0 0.5px rgb(0 0 0 / 0.06),
+    0 1px 3px rgb(0 0 0 / 0.1);
+}
+
+.seg button:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: -2px;
 }
 
 .example-preview {
@@ -3795,6 +3830,36 @@ main img {
   gap: 0.375rem;
 }
 
+.play-theme-extra summary {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  width: fit-content;
+  color: var(--fg);
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+}
+
+.play-theme-extra summary::-webkit-details-marker {
+  display: none;
+}
+
+.play-theme-extra summary::after {
+  content: "";
+  width: 0.375rem;
+  height: 0.375rem;
+  border: solid currentColor;
+  border-width: 0 1.5px 1.5px 0;
+  color: var(--muted);
+  rotate: -45deg;
+  transition: rotate 150ms var(--ease-out);
+}
+
+.play-theme-extra[open] summary::after {
+  rotate: 45deg;
+}
+
 .play-theme-extra p {
   margin: 0;
   color: var(--muted);
@@ -3856,7 +3921,7 @@ main img {
 }
 
 /* Two to a row, so the playground's column is wider than a section's. */
-.sidebar:has(.presets) {
+.sidebar:has(.pages > .presets) {
   grid-template-columns: 3.25rem 21rem;
 }
 
