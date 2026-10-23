@@ -6,7 +6,7 @@ install: pnpm add comark @comark/html comark-chips
 group: Review blocks
 icon: at-sign
 blurb: Links and @mentions as chips
-credits: 'After <a href="https://antfu.me">Anthony Fu</a>''s <a href="https://github.com/antfu/markdown-it-magic-link">markdown-it-magic-link</a>. Favicons from Google, avatars from GitHub.'
+credits: 'After <a href="https://antfu.me">Anthony Fu</a>''s <a href="https://github.com/antfu/markdown-it-magic-link">markdown-it-magic-link</a>. Favicons from Google, avatars from GitHub and <a href="https://unavatar.io">unavatar.io</a>.'
 ---
 
 ::examples
@@ -18,7 +18,7 @@ Moves the build from [webpack](https://webpack.js.org) to [Vite](https://vite.de
 
 :::example{label="Mentions"}
 ```md
-@posva maintains [Vue Router](https://github.com/vuejs/router), and @danielroe leads [Nuxt](https://github.com/nuxt/nuxt).
+@posva maintains [Vue Router](https://github.com/vuejs/router), and @danielroe leads [Nuxt](https://github.com/nuxt/nuxt). [Evan](https://bsky.app/profile/evanyou.me) posts on Bluesky.
 ```
 :::
 
@@ -29,6 +29,6 @@ Ask [Anthony](https://antfu.me){avatar="@antfu"}, or read the [guide](https://vi
 :::
 ::
 
-Every web link becomes a chip with its site's favicon, and every `@user` a chip with their GitHub avatar that links to their profile. A link into a GitHub account or repository shows the account's avatar.
+Every web link becomes a chip with its site's favicon, and every `@user` a chip with their GitHub avatar that links to their profile. A link into a GitHub account or repository shows the account's avatar, and a link into an X, Bluesky, YouTube, or GitLab account shows theirs through [unavatar.io](https://unavatar.io).
 
-The images are downloaded while parsing and inlined, so the page asks no other site for them. One that can't be downloaded, such as in a browser that blocks the request, stays a link for the reader's browser to load.
+The images are downloaded while parsing and inlined, so the page asks no other site for them, and kept on disk so the next build asks no one either. One that can't be downloaded, such as in a browser that blocks the request, stays a link for the reader's browser to load.
