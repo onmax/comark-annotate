@@ -16,6 +16,7 @@ import {
 import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
 import steps, { components as stepsComponents } from "../packages/steps/src/html.ts";
 import cards, { components as cardsComponents } from "../packages/cards/src/html.ts";
+import badge, { components as badgeComponents } from "../packages/badge/src/html.ts";
 import readingTime from "../packages/reading-time/src/index.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
@@ -34,6 +35,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   references(config["comark-github"]?.references),
   githubHtml(),
   icon(),
+  badge(),
   cards(),
   steps(),
   // It only writes `meta.readingTime`, so it changes nothing the pages or the playground show.
@@ -52,6 +54,7 @@ export const components = {
   ...embedComponents,
   ...githubComponents,
   ...iconComponents,
+  ...badgeComponents,
   ...cardsComponents,
   ...stepsComponents,
   ...tabsComponents,
