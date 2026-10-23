@@ -24,4 +24,12 @@ export default {
     code: "COMARK1307",
     title: "Use only the props of `::tabs` and `:::tabs-item`",
   },
+  "comark/tabs/no-manager-form": {
+    code: "COMARK1308",
+    title: "Write `npm2yarn` commands every package manager has",
+  },
+  "comark/tabs/no-npm-command": {
+    code: "COMARK1309",
+    title: "Write an `npm2yarn` block in npm commands",
+  },
 } satisfies Record<`comark/tabs/${string}`, RuleInfo>;

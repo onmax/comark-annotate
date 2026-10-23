@@ -57,3 +57,18 @@ npm install comark-tabs
 | `sync` | As on `::tabs`. A code group and tabs with the same key switch together. |
 
 A code block takes an icon after its label, as `icon=logos:pnpm`.
+
+## npm2yarn
+
+A code block with `npm2yarn` after its language holds npm commands and becomes a code group with a tab for each package manager: npm, pnpm, yarn, and bun. It has `sync="pm"`, so it switches with the code groups you write with that key.
+
+::example
+````md
+```sh npm2yarn
+npm install -D comark-tabs
+npx nuxi@latest module add ui
+```
+````
+::
+
+Only lines that start with `npm` or `npx`, or commands after `&&`, `||`, or `;`, change, so `cd my-npm-app` stays as written. [npm-to-yarn](https://github.com/nebrelbug/npm-to-yarn) converts them, and bun's tab writes `bunx` and `bun create` as Bun's docs do. In a `::code-group` the block is one tab already, and `npm2yarn` does nothing. Set the managers with the [`managers` option](/tabs/guides/#package-managers).
