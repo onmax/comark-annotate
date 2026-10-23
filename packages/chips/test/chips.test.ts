@@ -200,6 +200,23 @@ describe("comark-chips", () => {
     ]);
   });
 
+  it("reports an avatar written as a bare login, and names each issue's rule in meta.issueRules", async () => {
+    const { meta } = await parseMarkdown(
+      ':chip[Nuxt]\n\n@ghost and [Busy](https://x.com/busy)\n\n[Mona](https://example.com){avatar="octocat"}',
+      { plugins: [chips({ cache: false })] },
+    );
+    expect(meta.issues).toContain(
+      '[Mona](https://example.com): `avatar="octocat"` is neither an image URL nor an account, so the chip shows a broken image. Write `avatar="@octocat"` for a GitHub account, or `avatar="https://…"` for an image.',
+    );
+    expect(meta.issues.map((issue) => meta.issueRules[issue]).sort()).toEqual([
+      "comark/chips/invalid-avatar",
+      "comark/chips/invalid-href",
+      "comark/chips/missing-avatar",
+      "comark/chips/rate-limited",
+    ]);
+    expect(await issues('[Mona](https://example.com){avatar="/mona.png"}')).toEqual([]);
+  });
+
   it("keeps downloaded images in the cache folder for the next build", async () => {
     const parent = join(import.meta.dirname, "../node_modules/.cache");
     await mkdir(parent, { recursive: true });

@@ -51,14 +51,4 @@ export default defineDoctorConfig({
 
 ## Codes
 
-Each rule reports with its own code, and the code links to the rule's entry on the [overview](/lint/#rules). Frontmatter Comark can't read and unsafe URLs are errors; the rest are warnings.
-
-| Code | Rule | Severity |
-| --- | --- | --- |
-| [`COMARK0001`](/lint/#comark0001) | `comark/unclosed-block` | warning |
-| [`COMARK0002`](/lint/#comark0002) | `comark/unknown-component` | warning |
-| [`COMARK0003`](/lint/#comark0003) | `comark/malformed-attributes` | warning |
-| [`COMARK0004`](/lint/#comark0004) | `comark/broken-anchor` | warning |
-| [`COMARK0005`](/lint/#comark0005) | `comark/invalid-frontmatter` | error |
-| [`COMARK0006`](/lint/#comark0006) | `comark/plugin-issue` | warning |
-| [`COMARK0007`](/lint/#comark0007) | `comark/unsafe-url` | error |
+Each rule reports with its own code, and the code links to the rule's page in [Doctor](/doctor/). The core rules are `COMARK0001` on, and each package's rules take a hundred of their own: comark-annotate's are `COMARK0101` on, comark-cards' `COMARK0201` on, and so on. Frontmatter Comark can't read and unsafe URLs are errors; the rest are warnings. [Doctor's overview](/doctor/#rules) lists every code.
