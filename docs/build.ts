@@ -89,6 +89,7 @@ const packageOrder = [
   "tabs",
   "code",
   "file-tree",
+  "fields",
   "badge",
   "cards",
   "steps",
