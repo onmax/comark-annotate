@@ -565,7 +565,9 @@ function emptyLinks(nodes: Node[], source: Source): Diagnostic[] {
   const found: Diagnostic[] = [];
   for (const [tag, attributes, ...children] of elements(nodes)) {
     const href = text(attributes.href);
-    if (tag !== "a" || !href || children.some((child) => isElement(child) || text(child))) continue;
+    const named = text(attributes["aria-label"]);
+    if (tag !== "a" || !href || named || children.some((child) => isElement(child) || text(child)))
+      continue;
     const { line, column } = locate(`](${href}`, href);
     found.push({
       rule: "comark/empty-link",

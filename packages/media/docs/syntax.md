@@ -39,7 +39,7 @@ A video dropped into a GitHub comment becomes a bare link, such as `https://gith
 
 ## Issues
 
-The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes: a video or audio file without alt text, `autoplay` without `muted`, a `poster` on audio, and a prop it doesn't know. Each issue names the file and says how to fix it:
+The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes: a video or audio file without alt text, `autoplay` without `muted`, a `poster` on audio, and a prop it doesn't know. Each issue names the file and says how to fix it, and each has its own rule in [Doctor](/doctor/):
 
 ```txt
 `![](demo.mp4)` has no label. Describe the video in the brackets, like `![Signing in with a passkey](demo.mp4)`.

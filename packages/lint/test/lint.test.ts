@@ -343,6 +343,10 @@ describe("comark/empty-link", () => {
       })),
     ).toEqual([{ rule: "comark/empty-link", line: 1 }]);
   });
+
+  it("passes a link an aria-label names", async () => {
+    expect(await check(`See [](/census/){aria-label="The census"}.`)).toEqual([]);
+  });
 });
 
 describe("meta.issueRules", () => {
