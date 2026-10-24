@@ -621,8 +621,13 @@ function dumbbell(chart: Chart, spec: TopLevelSpec) {
   const rows = chart.rows.map((row) => row.values.filter((value) => value !== undefined));
   const all = rows.flat().filter((value): value is number => Number.isFinite(value));
   if (!all.length) return;
+  // Dumbbells install an explicit value domain, so include reference-line targets before deriving its bounds.
+  const targets = chart.marks
+    .filter((mark) => mark.mark === "line" && mark.value !== undefined && Number.isFinite(mark.value))
+    .map((mark) => mark.value!);
+  const range = [...all, ...targets];
   const width = Number(spec.config?.view?.continuousWidth) || layout(chart).width;
-  let values = ticks(Math.min(...all), Math.max(...all), width);
+  let values = ticks(Math.min(...range), Math.max(...range), width);
   let [low, high] = [values[0]!, values.at(-1)!];
   if (low === high) {
     const center = low;
