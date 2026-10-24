@@ -1,5 +1,4 @@
 // Renders docs/pages and each package's docs/ with the plugins themselves into docs/dist, a static site served by Cloudflare at comark.onmax.me.
-import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -804,8 +803,9 @@ const resetIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" s
 const checkIcon = `<svg class="check" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5"/></svg>`;
 // Humans install the package with their package manager; agents install the skill from this site, the package's
 // own when it has one. A page about plugins installs every one through @onmax/comark by default, and offers its own
-// packages alone: the preset brings them as its dependencies, so the note says how to register them through it. A
-// page with ::usage shows that code instead, and leaves the note out, so switching there moves nothing above it.
+// packages alone: the preset brings them as its dependencies, so the note says how to register them through it. On a
+// page with ::usage, the switch over that code picks the command instead, so the page shows the choice once, beside
+// the code each side needs.
 const everyPlugin = "comark @comark/html @onmax/comark";
 // The installer and a page's ::usage both draw it, and the script keeps them on one choice.
 const scopeSwitch = (own: string[]) =>
@@ -822,12 +822,13 @@ function installerFor(install: string, skill: string, usage = false) {
   const commands = {
     all: managers(own.length ? everyPlugin : packages),
     one: managers(packages),
-    agents: `npx skills add ${site}${skill ? ` --skill ${skill}` : ""}`,
+    agents: "npx skills add onmax/comark-plugins",
   };
   const note = usage
     ? ""
     : `<p data-scope-panel="all">Render with <code>onmax()</code> from <a href="/preset/">@onmax/comark/html</a>, which registers every plugin in order.</p>`;
-  const scope = own.length ? `<div class="installer-scope">${scopeSwitch(own)}${note}</div>` : "";
+  const scope =
+    own.length && !usage ? `<div class="installer-scope">${scopeSwitch(own)}${note}</div>` : "";
   return `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
 <div class="installer-bar"><div class="seg" role="group" aria-label="Audience"><button type="button" data-audience="humans" aria-pressed="true">${userIcon}For humans</button><button type="button" data-audience="agents" aria-pressed="false">${botIcon}For agents</button></div>
 <div class="seg installer-pm" role="group" aria-label="Package manager">${["pnpm", "npm", "yarn", "bun"].map((pm, i) => `<button type="button" data-pm="${pm}" aria-pressed="${i === 0}">${pm}</button>`).join("")}</div></div>
@@ -1263,43 +1264,6 @@ await build({
   },
 });
 
-// The packages' agent skills, served for Agent Skills Discovery: v0.2 with a digest, and v0.1, which `npx skills add` reads.
-const skills = await Promise.all(
-  ["annotate/skills/comark-annotate", "charts/skills/comark-charts"].map(async (folder) => {
-    const text = await readFile(new URL(`../packages/${folder}/SKILL.md`, root), "utf8");
-    const meta = (await parseMarkdown(text)).frontmatter;
-    return { text, name: str(meta.name), description: str(meta.description) };
-  }),
-);
-for (const skill of skills)
-  for (const base of ["agent-skills", "skills"]) {
-    await mkdir(new URL(`.well-known/${base}/${skill.name}/`, dist), { recursive: true });
-    await writeFile(new URL(`.well-known/${base}/${skill.name}/SKILL.md`, dist), skill.text);
-  }
-await writeFile(
-  new URL(".well-known/agent-skills/index.json", dist),
-  JSON.stringify({
-    $schema: "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
-    skills: skills.map((skill) => ({
-      name: skill.name,
-      type: "skill-md",
-      description: skill.description,
-      url: `/.well-known/agent-skills/${skill.name}/SKILL.md`,
-      digest: `sha256:${createHash("sha256").update(skill.text).digest("hex")}`,
-    })),
-  }),
-);
-await writeFile(
-  new URL(".well-known/skills/index.json", dist),
-  JSON.stringify({
-    skills: skills.map((skill) => ({
-      name: skill.name,
-      description: skill.description,
-      files: ["SKILL.md"],
-    })),
-  }),
-);
-
 // The page around the content: header, rail, the section's column, and a menu that holds both on narrow screens. The
 // landing page has no sidebar, so its header links to the docs and the playground instead.
 const searchDialog = `<dialog class="search" aria-label="Search the docs">
@@ -1383,7 +1347,7 @@ await writeFile(
     description: landing.tagline,
     body: `<div class="landing">
 <div class="landing-hero enter"><div><h1>${escapeHtml(landing.headline)}</h1><p>${escapeHtml(landing.tagline)}</p></div>
-<div>${installerFor(landing.install, "")}<div class="actions"><a class="button primary" href="/play/">${siteIcon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the docs${siteIcon("arrow-right", 15)}</a></div></div></div>
+<div>${installerFor(landing.install, landing.skill, landing.usage)}<div class="actions"><a class="button primary" href="/play/">${siteIcon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the docs${siteIcon("arrow-right", 15)}</a></div></div></div>
 <main class="enter" style="--i:1">${await renderHtmlFromDocument(landing.document, { components: { ...components, packages: packageGrid, drop, hero } })}</main>
 ${footer()}
 </div>

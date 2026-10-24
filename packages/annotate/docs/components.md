@@ -66,7 +66,7 @@ r now counts the office cat.
 | Prop | |
 | --- | --- |
 | `x` `y` `w` `h` | The marked area, as percentages of the image: numbers from 0 to 100, without `%`. All four are required. |
-| `mark` | `box` (default), `circle`, `underline`, `highlight`, `bracket`, `cross`, `check`, or `none` to let a side note's arrow do the pointing. A `bracket` stands on the edge that faces its side note, the left one without a note, to span a run of rows or a group without covering it. `none` needs a `side`. Each mark wobbles a little differently, seeded by its box, so no two match and every render draws the same. |
+| `mark` | `box` (default), `circle`, `underline`, `line`, `highlight`, `bracket`, `cross`, `check`, or `none` to let a side note's arrow do the pointing. A `line` runs straight through the middle of its box, along its longer side, such as a fold or a limit. A `bracket` stands on the edge that faces its side note, the left one without a note, to span a run of rows or a group without covering it. `none` needs a `side`. Each mark wobbles a little differently, seeded by its box, so no two match and every render draws the same. |
 | `side` | `left`, `right`, `top`, or `bottom` puts the note beside, above, or below the image with an arrow. |
 | `at` | Where a side note sits along its margin, as a percentage of the image: across it for `top` and `bottom`, down it for `left` and `right`. Defaults to level with the arrow's point. A note set off to one side starts where its arrow leaves it and reads away from the point. Needs a `side`. |
 | `to` | The point the arrow lands on, as two percentages of the image, like `to="42,18"`. Defaults to the middle of the mark's edge that faces the note. Needs a `side`. |

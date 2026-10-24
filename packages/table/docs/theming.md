@@ -22,6 +22,17 @@ Tables read these [shared tokens](/guide/theming/):
 
 The table itself takes the page's own table styles.
 
+## Colors
+
+A cell with a `tone` carries its tint in its own `style`, a 20% mix of its color into transparent, so it colors any table, inside a `::table` or not, with no stylesheet. Set the colors with Nuxt UI's tokens, which comark-badge reads too:
+
+| Token | Tone | Default |
+| --- | --- | --- |
+| `--ui-success` | `success` | `#16a34a` |
+| `--ui-warning` | `warning` | `#ca8a04` |
+| `--ui-error` | `error` | `--destructive`, then `#dc2626` |
+| `--ui-info` | `info` | `#2563eb` |
+
 ## Classes
 
 | Class | Element |

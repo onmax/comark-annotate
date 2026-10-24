@@ -39,6 +39,7 @@ catalog:
   vite: npm:@voidzero-dev/vite-plus-core@^1.1.0
   vite-plus: ^1.1.0
   "@vite-hub/source": 0.0.4
+  nuxt-agent-discovery: ^0.8.0
 
 overrides:
   vite: "catalog:"

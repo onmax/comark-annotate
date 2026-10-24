@@ -110,4 +110,12 @@ export default {
     code: "COMARK0430",
     title: "Color a gantt by one column of names",
   },
+  "comark/charts/invalid-labels": {
+    code: "COMARK0431",
+    title: "Put `labels` on bar and stacked bar charts",
+  },
+  "comark/charts/invalid-line": {
+    code: "COMARK0432",
+    title: "Cross a chart with a line at a number on its value axis",
+  },
 } satisfies Record<`comark/charts/${string}`, RuleInfo>;

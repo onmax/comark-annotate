@@ -79,6 +79,20 @@ export const marks = {
     5,
   ),
   underline: wobbly("0 0 200 60", ["M8 32C58 22 142 40 192 26"], 6),
+  // A straight stroke through the middle of the area, along its longer side, end to end: a limit across a screenshot,
+  // or a target across a chart.
+  line: (width, height, random) => {
+    const across = width >= height;
+    const [length, middle] = across ? [width, height / 2] : [height, width / 2];
+    const at = (along: number, off: number): Point => (across ? [along, off] : [off, along]);
+    const bow = Math.min(2, length * 0.01) * random();
+    return {
+      viewBox: `-5 -5 ${round(width + 10)} ${round(height + 10)}`,
+      paths: [
+        `M${point(at(0, middle + random() * 0.8))}Q${point(at(length / 2, middle + bow))} ${point(at(length, middle + random() * 0.8))}`,
+      ],
+    };
+  },
   highlight: (width, height, random) => {
     const sides = outline(width, height, 0, random, 0);
     return {

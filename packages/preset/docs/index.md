@@ -78,6 +78,10 @@ onmax({ mermaid: false }); // leave `mermaid` fences as code
 
 Pele adds about 260 KB gzipped to a bundle, so turn it off when a bundle size limit matters more than diagrams. If you register Comark's built-in `mermaid` plugin instead, pass `mermaid: false`, since both read `mermaid` fences. [Mermaid](/mermaid/) covers the syntax and theming.
 
+## Agents
+
+The package ships the comark-plugins agent skill. [Agents](/guide/agents/) shows how to install it, or bundle it in an app so it always matches the plugins the app installed.
+
 ## Versions
 
 The preset ships in lockstep with the plugins, so `@onmax/comark@X` holds every plugin at version `X`. [comark-linter](/lint/) finds the preset when it's installed and checks documents with its plugins.
