@@ -630,8 +630,8 @@ const ruleTable: NodeHandler = () =>
         `<tr><td><code>${entry.code}</code></td><td><a href="${href(entry.slug)}"><code>${escapeHtml(entry.rule)}</code></a></td><td>${inlineCode(entry.title)}</td><td>${entry.severity ?? "warning"}</td></tr>`,
     )
     .join("")}</tbody></table></div>`;
-// A Getting started page's code that registers its plugins: through the preset, then alone. It shows the one the
-// installer's switch picks, and has the same switch, so picking in either place switches both.
+// A Getting started page's code that registers its plugins: through the preset, then alone. Its switch picks the
+// install command above too, in place of the installer's own.
 const usageBlock =
   (page: Page): NodeHandler =>
   async ([, , ...children], state) => {
@@ -802,10 +802,11 @@ const resetIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" s
 const checkIcon = `<svg class="check" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5"/></svg>`;
 // Humans install the package with their package manager; agents install the skill from this site, the package's
 // own when it has one. A page about plugins installs every one through @onmax/comark by default, and offers its own
-// packages alone: the preset brings them as its dependencies, so the note says how to register them through it. A
-// page with ::usage shows that code instead, and leaves the note out, so switching there moves nothing above it.
+// packages alone: the preset brings them as its dependencies, so the note says how to register them through it. On a
+// page with ::usage, the switch over that code picks the command instead, so the page shows the choice once, beside
+// the code each side needs.
 const everyPlugin = "comark @comark/html @onmax/comark";
-// The installer and a page's ::usage both draw it, and the script keeps them on one choice.
+// The installer draws it, or a page's ::usage when it has one; the script keeps every copy on one choice.
 const scopeSwitch = (own: string[]) =>
   `<div class="seg" role="group" aria-label="Packages"><button type="button" data-scope="all" aria-pressed="true">Every plugin</button><button type="button" data-scope="one" aria-pressed="false">Only ${own.length === 1 ? escapeHtml(own[0]!) : "these"}</button></div>`;
 function installerFor(install: string, skill: string, usage = false) {
@@ -822,10 +823,11 @@ function installerFor(install: string, skill: string, usage = false) {
     one: managers(packages),
     agents: `npx skills add ${site}${skill ? ` --skill ${skill}` : ""}`,
   };
-  const note = usage
-    ? ""
-    : `<p data-scope-panel="all">Render with <code>onmax()</code> from <a href="/preset/">@onmax/comark/html</a>, which registers every plugin in order.</p>`;
-  const scope = own.length ? `<div class="installer-scope">${scopeSwitch(own)}${note}</div>` : "";
+  const scope =
+    own.length && !usage
+      ? `<div class="installer-scope">${scopeSwitch(own)}` +
+        `<p data-scope-panel="all">Render with <code>onmax()</code> from <a href="/preset/">@onmax/comark/html</a>, which registers every plugin in order.</p></div>`
+      : "";
   return `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
 <div class="installer-bar"><div class="seg" role="group" aria-label="Audience"><button type="button" data-audience="humans" aria-pressed="true">${userIcon}For humans</button><button type="button" data-audience="agents" aria-pressed="false">${botIcon}For agents</button></div>
 <div class="seg installer-pm" role="group" aria-label="Package manager">${["pnpm", "npm", "yarn", "bun"].map((pm, i) => `<button type="button" data-pm="${pm}" aria-pressed="${i === 0}">${pm}</button>`).join("")}</div></div>
@@ -906,8 +908,8 @@ const menuIcon = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="t
 // A block, so the docs app can run it again for each page it navigates to.
 const script = `{
 const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-// One indicator per tab row or switch slides to the chosen item, however it gets chosen. A hidden row measures zero,
-// so it's placed again, without sliding, whenever its size changes.
+// One indicator per tab row or switch slides to the chosen item. A hidden row measures zero, so it's placed again,
+// without sliding, whenever its size changes.
 const indicate = (group, selector) => {
   const bar = group.appendChild(Object.assign(document.createElement("span"), { className: "indicator" }));
   bar.setAttribute("aria-hidden", "true");
@@ -916,26 +918,30 @@ const indicate = (group, selector) => {
     bar.dataset.still = ""; place(); requestAnimationFrame(() => delete bar.dataset.still);
     group.toggleAttribute("data-overflow", group.scrollWidth > group.clientWidth + 1);
   }).observe(group);
-  new MutationObserver(place).observe(group, { subtree: true, attributeFilter: ["aria-pressed", "aria-selected"] });
   group.dataset.indicator = "";
+  return place;
 };
 const reveal = el => { if (!reduce.matches) el.animate({ opacity: [0, 1] }, { duration: 200, easing: "ease-out" }) };
 for (const t of document.querySelectorAll(".examples")) {
-  const row = t.querySelector(".tablist");
-  indicate(row, "[aria-selected=true]");
+  const row = t.querySelector(".tablist"), place = indicate(row, "[aria-selected=true]");
   row.addEventListener("click", e => {
     const b = e.target.closest("[role=tab]"); if (!b || b.getAttribute("aria-selected") === "true") return;
     for (const x of t.querySelectorAll(":scope > .tablist > [role=tab]")) x.setAttribute("aria-selected", x === b);
     for (const p of t.querySelectorAll(":scope > [role=tabpanel]")) { p.hidden = p.dataset.tab !== b.dataset.tab; if (!p.hidden) reveal(p) }
+    place();
   });
 }
-for (const seg of document.querySelectorAll(".seg")) indicate(seg, "[aria-pressed=true]");
+for (const seg of document.querySelectorAll(".seg")) {
+  const place = indicate(seg, "[aria-pressed=true]");
+  seg.addEventListener("click", () => requestAnimationFrame(place));
+}
 for (const ex of document.querySelectorAll(".example")) ex.querySelector(".seg").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b || b.getAttribute("aria-pressed") === "true") return;
   for (const x of ex.querySelectorAll(".seg button")) x.setAttribute("aria-pressed", x === b);
   for (const view of ["preview", "code"]) { const p = ex.querySelector(".example-" + view); p.hidden = b.dataset.view !== view; if (!p.hidden) reveal(p) }
 });
-// Every plugin or the page's own packages, picked in the installer or over a page's usage code, and shown in both.
+// Every plugin or the page's own packages, picked in the installer or over a page's usage code. The choice sets the
+// install command and the code.
 let scope = "all";
 const onScope = [];
 for (const button of document.querySelectorAll("[data-scope]")) button.addEventListener("click", () => {
