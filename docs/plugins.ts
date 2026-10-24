@@ -14,6 +14,7 @@ import critic from "../packages/critic/src/index.ts";
 import diagrams, { components as diagramsComponents } from "../packages/diagrams/src/html.ts";
 import diff, { components as diffComponents } from "../packages/diff/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
+import footnotes from "../packages/footnotes/src/index.ts";
 import {
   callouts,
   components as githubComponents,
@@ -56,6 +57,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   diagrams(),
   diff(),
   embed(),
+  footnotes(),
   callouts(config["comark-github"]?.callouts),
   references(config["comark-github"]?.references),
   githubHtml(),

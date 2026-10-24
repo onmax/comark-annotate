@@ -804,6 +804,15 @@ importers:
         specifier: 'catalog:'
         version: 3.5.44(typescript@6.0.3)
 
+  packages/footnotes:
+    devDependencies:
+      '@comark/html':
+        specifier: 'catalog:'
+        version: 0.8.1(shiki@4.5.0)
+      comark:
+        specifier: 'catalog:'
+        version: 0.8.1(shiki@4.5.0)
+
   packages/github:
     devDependencies:
       '@comark/html':
@@ -987,6 +996,9 @@ importers:
       comark-file-tree:
         specifier: workspace:*
         version: link:../file-tree
+      comark-footnotes:
+        specifier: workspace:*
+        version: link:../footnotes
       comark-github:
         specifier: workspace:*
         version: link:../github

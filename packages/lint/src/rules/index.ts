@@ -13,6 +13,7 @@ import critic from "./critic.ts";
 import diagrams from "./diagrams.ts";
 import diff from "./diff.ts";
 import embed from "./embed.ts";
+import footnotes from "./footnotes.ts";
 import fields from "./fields.ts";
 import fileTree from "./file-tree.ts";
 import github from "./github.ts";
@@ -41,6 +42,7 @@ export const catalog = {
   ...code,
   ...diff,
   ...embed,
+  ...footnotes,
   ...github,
   ...icon,
   ...include,

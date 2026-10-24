@@ -112,6 +112,7 @@ const packageOrder = [
   "mark",
   "critic",
   "deflist",
+  "footnotes",
   "include",
   "outline",
   "reading-time",

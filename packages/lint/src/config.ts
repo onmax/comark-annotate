@@ -26,6 +26,11 @@ const packages = [
   ],
   ["comark-embed/html", () => import("comark-embed/html"), []],
   [
+    "comark-footnotes",
+    () => import("comark-footnotes").then((module) => ({ ...module, components: {} })),
+    [],
+  ],
+  [
     "comark-github/html",
     // Of its plugins only callouts make blocks; references and raw HTML have nothing to lint.
     () => import("comark-github/html").then((module) => ({ ...module, default: module.callouts })),
