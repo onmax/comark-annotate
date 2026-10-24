@@ -29,7 +29,7 @@ Every option it takes.
 | `target` | Where the link opens, such as `_self` to keep a web address in the tab. |
 | `color` | Tints the icon and a hovered link card's border: `primary`, the default, `secondary`, `success`, `info`, `warning`, `error`, or `neutral`. |
 
-`::card-group` sets its cards in two columns, one on narrow screens. A card works on its own too.
+`::card-group` sets its cards in two columns, and in one when the group is narrower than 36rem, whatever the screen's width, so a group in a sidebar or a narrow column stacks too. A card works on its own too.
 
 ## Columns
 
@@ -47,7 +47,7 @@ Third cell.
 ::
 ```
 
-Each block directly inside is a cell, and `:::column` groups several blocks into one. `cols` is 1 to 6, 2 by default, and every row stacks into one column on narrow screens.
+Each block directly inside is a cell, and `:::column` groups several blocks into one. `cols` is 1 to 6, 2 by default, and every row stacks into one column when the block is narrower than 36rem.
 
 ## Issues
 

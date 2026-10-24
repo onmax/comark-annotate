@@ -5,13 +5,13 @@ description: The five CriticMarkup marks, and what each mode does with them.
 
 | Mark | Markdown | Renders as |
 | --- | --- | --- |
-| Insertion | `{++added++}` | `<ins>added</ins>` |
-| Deletion | `{--removed--}` | `<del>removed</del>` |
-| Substitution | `{~~old~>new~~}` | `<del>old</del><ins>new</ins>` |
-| Highlight | `{==this==}` | `<mark>this</mark>` |
+| Insertion | `{++added++}` | `<ins class="ccm-ins">added</ins>` |
+| Deletion | `{--removed--}` | `<del class="ccm-del">removed</del>` |
+| Substitution | `{~~old~>new~~}` | the deletion, then the insertion |
+| Highlight | `{==this==}` | `<mark class="ccm-mark">this</mark>` |
 | Comment | `{>>why<<}` | `<span class="ccm-comment">why</span>` |
 
-A highlight followed by a comment, `{==east window==}{>>Not the west one.<<}`, reads as a comment on the highlighted text. Text inside a mark is Markdown, so it can hold `**bold**`, `` `code` ``, and links, and `{.class}` right after a mark sets its attributes.
+A highlight followed by a comment, `{==east window==}{>>Not the west one.<<}`, reads as a comment on the highlighted text. Text inside a mark is Markdown, so it can hold `**bold**`, `` `code` ``, and links, and `{.class}` right after a mark adds its attributes, next to the mark's own class.
 
 Each mark opens and closes in one paragraph. Inside a code span it stays as written.
 

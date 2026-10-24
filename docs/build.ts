@@ -110,7 +110,6 @@ const packageOrder = [
   "cards",
   "steps",
   "cjk",
-  "deflist",
   "figure",
   "mark",
   "critic",
@@ -622,10 +621,11 @@ async function renderDemo(slug: string, source: string) {
     /<iframe\b[^>]*><\/iframe>/g,
     `<span class="demo-player"><span class="demo-play">${playIcon}</span></span>`,
   );
-  // Tabs show their strip, and players their controls, once their script runs, which a card doesn't have. A video
-  // there drops the browser's controls, which would otherwise show over its own.
+  // Tabs show their strip, code blocks their buttons, and players their controls, once their script runs, which a card
+  // doesn't have. A video there drops the browser's controls, which would otherwise show over its own.
   html = html
     .replaceAll('<div class="ct"', '<div class="ct" data-tabs-ready')
+    .replace(/<div class="ck"(?![\w-])/g, '<div class="ck" data-code-ready')
     .replace(
       /<span class="cm cm-video"([^>]*)><video([^>]*?) controls/g,
       '<span class="cm cm-video" data-media-ready$1><video$2',
@@ -649,7 +649,7 @@ async function demoCard({ id, pkg, page, label, source }: Demo) {
   const still = await renderDemo(pkg.slug, source);
   return (
     `<article class="demo demo-${slugify(pkg.slug)}" data-package="${pkg.slug}" data-example="${id}">` +
-    `<a class="demo-link" href="${href(page)}" draggable="false" tabindex="-1">${siteIcon(pkg.icon, 15)}<strong>${escapeHtml(pkg.label)}</strong>${label ? `<span>${escapeHtml(label.toLowerCase())}</span>` : ""}</a>` +
+    `<a class="demo-link" href="${href(page)}" draggable="false" tabindex="-1">${siteIcon(pkg.icon, 15)}<strong>${escapeHtml(pkg.label === "recipe" ? pkg.label : pkg.npm!)}</strong>${label ? `<span>${escapeHtml(label.toLowerCase())}</span>` : ""}</a>` +
     `<button type="button" class="demo-copy" data-copy="pnpm add ${escapeHtml(pkg.npm!)}" tabindex="-1" title="Copy pnpm add ${escapeHtml(pkg.npm!)}" aria-label="Copy pnpm add ${escapeHtml(pkg.npm!)}">${copyIcon}${checkIcon}</button>` +
     `<div class="demo-screen" inert><div class="demo-page">${still}</div></div></article>`
   );
@@ -794,7 +794,8 @@ const rail = (current: Section) =>
     )}<a class="rail-drop" href="https://drop.vitehub.dev/?utm_source=comark-plugins&amp;utm_medium=sidebar"><img src="/drop.svg" alt="" width="18" height="18"><span class="rail-label"><strong>Review on Drop</strong><span>Comment on the exact spot</span></span></a></nav>`;
 // The second column: the current section's pages, or the playground's presets.
 const column = (section: Section, current: string) => {
-  // A package's examples, folded at the foot of its column as the playground lists them; each opens there.
+  // A package's examples at the foot of its column, two to a row as the playground lists them; each opens there, and
+  // their heading opens the first.
   const examples = presets.filter((preset) => preset.group === section.label);
   const presetCard = (preset: (typeof presets)[number], href: string) =>
     `<div class="preset"><div class="preset-thumb" aria-hidden="true" inert><div class="preset-page">${thumbnails.get(preset.id) ?? ""}</div></div><a data-preset="${preset.id}" href="${href}">${escapeHtml(preset.label)}</a></div>`;
@@ -825,7 +826,7 @@ const column = (section: Section, current: string) => {
     )
     .join(
       "",
-    )}${section.npm && examples.length ? `<details class="pages-foot"><summary class="pages-play">${siteIcon("flask-conical", 15)}Examples<span class="pages-count">${examples.length}</span></summary><div class="presets">${examples.map((preset) => presetCard(preset, `/play/#preset=${preset.id}`)).join("")}</div></details>` : ""}</nav>`;
+    )}${section.npm && examples.length ? `<div class="pages-foot"><a class="nav-group pages-play" href="/play/#preset=${examples[0]!.id}">${siteIcon("flask-conical", 14)}Examples${siteIcon("arrow-up-right", 14)}</a><div class="presets">${examples.map((preset) => presetCard(preset, `/play/#preset=${preset.id}`)).join("")}</div></div>` : ""}</nav>`;
 };
 // Previous and next page in the section.
 function pager(page: Page) {

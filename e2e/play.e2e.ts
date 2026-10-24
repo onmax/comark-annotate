@@ -81,12 +81,15 @@ test("the playground puts comark-code's buttons on code blocks, and actions from
   await expect(preview.getByRole("button", { name: "Run" })).toBeAttached();
 });
 
-test("a package's playground examples unfold and each opens in the playground", async ({
+test("a package's playground examples each open in the playground, and their heading opens the first", async ({
   page,
 }) => {
   await page.goto("/annotate/");
   const pages = page.locator(".sidebar .pages");
-  await pages.locator("summary.pages-play").click();
+  await expect(pages.getByRole("link", { name: "Examples" })).toHaveAttribute(
+    "href",
+    /^\/play\/#preset=annotate-/,
+  );
   await pages.getByRole("link", { name: "Side notes" }).click();
   await expect(page).toHaveURL(/\/play\/#preset=annotate-/);
   await expect(page.locator(".sidebar .pages a[aria-current]")).toHaveText("Side notes");

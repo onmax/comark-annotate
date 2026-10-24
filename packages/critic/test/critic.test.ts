@@ -14,10 +14,10 @@ const review =
   "Ship {++on Friday++}{--today--}, {~~after~>before~~} the {==pizza vote==}{>>Ask the duck.<<}.";
 
 describe("comark-critic", () => {
-  it("shows every change as native ins, del, and mark, and comments as a span", async () => {
+  it("shows every change as native ins, del, and mark with a class, and comments as a span", async () => {
     expect(await render(review)).toBe(
-      "<p>Ship <ins>on Friday</ins><del>today</del>, <del>after</del><ins>before</ins> the " +
-        '<mark>pizza vote</mark><span class="ccm-comment">Ask the duck.</span>.</p>',
+      '<p>Ship <ins class="ccm-ins">on Friday</ins><del class="ccm-del">today</del>, <del class="ccm-del">after</del><ins class="ccm-ins">before</ins> the ' +
+        '<mark class="ccm-mark">pizza vote</mark><span class="ccm-comment">Ask the duck.</span>.</p>',
     );
   });
 
@@ -32,35 +32,53 @@ describe("comark-critic", () => {
 
   it("parses Markdown inside a mark, and takes attributes after it", async () => {
     expect(await render("Add {++**two** `ducks`++}{.big} now.")).toBe(
-      '<p>Add <ins class="big"><strong>two</strong> <code>ducks</code></ins> now.</p>',
+      '<p>Add <ins class="ccm-ins big"><strong>two</strong> <code>ducks</code></ins> now.</p>',
     );
     expect(await render("**Count {--the--} pigeons**")).toBe(
-      "<p><strong>Count <del>the</del> pigeons</strong></p>",
+      '<p><strong>Count <del class="ccm-del">the</del> pigeons</strong></p>',
+    );
+  });
+
+  it("leaves a strikethrough's del without a class, so the styles never reach it", async () => {
+    expect(await render("~~gone~~ {--removed--}")).toBe(
+      '<p><del>gone</del> <del class="ccm-del">removed</del></p>',
+    );
+  });
+
+  it("closes each of several comments in a paragraph", async () => {
+    expect(await render("A{>>one<<} b{>>two<<}.")).toBe(
+      '<p>A<span class="ccm-comment">one</span> b<span class="ccm-comment">two</span>.</p>',
     );
   });
 
   it("keeps delimiter-like text in code spans and escaped text inside marks", async () => {
-    expect(await render("{++`++}` ok++}")).toBe("<p><ins><code>++}</code> ok</ins></p>");
-    expect(await render("{~~`~>` old~>new~~}")).toBe(
-      "<p><del><code>~&gt;</code> old</del><ins>new</ins></p>",
+    expect(await render("{++`++}` ok++}")).toBe(
+      '<p><ins class="ccm-ins"><code>++}</code> ok</ins></p>',
     );
-    expect(await render("{++escaped \\++} text++}")).toBe("<p><ins>escaped ++} text</ins></p>");
+    expect(await render("{~~`~>` old~>new~~}")).toBe(
+      '<p><del class="ccm-del"><code>~&gt;</code> old</del><ins class="ccm-ins">new</ins></p>',
+    );
+    expect(await render("{++escaped \\++} text++}")).toBe(
+      '<p><ins class="ccm-ins">escaped ++} text</ins></p>',
+    );
   });
 
   it("keeps delimiter-like text inside links, autolinks, and emphasis", async () => {
     expect(await render("{++[x](https://a.test/++}) tail++}")).toBe(
-      '<p><ins><a href="https://a.test/++%7D">x</a> tail</ins></p>',
+      '<p><ins class="ccm-ins"><a href="https://a.test/++%7D">x</a> tail</ins></p>',
     );
     expect(await render("{++<https://a.test/++}> tail++}")).toBe(
-      '<p><ins><a href="https://a.test/++%7D">https://a.test/++}</a> tail</ins></p>',
+      '<p><ins class="ccm-ins"><a href="https://a.test/++%7D">https://a.test/++}</a> tail</ins></p>',
     );
     expect(await render("{++**x ++} y** tail++}")).toBe(
-      "<p><ins><strong>x ++} y</strong> tail</ins></p>",
+      '<p><ins class="ccm-ins"><strong>x ++} y</strong> tail</ins></p>',
     );
   });
 
   it("keeps marks that Comark's attribute rule would drop, and leaves other braces to it", async () => {
-    expect(await render("a {++b++} c", {}, { plugins: [] })).toBe("<p>a <ins>b</ins> c</p>");
+    expect(await render("a {++b++} c", {}, { plugins: [] })).toBe(
+      '<p>a <ins class="ccm-ins">b</ins> c</p>',
+    );
     expect(await render("Paint it {.red}")).toBe('<p class="red">Paint it</p>');
     expect(await render("[Pigeons]{#roof} and `{++code++}`")).toBe(
       '<p><span id="roof">Pigeons</span> and <code>{++code++}</code></p>',
@@ -113,7 +131,12 @@ describe("comark-critic", () => {
     ]);
     const done = await parse("Add {++two **ducks**++}", { streaming: true });
     expect(done.nodes).toEqual([
-      ["p", { $: { line: 1 } }, "Add ", ["ins", {}, "two ", ["strong", {}, "ducks"]]],
+      [
+        "p",
+        { $: { line: 1 } },
+        "Add ",
+        ["ins", { class: "ccm-ins" }, "two ", ["strong", {}, "ducks"]],
+      ],
     ]);
     expect(done.meta.issues ?? []).toEqual([]);
   });

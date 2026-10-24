@@ -13,7 +13,7 @@ For a contents list beside the page rather than in it, use Comark's own toc plug
 
 ## Theming
 
-The box reads the [shared tokens](/guide/theming/): `--comark-background`, `--comark-foreground`, and `--comark-border` for the box, `--comark-muted` for its title and nested links, `--comark-ring` for focus rings, `--comark-radius` for its corners, and `--comark-font` for its text. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
+The list has no box, so it sits in the page like its text. It reads the [shared tokens](/guide/theming/): `--comark-foreground` for its title and first-level links, `--comark-muted` for the nested ones, `--comark-border` for the line beside them, `--comark-ring` for focus rings, and `--comark-font` for its text. The rules sit in a `comark` CSS layer, so any plain rule of your own wins.
 
 | Class | Element |
 | --- | --- |
