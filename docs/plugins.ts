@@ -22,6 +22,7 @@ import mark from "../packages/mark/src/index.ts";
 import { anchors, components as linksComponents, external } from "../packages/links/src/html.ts";
 import media, { components as mediaComponents } from "../packages/media/src/html.ts";
 import properties, { components as propertiesComponents } from "../packages/properties/src/html.ts";
+import sources, { components as sourcesComponents } from "../packages/sources/src/html.ts";
 import steps, { components as stepsComponents } from "../packages/steps/src/html.ts";
 import cards, { components as cardsComponents } from "../packages/cards/src/html.ts";
 import badge, { components as badgeComponents } from "../packages/badge/src/html.ts";
@@ -63,6 +64,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   media(),
   cards(),
   qr(),
+  sources(),
   steps(),
   // It only writes `meta.readingTime`, so it changes nothing the pages or the playground show.
   readingTime(),
@@ -92,6 +94,7 @@ export const components = {
   ...mediaComponents,
   ...cardsComponents,
   ...qrComponents,
+  ...sourcesComponents,
   ...stepsComponents,
   ...tabsComponents,
   ...outlineComponents,

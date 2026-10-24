@@ -20,6 +20,7 @@ import media from "./media.ts";
 import outline from "./outline.ts";
 import qr from "./qr.ts";
 import properties from "./properties.ts";
+import sources from "./sources.ts";
 import steps from "./steps.ts";
 import tabs from "./tabs.ts";
 import type { RuleInfo } from "./types.ts";
@@ -52,4 +53,5 @@ export const catalog = {
   ...details,
   ...critic,
   ...properties,
+  ...sources,
 } satisfies Record<string, RuleInfo>;

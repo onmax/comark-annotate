@@ -87,6 +87,7 @@ const packageOrder = [
   "media",
   "github",
   "properties",
+  "sources",
   "icon",
   "qr",
   "links",

@@ -68,6 +68,7 @@
     "comark-properties": "workspace:*",
     "comark-qr": "workspace:*",
     "comark-reading-time": "workspace:*",
+    "comark-sources": "workspace:*",
     "comark-steps": "workspace:*",
     "comark-tabs": "workspace:*",
     "comark-zoom": "workspace:*",
@@ -100,6 +101,7 @@
     "comark-properties": "workspace:^",
     "comark-qr": "workspace:^",
     "comark-reading-time": "workspace:^",
+    "comark-sources": "workspace:^",
     "comark-steps": "workspace:^",
     "comark-tabs": "workspace:^",
     "comark-zoom": "workspace:^",
@@ -191,6 +193,9 @@
       "optional": true
     },
     "comark-properties": {
+      "optional": true
+    },
+    "comark-sources": {
       "optional": true
     }
   },
