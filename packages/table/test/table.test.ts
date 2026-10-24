@@ -111,7 +111,7 @@ describe("comark-table", () => {
     expect(html).not.toContain("background-color");
     expect(html).toContain("3");
     const invalidCell = await render(
-      '| a | b |\n| - | - |\n| [row]{tone=success} | [bad]{tone=red} |',
+      "| a | b |\n| - | - |\n| [row]{tone=success} | [bad]{tone=red} |",
     );
     expect(invalidCell).not.toContain("background-color:color-mix");
   });
