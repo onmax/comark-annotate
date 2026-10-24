@@ -205,7 +205,7 @@ export function script(config: ScriptConfig): void {
       const message =
         result === "correct"
           ? `${icons.yes}<span class="cqz-status-label"></span>`
-        : result === "incorrect"
+          : result === "incorrect"
             ? `${icons.no}<span class="cqz-status-label"></span>`
             : result === "revealed"
               ? `<span class="cqz-sr"></span>`
