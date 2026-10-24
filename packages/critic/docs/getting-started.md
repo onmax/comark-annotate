@@ -8,6 +8,14 @@ install: pnpm add comark comark-critic
 
 Register the plugin. It has no components: insertions, deletions, and highlights are native tags that every renderer outputs as they are.
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(onmax());
+```
+
 ```ts
 import { parseMarkdown } from "comark";
 import critic from "comark-critic";
@@ -16,6 +24,7 @@ const document = await parseMarkdown(markdown, {
   plugins: [critic()],
 });
 ```
+::
 
 It works with `registerDefaultPlugins: false` and in streaming parses.
 

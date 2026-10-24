@@ -22,6 +22,7 @@ export default defineDoctorConfig({
         "matrix",
         "packages",
         "rules",
+        "usage",
       ],
       links: {
         // fileOf in docs/build.ts: a package's pages come from its docs/, the rest from docs/pages, and files from

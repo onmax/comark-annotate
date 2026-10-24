@@ -8,12 +8,21 @@ install: pnpm add comark @comark/html comark-icon
 
 Register the plugin and pass the renderer's `components`:
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(onmax());
+```
+
 ```ts
 import { createHtmlRenderer } from "@comark/html";
 import icon, { components } from "comark-icon/html";
 
 const render = createHtmlRenderer({ plugins: [icon()], components });
 ```
+::
 
 For Vue, React, or Svelte, import from `comark-icon/vue`, `comark-icon/react`, or `comark-icon/svelte`. The `Icon` component adds the styles when it mounts. When you render on a server, import `comark-icon/style.css` with your own styles so the page doesn't shift. [Renderers](/guide/renderers/) covers using it with other plugins.
 

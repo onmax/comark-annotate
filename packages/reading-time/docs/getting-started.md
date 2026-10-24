@@ -8,6 +8,15 @@ install: pnpm add comark comark-reading-time
 
 Register the plugin and read `meta.readingTime` from the parsed document:
 
+::usage
+```ts
+import { parseMarkdown } from "comark";
+import onmax from "@onmax/comark/html";
+
+const { meta } = await parseMarkdown(markdown, { plugins: onmax().plugins });
+const label = `${meta.readingTime.minutes} min read`;
+```
+
 ```ts
 import { parseMarkdown } from "comark";
 import readingTime from "comark-reading-time";
@@ -15,6 +24,7 @@ import readingTime from "comark-reading-time";
 const { meta } = await parseMarkdown(markdown, { plugins: [readingTime()] });
 const label = `${meta.readingTime.minutes} min read`;
 ```
+::
 
 It works with any renderer, since it changes nothing a renderer draws. With `createHtmlRenderer`, parse first with `parseMarkdown`, read the meta, and render the document with `renderHtmlFromDocument`.
 
