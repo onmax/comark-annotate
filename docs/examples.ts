@@ -31,7 +31,7 @@ export const pageOrder = [
   "theming",
   "vite-doctor",
 ];
-export const recipeOrder = ["review", "share", "zoom", "carousel"];
+export const recipeOrder = ["review", "pull-request", "share", "zoom", "carousel"];
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
 const slugify = (text: string) =>

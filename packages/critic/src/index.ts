@@ -27,8 +27,11 @@ export interface CriticOptions {
   mode?: CriticMode;
 }
 
-/** The comment's class. Insertions, deletions, and highlights are native tags with no class. */
+/** The comment's class. */
 export const COMMENT_CLASS = "ccm-comment";
+// Insertions, deletions, and highlights are native tags with a class, so `css` styles them and not a page's other
+// `<del>`, which Comark also writes for `~~strikethrough~~`.
+const CLASSES = { ins: "ccm-ins", del: "ccm-del", mark: "ccm-mark" } as const;
 
 export { css } from "./styles.ts";
 
@@ -55,7 +58,7 @@ function inline(state: StateInline, from: number, to: number, tag = "", classNam
   state.posMax = to;
   state.md.inline.tokenize(state);
   state.posMax = max;
-  if (tag) state.push(`${SPAN}_close`, tag, -1);
+  if (tag) state.push(`${SPAN}_close`, tag, -1).meta = { critic: className };
 }
 
 function problem(state: StateInline, opener: string, { rule, message }: Issue) {
@@ -85,8 +88,9 @@ function delimiter(src: string, from: number, max: number, needle: string) {
         continue;
       }
     }
-    // Markdown links and autolinks consume delimiter-looking text as part of their syntax.
-    if (src[index] === "<") {
+    // Markdown links and autolinks consume delimiter-looking text as part of their syntax. A comment's `<<}` is never
+    // an autolink's start.
+    if (src[index] === "<" && !src.startsWith(needle, index)) {
       let quote = "";
       let close = -1;
       for (let cursor = index + 1; cursor < max; cursor++) {
@@ -176,14 +180,14 @@ const rule = (mode: CriticMode) => (state: StateInline, silent: boolean) => {
 
   const view = mode === "view";
   if (mark.kind === "sub") {
-    if (mode !== "accept") inline(state, from, arrow, view ? "del" : "");
-    if (mode !== "reject") inline(state, arrow + 2, to, view ? "ins" : "");
+    if (mode !== "accept") inline(state, from, arrow, view ? "del" : "", CLASSES.del);
+    if (mode !== "reject") inline(state, arrow + 2, to, view ? "ins" : "", CLASSES.ins);
   } else if (mark.kind === "comment") {
     if (view) inline(state, from, to, "span", COMMENT_CLASS);
   } else if (mark.kind === "mark") {
-    inline(state, from, to, view ? "mark" : "");
+    inline(state, from, to, view ? "mark" : "", CLASSES.mark);
   } else if (view) {
-    inline(state, from, to, mark.kind);
+    inline(state, from, to, mark.kind, CLASSES[mark.kind]);
   } else if ((mark.kind === "ins") === (mode === "accept")) {
     inline(state, from, to);
   }
@@ -204,6 +208,14 @@ function collect(tokens: Token[], found: Issue[]) {
     const token = tokens[index];
     if (!token) continue;
     if (token.children) collect(token.children, found);
+    // Comark sets the class of `{.class}` after a mark in place of the mark's own, so the props carry both.
+    if (token.type === "mdc_inline_props" && token.attrGet("class")) {
+      let before = index - 1;
+      while (tokens[before]?.type === "text" && !tokens[before]!.content.trim()) before--;
+      // SAFETY: only the close token created by `inline` carries this metadata shape.
+      const own = (tokens[before]?.meta as { critic?: string } | null)?.critic;
+      if (own) token.attrSet("class", `${own} ${token.attrGet("class")}`);
+    }
     if (token.type !== PROBLEM) continue;
     // SAFETY: `problem()` gives every PROBLEM token its rule in `meta`.
     found.unshift({ rule: (token.meta as Pick<Issue, "rule">).rule, message: token.content });

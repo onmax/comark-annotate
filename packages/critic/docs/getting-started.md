@@ -21,7 +21,7 @@ It works with `registerDefaultPlugins: false` and in streaming parses.
 
 ## Styles
 
-Browsers already underline `<ins>`, strike `<del>`, and highlight `<mark>`. Comments need the package's styles. Import them with yours:
+The package's styles tint insertions green, strike deletions in red, highlight in amber, and draw comments as chips. Without them, the browser underlines `<ins>`, strikes `<del>`, and paints `<mark>` yellow, and comments are plain text. Import them with yours:
 
 ```ts
 import "comark-critic/style.css";

@@ -36,7 +36,7 @@ const blocks = [
   // comark-media adds the kind, as in `cm cm-video`.
   'class="cm ',
   "<table",
-  "<ins>",
+  'class="ccm-ins"',
 ];
 
 describe("@onmax/comark", () => {

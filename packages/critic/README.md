@@ -6,7 +6,7 @@
 [![license](https://npmx.dev/api/registry/badge/license/comark-critic)](https://npmx.dev/package/comark-critic)
 [![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/critic/)
 
-[CriticMarkup](https://criticmarkup.com) in [Comark](https://comark.dev): suggested insertions, deletions, substitutions, highlights, and comments, rendered as native `<ins>`, `<del>`, and `<mark>`, or accepted or rejected. A parse plugin with no components, so it works in any renderer.
+[CriticMarkup](https://criticmarkup.com) in [Comark](https://comark.dev): suggested insertions, deletions, substitutions, highlights, and comments, rendered as native `<ins>`, `<del>`, and `<mark>` with a class each, or accepted or rejected. A parse plugin with no components, so it works in any renderer.
 
 ```sh
 pnpm add comark comark-critic
@@ -30,10 +30,10 @@ Count them {~~after~>before~~} the stand-up, from the {==east window==}{>>Not th
 
 | Mark | Markdown | `view` | `accept` | `reject` |
 | --- | --- | --- | --- | --- |
-| Insertion | `{++added++}` | `<ins>` | its text | nothing |
-| Deletion | `{--removed--}` | `<del>` | nothing | its text |
+| Insertion | `{++added++}` | `<ins class="ccm-ins">` | its text | nothing |
+| Deletion | `{--removed--}` | `<del class="ccm-del">` | nothing | its text |
 | Substitution | `{~~old~>new~~}` | `<del>` then `<ins>` | the new text | the old text |
-| Highlight | `{==this==}` | `<mark>` | its text | its text |
+| Highlight | `{==this==}` | `<mark class="ccm-mark">` | its text | its text |
 | Comment | `{>>why<<}` | `<span class="ccm-comment">` | nothing | nothing |
 
 Text inside a mark is Markdown, and each mark opens and closes in one paragraph. One left open stays as written and adds a sentence to `meta.issues`. The plugin works with `registerDefaultPlugins: false` and in streaming parses.
@@ -42,7 +42,7 @@ Without the plugin, Comark's attribute rule reads `{++added++}` as attributes an
 
 ## Styles
 
-Browsers already style `<ins>`, `<del>`, and `<mark>`. Comments need the styles in `comark-critic/style.css`, also exported as `css`. They read the [shared tokens](https://comark.onmax.me/guide/theming/), so a shadcn/ui theme restyles them, and sit in the `comark` layer so your own rules win.
+The marks' styles are in `comark-critic/style.css`, also exported as `css`: insertions tinted green, deletions struck through in red, highlights amber, and comments as muted chips. Each mark has a class (`ccm-ins`, `ccm-del`, `ccm-mark`, `ccm-comment`), so they never restyle a `~~strikethrough~~`. They read the [shared tokens](https://comark.onmax.me/guide/theming/), so a shadcn/ui theme restyles them, and sit in the `comark` layer so your own rules win.
 
 ## Credits
 

@@ -42,4 +42,4 @@ The plugin adds every problem to `meta.issues`: no cast, a missing or unreadable
 
 Each entry exports the parse plugin as `default` and the renderer's `components`. The Vue, React, and Svelte components add the styles when they mount; import `comark-cast/style.css` with your styles so a server-rendered page doesn't shift.
 
-The terminal is dark on any page. Override `--cca-background`, `--cca-foreground`, and `--cca-0` to `--cca-15` to change its colors; the frame follows the shared `--comark-*` tokens.
+The terminal is a window in the page's scheme, with a muted surface, a border, and three dots, and its 16 colors switch with the scheme. Override `--cca-background`, `--cca-foreground`, and `--cca-0` to `--cca-15` to change its colors; the frame follows the shared `--comark-*` tokens.

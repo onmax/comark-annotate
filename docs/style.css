@@ -736,6 +736,12 @@ kbd {
   color: var(--faint);
 }
 
+/* The package's name stays whole; the example's label gives way. */
+.demo-link strong {
+  flex: none;
+  white-space: nowrap;
+}
+
 .demo-link span {
   min-width: 0;
   overflow: hidden;
@@ -845,7 +851,26 @@ kbd {
 }
 
 /* The card is the frame, so a block that draws its own drops it when it's all the card shows. */
-.demo-page > :is(.cch, .cd, .ce, .ce-card, .cgc, .ck, .cft, .ct, .cc, .ccr-group):only-child {
+.demo-page
+  > :is(
+    .cch,
+    .cd,
+    .ce,
+    .ce-card,
+    .cgc,
+    .ck,
+    .cft,
+    .ct,
+    .cc,
+    .ccr,
+    .ccr-group,
+    .cdg,
+    .cca,
+    .cdt,
+    .cdt-accordion,
+    .ctr,
+    .cfm
+  ):only-child {
   margin: 0;
   padding: 0;
   border: 0;
@@ -918,8 +943,6 @@ kbd {
 .demo-embed .demo-play,
 .demo-code .ck-copy svg,
 .demo-code .ck-copy,
-.demo-tabs .ct-tab,
-.demo-tabs .ct-panel,
 .demo-include .ck,
 .demo-include .ck ~ *,
 .demo-include .demo-directive + p,
@@ -1074,80 +1097,6 @@ kbd {
 
 .demo-github-references a:nth-of-type(3) {
   animation-delay: 280ms;
-}
-
-/* tabs: the code group steps through its tabs. */
-.demo-tabs .ct .ct-panel[data-inactive] {
-  display: block;
-}
-
-.demo-tabs .ct {
-  display: grid;
-}
-
-.demo-tabs .ct-list {
-  grid-area: 1 / 1;
-}
-
-.demo-tabs .ct-panel {
-  grid-area: 2 / 1;
-  animation-name: demo-panel;
-  animation-duration: 6s;
-  animation-timing-function: ease;
-}
-
-.demo-tabs .ct-tab {
-  animation-name: demo-tab;
-  animation-duration: 6s;
-  animation-timing-function: ease;
-}
-
-/* Started part of the way through, so each tab waits its turn off. The list is the group's first child, so the
-   second tab's panel is its third. */
-.demo-tabs .ct-tab:nth-child(2),
-.demo-tabs .ct-panel:nth-child(3) {
-  animation-delay: -4s;
-}
-
-.demo-tabs .ct-tab:nth-child(3),
-.demo-tabs .ct-panel:nth-child(4) {
-  animation-delay: -2s;
-}
-
-@keyframes demo-tab {
-  0%,
-  31% {
-    background: var(--_comark-background);
-    color: var(--_comark-foreground);
-    box-shadow: inset 0 0 0 1px
-      color-mix(in srgb, var(--_comark-border), var(--_comark-foreground) 8%);
-  }
-
-  35%,
-  100% {
-    background: transparent;
-    color: var(--_comark-muted);
-    box-shadow: inset 0 0 0 1px transparent;
-  }
-}
-
-@keyframes demo-panel {
-  0%,
-  31% {
-    opacity: 1;
-    translate: 0;
-  }
-
-  35%,
-  97% {
-    opacity: 0;
-    translate: 0 4px;
-  }
-
-  100% {
-    opacity: 1;
-    translate: 0;
-  }
 }
 
 /* zoom: the image lifts out of the page and settles back. */
@@ -1870,68 +1819,39 @@ kbd {
   font-weight: 500;
 }
 
-/* The package's examples as the playground shows them, folded at the foot of the column, clear of the last page. */
+/* The package's examples as the playground shows them, at the foot of the column, clear of the last page. */
 .pages-foot {
   margin-top: auto;
   padding-top: 1.5rem;
 }
 
-.pages-play {
+/* A group heading that opens the playground, with an arrow that says it leaves the docs. */
+.pages a.pages-play {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.625rem;
-  border-radius: 8px;
-  box-shadow: inset 0 0 0 1px var(--line);
-  color: var(--muted);
-  font-size: 0.8125rem;
+  gap: 0.375rem;
+  width: fit-content;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  color: var(--fg);
+  font-size: 0.75rem;
   font-weight: 500;
-  cursor: pointer;
-  list-style: none;
+}
+
+.pages-play .ci:first-child {
+  color: var(--faint);
+}
+
+.pages-play .ci:last-child {
+  color: var(--faint);
   transition:
-    background-color 150ms ease,
+    translate 150ms var(--ease-out),
     color 150ms ease;
 }
 
-.pages-play::-webkit-details-marker {
-  display: none;
-}
-
-.pages-count {
-  margin-left: auto;
-  color: var(--faint);
-  font-variant-numeric: tabular-nums;
-}
-
-.pages-play::after {
-  content: "";
-  width: 0.375rem;
-  height: 0.375rem;
-  margin-left: 0.25rem;
-  border: solid currentColor;
-  border-width: 0 1.5px 1.5px 0;
-  rotate: -45deg;
-  transition: rotate 150ms var(--ease-out);
-}
-
-.pages-foot[open] .pages-play::after {
-  rotate: 45deg;
-}
-
-.pages-play:hover,
-.pages-foot[open] .pages-play {
-  background: var(--soft);
+.pages a.pages-play:hover .ci:last-child {
   color: var(--fg);
-}
-
-.pages-foot .presets {
-  grid-template-columns: minmax(0, 1fr);
-  margin-top: 0.5rem;
-}
-
-/* The playground fits each still to its card with a script; here the column's width is known. */
-.pages-foot .preset-page {
-  transform: scale(0.32);
+  translate: 1px -1px;
 }
 
 /* Not the links inside a preset's still, which keep the look the plugins give them. */
@@ -1985,7 +1905,7 @@ kbd {
   flex-direction: column;
   max-height: calc(100dvh - 3.5rem);
   overflow-y: auto;
-  padding: 3.5rem 0 2rem;
+  padding: 2.5rem 0 2rem;
   font-size: 0.8125rem;
 }
 
@@ -2016,7 +1936,7 @@ nav > .nav-group:first-child {
 
 .content {
   min-width: 0;
-  padding: 3.5rem 0 4rem;
+  padding: 2.5rem 0 2rem;
 }
 
 .hero .eyebrow {
@@ -2029,7 +1949,7 @@ nav > .nav-group:first-child {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  margin-top: 4rem;
+  margin-top: 3rem;
 }
 
 .pager a {
@@ -2071,7 +1991,7 @@ nav > .nav-group:first-child {
 
 /* The pager's cards already close the page, so the footer drops its rule under them. */
 .pager + footer {
-  margin-top: 2.5rem;
+  margin-top: 2rem;
   padding-top: 0;
   border-top: 0;
 }
@@ -2888,7 +2808,7 @@ a.window-play:hover {
 }
 
 main {
-  margin-top: 3rem;
+  margin-top: 2rem;
 }
 
 main > :first-child {
@@ -2900,9 +2820,9 @@ li {
   text-wrap: pretty;
 }
 
-/* Unlayered, these would beat the embed's, the chips', and the table of contents' own link styles, which the page shows
-   off. */
-a:where(:not(.ce-card, .ce a, .cp, .cto a)) {
+/* Unlayered, these would beat the embed's, the chips', the table of contents', and the sources' own link styles, which
+   the page shows off. */
+a:where(:not(.ce-card, .ce a, .cp, .cto a, .cso a, .cso-cite a)) {
   color: var(--fg);
   text-decoration: underline;
   text-decoration-color: var(--line);
@@ -2911,7 +2831,7 @@ a:where(:not(.ce-card, .ce a, .cp, .cto a)) {
   transition: text-decoration-color 150ms ease;
 }
 
-a:where(:not(.ce-card, .ce a, .cp, .cto a)):hover {
+a:where(:not(.ce-card, .ce a, .cp, .cto a, .cso a, .cso-cite a)):hover {
   text-decoration-color: var(--fg);
 }
 
@@ -2997,7 +2917,13 @@ pre {
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
-pre .line {
+/* comark-cast's terminal draws its own border. */
+pre.cca-term {
+  box-shadow: none;
+}
+
+/* Not comark-code's numbered or marked lines, which are blocks with their newline inside, so a tint covers its row. */
+pre:not(.ck[data-code-lines] > pre) .line {
   display: inline !important;
 }
 
@@ -3147,10 +3073,40 @@ blockquote {
   border-left: 2px solid var(--line);
 }
 
+/* A definition list: each term in the text's weight, and its definitions under it, muted beside a guide line. Only
+   comark-deflist's, which carry no class; a component's own `dl`, such as comark-properties', keeps its styles. */
+dl:not([class]) {
+  margin: 1.25rem 0;
+}
+
+dl:not([class]) > dt {
+  margin-top: 0.75rem;
+  color: var(--fg);
+  font-weight: 500;
+}
+
+dl:not([class]) > dt:first-child {
+  margin-top: 0;
+}
+
+dl:not([class]) > dd {
+  margin: 0.25rem 0 0 0.25rem;
+  padding-left: 0.875rem;
+  border-left: 1px solid var(--line);
+}
+
+dl:not([class]) > dd > :first-child {
+  margin-top: 0;
+}
+
+dl:not([class]) > dd > :last-child {
+  margin-bottom: 0;
+}
+
 /* One line per edge: the tabs carry only the selected underline, the Preview/Code switch shares their row, and the frame is a single soft ring. */
 .examples {
   position: relative;
-  margin: 2.5rem 0 1rem;
+  margin: 2.5rem 0 1.5rem;
 }
 
 .tablist {
@@ -3251,12 +3207,6 @@ blockquote {
   margin: 0;
 }
 
-.example-body {
-  border: 1px solid transparent;
-  border-radius: 6px;
-  box-shadow: 0 0 0 1px var(--line);
-}
-
 /* A switch: one soft track and a raised thumb on the choice, with no lines between them. */
 .seg {
   display: inline-flex;
@@ -3293,38 +3243,185 @@ blockquote {
   outline-offset: -2px;
 }
 
+/* The code sits in one soft ring, and so does a preview of text, with the content's own margins trimmed at its edges. */
+.example-preview,
+.example-code {
+  border-radius: 10px;
+  box-shadow: 0 0 0 1px var(--line);
+}
+
 .example-preview {
-  padding: 1.75rem 1.5rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.example-preview > :nth-child(1 of :not(style, script)) {
+  margin-top: 0;
+}
+
+.example-preview > :nth-last-child(1 of :not(style, script)) {
+  margin-bottom: 0;
 }
 
 .example-preview > :is(.ca, .cd, .ce, .ce-card, .cch) {
   margin: 0;
 }
 
-/* A block that draws its own frame (a chart, a diff, a code block, a file tree, callouts, tabs, a carousel, a link
-   card) isn't framed again: a preview of only such blocks drops the example's frame, and they stack with a gap. */
-.example-body:has(
-  > .example-preview:not([hidden]):not(
-      :has(> :not(style, script, .cch, .cd, .ce, .ce-card, .cgc, .ck, .cft, .ct, .cc, .ccr-group))
-    )
+/* A block that draws its own frame (a chart, a diff, a diagram, a code block and its notes, a file tree, callouts,
+   tabs, a carousel, a card, a test report, a properties box) isn't framed again: a preview that holds one drops its
+   ring and padding. */
+.example-preview:has(
+  > :is(
+    .cch,
+    .cd,
+    .ce,
+    .ce-card,
+    .cgc,
+    .ck,
+    .cft,
+    .ct,
+    .cc,
+    .ccr,
+    .ccr-group,
+    .cdg,
+    .cca,
+    .cdt,
+    .cdt-accordion,
+    .ctr,
+    .cfm,
+    .cm-video,
+    video.cm,
+    .cn-notes
+  )
 ) {
+  padding: 0;
+  border-radius: 0;
   box-shadow: none;
 }
 
+/* Only such blocks stack with a gap. */
 .example-preview:not(
-  :has(> :not(style, script, .cch, .cd, .ce, .ce-card, .cgc, .ck, .cft, .ct, .cc, .ccr-group))
+  :has(
+    > :not(
+      style,
+      script,
+      .cch,
+      .cd,
+      .ce,
+      .ce-card,
+      .cgc,
+      .ck,
+      .cft,
+      .ct,
+      .cc,
+      .ccr,
+      .ccr-group,
+      .cdg,
+      .cca,
+      .cdt,
+      .cdt-accordion,
+      .ctr,
+      .cfm,
+      .cm-video,
+      video.cm,
+      .cn-notes
+    )
+  )
 ) {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 0;
 }
 
 .example-preview:not(
-    :has(> :not(style, script, .cch, .cd, .ce, .ce-card, .cgc, .ck, .cft, .ct, .cc, .ccr-group))
+    :has(
+      > :not(
+        style,
+        script,
+        .cch,
+        .cd,
+        .ce,
+        .ce-card,
+        .cgc,
+        .ck,
+        .cft,
+        .ct,
+        .cc,
+        .ccr,
+        .ccr-group,
+        .cdg,
+        .cca,
+        .cdt,
+        .cdt-accordion,
+        .ctr,
+        .cfm,
+        .cm-video,
+        video.cm,
+        .cn-notes
+      )
+    )
   )
   > * {
   margin-block: 0;
+}
+
+/* With text among them, a rule under the example keeps its last lines from reading as the page's. */
+.example-preview:has(
+    > :is(
+      .cch,
+      .cd,
+      .ce,
+      .ce-card,
+      .cgc,
+      .ck,
+      .cft,
+      .ct,
+      .cc,
+      .ccr,
+      .ccr-group,
+      .cdg,
+      .cca,
+      .cdt,
+      .cdt-accordion,
+      .ctr,
+      .cfm,
+      .cm-video,
+      video.cm,
+      .cn-notes
+    )
+  ):has(
+    > :not(
+      style,
+      script,
+      .cch,
+      .cd,
+      .ce,
+      .ce-card,
+      .cgc,
+      .ck,
+      .cft,
+      .ct,
+      .cc,
+      .ccr,
+      .ccr-group,
+      .cdg,
+      .cca,
+      .cdt,
+      .cdt-accordion,
+      .ctr,
+      .cfm,
+      .cm-video,
+      video.cm,
+      .cn-notes
+    )
+  ) {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+/* A heading after the example draws its own rule. */
+:is(.example, .examples):has(+ :is(h2, hr)) .example-preview {
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
 .example-code pre {
@@ -3357,7 +3454,7 @@ footer {
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.5rem 1rem;
-  margin-top: 6rem;
+  margin-top: 3rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--line);
   color: var(--faint);

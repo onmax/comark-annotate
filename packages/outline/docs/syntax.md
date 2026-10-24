@@ -3,10 +3,22 @@ title: Syntax
 description: The props of ::toc, and which headings it lists.
 ---
 
+`::toc` takes its props in braces after its name. This one lists the headings down to h3 under a title, so "Seed mix", an h4, stays out:
+
+::example
 ```md
 ::toc{depth=3 title="On this page"}
 ::
+
+## Feeding schedule
+
+### Mornings
+
+#### Seed mix
+
+## Homing routes
 ```
+::
 
 | Prop | What it does |
 | --- | --- |

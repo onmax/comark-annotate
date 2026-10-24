@@ -20,22 +20,31 @@ Comark reads a `{` in text as the start of attributes. Without this plugin, `{++
 
 ## Theming
 
-Comments are a `<span class="ccm-comment">`, a muted pill that reads these [shared tokens](/guide/theming/):
+Each mark carries a class, so the styles reach only CriticMarkup and not a `~~strikethrough~~`, which Comark also writes as `<del>`. An insertion is tinted green over a line, a deletion struck through in red, a highlight amber, and a comment a muted chip. They read these [shared tokens](/guide/theming/):
 
 | Token | Used for |
 | --- | --- |
-| `--comark-accent` | The pill |
+| `--comark-accent` | The comment's chip |
+| `--comark-border` | The chip's edge |
+| `--comark-foreground` | A deletion's text, mixed with its red |
 | `--comark-muted` | The comment's text |
 | `--comark-radius` | Corners |
 
-The rules sit in a `comark` CSS layer, so any plain rule of your own wins. The package doesn't style `ins`, `del`, and `mark`, so the browser's styles or your own apply. Restyle them with plain CSS, for instance as a pull request colors them:
+The colors are variables of their own, read wherever they're set, on `:root` or any element around the marks. The deletion's red is shadcn/ui's `--destructive` when the page has it:
+
+| Variable | Default |
+| --- | --- |
+| `--ccm-ins` | Green |
+| `--ccm-del` | `--destructive`, else red |
+| `--ccm-mark` | Amber |
+
+The rules sit in a `comark` CSS layer, so any plain rule of your own wins. Recolor them as a pull request does, for instance:
 
 ```css
-ins {
-  background: #dafbe1;
-  text-decoration: none;
-}
-del {
-  background: #ffebe9;
+:root {
+  --ccm-ins: #1a7f37;
+  --ccm-del: #cf222e;
 }
 ```
+
+shadcn/ui before Tailwind 4 stores `--destructive` as bare HSL numbers, so map it as [Theming](/guide/theming/) does the shared tokens: `--ccm-del: hsl(var(--destructive))`.

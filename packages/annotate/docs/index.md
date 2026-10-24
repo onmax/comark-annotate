@@ -79,11 +79,11 @@ The pigeons ate week 15.
 Bugs fixed fell with the duck supply.
 :::
 
-:::annotation{x=66.1 y=17 w=30.5 h=24.6 mark="circle" side="right" at=8}
+:::annotation{x=66.1 y=17 w=30.5 h=24.6 mark="circle" side="right"}
 r now counts the office cat.
 :::
 
-:::annotation{x=4 y=77.3 w=92 h=8.2 mark="none" side="bottom" at=42 to="55,81"}
+:::annotation{x=4 y=77.3 w=92 h=8.2 mark="none" side="bottom" at=42 to="64,84"}
 The pigeons ate week 15.
 :::
 ::
