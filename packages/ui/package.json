@@ -26,6 +26,7 @@
   "sideEffects": false,
   "exports": {
     ".": "./dist/index.mjs",
+    "./client": "./dist/client.mjs",
     "./html": "./dist/html.mjs",
     "./react": "./dist/react.mjs",
     "./svelte": {
@@ -78,6 +79,7 @@
     "comark-media": "workspace:^",
     "comark-metrics": "workspace:^",
     "comark-outline": "workspace:^",
+    "comark-pele": "catalog:",
     "comark-properties": "workspace:^",
     "comark-qr": "workspace:^",
     "comark-quiz": "workspace:^",

@@ -19,6 +19,7 @@ import * as github from "comark-github/html";
 import * as icon from "comark-icon/html";
 import * as links from "comark-links/html";
 import * as media from "comark-media/html";
+import pele, { Pele } from "comark-pele/html";
 import * as metrics from "comark-metrics/html";
 import * as outline from "comark-outline/html";
 import * as properties from "comark-properties/html";
@@ -30,10 +31,27 @@ import * as table from "comark-table/html";
 import * as tabs from "comark-tabs/html";
 import * as tests from "comark-tests/html";
 import * as zoom from "comark-zoom/html";
+import { mermaidCss } from "./client.ts";
 import { type Preset, type PresetOptions, preset } from "./index.ts";
 
 export { criticCss } from "./index.ts";
 export type { PresetOptions } from "./index.ts";
+
+// Each render gets a fresh `state.context`, so a document carries the styles once.
+const styled = new WeakSet<object>();
+
+const mermaid = {
+  default: pele,
+  components: {
+    pele: ((node, state) => {
+      const styles = styled.has(state.context)
+        ? ""
+        : `<style data-comark-mermaid>${mermaidCss}</style>`;
+      styled.add(state.context);
+      return styles + Pele(node);
+    }) satisfies NodeHandler,
+  },
+};
 
 /** Every plugin for `@comark/html`, with the `components` to render them. */
 export default (options?: PresetOptions): Preset<NodeHandler> =>
@@ -59,6 +77,7 @@ export default (options?: PresetOptions): Preset<NodeHandler> =>
       icon,
       links,
       media,
+      mermaid,
       metrics,
       outline,
       properties,

@@ -17,6 +17,7 @@ import * as github from "comark-github/react";
 import * as icon from "comark-icon/react";
 import * as links from "comark-links/react";
 import * as media from "comark-media/react";
+import pele, { createPeleComponent } from "comark-pele/react";
 import * as metrics from "comark-metrics/react";
 import * as outline from "comark-outline/react";
 import * as properties from "comark-properties/react";
@@ -27,10 +28,17 @@ import * as table from "comark-table/react";
 import * as tabs from "comark-tabs/react";
 import * as tests from "comark-tests/react";
 import * as zoom from "comark-zoom/react";
+import { addMermaidStyles } from "./client.ts";
 import { type Preset, type PresetOptions, preset } from "./index.ts";
 
 export { criticCss } from "./index.ts";
 export type { PresetOptions } from "./index.ts";
+
+// Pele calls `onRender` only in the browser, after it draws, so the styles arrive like the other components' do.
+const mermaid = {
+  default: pele,
+  components: { pele: createPeleComponent({ onRender: addMermaidStyles }) },
+};
 
 // oxlint-disable-next-line no-explicit-any -- the type `@comark/react` takes for its components.
 type AnyComponent = ComponentType<any>;
@@ -57,6 +65,7 @@ export default (options?: PresetOptions): Preset<AnyComponent> =>
       icon,
       links,
       media,
+      mermaid,
       metrics,
       outline,
       properties,
