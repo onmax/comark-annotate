@@ -23,7 +23,6 @@ import { highlight } from "./highlight.ts";
 import { browserPlugins, components } from "./plugins.ts";
 import { colorTokens, themePresets } from "./play-theme.ts";
 import { previewDocument } from "./preview.ts";
-import { writeSkill } from "./skills.ts";
 
 const root = new URL("./", import.meta.url);
 const dist = new URL("dist/", root);
@@ -757,7 +756,7 @@ const botIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="tr
 const copyIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
 const resetIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`;
 const checkIcon = `<svg class="check" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5"/></svg>`;
-// Humans install the package with their package manager; agents install the site's one skill. A page about plugins
+// Humans install the package with their package manager; agents install the skill from GitHub. A page about plugins
 // installs every one through @onmax/comark by default, and offers its own packages alone: the preset brings them as
 // its dependencies, so the note says how to register them through it.
 const everyPlugin = "comark @comark/html @onmax/comark";
@@ -775,7 +774,7 @@ function installerFor(install: string) {
   const commands = {
     all: managers(own.length ? everyPlugin : packages),
     one: managers(packages),
-    agents: `npx skills add ${site}`,
+    agents: "npx skills add onmax/comark-plugins",
   };
   const scope = own.length
     ? `<div class="installer-scope"><div class="seg" role="group" aria-label="Packages"><button type="button" data-scope="all" aria-pressed="true">Every plugin</button><button type="button" data-scope="one" aria-pressed="false">Only ${own.length === 1 ? escapeHtml(own[0]!) : "these"}</button></div>` +
@@ -1207,8 +1206,6 @@ await build({
     lib: { entry: fileURLToPath(new URL("play.ts", root)), formats: ["es"], fileName: "play" },
   },
 });
-
-await writeSkill(dist);
 
 // The page around the content: header, rail, the section's column, and a menu that holds both on narrow screens. The
 // landing page has no sidebar, so its header links to the docs and the playground instead.

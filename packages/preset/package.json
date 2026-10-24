@@ -18,8 +18,7 @@
     "directory": "packages/preset"
   },
   "files": [
-    "dist",
-    "skills"
+    "dist"
   ],
   "type": "module",
   "sideEffects": false,
@@ -34,7 +33,7 @@
     },
     "./vue": "./dist/vue.mjs",
     "./package.json": "./package.json",
-    "./skills/*": "./skills/*"
+    "./skills/*": "./dist/skills/*"
   },
   "publishConfig": {
     "access": "public",

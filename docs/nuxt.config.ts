@@ -2,12 +2,11 @@ import { cp, mkdir, rm } from "node:fs/promises";
 import { existsSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { defineNuxtConfig } from "nuxt/config";
-import { writeSkill } from "./skills.ts";
 
 const root = new URL("./", import.meta.url);
 const generated = new URL(".generated/public/", root);
 
-// Fonts and the agent skill keep the paths the old static build gave them, which `npx skills add` and old links read.
+// Fonts keep the paths the old static build gave them, which old links read.
 async function writeAssets() {
   await rm(generated, { recursive: true, force: true });
   await mkdir(new URL("fonts/", generated), { recursive: true });
@@ -21,7 +20,6 @@ async function writeAssets() {
     ),
     new URL("fonts/Caveat-Variable.woff2", generated),
   );
-  await writeSkill(generated);
 
   // The playground is a standalone browser app. Keep its generated HTML and
   // script under Nitro's public root so `/play/` remains available alongside

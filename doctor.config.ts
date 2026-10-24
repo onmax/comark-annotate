@@ -9,7 +9,7 @@ export default defineDoctorConfig({
   extends: ["comark/recommended"],
   extensions: [
     comark({
-      include: "{docs/pages,packages/*/docs,packages/preset/skills}/**/*.md",
+      include: "{docs/pages,packages/*/docs,skills}/**/*.md",
       // docs/build.ts renders these itself.
       components: [
         "correct",

@@ -19,10 +19,10 @@ const render = createHtmlRenderer({ plugins: [charts()], components });
 
 ## Agents
 
-The comark-plugins agent skill knows the table shape for each chart type and how to check the result. Install it from this site:
+The comark-plugins agent skill knows the table shape for each chart type and how to check the result. Install it:
 
 ```sh
-npx skills add https://comark.onmax.me
+npx skills add onmax/comark-plugins
 ```
 
 Agents read charts without the skill: in the Markdown and in the page, each chart's data is a table.

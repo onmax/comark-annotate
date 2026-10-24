@@ -69,7 +69,7 @@ The icon resolver from `icon`'s options also draws the icons of cards, details, 
 
 ## Agents
 
-The package ships the comark-plugins agent skill, the one this site serves. [Agents](/guide/agents/) shows how to install it, or bundle it in an app so it always matches the plugins the app installed.
+The package ships the comark-plugins agent skill. [Agents](/guide/agents/) shows how to install it, or bundle it in an app so it always matches the plugins the app installed.
 
 ## Versions
 

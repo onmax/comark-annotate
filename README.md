@@ -55,7 +55,7 @@ Docs and live demos: [comark.onmax.me](https://comark.onmax.me).
 
 ## Agents
 
-One agent skill, `comark-plugins`, teaches an agent every package, with a reference per package. Install it with `npx skills add https://comark.onmax.me`, or bundle it in an app from `@onmax/comark/skills/comark-plugins/`.
+[`skills/comark-plugins`](./skills/comark-plugins) teaches an agent every package, with a reference per package. Install it with `npx skills add onmax/comark-plugins`, or bundle it in an app from `@onmax/comark/skills/comark-plugins/`.
 
 ## Develop
 

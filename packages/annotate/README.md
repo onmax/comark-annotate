@@ -49,7 +49,7 @@ The styles follow shadcn/ui: they read its CSS variables, such as `--background`
 
 ## Agents
 
-The comark-plugins agent skill knows the syntax, how to measure marks from the page, and how to check the result. `npx skills add https://comark.onmax.me` installs it, and an app that serves skills to its own agents can bundle it from `@onmax/comark/skills/comark-plugins/`, which always matches the renderers it installed. The CLI checks and previews documents:
+The comark-plugins agent skill knows the syntax, how to measure marks from the page, and how to check the result. `npx skills add onmax/comark-plugins` installs it, and an app that serves skills to its own agents can bundle it from `@onmax/comark/skills/comark-plugins/`, which always matches the renderers it installed. The CLI checks and previews documents:
 
 ```sh
 npx comark-annotate check report.md other.md        # one line per problem, exit 1 if any

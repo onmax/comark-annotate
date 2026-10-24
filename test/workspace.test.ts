@@ -77,7 +77,7 @@ describe.each(folders)("packages/%s", (folder) => {
   // Agents write most documents, and they learn a package from the skill rather than the site. Hosts whose agents only
   // write Markdown, such as Drop, cut each reference at its Register section, so it comes last.
   it("has a reference in the agent skill, linked from SKILL.md, that ends with Register", () => {
-    const skill = "packages/preset/skills/comark-plugins/";
+    const skill = "skills/comark-plugins/";
     expect(existsSync(new URL(`${skill}references/${folder}.md`, repo))).toBe(true);
     expect(read(`${skill}SKILL.md`)).toContain(`](references/${folder}.md)`);
     const reference = read(`${skill}references/${folder}.md`);
