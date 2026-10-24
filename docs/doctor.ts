@@ -8,6 +8,7 @@ import { textContent } from "comark/utils";
 import { icons as lucide } from "@iconify-json/lucide";
 import cards from "../packages/cards/src/index.ts";
 import critic, { type CriticOptions } from "../packages/critic/src/index.ts";
+import diagrams from "../packages/diagrams/src/index.ts";
 import icon, { createIcons } from "../packages/icon/src/index.ts";
 import include from "../packages/include/src/index.ts";
 import { lint, type Diagnostic, type Rule } from "../packages/lint/src/index.ts";
@@ -28,13 +29,14 @@ export const doctorRules = Object.entries(catalog as Record<string, RuleInfo>).m
 
 export const doctorRule = (slug: string) => doctorRules.find((entry) => entry.slug === slug);
 
-// Icons come from lucide alone, so an example's icon problem doesn't depend on the network. The include examples read
-// files from docs/doctor-include/, outside the pages so none is linted or built as one.
+// Icons come from lucide alone, so an example's icon problem doesn't depend on the network, and no diagram goes to
+// Kroki. The include examples read files from docs/doctor-include/, outside the pages so none is linted or built as one.
 const icons = createIcons({ collections: { lucide }, fetch: false });
 const offline: Record<string, ReturnType<typeof browserPlugins>[number]> = {
   "comark-icon": icon(icons),
   "comark-tabs": tabs({ iconResolver: icons }),
   "comark-cards": cards({ iconResolver: icons }),
+  "comark-diagrams": diagrams({ draw: false }),
 };
 const plugins = () => [
   ...browserPlugins({}, { download: false }).map((plugin) => offline[plugin.name] ?? plugin),

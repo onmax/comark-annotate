@@ -41,6 +41,16 @@ const packages = [
     [],
   ],
   [
+    "comark-diagrams/html",
+    // Linting reads no drawings, so it sends no diagram to Kroki.
+    () =>
+      import("comark-diagrams/html").then((module) => ({
+        ...module,
+        default: () => module.default({ draw: false }),
+      })),
+    [],
+  ],
+  [
     "comark-critic",
     () => import("comark-critic").then((module) => ({ ...module, components: {} })),
     [],

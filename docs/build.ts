@@ -80,6 +80,7 @@ const inlineCode = (text: string) => escapeHtml(text).replace(/`([^`]+)`/g, "<co
 const packageOrder = [
   "annotate",
   "charts",
+  "diagrams",
   "chips",
   "colors",
   "diff",

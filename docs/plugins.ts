@@ -9,6 +9,7 @@ import code, { components as codeComponents } from "../packages/code/src/html.ts
 import deflist from "../packages/deflist/src/index.ts";
 import figure from "../packages/figure/src/index.ts";
 import critic from "../packages/critic/src/index.ts";
+import diagrams, { components as diagramsComponents } from "../packages/diagrams/src/html.ts";
 import diff, { components as diffComponents } from "../packages/diff/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
 import {
@@ -47,6 +48,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   charts(),
   chips({ download }),
   colors(),
+  diagrams(),
   diff(),
   embed(),
   callouts(config["comark-github"]?.callouts),
@@ -81,6 +83,7 @@ export const components = {
   ...chartsComponents,
   ...chipsComponents,
   ...colorsComponents,
+  ...diagramsComponents,
   ...diffComponents,
   ...embedComponents,
   ...githubComponents,
