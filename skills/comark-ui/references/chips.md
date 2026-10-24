@@ -27,7 +27,7 @@ Copy each `@user` from the person's GitHub profile, since a mention always means
 
 ## Register
 
-- In `@onmax/comark`: on, with the options below under `chips`. Pass `chips: { download: false }` when parsing in a browser, which may not download another site's images.
+- In `comark-ui`: on, with the options below under `chips`. Pass `chips: { download: false }` when parsing in a browser, which may not download another site's images.
 - Alone: `pnpm add comark @comark/html comark-chips`, then `createHtmlRenderer({ plugins: [chips()], components })` with both from `comark-chips/html`. `comark-chips/vue`, `/react`, and `/svelte` render it too.
 
 `download` (default `true`) inlines each image; `false` leaves its URL for the reader's browser. `favicon(host)` and `avatar(login)` return an image URL in place of Google's favicon service and the GitHub avatar. `cache` is the folder that keeps images for a week, `node_modules/.cache/comark-chips` by default, and `false` keeps them in memory. Avatars from X, Bluesky, YouTube, GitLab, and `provider:name` come through unavatar.io, which allows 25 downloads a day per IP address. In CI, set `cache` to a folder you commit, such as `.comark/chips`, so a build downloads only new images.

@@ -17,14 +17,14 @@ This site serves it too, so `npx skills add https://comark-ui.onmax.me` installs
 
 ## Bundle the skill in your app
 
-An app that renders these documents for its own agents, like [Drop](https://drop.vitehub.dev/?utm_source=comark-ui&utm_medium=guide), can ship this skill instead of writing one. `@onmax/comark` includes it, so the app copies it at build time and its agents always read the syntax of the plugins it installed:
+An app that renders these documents for its own agents, like [Drop](https://drop.vitehub.dev/?utm_source=comark-ui&utm_medium=guide), can ship this skill instead of writing one. `comark-ui` includes it, so the app copies it at build time and its agents always read the syntax of the plugins it installed:
 
 ```ts
 import { cp } from "node:fs/promises";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const skill = dirname(fileURLToPath(import.meta.resolve("@onmax/comark/skills/comark-ui/SKILL.md")));
+const skill = dirname(fileURLToPath(import.meta.resolve("comark-ui/skills/comark-ui/SKILL.md")));
 await cp(skill, "skills/comark-ui", { recursive: true });
 ```
 

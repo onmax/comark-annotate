@@ -18,5 +18,5 @@ Highlight a few words per paragraph at most. When you highlight a whole paragrap
 
 ## Register
 
-- In `@onmax/comark`: on by default. `mark: false` turns it off; it takes no options.
+- In `comark-ui`: on by default. `mark: false` turns it off; it takes no options.
 - Alone: `pnpm add comark comark-mark`, then `plugins: [mark()]` with `import mark from "comark-mark"`. It has no components, classes, or styles, so every renderer draws `mark` and `sup` as they are. Browsers paint `<mark>` yellow until the page's CSS restyles it. It works beside any footnotes plugin and in streaming parses.

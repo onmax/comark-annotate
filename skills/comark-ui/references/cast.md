@@ -44,5 +44,5 @@ asciinema rec --cols 80 --rows 12 --command "pnpm test" evidence/test.cast
 
 ## Register
 
-- In `@onmax/comark`: on, but it reads no cast files until you pass `cast: { root: "docs" }`, or `{ read }` to read them yourself. Inline casts render either way.
+- In `comark-ui`: on, but it reads no cast files until you pass `cast: { root: "docs" }`, or `{ read }` to read them yourself. Inline casts render either way.
 - Alone: `pnpm add comark @comark/html comark-cast`, then `createHtmlRenderer({ plugins: [cast({ root: "docs" })], components })` with both from `comark-cast/html`. `root` (default `"."`, the working directory) is the folder `src` paths start from, and it refuses a path or symlink that leads out of it. `read(path)` returns a file's text or `undefined`; pass it in a browser or an edge runtime. `comark-cast/vue`, `/react`, and `/svelte` render it too.

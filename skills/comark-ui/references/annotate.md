@@ -61,5 +61,5 @@ npx comark-annotate render report.md -o report.html
 
 ## Register
 
-- In `@onmax/comark`: on, in `@onmax/comark/html` only.
+- In `comark-ui`: on, in `comark-ui/html` only.
 - Alone: `pnpm add comark @comark/html comark-annotate`, then `createHtmlRenderer({ plugins: [annotate()], components })` with both from `comark-annotate/html`. It renders only to HTML and takes no options. Each document inlines the styles once, with style attributes for positions, so a strict Content Security Policy needs `style-src 'unsafe-inline'`.

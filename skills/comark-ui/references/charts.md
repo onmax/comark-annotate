@@ -73,5 +73,5 @@ The linter names each chart by its position, such as `` `::chart` 2 ``. No comma
 
 ## Register
 
-- In `@onmax/comark`: on. Marks on charts show only through `@onmax/comark/html`.
+- In `comark-ui`: on. Marks on charts show only through `comark-ui/html`.
 - Alone: `pnpm add comark @comark/html comark-charts`, then `createHtmlRenderer({ plugins: [charts()], components })` with both from `comark-charts/html`. Flint and Vega draw each chart while parsing, so the browser runs no chart code. `comark-charts/vue`, `/react`, and `/svelte` place the same SVG without its marks. `charts({ draw: false })` only checks the charts, which suits a lint step.

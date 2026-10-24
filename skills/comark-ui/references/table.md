@@ -44,5 +44,5 @@ CSV follows RFC 4180. A cell in double quotes may hold commas and line breaks, a
 
 ## Register
 
-- In `@onmax/comark`: on. Fences render, and every `src` reports a missing file until you pass `table: { root: "docs" }` or `{ read }`.
+- In `comark-ui`: on. Fences render, and every `src` reports a missing file until you pass `table: { root: "docs" }` or `{ read }`.
 - Alone: `pnpm add comark @comark/html comark-table`, then `createHtmlRenderer({ plugins: [table({ root: "docs" })], components })` with both from `comark-table/html`. `root` is the folder `src` can't leave, default `.`, the working directory. `base` is the document's folder under it, where relative paths start. `read(path)` returns a file's text, for browsers and edge runtimes. `fences: false` keeps csv and tsv fences as code. `comark-table/vue`, `/react`, and `/svelte` render it too.

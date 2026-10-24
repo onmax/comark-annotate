@@ -1,17 +1,17 @@
 import { expect, test } from "@playwright/test";
 
 test("client navigation preserves the app and reinitializes page scripts", async ({ page }) => {
-  await page.goto("/guide/renderers/");
+  await page.goto("/zoom/");
   const marker = await page.evaluate(() => {
     const w = window as typeof window & { __comarkNavigation?: number };
     return (w.__comarkNavigation ??= Math.random());
   });
-  await page.locator(".sidebar").getByRole("link", { name: "tabs", exact: true }).click();
+  await page.locator(".sidebar").getByRole("link", { name: "Tabs", exact: true }).click();
   await expect(page).toHaveURL(/\/tabs\/$/);
-  await expect(page.locator("h1")).toHaveText("comark-tabs");
-  await page.locator(".sidebar").getByRole("link", { name: "annotate", exact: true }).click();
+  await expect(page.locator("h1")).toHaveText("Tabs");
+  await page.locator(".sidebar").getByRole("link", { name: "Annotate", exact: true }).click();
   await expect(page).toHaveURL(/\/annotate\/$/);
-  await expect(page.locator("h1")).toHaveText("comark-annotate");
+  await expect(page.locator("h1")).toHaveText("Annotate");
   // The npmx chip's view transition holds the pointer until it ends.
   await page.waitForFunction(
     () =>
@@ -65,15 +65,14 @@ test("the landing canvas paints its cards centered after a client navigation", a
 
 test("a page change jumps to its scroll position instead of sliding there", async ({ page }) => {
   // Both pages are taller than the position, so the browser doesn't clamp it while the next one comes in.
-  await page.goto("/charts/syntax/");
+  await page.goto("/charts/");
   await page.evaluate(() => window.scrollTo({ top: 1200, behavior: "instant" }));
   // Every scroll position from the link's click, or going back, until the page has settled.
   const frames = (back: boolean) =>
     page.evaluate(async (back) => {
       const seen = new Set([Math.round(scrollY)]);
       if (back) history.back();
-      else
-        document.querySelector<HTMLAnchorElement>('.sidebar a[href="/guide/renderers/"]')!.click();
+      else document.querySelector<HTMLAnchorElement>('.sidebar a[href="/zoom/"]')!.click();
       const start = performance.now();
       while (performance.now() - start < 1500) {
         await new Promise(requestAnimationFrame);
@@ -82,7 +81,7 @@ test("a page change jumps to its scroll position instead of sliding there", asyn
       return [...seen];
     }, back);
   expect(await frames(false)).toEqual([1200, 0]);
-  await expect(page).toHaveURL(/\/guide\/renderers\/$/);
+  await expect(page).toHaveURL(/\/zoom\/$/);
   expect(await frames(true)).toEqual([0, 1200]);
-  await expect(page).toHaveURL(/\/charts\/syntax\/$/);
+  await expect(page).toHaveURL(/\/charts\/$/);
 });

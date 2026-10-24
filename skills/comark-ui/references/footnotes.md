@@ -22,5 +22,5 @@ The linter reports a reference with no definition, a definition nothing referenc
 
 ## Register
 
-- In `@onmax/comark`: on by default, in place of Comark's own footnotes plugin. `footnotes: { label: "Notes", hr: false, backRef: "↑" }` sets the section's heading (default `"Footnotes"`; `""` leaves it out), whether a rule comes before the section (default `true`), and the link from a note back to its reference (default `"↩"`).
+- In `comark-ui`: on by default, in place of Comark's own footnotes plugin. `footnotes: { label: "Notes", hr: false, backRef: "↑" }` sets the section's heading (default `"Footnotes"`; `""` leaves it out), whether a rule comes before the section (default `true`), and the link from a note back to its reference (default `"↩"`).
 - Alone: `pnpm add comark comark-footnotes`, then `plugins: [footnotes()]` with `import footnotes from "comark-footnotes"`, and the same options. It is named `footnotes`, and Comark keeps the first plugin of a name, so remove `comark/plugins/footnotes` from the list instead of adding this one after it. It has no components and writes the nodes and classes Comark's plugin writes, such as `footnote-ref` and `footnotes`, so styles made for it keep working.

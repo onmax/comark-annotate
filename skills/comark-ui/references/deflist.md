@@ -34,5 +34,5 @@ Use a definition list when a definition runs past a line or holds more than a pa
 
 ## Register
 
-- In `@onmax/comark`: on by default. `deflist: false` turns it off; it takes no options.
+- In `comark-ui`: on by default. `deflist: false` turns it off; it takes no options.
 - Alone: `pnpm add comark comark-deflist`, then `plugins: [deflist()]` with `import deflist from "comark-deflist"`. It has no components, classes, or styles, so every renderer draws `dl`, `dt`, and `dd` as they are, and the page's own CSS styles them. It works inside any `::component` and in streaming parses.

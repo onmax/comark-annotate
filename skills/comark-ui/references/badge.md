@@ -26,5 +26,5 @@ Write a badge inline as `:badge[text]`, or as Nuxt UI's block `::badge` with its
 
 ## Register
 
-- In `@onmax/comark`: on, under the key `badge`, with no options.
+- In `comark-ui`: on, under the key `badge`, with no options.
 - Alone: `pnpm add comark @comark/html comark-badge`, then `createHtmlRenderer({ plugins: [badge()], components })` with both from `comark-badge/html`. It takes no options and needs no script. Colors read Nuxt UI's `--ui-*` variables, and primary follows shadcn/ui's `--primary`, else the text color. `comark-badge/vue`, `/react`, and `/svelte` render it too.

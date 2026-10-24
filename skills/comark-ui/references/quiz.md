@@ -41,5 +41,5 @@ The HTML renderer inlines the quiz script and styles. Hosts can listen for `coma
 
 ## Register
 
-- In `@onmax/comark`: on, as `quiz`, with optional `{ labels }` for translated UI text.
+- In `comark-ui`: on, as `quiz`, with optional `{ labels }` for translated UI text.
 - Alone: `pnpm add comark @comark/html comark-quiz`, then `createHtmlRenderer({ plugins: [quiz()], components })` with `quiz, { components }` from `comark-quiz/html`. The HTML renderer is required because the blocks need its inlined script; there are no Vue, React, or Svelte entries.

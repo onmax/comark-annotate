@@ -4,10 +4,19 @@
 
 # comark-ui
 
-Plugins for review documents, built on [Comark](https://comark.dev). This is an independent project by [@onmax](https://github.com/onmax), not made by the Comark team. Each package is published on its own and all of them share one version.
+Plugins for review documents, built on [Comark](https://comark.dev). This is an independent project by [@onmax](https://github.com/onmax), not made by the Comark team.
+
+Install [`comark-ui`](./packages/ui) to get every block below in one package, registered in the order they need:
+
+```sh
+pnpm add comark @comark/html comark-ui
+```
+
+Each block is also published on its own, and all of them share one version.
 
 | Package | What it does |
 | --- | --- |
+| [`comark-ui`](./packages/ui) | Every block below in one install, registered in order with one icon resolver. |
 | [`comark-annotate`](./packages/annotate) | Hand-drawn marks, numbered notes, and arrows on screenshots, and before/after comparisons. |
 | [`comark-badge`](./packages/badge) | Badges for versions and statuses, inline as `:badge[deprecated]{color="warning"}` or as Nuxt UI's block `::badge`, in Nuxt UI's seven colors. |
 | [`comark-cards`](./packages/cards) | Cards, link cards, and columns in Nuxt UI's syntax, with no script. |
@@ -50,13 +59,12 @@ Plugins for review documents, built on [Comark](https://comark.dev). This is an 
 | [`comark-tests`](./packages/tests) | Test results from a JUnit XML report: pass, fail, and skip counts, the duration, and each failure with its stack. |
 | [`comark-xref`](./packages/xref) | Numbered figures and tables, and `:ref{#fig-x}` references that read "Figure 1". |
 | [`comark-zoom`](./packages/zoom) | Zoom images and any block like medium-zoom, with Escape, Back, and click-outside to close. |
-| [`@onmax/comark`](./packages/preset) | onmax's preset: every package above in one install, like `@antfu/eslint-config`. |
 
 Docs and live demos: [comark-ui.onmax.me](https://comark-ui.onmax.me).
 
 ## Agents
 
-[`skills/comark-ui`](./skills/comark-ui) teaches an agent every package, with a reference per package. Install it with `npx skills add onmax/comark-ui`, or bundle it in an app from `@onmax/comark/skills/comark-ui/`.
+[`skills/comark-ui`](./skills/comark-ui) teaches an agent every package, with a reference per package. Install it with `npx skills add onmax/comark-ui`, or bundle it in an app from `comark-ui/skills/comark-ui/`.
 
 ## Develop
 

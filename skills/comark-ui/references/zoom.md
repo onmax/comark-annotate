@@ -31,5 +31,5 @@ The zoomed view fires `comark-zoom:open`, `comark-zoom:change`, and `comark-zoom
 
 ## Register
 
-- In `@onmax/comark`: on, as `zoom`. `zoom: { images: false }` leaves images alone, so only `::zoom` blocks and elements marked `{data-zoom}` zoom.
+- In `comark-ui`: on, as `zoom`. `zoom: { images: false }` leaves images alone, so only `::zoom` blocks and elements marked `{data-zoom}` zoom.
 - Alone: `pnpm add comark @comark/html comark-zoom`, then `createHtmlRenderer({ plugins: [zoom()], components })` with both from `comark-zoom/html`. `comark-zoom/vue`, `/react`, and `/svelte` export the same pair for those renderers. The plugin adds a node that starts the script, so pass the components even when only images zoom. A page with no renderer calls `start()` from `comark-zoom/client` once. comark-annotate and comark-carousel zoom their own blocks without it, so register `zoom()` for images and `::zoom`.

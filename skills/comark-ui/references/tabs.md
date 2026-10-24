@@ -42,5 +42,5 @@ Put only alternatives in tabs. Anything every reader needs goes outside them, si
 
 ## Register
 
-- In `@onmax/comark`: on, as `tabs`. `tabs: { managers }` sets the tabs an `npm2yarn` block gets, in order. The default is `["npm", "pnpm", "yarn", "bun"]`, and `"deno"` can join. `tabs: { icons }` gives each tab without an icon one by its label, such as `{ pnpm: "logos:pnpm" }`. Icons resolve through the preset's `icon` options, from the Iconify API unless its `collections` hold the set.
+- In `comark-ui`: on, as `tabs`. `tabs: { managers }` sets the tabs an `npm2yarn` block gets, in order. The default is `["npm", "pnpm", "yarn", "bun"]`, and `"deno"` can join. `tabs: { icons }` gives each tab without an icon one by its label, such as `{ pnpm: "logos:pnpm" }`. Icons resolve through the preset's `icon` options, from the Iconify API unless its `collections` hold the set.
 - Alone: `pnpm add comark @comark/html comark-tabs`, then `createHtmlRenderer({ plugins: [tabs()], components })` with both from `comark-tabs/html`. `comark-tabs/vue`, `/react`, and `/svelte` (Svelte 5.20 or later) export the same pair for those renderers. It takes `managers`, `icons`, and `iconResolver`, a `createIcons()` from comark-icon to share with `:icon`. List it before Shiki, so Shiki highlights the tabs `npm2yarn` adds.

@@ -44,5 +44,5 @@ A key shared by blocks that switch together.
 
 ## Register
 
-- In `@onmax/comark`: on, under the key `fields`, with no options.
+- In `comark-ui`: on, under the key `fields`, with no options.
 - Alone: `pnpm add comark @comark/html comark-fields`, then `createHtmlRenderer({ plugins: [fields()], components })` with both from `comark-fields/html`. It takes no options and needs no script. `comark-fields/vue`, `/react`, and `/svelte` render it too.

@@ -36,5 +36,5 @@ Any other `https://` link renders as a card with its `title` and host. A provide
 
 ## Register
 
-- In `@onmax/comark`: on.
+- In `comark-ui`: on.
 - Alone: `pnpm add comark @comark/html comark-embed`, then `createHtmlRenderer({ plugins: [embed()], components })` with both from `comark-embed/html`. It takes no options and needs no script. `comark-embed/vue`, `/react`, and `/svelte` render it too.

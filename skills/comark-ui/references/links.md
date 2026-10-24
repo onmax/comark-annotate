@@ -39,5 +39,5 @@ Only a heading with an id gets a link, so under Comark's `headingIds: false` onl
 
 ## Register
 
-- In `@onmax/comark`: both on, as `links: { anchors, external }`, and either takes `false` or its options. With no options, `external()` opens nothing in a new tab. comark-chips runs first and turns every web link into a chip, and a chip drops the link's `target` and `rel`, both its own and `external()`'s. Write `{chip=false}` on a web link that needs them, such as `{chip=false rel="me"}`.
+- In `comark-ui`: both on, as `links: { anchors, external }`, and either takes `false` or its options. With no options, `external()` opens nothing in a new tab. comark-chips runs first and turns every web link into a chip, and a chip drops the link's `target` and `rel`, both its own and `external()`'s. Write `{chip=false}` on a web link that needs them, such as `{chip=false rel="me"}`.
 - Alone: `pnpm add comark @comark/html comark-links`, then `createHtmlRenderer({ plugins: [anchors(), external()], components })` with all three from `comark-links/html`, which has no default export. Register either plugin or both, in any order. Either one needs the components, which draw the heading links and style the new-tab warning. `comark-links/vue`, `/react`, and `/svelte` export the same for those renderers.

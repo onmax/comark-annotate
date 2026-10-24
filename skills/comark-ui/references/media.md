@@ -25,5 +25,5 @@ The spinner now stops once the build finishes:
 
 ## Register
 
-- In `@onmax/comark`: on. `media: { controls: "native" }` keeps the browser's own controls and leaves the script out.
+- In `comark-ui`: on. `media: { controls: "native" }` keeps the browser's own controls and leaves the script out.
 - Alone: `pnpm add comark @comark/html comark-media`, then `createHtmlRenderer({ plugins: [media()], components })` with both from `comark-media/html`. `comark-media/vue`, `/react`, and `/svelte` render it too. Its place in `plugins` doesn't matter. It reads the tokens before any plugin sees the tree, so comark-zoom never zooms a video and comark-chips never turns an attachment link into a chip. The HTML renderer inlines the players' script once per document, and the browser's own controls show until it runs and whenever a file can't play.

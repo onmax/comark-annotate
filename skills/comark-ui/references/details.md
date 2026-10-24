@@ -45,5 +45,5 @@ On `::details`, a `#summary` slot replaces `summary` and can hold Markdown; writ
 
 ## Register
 
-- In `@onmax/comark`: on, under the key `details`. Its icons come from the preset's shared resolver, so `icon: { collections }` applies to them.
+- In `comark-ui`: on, under the key `details`. Its icons come from the preset's shared resolver, so `icon: { collections }` applies to them.
 - Alone: `pnpm add comark @comark/html comark-details`, then `createHtmlRenderer({ plugins: [details()], components })` with both from `comark-details/html`. By default icons come from the Iconify API while parsing. To share one resolver with the page's other plugins, add `comark-icon`, make one with `createIcons()`, and pass it as `details({ iconResolver })`. The output needs no script. `comark-details/vue`, `/react`, and `/svelte` render it too.

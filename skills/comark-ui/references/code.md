@@ -72,12 +72,12 @@ A click sends a bubbling `comark-code-action` event with `{ action, code, langua
 
 ## Register
 
-- In `@onmax/comark`: on, as `code`. Pass `code: { actions }` for buttons of your own, and the preset's `icon` options resolve their icons. The preset leaves Shiki out. To add it, put it right before comark-code, which keeps it after comark-tabs:
+- In `comark-ui`: on, as `code`. Pass `code: { actions }` for buttons of your own, and the preset's `icon` options resolve their icons. The preset leaves Shiki out. To add it, put it right before comark-code, which keeps it after comark-tabs:
 
   ```ts
   import shiki from "comark/plugins/shiki";
 
-  const { plugins, components } = onmax();
+  const { plugins, components } = comarkUi();
   plugins.splice(plugins.findIndex((plugin) => plugin.name === "comark-code"), 0, shiki());
   ```
 
