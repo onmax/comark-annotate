@@ -825,7 +825,8 @@ function installerFor(install: string, skill: string, usage = false) {
   const note = usage
     ? ""
     : `<p data-scope-panel="all">Render with <code>onmax()</code> from <a href="/preset/">@onmax/comark/html</a>, which registers every plugin in order.</p>`;
-  const scope = own.length && !usage ? `<div class="installer-scope">${scopeSwitch(own)}${note}</div>` : "";
+  const scope =
+    own.length && !usage ? `<div class="installer-scope">${scopeSwitch(own)}${note}</div>` : "";
   return `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
 <div class="installer-bar"><div class="seg" role="group" aria-label="Audience"><button type="button" data-audience="humans" aria-pressed="true">${userIcon}For humans</button><button type="button" data-audience="agents" aria-pressed="false">${botIcon}For agents</button></div>
 <div class="seg installer-pm" role="group" aria-label="Package manager">${["pnpm", "npm", "yarn", "bun"].map((pm, i) => `<button type="button" data-pm="${pm}" aria-pressed="${i === 0}">${pm}</button>`).join("")}</div></div>
