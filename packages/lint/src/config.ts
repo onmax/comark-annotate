@@ -10,6 +10,37 @@ export const defineConfig = (config: Config): Config => config;
 // after a loader are blocks its renderer has no component for: comark-tabs turns `::code-group` into tabs while
 // parsing, and renders each `:::tabs-item` inside `::tabs`.
 const packages = [
+  [
+    "@onmax/comark/html",
+    // The preset brings every package as its own dependency, which the project can't import. It comes first, since
+    // Comark keeps the first plugin of each name, so a package also installed on its own doesn't run twice. Its
+    // plugins get the options and blocks the entries below give their own: nothing drawn or downloaded, and files
+    // read from disk.
+    () =>
+      import("@onmax/comark/html").then((module) => {
+        const preset = module.default({
+          cast: {},
+          charts: { draw: false },
+          chips: { download: false },
+          diagrams: { draw: false },
+          github: { references: false, html: false },
+          links: { external: false },
+          table: {},
+          tests: {},
+        });
+        return { default: () => preset.plugins, components: preset.components };
+      }),
+    [
+      "code-group",
+      "tabs-item",
+      "stats",
+      "table",
+      "details",
+      "accordion-item",
+      "collapsible",
+      "ref",
+    ],
+  ],
   ["comark-annotate/html", () => import("comark-annotate/html"), []],
   ["comark-carousel/html", () => import("comark-carousel/html"), []],
   ["comark-cast/html", () => import("comark-cast/html"), []],
@@ -136,7 +167,8 @@ const missing = (error: unknown, name: string) =>
   error instanceof Error &&
   "code" in error &&
   error.code === "ERR_MODULE_NOT_FOUND" &&
-  error.message.match(/Cannot find package '([^']+)'/)?.[1] === name.split("/", 1)[0];
+  error.message.match(/Cannot find package '([^']+)'/)?.[1] ===
+    name.match(/^(@[^/]+\/)?[^/]+/)?.[0];
 
 /** The parse plugins and components of every comark-plugins package installed, plus `config`'s, and its other options. */
 export async function resolveConfig(
@@ -156,7 +188,7 @@ export async function resolveConfig(
   const extra = config.components ?? [];
   return {
     ...config,
-    plugins: [...found.map(({ module }) => module.default()), ...(config.plugins ?? [])],
+    plugins: [...found.flatMap(({ module }) => module.default()), ...(config.plugins ?? [])],
     components: [
       ...found.flatMap(({ module, blocks }) => [...Object.keys(module.components), ...blocks]),
       ...(Array.isArray(extra) ? extra : Object.keys(extra)),
