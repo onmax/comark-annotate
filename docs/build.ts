@@ -799,10 +799,11 @@ const botIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="tr
 const copyIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
 const resetIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`;
 const checkIcon = `<svg class="check" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5"/></svg>`;
-// Humans install the package with their package manager; agents install the skill from GitHub. A page about plugins
-// installs every one through @onmax/comark by default, and offers its own packages alone: the preset brings them as
-// its dependencies, so the note says how to register them through it. A page with ::usage shows that code instead,
-// and leaves the note out, so switching there moves nothing above it.
+// Humans install the package with their package manager; agents install the skill from this site, the package's
+// own when it has one. A page about plugins installs every one through @onmax/comark by default, and offers its own
+// packages alone: the preset brings them as its dependencies, so the note says how to register them through it. On a
+// page with ::usage, the switch over that code picks the command instead, so the page shows the choice once, beside
+// the code each side needs.
 const everyPlugin = "comark @comark/html @onmax/comark";
 // The installer and a page's ::usage both draw it, and the script keeps them on one choice.
 const scopeSwitch = (own: string[]) =>
