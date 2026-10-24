@@ -887,7 +887,8 @@ kbd {
     .cdt-accordion,
     .ctr,
     .cfm,
-    .cmt-tiles
+    .cmt-tiles,
+    .cqz
   ):only-child {
   margin: 0;
   padding: 0;
@@ -3322,6 +3323,7 @@ dl:not([class]) > dd > :last-child {
     .ctr,
     .cfm,
     .cmt-tiles,
+    .cqz,
     .cm-video,
     video.cm,
     .cn-notes
@@ -3356,6 +3358,7 @@ dl:not([class]) > dd > :last-child {
       .ctr,
       .cfm,
       .cmt-tiles,
+      .cqz,
       .cm-video,
       video.cm,
       .cn-notes
@@ -3390,6 +3393,7 @@ dl:not([class]) > dd > :last-child {
         .ctr,
         .cfm,
         .cmt-tiles,
+        .cqz,
         .cm-video,
         video.cm,
         .cn-notes
@@ -3421,6 +3425,7 @@ dl:not([class]) > dd > :last-child {
       .ctr,
       .cfm,
       .cmt-tiles,
+      .cqz,
       .cm-video,
       video.cm,
       .cn-notes
@@ -3447,6 +3452,7 @@ dl:not([class]) > dd > :last-child {
       .ctr,
       .cfm,
       .cmt-tiles,
+      .cqz,
       .cm-video,
       video.cm,
       .cn-notes
