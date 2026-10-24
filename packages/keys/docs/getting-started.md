@@ -8,6 +8,14 @@ install: pnpm add comark comark-keys
 
 Register the plugin. It has no components, because keys render as native `<kbd>`:
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(onmax());
+```
+
 ```ts
 import { parseMarkdown } from "comark";
 import keys from "comark-keys";
@@ -16,6 +24,7 @@ const document = await parseMarkdown(markdown, {
   plugins: [keys()],
 });
 ```
+::
 
 It works with `registerDefaultPlugins: false` and in streaming parses: a shortcut stays text until its closing `++` arrives.
 

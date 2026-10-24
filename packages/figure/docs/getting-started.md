@@ -8,6 +8,14 @@ install: pnpm add comark comark-figure
 
 Register the plugin. It has no components and no styles, because a figure is native HTML:
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(onmax());
+```
+
 ```ts
 import { parseMarkdown } from "comark";
 import figure from "comark-figure";
@@ -16,6 +24,7 @@ const document = await parseMarkdown(markdown, {
   plugins: [figure()],
 });
 ```
+::
 
 It works with `registerDefaultPlugins: false` and in streaming parses. With [comark-zoom](/zoom/), the image inside a figure zooms as any other image does, in either plugin order.
 

@@ -8,6 +8,15 @@ install: pnpm add comark @comark/html comark-annotate
 
 Register the plugin and pass the HTML renderers as `components`:
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(onmax());
+const html = await render(markdown);
+```
+
 ```ts
 import { createHtmlRenderer } from "@comark/html";
 import annotate, { components } from "comark-annotate/html";
@@ -15,6 +24,7 @@ import annotate, { components } from "comark-annotate/html";
 const render = createHtmlRenderer({ plugins: [annotate()], components });
 const html = await render(markdown);
 ```
+::
 
 The renderer inlines its styles and script once per document. Annotate renders only to HTML; [Renderers](/guide/renderers/) covers using it with other plugins, a strict Content Security Policy, and untrusted notes.
 

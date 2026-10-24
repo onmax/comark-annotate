@@ -8,12 +8,21 @@ install: pnpm add comark @comark/html comark-cast
 
 Register the plugin and pass the renderer's `components`:
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(onmax({ cast: { root: "docs" } }));
+```
+
 ```ts
 import { createHtmlRenderer } from "@comark/html";
 import cast, { components } from "comark-cast/html";
 
 const render = createHtmlRenderer({ plugins: [cast({ root: "docs" })], components });
 ```
+::
 
 For Vue, React, or Svelte, import from `comark-cast/vue`, `comark-cast/react`, or `comark-cast/svelte`; the components add the styles when they mount. Import `comark-cast/style.css` with your styles so a server-rendered page doesn't shift. [Renderers](/guide/renderers/) covers using it with other plugins.
 
