@@ -23,6 +23,7 @@ const document = [
   '::card{title="Docs" to="/guide"}\nRead it.\n::',
   "```csv\nBird,Seen\nHeron,2\n```",
   "Ducks{++ and geese++}.",
+  "```mermaid\nflowchart LR\n  Draft --> Review\n```",
 ].join("\n\n");
 
 const blocks = [
@@ -37,6 +38,8 @@ const blocks = [
   'class="cm ',
   "<table",
   'class="ccm-ins"',
+  // comark-pele draws the fence as an SVG on the server.
+  '<svg xmlns="http://www.w3.org/2000/svg" class="pele pele-flowchart"',
 ];
 
 describe("@onmax/comark", () => {
@@ -53,6 +56,20 @@ describe("@onmax/comark", () => {
     const out = await createHtmlRenderer({ plugins, components })(document);
     expect(out).not.toContain("data-zoom");
     expect(out).not.toContain('class="cgc"');
+  });
+
+  it("themes Mermaid diagrams once per document, and turns them off", async () => {
+    const markdown =
+      "```mermaid\nsequenceDiagram\n  A->>B: Hi\n```\n\n```mermaid\nflowchart LR\n  A --> B\n```";
+    const out = await createHtmlRenderer(html(offline))(markdown);
+    expect(out.match(/<style data-comark-mermaid>/g)).toHaveLength(1);
+    expect(out).toContain(":where(:root){--_comark-background:var(--comark-background");
+    expect(out).toContain(":where(:root){--pele-bg:var(--_comark-background)");
+    expect(out).toContain("--pele-fg:var(--_comark-foreground)");
+    expect(out).toContain('data-diagram="sequence"');
+    const off = await createHtmlRenderer(html({ ...offline, mermaid: false }))(markdown);
+    expect(off).not.toContain("pele-diagram");
+    expect(off).toContain('class="language-mermaid"');
   });
 
   it("includes files only when asked", async () => {

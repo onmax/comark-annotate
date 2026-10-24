@@ -18,6 +18,7 @@ import keys, { type KeysOptions } from "comark-keys";
 import type { AnchorsOptions, ExternalOptions } from "comark-links";
 import mark from "comark-mark";
 import type { MediaOptions } from "comark-media";
+import type { PeleConfig } from "comark-pele";
 import type { PropertiesOptions } from "comark-properties";
 import type { QuizOptions } from "comark-quiz";
 import readingTime, { type ReadingTimeOptions } from "comark-reading-time";
@@ -52,6 +53,8 @@ export type PresetOptions = {
   colors?: boolean;
   /** Sends each diagram's source to `https://kroki.io` unless you pass your own `server`, or `{ draw: false }`. */
   diagrams?: DiagramsOptions | boolean;
+  /** Draws `mermaid` fences with comark-pele, on the server and offline. */
+  mermaid?: PeleConfig | boolean;
   /** HTML only: Vue, React, and Svelte have no diff components. */
   diff?: boolean;
   embed?: boolean;
@@ -108,6 +111,7 @@ export type Renderer<C> = {
   chips: Part<C, ChipsOptions>;
   colors: Part<C>;
   diagrams: Part<C, DiagramsOptions>;
+  mermaid: Part<C, PeleConfig>;
   diff?: Part<C>;
   embed: Part<C>;
   github: {
@@ -183,6 +187,7 @@ export function preset<C>(renderer: Renderer<C>, options: PresetOptions = {}): P
   add(renderer.chips, options.chips);
   add(renderer.colors, options.colors);
   add(renderer.diagrams, options.diagrams);
+  add(renderer.mermaid, options.mermaid);
   add(renderer.diff, options.diff);
   add(renderer.embed, options.embed);
   parse(footnotes, options.footnotes);

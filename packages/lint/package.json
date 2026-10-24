@@ -73,6 +73,7 @@
     "comark-media": "workspace:*",
     "comark-metrics": "workspace:*",
     "comark-outline": "workspace:*",
+    "comark-pele": "catalog:",
     "comark-properties": "workspace:*",
     "comark-qr": "workspace:*",
     "comark-quiz": "workspace:*",
@@ -118,6 +119,7 @@
     "comark-media": "workspace:^",
     "comark-metrics": "workspace:^",
     "comark-outline": "workspace:^",
+    "comark-pele": "^1.1.0",
     "comark-properties": "workspace:^",
     "comark-qr": "workspace:^",
     "comark-quiz": "workspace:^",
@@ -214,6 +216,9 @@
       "optional": true
     },
     "comark-outline": {
+      "optional": true
+    },
+    "comark-pele": {
       "optional": true
     },
     "comark-zoom": {

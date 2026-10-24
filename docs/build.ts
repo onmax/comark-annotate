@@ -17,7 +17,7 @@ import { createIcons, css as iconCss, iconHtml } from "../packages/icon/src/html
 import include from "../packages/include/src/index.ts";
 import { lint, type Diagnostic } from "../packages/lint/src/index.ts";
 import { defaultConfig } from "./config.ts";
-import { loadExamples, pageOrder, recipeOrder } from "./examples.ts";
+import { loadExamples, pageOrder, recipeOrder, thirdParty } from "./examples.ts";
 import { checkExample, doctorRule, doctorRules } from "./doctor.ts";
 import { highlight } from "./highlight.ts";
 import { browserPlugins, components } from "./plugins.ts";
@@ -77,13 +77,14 @@ const inlineCode = (text: string) => escapeHtml(text).replace(/`([^`]+)`/g, "<co
 
 // The rail, in order: the docs, the playground, then one section per package. Each package's pages sit in its own
 // docs/ folder, and its index's frontmatter gives its group, icon, blurb, and credits. A package with no docs yet is
-// left out.
+// left out. A third-party plugin in `thirdParty` takes a place too, with its pages in docs/pages/<slug>/.
 const packageOrder = [
   "preset",
   "annotate",
   "cast",
   "charts",
   "diagrams",
+  "mermaid",
   "chips",
   "colors",
   "diff",
@@ -127,7 +128,7 @@ const repo = new URL("../", root);
 // Paths from the repository's root, so an error names the file.
 const fileOf = (slug: string) => {
   const [first = "", ...rest] = slug.split("/");
-  return packageOrder.includes(first)
+  return packageOrder.includes(first) && !(first in thirdParty)
     ? `packages/${first}/docs/${rest.join("/") || "index"}.md`
     : existsSync(new URL(`docs/pages/${slug}/index.md`, repo))
       ? `docs/pages/${slug}/index.md`
@@ -168,9 +169,10 @@ const packages = await Promise.all(
       const { frontmatter } = await parseMarkdown(
         await readFile(new URL(fileOf(slug), repo), "utf8"),
       );
-      const manifest: unknown = JSON.parse(
-        await readFile(new URL(`packages/${slug}/package.json`, repo), "utf8"),
-      );
+      const manifest: unknown =
+        slug in thirdParty
+          ? { name: thirdParty[slug] }
+          : JSON.parse(await readFile(new URL(`packages/${slug}/package.json`, repo), "utf8"));
       const [group, icon, blurb, credits] = ["group", "icon", "blurb", "credits"].map((key) =>
         str(frontmatter[key]),
       );
