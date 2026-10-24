@@ -253,6 +253,7 @@ function stats(node: ElementNode, name: string, data: Data, issues: Issue[]): No
             : "Add the missing columns."
       }`,
     });
+    table[1] = { ...table[1], class: "cmt-stats" };
     return table;
   }
   const needs = columns === 3 ? "3: a name, a before, and an after value" : "2: a name and a value";
@@ -302,7 +303,13 @@ function stats(node: ElementNode, name: string, data: Data, issues: Issue[]): No
     if (cell.change) tile.push(["dd", {}, ["delta", { ...cell }]]);
     grid.push(tile);
   }
-  if (tiles) return malformedRow ? table : [STATS_TILES_TAG, {}, ...grid];
+  if (tiles) {
+    if (malformedRow) {
+      table[1] = { ...table[1], class: "cmt-stats" };
+      return table;
+    }
+    return [STATS_TILES_TAG, {}, ...grid];
+  }
   table[1] = { ...table[1], class: "cmt-stats" };
   return table;
 }
