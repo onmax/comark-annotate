@@ -32,6 +32,9 @@ export const pageOrder = [
   "vite-doctor",
 ];
 export const recipeOrder = ["review", "pull-request", "share", "zoom", "carousel"];
+// Third-party plugins the preset registers, by slug and npm name. They sit in the rail like a package, but have no
+// folder in packages/, so their pages sit in docs/pages/<slug>/.
+export const thirdParty: Record<string, string> = { mermaid: "comark-pele" };
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
 const slugify = (text: string) =>
@@ -40,18 +43,27 @@ const slugify = (text: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-// packages/<package>/docs/<page>.md or docs/pages/recipes/<recipe>.md, as the site's slug and group.
+// packages/<package>/docs/<page>.md, docs/pages/<third-party>/<page>.md, or docs/pages/recipes/<recipe>.md, as the
+// site's slug and group.
 function pageOf(file: string) {
   const recipe = /^docs\/pages\/(recipes\/[\w-]+)\.md$/.exec(file);
   if (recipe) return { group: "recipes", page: recipe[1] };
-  const [, group = "", name = ""] = /^packages\/([\w-]+)\/docs\/([\w-]+)\.md$/.exec(file) ?? [];
+  const [, inPackages, inPages, name = ""] =
+    /^(?:packages\/([\w-]+)\/docs|docs\/pages\/([\w-]+))\/([\w-]+)\.md$/.exec(file) ?? [];
+  const group = inPackages ?? inPages ?? "";
   return { group, page: name === "index" ? group : `${group}/${name}` };
 }
 
 const examples = registerSource(
   "comark-examples",
   splitSource({
-    source: glob({ include: ["packages/*/docs/*.md", "docs/pages/recipes/*.md"] }),
+    source: glob({
+      include: [
+        "packages/*/docs/*.md",
+        ...Object.keys(thirdParty).map((slug) => `docs/pages/${slug}/*.md`),
+        "docs/pages/recipes/*.md",
+      ],
+    }),
     async split(file) {
       const { group, page } = pageOf(file.key);
       const { nodes } = await parseMarkdown(

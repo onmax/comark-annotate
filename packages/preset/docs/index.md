@@ -30,16 +30,6 @@ Pass `onmax()` to the renderer.
 ::
 ````
 :::
-:::example{label="Mermaid"}
-````md
-```mermaid
-sequenceDiagram
-  Agent->>Reviewer: Opens a PR with evidence
-  Reviewer-->>Agent: Asks for a change
-  Agent->>Reviewer: Pushes the fix
-```
-````
-:::
 ::
 
 This site renders every page through the preset.
@@ -79,14 +69,14 @@ The icon resolver from `icon`'s options also draws the icons of cards, details, 
 
 ## Mermaid
 
-The preset draws `mermaid` fences with [comark-pele](https://github.com/farnabaz/comark-pele), which renders them with [Pele](https://pele.run) to SVG on the server, with no browser and no network, so it works in Node and in a Cloudflare Worker. Flowcharts, sequence, class, state, ER, gantt, pie, mindmap, timeline, git graphs, and most other Mermaid types render. Each diagram sits on a card with the shared `--comark-*` tokens, so it follows the page's light and dark theme like the other blocks; set Pele's `--pele-*` variables to change a color. A diagram Pele can't draw shows its source.
+The preset draws `mermaid` fences with [comark-pele](/mermaid/), a third-party plugin by farnabaz, and puts its diagrams on the shared `--comark-*` tokens. The `mermaid` option takes comark-pele's options, or `false`:
 
 ```ts
 onmax({ mermaid: { languages: ["mermaid"] } }); // only `mermaid` fences, not `pele` ones
 onmax({ mermaid: false }); // leave `mermaid` fences as code
 ```
 
-The HTML entry inlines static SVG. The Vue, React, and Svelte entries switch to Pele's `mount()` in the browser, which fits each diagram to its container and adds zoom. Pele adds about 260 KB gzipped to a bundle, so turn it off when a bundle size limit matters more than diagrams. If you register Comark's built-in `mermaid` plugin instead, pass `mermaid: false`, since both read `mermaid` fences.
+Pele adds about 260 KB gzipped to a bundle, so turn it off when a bundle size limit matters more than diagrams. If you register Comark's built-in `mermaid` plugin instead, pass `mermaid: false`, since both read `mermaid` fences. [Mermaid](/mermaid/) covers the syntax and theming.
 
 ## Versions
 
