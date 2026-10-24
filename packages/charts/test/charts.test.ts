@@ -398,7 +398,7 @@ ${sizes.trim()}
     ].join("\n\n");
     expect(await issues(markdown)).toEqual([
       "`::chart` 1: `colour` isn't a prop of `::chart`. Valid props: type, x, y, title.",
-      '`::chart` 1: `type="donut"` isn\'t a chart type. Use `bar`, `stacked`, `line`, `area`, `scatter`, `dumbbell`, `waterfall` or `pie`.',
+      '`::chart` 1: `type="donut"` isn\'t a chart type. Use `bar`, `stacked`, `line`, `area`, `scatter`, `dumbbell`, `waterfall`, `pie` or `gantt`.',
       '`::chart` 2: `y` names column `befor`, but its table has `month`, `before` and `after`. Separate several with commas, as in `y="before, after"`.',
       "`::chart` 3: row 1 has `41 kB` in `size`, which isn't a number. Write the number alone, such as `1200` or `1,200`, and put the unit in the header, such as `size (ms)`.",
       '`::chart` 4: a pie shows one column of numbers, and this one has `before` and `after`. Name one with `y`, or use `type="bar"`.',
@@ -444,6 +444,198 @@ ${sizes.trim()}
     const bars = [...html.matchAll(/<path d="(M[^"]*)" fill="#[0-9a-f]{6}"/g)].map(([, d]) => d);
     expect(bars).toHaveLength(12);
     expect(bars.filter((d) => /^M[\d.]+,[\d.]+h0v/.test(d))).toEqual([]);
+  });
+
+  const build = `
+| step | start | end |
+| --- | --: | --: |
+| Nuxt starts | 0 | 1.12 |
+| Browser compile | 1.12 | 4.79 |
+| Server compile | 4.81 | 8.93 |
+| Hand over | 8.93 | 8.93 |
+| Nitro bundle | 8.95 | 10.89 |`;
+  // The text of each group with a role, such as each axis's labels, in the order the SVG draws them.
+  const texts = (html: string, role: string) =>
+    [...html.matchAll(new RegExp(`class="mark-text role-${role}[^"]*"[^>]*>(.*?)</g>`, "gs"))].map(
+      ([, inside]) => [...inside!.matchAll(/<text[^>]*>([^<]+)<\/text>/g)].map(([, text]) => text),
+    );
+  const axes = (html: string) => {
+    const [ticks = [], names = []] = texts(html, "axis-label");
+    return { ticks, names };
+  };
+  const durations = (html: string) => texts(html, "mark").flat();
+
+  it("draws a gantt top to bottom in table order, with each bar's duration and a diamond for a milestone", async () => {
+    const html = await render(chart(build, '{type="gantt"}'));
+    expect(await issues(chart(build, '{type="gantt"}'))).toEqual([]);
+    expect(html).toContain(
+      '<figure class="cch" data-type="gantt"><div class="cch-plot"><svg role="img" aria-label="gantt chart of step, from start to end"',
+    );
+    const { ticks, names } = axes(html);
+    expect(names).toEqual([
+      "Nuxt starts",
+      "Browser compile",
+      "Server compile",
+      "Hand over",
+      "Nitro bundle",
+    ]);
+    // The timeline starts where the data does, rather than padded back past 0.
+    expect(ticks[0]).toBe("0");
+    expect(ticks).not.toContain("−2");
+    expect(durations(html)).toEqual(["1.12", "3.67", "4.12", "1.94"]);
+    expect(html.match(/class="mark-symbol role-mark/g)).toHaveLength(1);
+  });
+
+  it("colors a gantt's bars by its column of names, where a task may repeat", async () => {
+    const markdown = chart(
+      `
+| step | run | start | end |
+| --- | --- | --: | --: |
+| compile | before | 0 | 4.1 |
+| bundle | before | 4.1 | 6 |
+| compile | after | 0 | 2.2 |
+| bundle | after | 2.2 | 3.9 |`,
+      '{type="gantt"}',
+    );
+    expect(await issues(markdown)).toEqual([]);
+    const html = await render(markdown);
+    expect(html).toContain(">before</text>");
+    expect(html).toContain(">after</text>");
+    expect(axes(html).names).toEqual(["compile", "bundle", "compile", "bundle"]);
+    const fills = [...html.matchAll(/class="mark-rect role-mark[^"]*"[^>]*>(.*?)<\/g>/gs)]
+      .flatMap(([, inside]) => [...inside!.matchAll(/fill="(#[0-9a-f]{6})"/g)])
+      .map(([, fill]) => fill);
+    expect(new Set(fills).size).toBe(2);
+  });
+
+  it("reads a gantt's dates in UTC, ticks in the table's unit, and prints durations in it", async () => {
+    const days = chart(
+      `
+| task | start | end |
+| --- | --- | --- |
+| Design | 2026-10-01 | 2026-10-08 |
+| Build | 2026-10-12 | 2026-11-02 |
+| Release | 2026-11-09 | 2026-11-10 |`,
+      '{type="gantt"}',
+    );
+    const hours = chart(
+      `
+| job | start | end |
+| --- | --- | --- |
+| Backup | 2026-10-24T01:00 | 2026-10-24T02:30 |
+| Migrate | 2026-10-24 02:30 | 2026-10-24T03:10 |`,
+      '{type="gantt"}',
+    );
+    const years = chart(
+      `
+| version | release | end of life |
+| --- | --- | --- |
+| Node 22 | 2024 | 2027 |
+| Node 24 | 2025 | 2028 |`,
+      '{type="gantt"}',
+    );
+    expect(await issues([days, hours, years].join("\n\n"))).toEqual([]);
+    const day = await render(days);
+    expect(durations(day)).toEqual(["7d", "21d", "1d"]);
+    // Weeks start on a Monday, and the year shows on the first tick.
+    expect(axes(day).ticks).toEqual(["Sep 28, 2026", "Oct 12", "Oct 26", "Nov 9", "Nov 23"]);
+    const hour = await render(hours);
+    expect(durations(hour)).toEqual(["1.5h", "40min"]);
+    expect(axes(hour).ticks).toEqual([
+      "Oct 24, 01:00",
+      "01:30",
+      "02:00",
+      "02:30",
+      "03:00",
+      "03:30",
+    ]);
+    const year = await render(years);
+    expect(durations(year)).toEqual(["3y", "3y"]);
+    expect(axes(year).ticks).toEqual(["2024", "2025", "2026", "2027", "2028"]);
+    // A time with no zone is UTC, whichever zone draws it.
+    const zone = process.env.TZ;
+    process.env.TZ = "Pacific/Kiritimati";
+    try {
+      expect(await render(hours)).toBe(hour);
+    } finally {
+      if (zone === undefined) delete process.env.TZ;
+      else process.env.TZ = zone;
+    }
+  });
+
+  it("marks a gantt's bar by its task, and by its group where the task repeats", async () => {
+    const markdown = `::chart{type="gantt"}
+| step | run | start | end |
+| --- | --- | --: | --: |
+| compile | before | 0 | 4.1 |
+| compile | after | 0 | 2.2 |
+:::annotation{at="compile" series="after" mark="circle" color="green"}
+Twice as fast.
+:::
+:::annotation{at="compile" mark="cross"}
+Which one?
+:::
+:::annotation{at="compile" series="during"}
+No such run.
+:::
+::`;
+    const plugins = [charts(), annotate()];
+    expect((await parseMarkdown(markdown, { plugins })).meta.issues).toEqual([
+      '`::chart` 1, annotation 2: `at="compile"` names a row in `before` and `after`. Add `series` with the `run` of the one it marks.',
+      '`::chart` 1, annotation 3: `series="during"` isn\'t a `run` in the table. Use `before` or `after`, or leave it out.',
+    ]);
+    const html = await createHtmlRenderer({
+      plugins,
+      components: { ...annotateComponents, ...components },
+    })(markdown);
+    expect(html.match(/class="ca-mark /g)).toHaveLength(3);
+    expect(html).toContain("Twice as fast.");
+  });
+
+  it("reports a gantt's problems, naming the row and the fix", async () => {
+    const markdown = [
+      chart(`| step | took |\n| --- | --: |\n| build | 4 |`, '{type="gantt"}'),
+      chart(
+        `| step | start | end | took |\n| --- | --: | --: | --: |\n| build | 0 | 4 | 4 |`,
+        '{type="gantt"}',
+      ),
+      chart(
+        `| step | start | end |\n| --- | --: | --: |\n| build | 0 | 4 |`,
+        '{type="gantt" y="end"}',
+      ),
+      chart(
+        `
+| step | run | owner | start | end |
+| --- | --- | --- | --: | --: |
+| build | before | ci | 0 | 4 |
+| test | before | ci | 4 | soon |
+| lint | before | ci | 2 | |
+| deploy | before | ci | 9 | 6 |
+| build | before | ci | 1 | 2 |`,
+        '{type="gantt"}',
+      ),
+    ].join("\n\n");
+    expect(await issues(markdown)).toEqual([
+      "`::chart` 1: a gantt draws each row from its start to its end, two columns of numbers or dates, and its table has one, `took`. Add a column for where each row starts and one for where it ends.",
+      '`::chart` 2: a gantt draws each row from its start to its end, two columns of numbers or dates, and its table has 3, `start`, `end` and `took`. Name the two with `y`, as in `y="start, end"`.',
+      '`::chart` 3: `y` names a gantt\'s start and end columns, and it names one, `end`. Name two, as in `y="start, end"`.',
+      "`::chart` 4: a gantt colors its bars by one column of names, and its table has `run` and `owner`. Keep `run`, and move the others out of the table.",
+      "`::chart` 4: row 2 has `soon` in `end`, which isn't a number like the other starts and ends. Write every start and end as a number, such as `1.5` or `1,200`, or every one as a date, such as `2026-04-15` or `2026-04-15T09:30`.",
+      "`::chart` 4: row 3 has no `end`, so its bar isn't drawn. Fill it in; for a milestone, give it the same `end` as its `start`.",
+      "`::chart` 4: row 4 ends at `6`, before it starts at `9`. Swap them, or fix the `end`.",
+      "`::chart` 4: rows 1 and 5 both have `build` in `step` and `before` in `run`. Give each row its own `step` within a `run`.",
+    ]);
+    // Without a start and an end there's nothing to draw, and the rest still draw.
+    const html = await render(markdown);
+    expect(html.match(/<svg role="img"/g)).toHaveLength(1);
+    expect(
+      await issues(
+        chart(
+          `| step | start | end | took |\n| --- | --: | --: | --: |\n| build | 0 | 4 | 4 |`,
+          '{type="gantt" y="start, end"}',
+        ),
+      ),
+    ).toEqual([]);
   });
 
   it("renders the content as it is when there's nothing to draw", async () => {

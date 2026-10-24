@@ -38,14 +38,17 @@ Props, all optional: `type` (below), `x` (the x column, default the first), `y` 
 | Before and after for several metrics | `dumbbell` | metric names, then a `before` and an `after` column |
 | How changes add up to a total | `waterfall` | the start total, each change (negative for a drop), then the end total, in one column |
 | Shares of one whole, five or fewer | `pie` | names, then one column of non-negative numbers |
+| Steps or tasks over time, such as a build trace, a deploy, or a plan | `gantt` | the task, then a start and an end column, as numbers or dates; a column of names, such as a run or a phase, colors the bars |
 
 When none of these fit, such as a box plot or a heatmap, put a Vega-Lite spec after the table in a fenced `vega-lite` block. The table is its data, so leave `data` out of the spec and name the table's headers as fields; marks don't apply.
+
+In a `gantt`, each row is one bar in table order, and a row that ends where it starts is a milestone, drawn as a diamond. Write dates as `2026-04-15` or `2026-04-15T09:30`; a time without a zone is UTC. To compare runs, add a column naming the run and repeat the steps in each.
 
 For a before and after of one or two metrics, grouped `bar` reads best; past three, use `dumbbell`. Keep the rows in the order the reader should read them: charts draw them in table order.
 
 ## Mark what matters
 
-Point at the value the text talks about with an `::annotation` after the table, the way comark-annotate marks a screenshot. `at` is the row's x value copied from the table; `series` picks one column in that row.
+Point at the value the text talks about with an `::annotation` after the table, the way comark-annotate marks a screenshot. `at` is the row's x value copied from the table; `series` picks one column in that row, or on a `gantt`, the group of the bar when a task repeats.
 
 ```md
 :::annotation{at="2026-07" series="commits" mark="circle" color="green"}
