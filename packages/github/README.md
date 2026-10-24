@@ -56,7 +56,7 @@ Each entry exports the three parse plugins and the renderer's `components`, whic
 
 ## Customize
 
-The callout styles follow shadcn/ui's Alert: they read its CSS variables, such as `--background`, `--border`, `--muted-foreground`, and `--destructive`, when the page has them, and use its neutral theme otherwise. Set the shared `--comark-*` tokens to theme callouts with zoom, carousel, and annotate, or `--cgc-note` through `--cgc-caution` to recolor one type. The rules sit in a `comark` CSS layer, so any plain rule of your own wins; see the callouts' [Theming page](https://comark.onmax.me/github/theming/).
+The callout styles follow shadcn/ui's Alert: they read its CSS variables, such as `--background`, `--border`, `--muted-foreground`, and `--destructive`, when the page has them, and use its neutral theme otherwise. Set the shared `--comark-*` tokens to theme callouts with zoom, carousel, and annotate, or `--cgc-note` through `--cgc-caution` to recolor one type. The rules sit in a `comark` CSS layer, so any plain rule of your own wins; see the callouts' [Theming page](https://comark.onmax.me/github/#theme).
 
 The icons are [Lucide](https://lucide.dev)'s, under its license (see `LICENSE`).
 

@@ -58,6 +58,7 @@ const lucideNames = [
   "arrow-left",
   "arrow-right",
   "arrow-up-right",
+  "blocks",
   "book-open",
   "circle-check",
   "circle-x",
@@ -65,6 +66,7 @@ const lucideNames = [
   "search",
   "stethoscope",
   "tv-minimal-play",
+  "type",
 ];
 const iconId = (name: string) => (name in ownIcons ? `site:${name}` : `lucide:${name}`);
 const str = (value: unknown) =>
@@ -76,11 +78,10 @@ const str = (value: unknown) =>
 const plain = (text: string) => text.replaceAll("`", "");
 const inlineCode = (text: string) => escapeHtml(text).replace(/`([^`]+)`/g, "<code>$1</code>");
 
-// The rail, in order: the docs, the playground, then one section per package. Each package's pages sit in its own
-// docs/ folder, and its index's frontmatter gives its group, icon, blurb, and credits. A package with no docs yet is
+// The packages in the order their sections list them. Each package's page sits in its own docs/ folder, and its
+// frontmatter gives its group, icon, blurb, and credits; the group picks the section. A package with no docs yet is
 // left out.
 const packageOrder = [
-  "preset",
   "annotate",
   "cast",
   "charts",
@@ -134,13 +135,13 @@ const fileOf = (slug: string) => {
       : `docs/pages/${slug || "index"}.md`;
 };
 const exists = (file: string) => existsSync(new URL(file, repo));
-// A package with several rich components gives each its own page in docs/components/, listed after its Components
-// page in the order that page links to them.
+// A package with several rich components gives each its own page in docs/components/, listed after its page in the
+// order that page links to them.
 function componentPages(slug: string) {
   const folder = new URL(`packages/${slug}/docs/components/`, repo);
   if (!existsSync(folder)) return [];
   const linked = [
-    ...readFileSync(new URL("../components.md", folder), "utf8").matchAll(
+    ...readFileSync(new URL("../index.md", folder), "utf8").matchAll(
       new RegExp(`\\(/${slug}/components/([\\w-]+)/\\)`, "g"),
     ),
   ].map(([, name]) => name);
@@ -148,10 +149,20 @@ function componentPages(slug: string) {
   const unlisted = pages.filter((page) => !linked.includes(page));
   if (unlisted.length)
     throw new Error(
-      `packages/${slug}/docs/components.md needs a link to each page in components/: ${unlisted.join(", ")}.`,
+      `packages/${slug}/docs/index.md needs a link to each page in components/: ${unlisted.join(", ")}.`,
     );
   return [...new Set(linked)].map((name) => `components/${name}`);
 }
+// A package's group picks its section and its heading there: blocks under Components, syntax under Typography, the
+// authoring tools under the docs' Utilities, and the linter on its own. comark-ui has no page: Getting started is it.
+const groups = [
+  "Review blocks",
+  "Docs blocks",
+  "Page behavior",
+  "Markdown syntax",
+  "Authoring tools",
+  "Linter",
+];
 for (const folder of await readdir(new URL("packages/", repo))) {
   // A branch from before the move would add its pages where nothing reads them.
   for (const stale of [`docs/pages/${folder}`, `docs/pages/${folder}.md`])
@@ -171,13 +182,24 @@ const packages = await Promise.all(
       const manifest: unknown = JSON.parse(
         await readFile(new URL(`packages/${slug}/package.json`, repo), "utf8"),
       );
-      const [group, icon, blurb, credits] = ["group", "icon", "blurb", "credits"].map((key) =>
-        str(frontmatter[key]),
-      );
-      if (!group || !icon || !blurb)
-        throw new Error(`${fileOf(slug)} needs a group, an icon, and a blurb in its frontmatter.`);
+      const [title, group, icon, blurb, credits] = [
+        "title",
+        "group",
+        "icon",
+        "blurb",
+        "credits",
+      ].map((key) => str(frontmatter[key]));
+      if (!title || !group || !icon || !blurb)
+        throw new Error(
+          `${fileOf(slug)} needs a title, a group, an icon, and a blurb in its frontmatter.`,
+        );
+      if (!groups.includes(group))
+        throw new Error(
+          `${fileOf(slug)}: group "${group}" has no section; use one of ${groups.join(", ")}.`,
+        );
       return {
         slug,
+        label: title,
         group,
         icon,
         blurb,
@@ -197,47 +219,76 @@ const siteIcon = (name: string, size = 18) => {
   if (!found || "problem" in found) throw new Error(`docs/build.ts: no icon "${name}".`);
   return iconHtml(found).replace('style="', `style="--comark-icon-size:${size}px;`);
 };
+type Package = (typeof packages)[number];
 type Section = {
   slug: string;
   label: string;
-  group: string;
   icon: string;
-  npm?: string;
-  // What the index's grid says under the package's name.
-  blurb?: string;
-  // What the footer credits besides Comark, as HTML.
-  credits?: string;
   lists: { title?: string; icon?: string; slugs: string[] }[];
 };
+// A package's page, then its components' pages.
+const pagesOfPackage = (pkg: Package) =>
+  pageOrder
+    .flatMap((page) =>
+      page === "components" ? ["components", ...componentPages(pkg.slug)] : [page],
+    )
+    .map((page) => (page ? `${pkg.slug}/${page}` : pkg.slug))
+    .filter((slug) => exists(fileOf(slug)));
+// By name, as ui.nuxt.com lists its components, so a block is found without knowing the order.
+const inGroup = (group: string) =>
+  packages
+    .filter((pkg) => pkg.group === group)
+    .toSorted((a, b) => a.label.localeCompare(b.label))
+    .flatMap(pagesOfPackage);
+// The rail, as on ui.nuxt.com: a few kinds of page, each a column of its pages. Blocks are documented for comark-ui,
+// and each page ends with its own package for anyone who installs fewer.
 const sections: Section[] = [
   {
     slug: "",
     label: "Docs",
-    group: "Comark plugins",
     icon: "book-open",
     // The index is the landing page, outside every section's column.
     lists: [
       {
-        title: "Guides",
-        slugs: ["guide/renderers", "guide/theming", "guide/validation", "guide/agents"],
+        slugs: [
+          "getting-started",
+          "guide/renderers",
+          "guide/theming",
+          "guide/validation",
+          "guide/agents",
+        ],
       },
       {
         title: "Recipes",
         slugs: recipeOrder.map((recipe) => `recipes/${recipe}`),
       },
+      { title: "Utilities", slugs: inGroup("Authoring tools") },
       { title: "Compared", slugs: ["compare/charts"] },
     ],
   },
-  // Its column lists the presets, which come from the pages' examples.
-  { slug: "play", label: "Playground", group: "Comark plugins", icon: "flask-conical", lists: [] },
-  // One page per comark-linter rule: the core rules, then each package's.
   {
-    slug: "doctor",
-    label: "Doctor",
-    group: "Comark plugins",
+    slug: "components",
+    label: "Components",
+    icon: "blocks",
+    lists: ["Review blocks", "Docs blocks", "Page behavior"].map((group) => ({
+      title: group,
+      slugs: inGroup(group),
+    })),
+  },
+  {
+    slug: "typography",
+    label: "Typography",
+    icon: "type",
+    lists: [{ slugs: inGroup("Markdown syntax") }],
+  },
+  // comark-linter's pages, then one page per rule: the core rules, then each package's.
+  {
+    slug: "lint",
+    label: "Linter",
     icon: "stethoscope",
     lists: [
-      { slugs: ["doctor"] },
+      { slugs: inGroup("Linter") },
+      { title: "Rules", slugs: ["doctor"] },
       ...[...new Set(doctorRules.map((entry) => entry.group))].map((group) => ({
         title: group === "core" ? "Core" : group,
         icon: packages.find((pkg) => pkg.slug === (group === "core" ? "lint" : group))?.icon,
@@ -245,22 +296,11 @@ const sections: Section[] = [
       })),
     ],
   },
-  ...packages.map((pkg) => ({
-    ...pkg,
-    label: pkg.slug,
-    // A package's pages, in this order when it has them.
-    lists: [
-      {
-        slugs: pageOrder
-          .flatMap((page) =>
-            page === "components" ? ["components", ...componentPages(pkg.slug)] : [page],
-          )
-          .map((page) => (page ? `${pkg.slug}/${page}` : pkg.slug))
-          .filter((slug) => exists(fileOf(slug))),
-      },
-    ],
-  })),
+  // Its column lists the presets, which come from the pages' examples.
+  { slug: "play", label: "Playground", icon: "flask-conical", lists: [] },
 ];
+// The package a page documents, if any.
+const packageOf = (slug: string) => packages.find((pkg) => pkg.slug === slug.split("/")[0]);
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
 const isPre = (node: Node): node is ElementNode => isElement(node) && node[0] === "pre";
@@ -454,13 +494,6 @@ const toc = (document: { nodes: Node[] }) =>
     )
     .join("");
 
-// The plugins a page's install command adds, which @onmax/comark brings too. The linter isn't one.
-const ownPackages = (install: string) =>
-  install
-    .replace(/^pnpm add /, "")
-    .split(" ")
-    .filter((name) => name.startsWith("comark-") && name !== "comark-linter");
-
 async function parsePage(slug: string, section: Section) {
   const file = fileOf(slug);
   const document = await parseMarkdown(await readFile(new URL(file, repo), "utf8"), { plugins });
@@ -471,29 +504,19 @@ async function parsePage(slug: string, section: Section) {
     throw new Error(
       `${file} takes its title from the rule's catalog entry; remove its frontmatter.`,
     );
-  const [title, description, tagline, install, headline] = [
+  const [title, description, tagline, install, headline, label] = [
     "title",
     "description",
     "tagline",
     "install",
     "headline",
+    "label",
   ].map((key) => str(document.frontmatter[key]));
-  // The installer offers every plugin or the page's own, so the code that registers them shows both ways too.
-  const top = document.nodes.filter(isElement);
-  const usage = top.some(([tag]) => tag === "usage");
-  if (
-    ownPackages(install).length &&
-    top.some(([tag, attrs]) => tag === "h2" && attrs.id === "usage") &&
-    !usage
-  )
+  const pkg = packageOf(slug);
+  if (pkg && pkg.slug !== "lint" && install)
     throw new Error(
-      `${file}: put the Usage code in ::usage, with every plugin through onmax() and then alone.`,
+      `${file}: a block's page has no installer; Getting started installs comark-ui, and the page's Package section installs it alone.`,
     );
-  const skill =
-    section.npm &&
-    existsSync(new URL(`../packages/${section.slug}/skills/${section.npm}/SKILL.md`, root))
-      ? section.npm
-      : "";
   return {
     slug,
     section,
@@ -503,10 +526,9 @@ async function parsePage(slug: string, section: Section) {
     description: rule ? plain(rule.title) : description,
     tagline: rule ? plain(rule.title) : tagline || description,
     install,
-    usage,
     headline,
-    skill,
-    label: rule?.name ?? (slug === section.slug ? "Overview" : title),
+    pkg,
+    label: rule?.name ?? (label || title),
     toc: toc(document),
   };
 }
@@ -535,8 +557,8 @@ const pageOf = (slug: string) => parsed.find((page) => page.slug === slug)!;
 const presets = examples
   .filter((example) => example.playable)
   .map(({ id, label, group, source }) => {
-    const section = sections.find((section) => section.npm && section.slug === group);
-    return { id, label, group: section?.label ?? "Recipes", npm: section?.npm ?? "", source };
+    const pkg = packages.find((pkg) => pkg.slug === group);
+    return { id, label, group: pkg?.label ?? "Recipes", npm: pkg?.npm ?? "", source };
   });
 // The size of each PNG the pages show, read from its header, so a still reserves its room before the image loads.
 const publicDir = new URL("public/", root);
@@ -630,25 +652,6 @@ const ruleTable: NodeHandler = () =>
         `<tr><td><code>${entry.code}</code></td><td><a href="${href(entry.slug)}"><code>${escapeHtml(entry.rule)}</code></a></td><td>${inlineCode(entry.title)}</td><td>${entry.severity ?? "warning"}</td></tr>`,
     )
     .join("")}</tbody></table></div>`;
-// A Getting started page's code that registers its plugins: through the preset, then alone. Its switch picks the
-// install command above too, in place of the installer's own.
-const usageBlock =
-  (page: Page): NodeHandler =>
-  async ([, , ...children], state) => {
-    const own = ownPackages(page.install);
-    if (!own.length)
-      throw new Error(`${fileOf(page.slug)}: ::usage goes only on a page that installs plugins.`);
-    const [preset, alone, ...more] = children.filter(isPre);
-    if (!preset || !alone || more.length)
-      throw new Error(
-        `${fileOf(page.slug)}: ::usage takes two code blocks, the code with every plugin through onmax() and then with ${own.join(" and ")} alone.`,
-      );
-    return (
-      `<div class="usage">${scopeSwitch(own)}<div data-scope-panel="all">${await state.one(preset, state)}</div>` +
-      `<div data-scope-panel="one" hidden>${await state.one(alone, state)}</div></div>`
-    );
-  };
-
 const demoStyles = new Set<string>();
 async function renderDemo(slug: string, source: string) {
   if (slug === "lint") return lintReport(source);
@@ -677,7 +680,7 @@ async function renderDemo(slug: string, source: string) {
 interface Demo {
   /** The example's id, the same as its playground preset's. */
   id: string;
-  pkg: Section;
+  pkg: Pick<Package, "slug" | "label" | "icon" | "npm">;
   /** The page the card opens. */
   page: string;
   label: string;
@@ -714,18 +717,18 @@ function deal(demos: Demo[]) {
 // card for a package with no examples, such as lint's report.
 const packageGrid: NodeHandler = async ([, , ...children]) => {
   const extra: Demo[] = children.filter(isElement).map(([, attrs, ...content]) => {
-    const pkg = sections.find((section) => section.npm && section.slug === str(attrs.package));
-    if (!pkg?.npm) throw new Error(`A demo names no package: "${str(attrs.package)}".`);
+    const pkg = packages.find((pkg) => pkg.slug === str(attrs.package));
+    if (!pkg) throw new Error(`A demo names no package: "${str(attrs.package)}".`);
     const pre = content.find(isPre);
     if (!pre) throw new Error(`The ${pkg.slug} demo needs a fenced code block.`);
     return { id: pkg.slug, pkg, page: pkg.slug, label: str(attrs.label), source: textContent(pre) };
   });
   const cards: Demo[] = examples.map((example) => {
-    const section = sections.find((section) => section.npm && section.slug === example.group);
-    if (section)
+    const pkg = packages.find((pkg) => pkg.slug === example.group);
+    if (pkg)
       return {
         id: example.id,
-        pkg: section,
+        pkg,
         page: example.page,
         label: example.label,
         source: example.source,
@@ -737,10 +740,8 @@ const packageGrid: NodeHandler = async ([, , ...children]) => {
       pkg: {
         slug: recipe.slug,
         label: "recipe",
-        group: "",
         icon: "book-open",
         npm: recipe.install.replace(/^pnpm add /, ""),
-        lists: [],
       },
       page: recipe.slug,
       label: recipe.slug.slice("recipes/".length),
@@ -748,11 +749,10 @@ const packageGrid: NodeHandler = async ([, , ...children]) => {
     };
   });
   const demos = await Promise.all(deal([...cards, ...extra]).map(demoCard));
-  const list = sections
-    .filter((section) => section.npm)
+  const list = packages
     .map(
-      (section) =>
-        `<li><a href="${href(section.slug)}"><span class="grid-icon">${siteIcon(section.icon, 20)}</span><strong>${escapeHtml(section.label)}</strong><span>${escapeHtml(section.blurb ?? "")}</span><span class="grid-arrow">${siteIcon("arrow-up-right", 16)}</span></a></li>`,
+      (pkg) =>
+        `<li><a href="${href(pkg.slug)}"><span class="grid-icon">${siteIcon(pkg.icon, 20)}</span><strong>${escapeHtml(pkg.label)}</strong><span>${escapeHtml(pkg.blurb)}</span><span class="grid-arrow">${siteIcon("arrow-up-right", 16)}</span></a></li>`,
     )
     .join("");
   return (
@@ -800,39 +800,21 @@ const botIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="tr
 const copyIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
 const resetIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`;
 const checkIcon = `<svg class="check" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5"/></svg>`;
-// Humans install the package with their package manager; agents install the skill from this site, the package's
-// own when it has one. A page about plugins installs every one through @onmax/comark by default, and offers its own
-// packages alone: the preset brings them as its dependencies, so the note says how to register them through it. On a
-// page with ::usage, the switch over that code picks the command instead, so the page shows the choice once, beside
-// the code each side needs.
-const everyPlugin = "comark @comark/html @onmax/comark";
-// The installer draws it, or a page's ::usage when it has one; the script keeps every copy on one choice.
-const scopeSwitch = (own: string[]) =>
-  `<div class="seg" role="group" aria-label="Packages"><button type="button" data-scope="all" aria-pressed="true">Every plugin</button><button type="button" data-scope="one" aria-pressed="false">Only ${own.length === 1 ? escapeHtml(own[0]!) : "these"}</button></div>`;
-function installerFor(install: string, skill: string, usage = false) {
+// Humans install the packages with their package manager; agents install the skills from this site.
+function installerFor(install: string) {
   const packages = install.replace(/^pnpm add /, "");
-  const own = ownPackages(install);
-  const managers = (list: string) => ({
-    pnpm: `pnpm add ${list}`,
-    npm: `npm install ${list}`,
-    yarn: `yarn add ${list}`,
-    bun: `bun add ${list}`,
-  });
   const commands = {
-    all: managers(own.length ? everyPlugin : packages),
-    one: managers(packages),
-    agents: `npx skills add ${site}${skill ? ` --skill ${skill}` : ""}`,
+    pnpm: `pnpm add ${packages}`,
+    npm: `npm install ${packages}`,
+    yarn: `yarn add ${packages}`,
+    bun: `bun add ${packages}`,
+    agents: `npx skills add ${site}`,
   };
-  const scope =
-    own.length && !usage
-      ? `<div class="installer-scope">${scopeSwitch(own)}` +
-        `<p data-scope-panel="all">Render with <code>onmax()</code> from <a href="/preset/">@onmax/comark/html</a>, which registers every plugin in order.</p></div>`
-      : "";
   return `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
 <div class="installer-bar"><div class="seg" role="group" aria-label="Audience"><button type="button" data-audience="humans" aria-pressed="true">${userIcon}For humans</button><button type="button" data-audience="agents" aria-pressed="false">${botIcon}For agents</button></div>
 <div class="seg installer-pm" role="group" aria-label="Package manager">${["pnpm", "npm", "yarn", "bun"].map((pm, i) => `<button type="button" data-pm="${pm}" aria-pressed="${i === 0}">${pm}</button>`).join("")}</div></div>
-<button type="button" class="install" data-copy="${escapeHtml(commands.all.pnpm)}" aria-label="Copy the install command"><span aria-hidden="true">$</span><code>${escapeHtml(commands.all.pnpm)}</code><span class="install-hint">${copyIcon}${checkIcon}</span></button>
-${scope}</div>`;
+<button type="button" class="install" data-copy="${escapeHtml(commands.pnpm)}" aria-label="Copy the install command"><span aria-hidden="true">$</span><code>${escapeHtml(commands.pnpm)}</code><span class="install-hint">${copyIcon}${checkIcon}</span></button>
+</div>`;
 }
 
 // The first column: one icon per section. Hovering or focusing it widens it over the second column to show every
@@ -841,24 +823,21 @@ ${scope}</div>`;
 const rail = (current: Section) =>
   `<nav class="rail" aria-label="Sections">${sections
     .map(
-      (section, i) =>
-        `${i && section.group !== sections[i - 1].group ? "<hr>" : ""}<a href="${href(section.lists[0]?.slugs[0] ?? section.slug)}"${section === current ? ' aria-current="true"' : ""}>${siteIcon(section.icon)}<span class="rail-label">${escapeHtml(section.label)}</span></a>`,
+      (section) =>
+        `${section.slug === "play" ? "<hr>" : ""}<a href="${href(section.lists[0]?.slugs[0] ?? section.slug)}"${section === current ? ' aria-current="true"' : ""}>${siteIcon(section.icon)}<span class="rail-label">${escapeHtml(section.label)}</span></a>`,
     )
     .join(
       "",
     )}<a class="rail-drop" href="https://drop.vitehub.dev/?utm_source=comark-plugins&amp;utm_medium=sidebar"><img src="/drop.svg" alt="" width="18" height="18"><span class="rail-label"><strong>Review on Drop</strong><span>Comment on the exact spot</span></span></a></nav>`;
 // The second column: the current section's pages, or the playground's presets.
 const column = (section: Section, current: string) => {
-  // A package's examples at the foot of its column, two to a row as the playground lists them; each opens there, and
-  // their heading opens the first.
-  const examples = presets.filter((preset) => preset.group === section.label);
   const presetCard = (preset: (typeof presets)[number], href: string) =>
     `<div class="preset"><div class="preset-thumb" aria-hidden="true" inert><div class="preset-page">${thumbnails.get(preset.id) ?? ""}</div></div><a data-preset="${preset.id}" href="${href}">${escapeHtml(preset.label)}</a></div>`;
   const lists =
     section.slug === "play"
       ? [...new Set(presets.map((preset) => preset.group))].map((group) => ({
           title: group,
-          icon: sections.find((section) => section.label === group)?.icon,
+          icon: packages.find((pkg) => pkg.label === group)?.icon,
           links: [
             `<div class="presets">${presets
               .filter((preset) => preset.group === group)
@@ -874,14 +853,12 @@ const column = (section: Section, current: string) => {
               `<a${page.slug.includes("/components/") ? ' class="nav-sub"' : ""}${page.slug === current ? ' aria-current="page"' : ""} href="${href(page.slug)}">${escapeHtml(page.label)}</a>`,
           ),
         }));
-  return `<nav class="pages" aria-label="${escapeHtml(section.label)}"><p class="pages-title">${escapeHtml(section.npm ?? section.label)}</p>${lists
+  return `<nav class="pages" aria-label="${escapeHtml(section.label)}"><p class="pages-title">${escapeHtml(section.label)}</p>${lists
     .map(
       (list) =>
         `${list.title ? `<p class="nav-group">${list.icon ? siteIcon(list.icon, 14) : ""}${escapeHtml(list.title)}</p>` : ""}${list.links.join("")}`,
     )
-    .join(
-      "",
-    )}${section.npm && examples.length ? `<div class="pages-foot"><a class="nav-group pages-play" href="/play/#preset=${examples[0]!.id}">${siteIcon("flask-conical", 14)}Examples${siteIcon("arrow-up-right", 14)}</a><div class="presets">${examples.map((preset) => presetCard(preset, `/play/#preset=${preset.id}`)).join("")}</div></div>` : ""}</nav>`;
+    .join("")}</nav>`;
 };
 // Previous and next page in the section.
 function pager(page: Page) {
@@ -940,21 +917,9 @@ for (const ex of document.querySelectorAll(".example")) ex.querySelector(".seg")
   for (const x of ex.querySelectorAll(".seg button")) x.setAttribute("aria-pressed", x === b);
   for (const view of ["preview", "code"]) { const p = ex.querySelector(".example-" + view); p.hidden = b.dataset.view !== view; if (!p.hidden) reveal(p) }
 });
-// Every plugin or the page's own packages, picked in the installer or over a page's usage code. The choice sets the
-// install command and the code.
-let scope = "all";
-const onScope = [];
-for (const button of document.querySelectorAll("[data-scope]")) button.addEventListener("click", () => {
-  if (button.dataset.scope === scope) return;
-  scope = button.dataset.scope;
-  for (const b of document.querySelectorAll("[data-scope]")) b.setAttribute("aria-pressed", b.dataset.scope === scope);
-  for (const p of document.querySelectorAll("[data-scope-panel]")) { p.hidden = p.dataset.scopePanel !== scope; if (!p.hidden) reveal(p) }
-  for (const update of onScope) update();
-});
 for (const box of document.querySelectorAll(".installer")) {
-  const commands = JSON.parse(box.dataset.commands); const field = box.querySelector(".install"), choice = box.querySelector(".installer-scope"); let audience = "humans", pm = "pnpm";
-  const update = () => { const cmd = audience === "agents" ? commands.agents : commands[scope][pm]; field.dataset.copy = cmd; field.querySelector("code").textContent = cmd; box.querySelector(".installer-pm").hidden = audience === "agents"; if (choice) choice.hidden = audience === "agents"; for (const b of box.querySelectorAll("[data-audience]")) b.setAttribute("aria-pressed", b.dataset.audience === audience); for (const b of box.querySelectorAll("[data-pm]")) b.setAttribute("aria-pressed", b.dataset.pm === pm) };
-  onScope.push(update);
+  const commands = JSON.parse(box.dataset.commands); const field = box.querySelector(".install"); let audience = "humans", pm = "pnpm";
+  const update = () => { const cmd = audience === "agents" ? commands.agents : commands[pm]; field.dataset.copy = cmd; field.querySelector("code").textContent = cmd; box.querySelector(".installer-pm").hidden = audience === "agents"; for (const b of box.querySelectorAll("[data-audience]")) b.setAttribute("aria-pressed", b.dataset.audience === audience); for (const b of box.querySelectorAll("[data-pm]")) b.setAttribute("aria-pressed", b.dataset.pm === pm) };
   box.addEventListener("click", e => { const b = e.target.closest("[data-audience],[data-pm]"); if (!b) return; if (b.dataset.audience) audience = b.dataset.audience; if (b.dataset.pm) pm = b.dataset.pm; update() });
   field.addEventListener("click", async () => { await navigator.clipboard.writeText(field.dataset.copy); field.classList.add("copied"); setTimeout(() => field.classList.remove("copied"), 1200) });
 }
@@ -1213,17 +1178,12 @@ document.addEventListener("keydown", e => {
 // One entry per page and per heading: its title, where it sits, and its link.
 const searchIndex = [
   ...[landing, ...parsed].flatMap((page) => {
-    const where =
-      page.section.slug === page.slug
-        ? page.section.label
-        : `${page.section.label} › ${page.label}`;
-    const title =
-      page.section.npm && page.slug === page.section.slug ? page.section.npm : page.title;
+    const where = page.slug ? `${page.section.label} › ${page.label}` : page.section.label;
     return [
       {
         k: "page",
-        t: title,
-        p: page.section.npm ? page.section.label : "Docs",
+        t: page.title,
+        p: page.section.label,
         h: href(page.slug),
         d: page.description,
       },
@@ -1320,14 +1280,13 @@ function shell(options: {
   description: string;
   head?: string;
   body: string;
-  // The package the npmx link opens; the section's by default.
+  // The package the npmx link opens; every package when it's none.
   npm?: string;
   landing?: boolean;
 }) {
   const { slug, section } = options;
-  const npm = options.npm ?? section.npm;
-  const pageHead =
-    options.head ?? (npm && section.slug !== "play" ? `\n${[...thumbnailStyles].join("")}` : "");
+  const { npm } = options;
+  const pageHead = options.head ?? "";
   const nav = rail(section) + column(section, slug);
   const header = `<div class="top-start"><a class="name" href="/">${logo}comark plugins</a>${options.landing ? `<nav class="top-links" aria-label="Site"><a href="/guide/renderers/">Docs</a><a href="/play/">Playground</a><a href="https://drop.vitehub.dev">Drop</a></nav>` : ""}</div>
 <button type="button" class="search-open" aria-haspopup="dialog">${siteIcon("search", 15)}<span class="search-label">Search docs</span><kbd><span class="kbd-mac">⌘K</span><span class="kbd-other">Ctrl K</span></kbd></button>
@@ -1387,7 +1346,7 @@ await writeFile(
     description: landing.tagline,
     body: `<div class="landing">
 <div class="landing-hero enter"><div><h1>${escapeHtml(landing.headline)}</h1><p>${escapeHtml(landing.tagline)}</p></div>
-<div>${installerFor(landing.install, "")}<div class="actions"><a class="button primary" href="/play/">${siteIcon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the docs${siteIcon("arrow-right", 15)}</a></div></div></div>
+<div>${installerFor(landing.install)}<div class="actions"><a class="button primary" href="/play/">${siteIcon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the docs${siteIcon("arrow-right", 15)}</a></div></div></div>
 <main class="enter" style="--i:1">${await renderHtmlFromDocument(landing.document, { components: { ...components, packages: packageGrid, drop, hero } })}</main>
 ${footer()}
 </div>
@@ -1398,20 +1357,23 @@ console.log("docs/dist/index.html written");
 
 for (const page of parsed) {
   const out = new URL(`${page.slug}/`, dist);
-  const { npm } = page.section;
-  const subpage = npm && page.slug !== page.section.slug;
+  // Getting started is comark-ui's page.
+  const npm = page.pkg?.npm ?? (page.slug === "getting-started" ? "comark-ui" : undefined);
+  // A block's name, and the package it comes in above it, unless the page is named for its package.
+  const eyebrow = npm && npm !== page.title ? npm : "";
   await mkdir(out, { recursive: true });
   await writeFile(
     new URL("index.html", out),
     shell({
       slug: page.slug,
       section: page.section,
-      title: subpage ? `${page.title} · ${npm}` : `${page.title} · ${page.description}`,
+      npm,
+      title: eyebrow ? `${page.title} · ${eyebrow}` : `${page.title} · ${page.description}`,
       description: page.tagline,
       body: `<div class="page">
 <div class="content">
-<div class="hero enter">${subpage ? `<p class="eyebrow mono">${npm}</p>` : ""}${page.rule ? `<p class="eyebrow mono">${page.rule.code} · ${page.rule.severity ?? "warning"}</p>` : ""}<h1>${escapeHtml(page.title)}</h1><p>${page.rule ? inlineCode(page.rule.title) : escapeHtml(page.tagline)}</p>
-${page.install ? installerFor(page.install, page.skill, page.usage) : ""}</div>
+<div class="hero enter">${eyebrow ? `<p class="eyebrow mono">${eyebrow}</p>` : ""}${page.rule ? `<p class="eyebrow mono">${page.rule.code} · ${page.rule.severity ?? "warning"}</p>` : ""}<h1>${escapeHtml(page.title)}</h1><p>${page.rule ? inlineCode(page.rule.title) : escapeHtml(page.tagline)}</p>
+${page.install ? installerFor(page.install) : ""}</div>
 <main class="enter" style="--i:1">${(
         await renderHtmlFromDocument(page.document, {
           components: {
@@ -1419,14 +1381,13 @@ ${page.install ? installerFor(page.install, page.skill, page.usage) : ""}</div>
             // comark-chips would take the `@user` that comark-github's references draw, and the links comark-links
             // marks, so those pages show plain links.
             example: exampleWithout(
-              ["github", "links"].includes(page.section.slug) ? ["comark-chips"] : [],
+              ["github", "links"].includes(page.pkg?.slug ?? "") ? ["comark-chips"] : [],
             ),
             examples: exampleTabs,
             matrix,
             incorrect: ruleExample(page, "incorrect"),
             correct: ruleExample(page, "correct"),
             rules: ruleTable,
-            usage: usageBlock(page),
           },
         })
       ).replace(
@@ -1434,7 +1395,7 @@ ${page.install ? installerFor(page.install, page.skill, page.usage) : ""}</div>
         (table) => `<div class="table-scroll">${table}</div>`,
       )}</main>
 ${pager(page)}
-${footer(page.section.credits)}
+${footer(page.pkg?.credits)}
 </div>
 ${page.toc ? `<aside class="toc"><nav aria-label="On this page"><p class="nav-group">On this page</p>${page.toc}</nav></aside>` : ""}
 </div>

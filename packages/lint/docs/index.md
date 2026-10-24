@@ -3,7 +3,8 @@ title: comark-linter
 description: Finds unclosed blocks, unknown components, broken links and anchors, local URLs, and plugin issues in Comark documents.
 tagline: Check Comark documents before they publish, from a script, the command line, or Vite Doctor. Every message names the block and says how to fix it.
 install: pnpm add -D comark-linter
-group: Authoring tools
+group: Linter
+label: Overview
 icon: list-checks
 blurb: Catches what Comark forgives
 ---

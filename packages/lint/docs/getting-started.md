@@ -14,7 +14,7 @@ pnpm lint-comark "docs/**/*.md" --check-urls
 
 The package is `comark-linter`, since npm refuses `comark-lint` as too close to `remark-lint`. Its command and config file are `lint-comark`.
 
-It checks each file with the plugins and components of every comark-plugins package installed. `@onmax/comark` counts as every package in it. It prints one `file:line:column rule message` line per problem and exits with 1 if there are any, or 2 if a file can't be read. Links resolve from the working directory. `--check-urls` also requests every external URL and reports the dead ones.
+It checks each file with the plugins and components of every comark-plugins package installed. `comark-ui` counts as every package in it. It prints one `file:line:column rule message` line per problem and exits with 1 if there are any, or 2 if a file can't be read. Links resolve from the working directory. `--check-urls` also requests every external URL and reports the dead ones.
 
 Components of your own go in a config, passed with `--config`:
 

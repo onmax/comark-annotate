@@ -65,7 +65,7 @@ test("the landing canvas paints its cards centered after a client navigation", a
 
 test("a page change jumps to its scroll position instead of sliding there", async ({ page }) => {
   // Both pages are taller than the position, so the browser doesn't clamp it while the next one comes in.
-  await page.goto("/charts/syntax/");
+  await page.goto("/charts/");
   await page.evaluate(() => window.scrollTo({ top: 1200, behavior: "instant" }));
   // Every scroll position from the link's click, or going back, until the page has settled.
   const frames = (back: boolean) =>

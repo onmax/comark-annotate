@@ -2,7 +2,7 @@
 title: A review document
 description: A decision, before/after screenshots, a code change, and a link to try it, in one review.
 tagline: Put a pull request's evidence in one Markdown file. The reviewer reads the decision first, then sees it, then reads the code.
-install: pnpm add comark @comark/html comark-annotate comark-github comark-embed comark-zoom
+install: pnpm add comark @comark/html comark-ui
 ---
 
 ::example{label="Review document"}

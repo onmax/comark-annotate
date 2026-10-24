@@ -42,7 +42,6 @@
     "prepack": "pnpm --filter comark-linter... build"
   },
   "devDependencies": {
-    "@onmax/comark": "workspace:*",
     "comark": "catalog:",
     "comark-annotate": "workspace:*",
     "comark-badge": "workspace:*",
@@ -81,12 +80,12 @@
     "comark-table": "workspace:*",
     "comark-tabs": "workspace:*",
     "comark-tests": "workspace:*",
+    "comark-ui": "workspace:*",
     "comark-xref": "workspace:*",
     "comark-zoom": "workspace:*",
     "vite-doctor": "catalog:"
   },
   "peerDependencies": {
-    "@onmax/comark": "workspace:^",
     "comark": "^0.8.0",
     "comark-annotate": "workspace:^",
     "comark-badge": "workspace:^",
@@ -125,14 +124,12 @@
     "comark-table": "workspace:^",
     "comark-tabs": "workspace:^",
     "comark-tests": "workspace:^",
+    "comark-ui": "workspace:^",
     "comark-xref": "workspace:^",
     "comark-zoom": "workspace:^",
     "vite-doctor": "^0.1.0"
   },
   "peerDependenciesMeta": {
-    "@onmax/comark": {
-      "optional": true
-    },
     "comark-annotate": {
       "optional": true
     },
@@ -154,19 +151,43 @@
     "comark-chips": {
       "optional": true
     },
+    "comark-cjk": {
+      "optional": true
+    },
     "comark-code": {
+      "optional": true
+    },
+    "comark-code-notes": {
+      "optional": true
+    },
+    "comark-colors": {
+      "optional": true
+    },
+    "comark-critic": {
       "optional": true
     },
     "comark-deflist": {
       "optional": true
     },
-    "comark-figure": {
+    "comark-details": {
+      "optional": true
+    },
+    "comark-diagrams": {
       "optional": true
     },
     "comark-diff": {
       "optional": true
     },
     "comark-embed": {
+      "optional": true
+    },
+    "comark-fields": {
+      "optional": true
+    },
+    "comark-figure": {
+      "optional": true
+    },
+    "comark-file-tree": {
       "optional": true
     },
     "comark-footnotes": {
@@ -178,10 +199,34 @@
     "comark-icon": {
       "optional": true
     },
+    "comark-keys": {
+      "optional": true
+    },
+    "comark-links": {
+      "optional": true
+    },
     "comark-mark": {
       "optional": true
     },
     "comark-media": {
+      "optional": true
+    },
+    "comark-metrics": {
+      "optional": true
+    },
+    "comark-outline": {
+      "optional": true
+    },
+    "comark-properties": {
+      "optional": true
+    },
+    "comark-qr": {
+      "optional": true
+    },
+    "comark-reading-time": {
+      "optional": true
+    },
+    "comark-sources": {
       "optional": true
     },
     "comark-steps": {
@@ -190,67 +235,22 @@
     "comark-table": {
       "optional": true
     },
-    "comark-qr": {
-      "optional": true
-    },
-    "comark-fields": {
-      "optional": true
-    },
-    "comark-reading-time": {
-      "optional": true
-    },
-    "comark-file-tree": {
-      "optional": true
-    },
-    "comark-details": {
-      "optional": true
-    },
     "comark-tabs": {
       "optional": true
     },
-    "comark-outline": {
+    "comark-tests": {
+      "optional": true
+    },
+    "comark-ui": {
+      "optional": true
+    },
+    "comark-xref": {
       "optional": true
     },
     "comark-zoom": {
       "optional": true
     },
     "vite-doctor": {
-      "optional": true
-    },
-    "comark-colors": {
-      "optional": true
-    },
-    "comark-critic": {
-      "optional": true
-    },
-    "comark-links": {
-      "optional": true
-    },
-    "comark-properties": {
-      "optional": true
-    },
-    "comark-sources": {
-      "optional": true
-    },
-    "comark-diagrams": {
-      "optional": true
-    },
-    "comark-metrics": {
-      "optional": true
-    },
-    "comark-cjk": {
-      "optional": true
-    },
-    "comark-keys": {
-      "optional": true
-    },
-    "comark-xref": {
-      "optional": true
-    },
-    "comark-code-notes": {
-      "optional": true
-    },
-    "comark-tests": {
       "optional": true
     }
   },

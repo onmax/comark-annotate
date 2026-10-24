@@ -19,7 +19,7 @@ The package is `comark-linter`, since npm refuses `comark-lint` as too close to 
 docs/pigeons-vs-deploys.md:8:1 comark/unclosed-block `::compare` opened on line 8 is never closed. Add a line with `::` after its last child.
 ```
 
-The CLI checks each file with every comark-plugins package installed, `@onmax/comark` included, prints `file:line:column rule message`, or JSON with `--format json`, and exits with 1 on any problem. Add your own plugins and component names with `--config lint-comark.config.ts`, which exports `defineConfig({ plugins, components, links })`. `--check-urls` also requests every external URL and reports the dead ones.
+The CLI checks each file with every comark-plugins package installed, `comark-ui` included, prints `file:line:column rule message`, or JSON with `--format json`, and exits with 1 on any problem. Add your own plugins and component names with `--config lint-comark.config.ts`, which exports `defineConfig({ plugins, components, links })`. `--check-urls` also requests every external URL and reports the dead ones.
 
 ```ts
 import { lint } from "comark-linter";

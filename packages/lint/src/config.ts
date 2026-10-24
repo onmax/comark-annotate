@@ -11,13 +11,13 @@ export const defineConfig = (config: Config): Config => config;
 // parsing, and renders each `:::tabs-item` inside `::tabs`.
 const packages = [
   [
-    "@onmax/comark/html",
-    // The preset brings every package as its own dependency, which the project can't import. It comes first, since
+    "comark-ui/html",
+    // comark-ui brings every package as its own dependency, which the project can't import. It comes first, since
     // Comark keeps the first plugin of each name, so a package also installed on its own doesn't run twice. Its
     // plugins get the options and blocks the entries below give their own: nothing drawn or downloaded, and files
     // read from disk.
     () =>
-      import("@onmax/comark/html").then((module) => {
+      import("comark-ui/html").then((module) => {
         const preset = module.default({
           cast: {},
           charts: { draw: false },

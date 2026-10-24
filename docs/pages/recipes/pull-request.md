@@ -2,7 +2,7 @@
 title: A pull request description
 description: Its status from the frontmatter, the numbers that moved, the test run, and a suggestion still open, in one description.
 tagline: Write a pull request's description in Markdown, with its status on top and its evidence under it, and every block checked before it's posted.
-install: pnpm add comark @comark/html comark-properties comark-icon comark-metrics comark-tests comark-critic
+install: pnpm add comark @comark/html comark-ui
 ---
 
 ::example{label="Pull request description"}
@@ -49,7 +49,7 @@ A reviewer reads from the top, so each block answers the next question they'd as
 
 ## Setup
 
-Register the plugins in one renderer, as [Renderers](/guide/renderers/#several-plugins) shows. With a report on disk, point `::tests{src}` at it instead of pasting it in a fence, as [comark-tests](/tests/syntax/) shows.
+Register the plugins in one renderer, as [Renderers](/guide/renderers/#several-plugins) shows. With a report on disk, point `::tests{src}` at it instead of pasting it in a fence, as [comark-tests](/tests/#usage) shows.
 
 ## Check it
 

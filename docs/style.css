@@ -1820,41 +1820,6 @@ kbd {
   font-weight: 500;
 }
 
-/* The package's examples as the playground shows them, at the foot of the column, clear of the last page. */
-.pages-foot {
-  margin-top: auto;
-  padding-top: 1.5rem;
-}
-
-/* A group heading that opens the playground, with an arrow that says it leaves the docs. */
-.pages a.pages-play {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  width: fit-content;
-  margin: 0 0 0.5rem;
-  padding: 0;
-  color: var(--fg);
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.pages-play .ci:first-child {
-  color: var(--faint);
-}
-
-.pages-play .ci:last-child {
-  color: var(--faint);
-  transition:
-    translate 150ms var(--ease-out),
-    color 150ms ease;
-}
-
-.pages a.pages-play:hover .ci:last-child {
-  color: var(--fg);
-  translate: 1px -1px;
-}
-
 /* Not the links inside a preset's still, which keep the look the plugins give them. */
 .pages a:not(.preset-page *) {
   margin: 0 -0.5rem;
@@ -2017,46 +1982,12 @@ nav > .nav-group:first-child {
   margin-bottom: 0.5rem;
 }
 
-.installer .seg button,
-.usage .seg button {
+.installer .seg button {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   padding: 0.3rem 0.7rem;
   font-size: 0.8125rem;
-}
-
-/* Under the command: every plugin through the preset, or the page's own packages, and how the preset registers them. */
-.installer-scope {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.75rem;
-  margin-top: 0.5rem;
-}
-
-.installer-scope p {
-  margin: 0;
-  color: var(--faint);
-  font-size: 0.8125rem;
-  line-height: 1.4;
-}
-
-.installer-scope code {
-  font-size: 0.75rem;
-}
-
-/* A Getting started page's code with every plugin or alone, under the installer's switch. */
-.usage {
-  margin: 1.25rem 0;
-}
-
-.usage > .seg {
-  margin-bottom: 0.5rem;
-}
-
-.usage pre {
-  margin: 0;
 }
 
 .install {
@@ -4046,11 +3977,6 @@ main img {
 
 .pages .nav-group .ci {
   color: var(--faint);
-}
-
-/* Two to a row, so the playground's column is wider than a section's. */
-.sidebar:has(.pages-foot .presets) {
-  grid-template-columns: 3.25rem 21rem;
 }
 
 .presets {
