@@ -8,6 +8,16 @@ install: pnpm add comark @comark/html comark-links
 
 Register the plugins you want and pass the renderer's `components`:
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(
+  onmax({ links: { external: { target: "_blank", hosts: ["example.com"] } } }),
+);
+```
+
 ```ts
 import { createHtmlRenderer } from "@comark/html";
 import { anchors, components, external } from "comark-links/html";
@@ -17,6 +27,7 @@ const render = createHtmlRenderer({
   components,
 });
 ```
+::
 
 Each plugin works alone, in any order. The package has no default export, so import the plugins by name.
 

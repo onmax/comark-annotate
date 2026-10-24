@@ -8,6 +8,16 @@ install: pnpm add comark @comark/html comark-code-notes
 
 Register the plugin after Comark's `shiki`, and pass the renderer's `components`:
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import shiki from "@comark/html/plugins/shiki";
+import onmax from "@onmax/comark/html";
+
+const { plugins, components } = onmax();
+const render = createHtmlRenderer({ plugins: [shiki(), ...plugins], components });
+```
+
 ```ts
 import { createHtmlRenderer } from "@comark/html";
 import shiki from "@comark/html/plugins/shiki";
@@ -15,6 +25,7 @@ import codeNotes, { components } from "comark-code-notes/html";
 
 const render = createHtmlRenderer({ plugins: [shiki(), codeNotes()], components });
 ```
+::
 
 The markers are drawn into the lines Shiki writes, so `codeNotes()` goes after `shiki()`. In the other order, the annotated code isn't highlighted and the plugin reports it. Without Shiki, it draws the lines itself.
 

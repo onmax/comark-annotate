@@ -8,12 +8,21 @@ install: pnpm add comark @comark/html comark-table
 
 Register the plugin and pass the renderer's `components`:
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(onmax({ table: { root: "docs" } }));
+```
+
 ```ts
 import { createHtmlRenderer } from "@comark/html";
 import table, { components } from "comark-table/html";
 
 const render = createHtmlRenderer({ plugins: [table({ root: "docs" })], components });
 ```
+::
 
 `root` is the folder `src` can't leave, and `base` the document's folder under it, as in [comark-include](/include/). In a browser or an edge runtime, pass `read`, a function that takes a path under the root and returns the file's text.
 

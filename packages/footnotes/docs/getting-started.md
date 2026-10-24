@@ -8,6 +8,14 @@ install: pnpm add comark comark-footnotes
 
 Register the plugin instead of `comark/plugins/footnotes`. It has no components, because the notes render as plain HTML:
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(onmax());
+```
+
 ```ts
 import { parseMarkdown } from "comark";
 import footnotes from "comark-footnotes";
@@ -16,6 +24,7 @@ const document = await parseMarkdown(markdown, {
   plugins: [footnotes()],
 });
 ```
+::
 
 It is named `footnotes`, like Comark's plugin, so a list holds one or the other. When a list holds both, Comark keeps the first, so remove the import from `comark/plugins/footnotes` rather than adding this one after it.
 

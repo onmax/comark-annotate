@@ -8,6 +8,16 @@ install: pnpm add comark @comark/html comark-github
 
 Register the plugins you want and pass the renderer's `components`:
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(
+  onmax({ github: { references: { repo: "onmax/comark-plugins" } } }),
+);
+```
+
 ```ts
 import { createHtmlRenderer } from "@comark/html";
 import { callouts, components, html, references } from "comark-github/html";
@@ -17,6 +27,7 @@ const render = createHtmlRenderer({
   components,
 });
 ```
+::
 
 Each plugin works alone, in any order. `callouts()` is named `alert` and `html()` is named `html`, so they take the place of Comark's built-in plugins of those names. They work with `registerDefaultPlugins: false` too.
 
