@@ -1,6 +1,6 @@
 ---
 title: Getting started
-description: Install comark-annotate, register it, and give your agent its skill and CLI.
+description: Install comark-annotate, register it, and give your agent the skill and the CLI.
 install: pnpm add comark @comark/html comark-annotate
 ---
 
@@ -20,7 +20,7 @@ The renderer inlines its styles and script once per document. Annotate renders o
 
 ## Agents
 
-The package ships an agent skill with the syntax, how to measure marks from the page, and how to check the result. The **For agents** button above installs it, and [Agents](/guide/agents/) covers the rest.
+The comark-plugins agent skill knows the syntax, how to measure marks from the page, and how to check the result. The **For agents** button above installs it, and [Agents](/guide/agents/) covers the rest.
 
 It also comes with a small CLI that knows zoom and carousel too.
 

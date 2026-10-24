@@ -18,7 +18,8 @@
     "directory": "packages/preset"
   },
   "files": [
-    "dist"
+    "dist",
+    "skills"
   ],
   "type": "module",
   "sideEffects": false,
@@ -32,7 +33,8 @@
       "default": "./dist/svelte/index.js"
     },
     "./vue": "./dist/vue.mjs",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./skills/*": "./skills/*"
   },
   "publishConfig": {
     "access": "public",

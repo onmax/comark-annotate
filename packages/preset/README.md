@@ -42,6 +42,10 @@ onmax({
 
 Vue, React, and Svelte leave out annotate and diff, which render only to HTML.
 
+## Agents
+
+The package ships the comark-plugins agent skill in `skills/comark-plugins`: a `SKILL.md` that says how to install the plugins, which block shows what, and how to check the result, and a reference for each package. Install it with `npx skills add https://comark.onmax.me`, or bundle it in your own app from `@onmax/comark/skills/comark-plugins/`, which always matches the plugins it installed.
+
 ## Linting
 
 [comark-linter](https://comark.onmax.me/lint/) finds `@onmax/comark` when it's installed and checks documents with its plugins and components.

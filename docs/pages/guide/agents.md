@@ -1,41 +1,35 @@
 ---
 title: Agents
-description: Agent skills served from this site, and the commands an agent uses to check what it wrote.
-tagline: Agents write most review documents. Install a skill so yours knows the syntax, then let it check its own work before it hands the document over.
+description: The agent skill served from this site, and the commands an agent uses to check what it wrote.
+tagline: Agents write most review documents. Install the skill so yours knows the syntax, then let it check its own work before it hands the document over.
 ---
 
-## Skills
+## Skill
 
-Packages that need more than their syntax ship an agent skill. This site serves every one of them through [Agent Skills Discovery](https://agentskills.io), at `/.well-known/agent-skills/index.json`. Install them all:
+One agent skill, `comark-plugins`, teaches an agent every package. This site serves it through [Agent Skills Discovery](https://agentskills.io), at `/.well-known/agent-skills/index.json`, and the **For agents** button on a package's page copies the command that installs it:
 
 ```sh
 npx skills add https://comark.onmax.me
 ```
 
-Or install one by name, as the **For agents** button on a package's page does:
+Its `SKILL.md` holds what every document needs: how to install the plugins, which block shows what, the marks that screenshots and charts share, and how to check the result. Each package has a reference next to it, with its syntax, how to use it well, and how to register it alone, and the agent reads only the references for the blocks it writes.
 
-```sh
-npx skills add https://comark.onmax.me --skill comark-annotate
-```
+## Bundle the skill in your app
 
-| Skill | What it knows |
-| --- | --- |
-| `comark-annotate` | The screenshot and compare syntax, which marks to draw and what their notes say, how to measure marks from the page instead of guessing them from the image, and how to check the render |
-| `comark-charts` | The table shape for each chart type, how to pick the type that fits the data, and how to mark the values that matter |
-
-The other packages have no skill. Their syntax fits on their page, and a document that gets it wrong fails [validation](/guide/validation/) with a message that says what to change.
-
-## Bundle a skill in your app
-
-An app that renders these documents and serves skills to its own agents, such as Drop, can ship our skill instead of writing its own. Each package with a skill exports it, so the app imports it at build time:
+An app that renders these documents and serves skills to its own agents, such as Drop, can ship ours instead of writing its own. `@onmax/comark` exports the skill's folder, so the app copies it at build time:
 
 ```ts
-import annotateSkill from "comark-annotate/skills/comark-annotate/SKILL.md?raw";
+import { cp } from "node:fs/promises";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const skill = dirname(fileURLToPath(import.meta.resolve("@onmax/comark/skills/comark-plugins/SKILL.md")));
+await cp(skill, "skills/comark-plugins", { recursive: true });
 ```
 
-The skill then always matches the renderer the app installed. An app on an older version never tells its agents about syntax it can't draw yet, and its agents read the skill without a network request.
+The skill then always matches the renderers the app installed. An app on an older version never tells its agents about syntax it can't draw yet, and its agents read the skill without a network request.
 
-Serve it as a skill of its own, or inside one of yours as a reference file with its front matter removed. When it names a CLI command, pin the command to the installed version, such as `npx comark-annotate@0.3.0 check`.
+Serve the folder as one skill, with the references under `references/`, where `SKILL.md` links them. If your agents only write Markdown and never install anything, cut each reference at its `## Register` heading, which always comes last. When it names a CLI command, pin the command to the installed version, such as `npx comark-annotate@0.3.0 check`.
 
 ## Check the result
 

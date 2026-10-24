@@ -1,13 +1,11 @@
-import { createHash } from "node:crypto";
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, rm } from "node:fs/promises";
 import { existsSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { parseMarkdown } from "comark";
 import { defineNuxtConfig } from "nuxt/config";
+import { writeSkill } from "./skills.ts";
 
 const root = new URL("./", import.meta.url);
 const generated = new URL(".generated/public/", root);
-const str = (value: unknown) => (typeof value === "string" ? value : "");
 
 // Fonts and the agent skill keep the paths the old static build gave them, which `npx skills add` and old links read.
 async function writeAssets() {
@@ -23,37 +21,7 @@ async function writeAssets() {
     ),
     new URL("fonts/Caveat-Variable.woff2", generated),
   );
-  const skills = await Promise.all(
-    ["annotate/skills/comark-annotate", "charts/skills/comark-charts"].map(async (folder) => {
-      const text = await readFile(new URL(`../packages/${folder}/SKILL.md`, root), "utf8");
-      const meta = (await parseMarkdown(text)).frontmatter;
-      return { text, name: str(meta.name), description: str(meta.description) };
-    }),
-  );
-  for (const skill of skills)
-    for (const base of ["agent-skills", "skills"]) {
-      await mkdir(new URL(`.well-known/${base}/${skill.name}/`, generated), { recursive: true });
-      await writeFile(new URL(`.well-known/${base}/${skill.name}/SKILL.md`, generated), skill.text);
-    }
-  await writeFile(
-    new URL(".well-known/agent-skills/index.json", generated),
-    JSON.stringify({
-      $schema: "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
-      skills: skills.map(({ text, name, description }) => ({
-        name,
-        type: "skill-md",
-        description,
-        url: `/.well-known/agent-skills/${name}/SKILL.md`,
-        digest: `sha256:${createHash("sha256").update(text).digest("hex")}`,
-      })),
-    }),
-  );
-  await writeFile(
-    new URL(".well-known/skills/index.json", generated),
-    JSON.stringify({
-      skills: skills.map(({ name, description }) => ({ name, description, files: ["SKILL.md"] })),
-    }),
-  );
+  await writeSkill(generated);
 
   // The playground is a standalone browser app. Keep its generated HTML and
   // script under Nitro's public root so `/play/` remains available alongside

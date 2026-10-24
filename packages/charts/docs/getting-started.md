@@ -1,6 +1,6 @@
 ---
 title: Getting started
-description: Install comark-charts, register it, and give your agent its skill.
+description: Install comark-charts, register it, and give your agent the skill.
 install: pnpm add comark @comark/html comark-charts
 ---
 
@@ -19,7 +19,7 @@ const render = createHtmlRenderer({ plugins: [charts()], components });
 
 ## Agents
 
-The package ships an agent skill with the table shape for each chart type and how to check the result. Install it from this site:
+The comark-plugins agent skill knows the table shape for each chart type and how to check the result. Install it from this site:
 
 ```sh
 npx skills add https://comark.onmax.me
