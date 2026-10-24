@@ -34,6 +34,9 @@ export type ProgressAttributes = {
 /** The tag a `:progress` becomes, so a raw `<progress>` in the Markdown never reaches its components. */
 export const PROGRESS_TAG = "progress-bar";
 
+/** The tag a `::stats{tiles}` becomes: a grid of tiles, each a `div` of the metric's `dt`, its value, and its change. */
+export const STATS_TILES_TAG = "stat-tiles";
+
 type Data = Parameters<typeof resolveAttributes>[1];
 type Better = "lower" | "higher" | undefined;
 
@@ -94,7 +97,7 @@ function change(
 const PROPS = {
   delta: { block: "`:delta`", props: ["from", "to", "unit", "better"] },
   progress: { block: "`:progress`", props: ["value", "max", "label"] },
-  stats: { block: "`::stats`", props: ["unit", "better"] },
+  stats: { block: "`::stats`", props: ["unit", "better", "tiles"] },
 };
 
 function unknownProps(node: ElementNode, kind: keyof typeof PROPS, name: string, issues: Issue[]) {
@@ -214,6 +217,7 @@ function stats(node: ElementNode, name: string, data: Data, issues: Issue[]): No
   const attrs = resolveAttributes(node[1], data, { parseJson: true });
   const unit = text(attrs.unit);
   const better = readBetter(attrs.better, name, issues);
+  const tiles = attrs.tiles !== undefined && attrs.tiles !== false && text(attrs.tiles) !== "false";
   const content = childrenOf(node).filter(isContent);
   const table = content.find(
     (child): child is ElementNode => isElement(child) && child[0] === "table",
@@ -225,6 +229,10 @@ function stats(node: ElementNode, name: string, data: Data, issues: Issue[]): No
     });
     return ["div", {}];
   }
+  const tableFallback = (): ElementNode => {
+    table[1] = { ...table[1], class: "cmt-stats" };
+    return table;
+  };
   if (content.length > 1)
     issues.push({
       rule: "comark/metrics/content-dropped",
@@ -233,49 +241,92 @@ function stats(node: ElementNode, name: string, data: Data, issues: Issue[]): No
   const [head] = elements(table, "thead");
   const [body] = elements(table, "tbody");
   const [header] = head ? elements(head, "tr") : [];
-  const columns = header ? elements(header, "th") : [];
-  if (columns.length !== 3) {
+  const columns = header ? elements(header, "th").length : 0;
+  if (columns !== 3 && !(tiles && columns === 2)) {
     issues.push({
       rule: "comark/metrics/column-count",
-      message: `${name}: its table has ${columns.length} columns, but needs 3: a name, a before, and an after value. Move other columns to a table of their own.`,
+      message: `${name}: its table has ${columns} columns, but ${
+        tiles
+          ? "tiles need 2 or 3: a name, an optional before, and an after value"
+          : "needs 3: a name, a before, and an after value"
+      }. ${
+        columns > 3
+          ? "Move other columns to a table of their own."
+          : columns === 2
+            ? "Add a before column, or write `::stats{tiles}` to show each value as a tile."
+            : "Add the missing columns."
+      }`,
     });
-    return table;
+    return tableFallback();
   }
-  header?.push(["th", {}, "Change"]);
+  const needs = columns === 3 ? "3: a name, a before, and an after value" : "2: a name and a value";
+  const grid: Node[] = [];
+  let malformedRow = false;
+  if (!tiles) header?.push(["th", {}, "Change"]);
   for (const row of body ? elements(body, "tr") : []) {
     const cells = elements(row, "td");
-    if (cells.length !== 3) {
+    // Markdown tables pad short rows with empty cells. In tile mode, an empty
+    // trailing value is still a malformed two-column row, so keep the table
+    // visible instead of drawing an incomplete tile.
+    const trailingCell = cells.at(-1);
+    const trailingValueMissing: boolean = Boolean(
+      tiles && columns === 3 && trailingCell && !textOf(trailingCell).trim(),
+    );
+    const rowColumns: number = trailingValueMissing ? columns - 1 : cells.length;
+    if (rowColumns !== columns) {
+      malformedRow = true;
       issues.push({
         rule: "comark/metrics/column-count",
-        message: `${name}: row has ${cells.length} columns, but needs 3: a name, a before, and an after value. Fix the row so no authored cells are lost.`,
+        message: `${name}: row has ${rowColumns} columns, but needs ${needs}. ${tiles ? "Fix the row, since the table is shown instead of tiles." : "Fix the row so no authored cells are lost."}`,
       });
       continue;
     }
     const [label, before, after] = cells.map((cell) => textOf(cell).trim());
-    const where = `${name}, row "${label}"`;
-    const [from, to] = [before, after].map(quantity);
     let cell: DeltaAttributes = {};
-    if (!from || !to)
-      issues.push({
-        rule: "comark/metrics/non-numeric-cell",
-        message: `${where}: ${!from ? `"${before}"` : `"${after}"`} isn't a number, so it has no change. Write a number with an optional unit, such as \`412 kB\`.`,
-      });
-    else if ((from.unit || to.unit) && from.unit !== to.unit)
-      issues.push({
-        rule: "comark/metrics/unit-mismatch",
-        message: `${where}: before is in ${from.unit || "no unit"} and after in ${to.unit || "no unit"}. Write both in the same unit.`,
-      });
-    else cell = change(from, to, from.unit || to.unit || unit, better);
-    row.push(["td", {}, ["delta", { ...cell }]]);
+    if (columns === 3) {
+      const where = `${name}, row "${label}"`;
+      const [from, to] = [before, after].map(quantity);
+      if (!from || !to)
+        issues.push({
+          rule: "comark/metrics/non-numeric-cell",
+          message: `${where}: ${!from ? `"${before}"` : `"${after}"`} isn't a number, so it has no change. Write a number with an optional unit, such as \`412 kB\`.`,
+        });
+      else if ((from.unit || to.unit) && from.unit !== to.unit)
+        issues.push({
+          rule: "comark/metrics/unit-mismatch",
+          message: `${where}: before is in ${from.unit || "no unit"} and after in ${to.unit || "no unit"}. Write both in the same unit.`,
+        });
+      else cell = change(from, to, from.unit || to.unit || unit, better);
+    }
+    if (!tiles) {
+      row.push(["td", {}, ["delta", { ...cell }]]);
+      continue;
+    }
+    const [term = [], value = []] = [cells[0], cells.at(-1)].map((each) =>
+      each ? childrenOf(each) : [],
+    );
+    const tile: ElementNode = [
+      "div",
+      { class: "cmt-tile" },
+      ["dt", {}, ...term],
+      ["dd", { class: "cmt-value" }, ...value],
+    ];
+    if (cell.change) tile.push(["dd", {}, ["delta", { ...cell }]]);
+    grid.push(tile);
   }
-  table[1] = { ...table[1], class: "cmt-stats" };
-  return table;
+  if (tiles) {
+    if (malformedRow) {
+      return tableFallback();
+    }
+    return [STATS_TILES_TAG, {}, ...grid];
+  }
+  return tableFallback();
 }
 
 /**
  * Turns `:delta{from to}` into before → after with the percent change, colored by `better`, `:progress{value}` into a
  * `<progress>` with its percent, and `::stats` around a table of names, befores, and afters into the same table with a
- * change column. Problems are added to `meta.issues`.
+ * change column, or with `tiles` into a grid of tiles. Problems are added to `meta.issues`.
  */
 export default defineComarkPlugin<void, MetricsMeta>(() => ({
   name: "comark-metrics",

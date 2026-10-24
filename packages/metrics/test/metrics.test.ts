@@ -6,6 +6,8 @@ import metrics, { components } from "../src/html.ts";
 const render = createHtmlRenderer({ plugins: [metrics()], components });
 const issues = async (markdown: string) =>
   (await parseMarkdown(markdown, { plugins: [metrics()] })).meta.issues;
+// The renderer indents text on its own line, which a browser reads as one space.
+const tight = (html: string) => html.replace(/\s*(<[^>]+>)\s*/g, "$1");
 const stats = (rows: string[], props = "") =>
   `::stats${props}\n| Metric | Before | After |\n| --- | --- | --- |\n${rows.join("\n")}\n::`;
 
@@ -62,6 +64,55 @@ describe("comark-metrics", () => {
     expect(html).toContain('data-verdict="worse"><span class="cmt-change">↑ 8.8%</span>');
   });
 
+  it("draws a ::stats{tiles} row as a tile of its after value, its name, and its change", async () => {
+    const html = await render(
+      stats(["| JS | 412 kB | 388 kB |", "| Requests | 1,204 | 1,310 |"], '{tiles better="lower"}'),
+    );
+    expect(html).toContain('<dl class="cmt-tiles">');
+    expect(html).not.toContain("<table");
+    expect(tight(html)).toContain(
+      '<div class="cmt-tile"><dt>JS</dt><dd class="cmt-value">388 kB</dd><dd><span class="cmt-delta" data-direction="down" data-verdict="better"><span class="cmt-change">↓ 5.8%</span></span></dd></div>',
+    );
+    expect(html).toContain('data-verdict="worse"><span class="cmt-change">↑ 8.8%</span>');
+    expect(html.match(/<style data-comark-metrics>/g)).toHaveLength(1);
+  });
+
+  it("draws a two-column ::stats{tiles} as values with no change", async () => {
+    const markdown =
+      "::stats{tiles}\n| Metric | Value |\n| --- | --- |\n| Tests | **1,204** |\n| Status | Passing |\n::";
+    const html = tight(await render(markdown));
+    expect(html).toContain("<style data-comark-metrics>");
+    expect(html).toContain(
+      '<dl class="cmt-tiles"><div class="cmt-tile"><dt>Tests</dt><dd class="cmt-value"><strong>1,204</strong></dd></div><div class="cmt-tile"><dt>Status</dt><dd class="cmt-value">Passing</dd></div></dl>',
+    );
+    expect(html).not.toContain('<span class="cmt-delta"');
+    expect(await issues(markdown)).toEqual([]);
+  });
+
+  it("reports the tables and rows tiles can't draw", async () => {
+    expect(
+      await issues("::stats{tiles}\n| A | B | C | D |\n| - | - | - | - |\n| 1 | 2 | 3 | 4 |\n::"),
+    ).toEqual([
+      "`::stats` 1: its table has 4 columns, but tiles need 2 or 3: a name, an optional before, and an after value. Move other columns to a table of their own.",
+    ]);
+    expect(await issues(stats(["| Score | 88 | n/a |"], "{tiles}"))).toEqual([
+      '`::stats` 1, row "Score": "n/a" isn\'t a number, so it has no change. Write a number with an optional unit, such as `412 kB`.',
+    ]);
+  });
+
+  it("keeps malformed tile rows visible in the table fallback", async () => {
+    const markdown =
+      "::stats{tiles}\n| Metric | Before | After |\n| --- | --- | --- |\n| Good | 10 | 8 |\n| Missing | 7 |\n::";
+    const html = await render(markdown);
+    expect(html).toContain('<table class="cmt-stats">');
+    expect(html).toContain("<td>Missing</td>");
+    expect(html).toContain("<td>7</td>");
+    expect(html).not.toContain("cmt-tiles");
+    expect(await issues(markdown)).toEqual([
+      "`::stats` 1: row has 2 columns, but needs 3: a name, a before, and an after value. Fix the row, since the table is shown instead of tiles.",
+    ]);
+  });
+
   it("reports what it can't read", async () => {
     expect(await issues(':delta{from="big" to=3}')).toEqual([
       '`:delta` 1: `from="big"` isn\'t a number. Write the number alone and the unit in `unit`, such as `from=412 unit="kB"`.',
@@ -95,7 +146,7 @@ describe("comark-metrics", () => {
       "`::stats` 1 has no table. Put a Markdown table between `::stats` and `::`, with a name, a before, and an after column.",
     ]);
     expect(await issues("::stats\n| A | B |\n| - | - |\n| 1 | 2 |\n::")).toEqual([
-      "`::stats` 1: its table has 2 columns, but needs 3: a name, a before, and an after value. Move other columns to a table of their own.",
+      "`::stats` 1: its table has 2 columns, but needs 3: a name, a before, and an after value. Add a before column, or write `::stats{tiles}` to show each value as a tile.",
     ]);
   });
 
