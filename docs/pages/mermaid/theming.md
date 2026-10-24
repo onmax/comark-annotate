@@ -15,8 +15,7 @@ Diagrams read these [shared tokens](/guide/theming/):
 | `--comark-foreground` | Text and node labels |
 | `--comark-muted` | Lines, arrows, and secondary text |
 | `--comark-accent` | Node fills |
-| `--comark-ring` | Node borders |
-| `--comark-border` | The card's frame |
+| `--comark-border` | Node borders and the card's frame |
 | `--comark-radius` | The card's corners, and a little less on nodes |
 | `--comark-font` | Every label |
 

@@ -63,6 +63,7 @@ describe("@onmax/comark", () => {
       "```mermaid\nsequenceDiagram\n  A->>B: Hi\n```\n\n```mermaid\nflowchart LR\n  A --> B\n```";
     const out = await createHtmlRenderer(html(offline))(markdown);
     expect(out.match(/<style data-comark-mermaid>/g)).toHaveLength(1);
+    expect(out).toContain(":where(:root){--_comark-background:var(--comark-background");
     expect(out).toContain(":where(:root){--pele-bg:var(--_comark-background)");
     expect(out).toContain("--pele-fg:var(--_comark-foreground)");
     expect(out).toContain('data-diagram="sequence"');
