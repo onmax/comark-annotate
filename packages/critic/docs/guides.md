@@ -30,7 +30,7 @@ Each mark carries a class, so the styles reach only CriticMarkup and not a `~~st
 | `--comark-muted` | The comment's text |
 | `--comark-radius` | Corners |
 
-The colors are variables of their own. The deletion's red is shadcn/ui's `--destructive` when the page has it:
+The colors are variables of their own, read wherever they're set, on `:root` or any element around the marks. The deletion's red is shadcn/ui's `--destructive` when the page has it:
 
 | Variable | Default |
 | --- | --- |
@@ -46,3 +46,5 @@ The rules sit in a `comark` CSS layer, so any plain rule of your own wins. Recol
   --ccm-del: #cf222e;
 }
 ```
+
+shadcn/ui before Tailwind 4 stores `--destructive` as bare HSL numbers, so map it as [Theming](/guide/theming/) does the shared tokens: `--ccm-del: hsl(var(--destructive))`.
