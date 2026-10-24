@@ -23,9 +23,9 @@ The plugin sets `external` when the link opens in a new tab. `label` is the link
 
 ## Theming
 
-A card is a `<div class="ccr" data-color="...">`. A group is a `<div class="ccr-group">`, and columns are a `<div class="ccr-columns" data-cols="...">` of `<div class="ccr-column">`.
+A card is a `<div class="ccr" data-color="...">`, with `data-variant="soft"` or `data-variant="subtle"` when it has one. A group is a `<div class="ccr-group">`, and columns are a `<div class="ccr-columns" data-cols="...">` of `<div class="ccr-column">`.
 
-Each color reads Nuxt UI's variable, such as `--ui-primary`, then its own default. Primary falls back to shadcn/ui's `--primary`, then to the foreground, so cards match the page's brand color, or stay neutral without one. Set `--ccr-primary` and the others on `.ccr` to change one.
+Each color reads Nuxt UI's variable, such as `--ui-primary`, then its own default. Primary falls back to shadcn/ui's `--primary`, then to the foreground, so cards match the page's brand color, or stay neutral without one. Set `--ccr-primary` and the others on `.ccr` to change one. The `soft` and `subtle` variants mix 10% of the color into `--comark-background` for the card's background, and `subtle` 30% for its border, so they read in light and dark themes alike.
 
 Cards also read these [shared tokens](/guide/theming/):
 
