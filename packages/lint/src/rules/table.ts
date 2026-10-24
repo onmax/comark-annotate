@@ -38,4 +38,9 @@ export default {
     title: "Set `base` to a folder under the root",
   },
   "comark/table/unknown-prop": { code: "COMARK2614", title: "Use only `::table`'s props" },
+  "comark/table/unknown-tone": {
+    code: "COMARK2615",
+    title: "Color a cell with `success`, `warning`, `error`, or `info`",
+  },
+  "comark/table/partial-tone": { code: "COMARK2616", title: "Fill the cell with its tone span" },
 } satisfies Record<`comark/table/${string}`, RuleInfo>;
