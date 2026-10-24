@@ -17,7 +17,7 @@ import { components as vueComponents } from "../src/vue.ts";
 const markdown = [
   "---",
   "status: Ready",
-  "pr: https://github.com/onmax/comark-plugins/pull/111",
+  "pr: https://github.com/onmax/comark-ui/pull/111",
   "tags: [colors, docs]",
   "---",
   "",

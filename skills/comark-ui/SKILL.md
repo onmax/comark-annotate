@@ -1,9 +1,9 @@
 ---
-name: comark-plugins
-description: Writes PR evidence, explanations of how something works, and docs pages in Markdown with comark-plugins. Use when a document needs an annotated screenshot, a before/after, a chart, a diagram, a code change, or another comark block, or when setting up @onmax/comark or a comark-* package.
+name: comark-ui
+description: Writes PR evidence, explanations of how something works, and docs pages in Markdown with comark-ui. Use when a document needs an annotated screenshot, a before/after, a chart, a diagram, a code change, or another comark block, or when setting up @onmax/comark or a comark-* package.
 ---
 
-# comark-plugins
+# comark-ui
 
 You write Markdown; the comark plugins render it as static HTML, from marks on screenshots and charts drawn from tables to code changes, diagrams, and steps. The reader sees only what you measured and wrote down, so measure every mark from the page, take every number from the data, and check the render before you hand it over.
 
@@ -39,7 +39,7 @@ const render = createHtmlRenderer({ plugins: [annotate()], components });
 
 Each reference ends with a Register section that says how its package registers alone and which options it needs.
 
-Either way, the HTML renderer inlines the styles once per document, and the Vue, React, and Svelte components add them on mount. On a server-rendered page, import each package's `style.css`, such as `comark-cards/style.css`, so the page doesn't shift. The `--comark-*` tokens in https://comark.onmax.me/guide/theming/ theme every plugin at once.
+Either way, the HTML renderer inlines the styles once per document, and the Vue, React, and Svelte components add them on mount. On a server-rendered page, import each package's `style.css`, such as `comark-cards/style.css`, so the page doesn't shift. The `--comark-*` tokens in https://comark-ui.onmax.me/guide/theming/ theme every plugin at once.
 
 Problems land in `meta.issues` after `parseMarkdown`, one sentence each, and a host can refuse a document while any remain. For untrusted input, add Comark's `security` plugin with `blockedTags` such as `script`, `style`, and `iframe`; it cleans the Markdown inside blocks too.
 

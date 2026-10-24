@@ -89,7 +89,7 @@ export default defineNuxtConfig({
   ],
   // Only the agent skill at the repository's root, under /.well-known/skills/; the pages are built by docs/build.ts.
   agentDiscovery: {
-    siteUrl: "https://comark.onmax.me",
+    siteUrl: "https://comark-ui.onmax.me",
     source: false,
     discovery: { link: false, apiCatalog: false, sitemapXml: false },
     errors: false,

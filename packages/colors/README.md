@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-colors)](https://npmx.dev/package/comark-colors)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-colors)](https://npmx.dev/package/comark-colors)
 [![license](https://npmx.dev/api/registry/badge/license/comark-colors)](https://npmx.dev/package/comark-colors)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/colors/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/colors/)
 
 A swatch before inline code that holds a color, as GitLab draws it, and `::palette` grids of named colors. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 

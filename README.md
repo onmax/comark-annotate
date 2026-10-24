@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://comark.onmax.me/og/readme-banner.png" alt="comark plugins: review documents, written in Markdown" width="100%">
+  <img src="https://comark-ui.onmax.me/og/readme-banner.png" alt="comark ui: review documents, written in Markdown" width="100%">
 </p>
 
-# comark-plugins
+# comark-ui
 
 Plugins for review documents, built on [Comark](https://comark.dev). This is an independent project by [@onmax](https://github.com/onmax), not made by the Comark team. Each package is published on its own and all of them share one version.
 
@@ -52,11 +52,11 @@ Plugins for review documents, built on [Comark](https://comark.dev). This is an 
 | [`comark-zoom`](./packages/zoom) | Zoom images and any block like medium-zoom, with Escape, Back, and click-outside to close. |
 | [`@onmax/comark`](./packages/preset) | onmax's preset: every package above in one install, like `@antfu/eslint-config`. |
 
-Docs and live demos: [comark.onmax.me](https://comark.onmax.me).
+Docs and live demos: [comark-ui.onmax.me](https://comark-ui.onmax.me).
 
 ## Agents
 
-[`skills/comark-plugins`](./skills/comark-plugins) teaches an agent every package, with a reference per package. Install it with `npx skills add onmax/comark-plugins`, or bundle it in an app from `@onmax/comark/skills/comark-plugins/`.
+[`skills/comark-ui`](./skills/comark-ui) teaches an agent every package, with a reference per package. Install it with `npx skills add onmax/comark-ui`, or bundle it in an app from `@onmax/comark/skills/comark-ui/`.
 
 ## Develop
 

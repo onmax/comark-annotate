@@ -7,7 +7,7 @@ import { lintFiles, resolveConfig, type Config, type Diagnostic } from "./index.
 
 const USAGE = `Usage: lint-comark <file or glob>... [--format text|json] [--config lint-comark.config.ts] [--check-urls]
 
-Checks Comark documents with every comark-plugins package installed. Exits with 1 if there are problems.
+Checks Comark documents with every comark-ui package installed. Exits with 1 if there are problems.
 --check-urls also requests every external URL and reports dead ones.`;
 
 const { positionals, values } = parseArgs({

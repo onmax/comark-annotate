@@ -10,22 +10,22 @@ tagline: Agents write most review documents. Install the skill so yours knows th
 [onmax](https://github.com/onmax)'s agent skill collects every package in one place: which block to use, its syntax, and how to check the result. Install it, or copy the command from the **For agents** button on any package's page:
 
 ```sh
-npx skills add onmax/comark-plugins
+npx skills add onmax/comark-ui
 ```
 
-This site serves it too, so `npx skills add https://comark.onmax.me` installs the same skill.
+This site serves it too, so `npx skills add https://comark-ui.onmax.me` installs the same skill.
 
 ## Bundle the skill in your app
 
-An app that renders these documents for its own agents, like [Drop](https://drop.vitehub.dev/?utm_source=comark-plugins&utm_medium=guide), can ship this skill instead of writing one. `@onmax/comark` includes it, so the app copies it at build time and its agents always read the syntax of the plugins it installed:
+An app that renders these documents for its own agents, like [Drop](https://drop.vitehub.dev/?utm_source=comark-ui&utm_medium=guide), can ship this skill instead of writing one. `@onmax/comark` includes it, so the app copies it at build time and its agents always read the syntax of the plugins it installed:
 
 ```ts
 import { cp } from "node:fs/promises";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const skill = dirname(fileURLToPath(import.meta.resolve("@onmax/comark/skills/comark-plugins/SKILL.md")));
-await cp(skill, "skills/comark-plugins", { recursive: true });
+const skill = dirname(fileURLToPath(import.meta.resolve("@onmax/comark/skills/comark-ui/SKILL.md")));
+await cp(skill, "skills/comark-ui", { recursive: true });
 ```
 
 Keep the folder whole, since `SKILL.md` links each reference by its path. If your agents only write Markdown, cut each reference at its `## Register` heading, which always comes last.
@@ -46,4 +46,4 @@ npx comark-annotate render duck-audit.md -o duck-audit.html
 
 ## Writing for reviewers
 
-Agents often write these documents as evidence on a pull request. [A review document](/recipes/review/) shows one put together from several plugins. [Sharing a review](/recipes/share/) shows how the agent publishes it to [Drop](https://drop.vitehub.dev/?utm_source=comark-plugins&utm_medium=guide), where reviewers comment on the exact spot and the agent reads their comments.
+Agents often write these documents as evidence on a pull request. [A review document](/recipes/review/) shows one put together from several plugins. [Sharing a review](/recipes/share/) shows how the agent publishes it to [Drop](https://drop.vitehub.dev/?utm_source=comark-ui&utm_medium=guide), where reviewers comment on the exact spot and the agent reads their comments.

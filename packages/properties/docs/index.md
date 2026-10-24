@@ -15,7 +15,7 @@ credits: 'After <a href="https://docs.gitlab.com/user/markdown/#front-matter">Gi
 ```md
 ---
 status: Ready for review
-pr: https://github.com/onmax/comark-plugins/pull/111
+pr: https://github.com/onmax/comark-ui/pull/111
 author: onmax
 date: 2026-10-23
 tags: [colors, docs]

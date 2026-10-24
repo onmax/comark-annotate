@@ -30,7 +30,7 @@ The renderer inlines its styles and script once per document. Annotate renders o
 
 ## Agents
 
-The comark-plugins agent skill knows the syntax, how to measure marks from the page, and how to check the result. The **For agents** button above installs it, and [Agents](/guide/agents/) covers the rest.
+The comark-ui agent skill knows the syntax, how to measure marks from the page, and how to check the result. The **For agents** button above installs it, and [Agents](/guide/agents/) covers the rest.
 
 It also comes with a small CLI that knows zoom and carousel too.
 

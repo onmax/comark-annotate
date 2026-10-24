@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-outline)](https://npmx.dev/package/comark-outline)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-outline)](https://npmx.dev/package/comark-outline)
 [![license](https://npmx.dev/api/registry/badge/license/comark-outline)](https://npmx.dev/package/comark-outline)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/outline/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/outline/)
 
 A table of contents in the body of a page: `::toc` becomes a nested list of links to the page's headings. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 

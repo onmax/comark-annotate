@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-mark)](https://npmx.dev/package/comark-mark)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-mark)](https://npmx.dev/package/comark-mark)
 [![license](https://npmx.dev/api/registry/badge/license/comark-mark)](https://npmx.dev/package/comark-mark)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/mark/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/mark/)
 
 Highlights and superscripts in [Comark](https://comark.dev): `==text==` as `<mark>` and `^text^` as `<sup>`. A parse plugin with no components and no styles, so it works in any renderer.
 

@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-quiz)](https://npmx.dev/package/comark-quiz)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-quiz)](https://npmx.dev/package/comark-quiz)
 [![license](https://npmx.dev/api/registry/badge/license/comark-quiz)](https://npmx.dev/package/comark-quiz)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/quiz/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/quiz/)
 
 Questions, polls, and recall cards for lessons written in Markdown. A reader checks an answer and sees why each option is right or wrong, votes in a poll, or tests themselves on a card whose answer stays blurred until they ask. A [Comark](https://comark.dev) plugin for HTML. It reads without a script.
 
@@ -58,8 +58,8 @@ Only the HTML renderer exists, since the blocks need its script.
 
 ## Customize
 
-The styles follow shadcn/ui's Card and RadioGroup: they read its CSS variables, such as `--background`, `--border`, and `--primary`, when the page has them, and use its neutral theme otherwise. Set the shared `--comark-*` tokens to theme the blocks with the other comark plugins, and `--cqz-primary`, `--cqz-correct`, `--cqz-incorrect`, `--cqz-bar`, `--cqz-bar-strong`, and `--cqz-surface` for their own colors. Every part has a `data-slot` and every state a `data-state`. The rules sit in a `comark` CSS layer, so any plain rule of your own wins. The one exception is the first and last blocks inside the prompt, an option, a reason, the hint, the explanation, and the answer, which drop their margins with `!important` so a page's paragraph margins don't push them off the card's edges. See the [Theming page](https://comark.onmax.me/quiz/theming/).
+The styles follow shadcn/ui's Card and RadioGroup: they read its CSS variables, such as `--background`, `--border`, and `--primary`, when the page has them, and use its neutral theme otherwise. Set the shared `--comark-*` tokens to theme the blocks with the other comark plugins, and `--cqz-primary`, `--cqz-correct`, `--cqz-incorrect`, `--cqz-bar`, `--cqz-bar-strong`, and `--cqz-surface` for their own colors. Every part has a `data-slot` and every state a `data-state`. The rules sit in a `comark` CSS layer, so any plain rule of your own wins. The one exception is the first and last blocks inside the prompt, an option, a reason, the hint, the explanation, and the answer, which drop their margins with `!important` so a page's paragraph margins don't push them off the card's edges. See the [Theming page](https://comark-ui.onmax.me/quiz/theming/).
 
 The icons are [Lucide](https://lucide.dev)'s, under its license (see `LICENSE`).
 
-Docs and live demos: [comark.onmax.me/quiz](https://comark.onmax.me/quiz).
+Docs and live demos: [comark-ui.onmax.me/quiz](https://comark-ui.onmax.me/quiz).

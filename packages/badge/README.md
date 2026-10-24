@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-badge)](https://npmx.dev/package/comark-badge)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-badge)](https://npmx.dev/package/comark-badge)
 [![license](https://npmx.dev/api/registry/badge/license/comark-badge)](https://npmx.dev/package/comark-badge)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/badge/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/badge/)
 
 Badges for versions and statuses, inline as `:badge[deprecated]{color="warning"}` or as Nuxt UI's block `::badge`, in Nuxt UI's seven colors. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 
