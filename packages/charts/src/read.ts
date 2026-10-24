@@ -434,9 +434,19 @@ function readMarks(
 
 const dated = (cell: string) => KINDS.some(([, pattern]) => pattern.test(cell));
 
+function validDateParts(cell: string) {
+  const match = /^(\d{4})(?:-(\d{2})(?:-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?(?:Z|[+-]\d{2}:?\d{2})?)?)?)?$/.exec(cell);
+  if (!match) return false;
+  const [, year, month, day, hour, minute, second] = match;
+  if (month === undefined) return true;
+  const max = new Date(Date.UTC(Number(year), Number(month), 0)).getUTCDate();
+  if (Number(month) < 1 || Number(month) > 12 || (day !== undefined && (Number(day) < 1 || Number(day) > max))) return false;
+  return hour === undefined || (Number(hour) < 24 && Number(minute) < 60 && (second === undefined || Number(second) < 60));
+}
+
 /** Milliseconds since 1970 for a date as a table writes it, in UTC, so a chart reads the same wherever it's drawn. */
 function readDate(cell: string) {
-  if (!dated(cell)) return;
+  if (!dated(cell) || !validDateParts(cell)) return;
   // A time with no zone would read in the zone of the machine drawing the chart.
   const iso = cell.replace(" ", "T");
   const time = Date.parse(
@@ -469,7 +479,14 @@ function readGantt(
     );
   };
   const others = columns.filter((column) => column !== x && !named?.includes(column));
-  const span = named ?? others.filter(times);
+  const inferred = others.filter(times);
+  const span = named ?? (inferred.length > 2
+    ? (() => {
+        const starts = inferred.find((column) => /^(start|begin|from)$/i.test(column));
+        const ends = inferred.find((column) => /^(end|finish|to)$/i.test(column));
+        return starts && ends ? [starts, ends] : inferred.slice(-2);
+      })()
+    : inferred);
   if (span.length !== 2) {
     issues.push({
       rule: "comark/charts/start-and-end",
@@ -482,7 +499,9 @@ function readGantt(
   // SAFETY: span holds exactly two columns, since every other length returned above.
   const [startColumn, endColumn] = span as [string, string];
   // Numbers and dates left out of `y`, such as a duration, are left out of the chart too.
-  const names = others.filter((column) => !span.includes(column) && !times(column));
+  // Any extra inferred time column is a grouping column too; this keeps numeric names such as run IDs distinct
+  // from the two endpoint columns selected above.
+  const names = others.filter((column) => !span.includes(column) && (!times(column) || inferred.includes(column)));
   if (names.length > 1)
     issues.push({
       rule: "comark/charts/too-many-groups",
