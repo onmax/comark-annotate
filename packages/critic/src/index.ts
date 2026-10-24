@@ -212,6 +212,7 @@ function collect(tokens: Token[], found: Issue[]) {
     if (token.type === "mdc_inline_props" && token.attrGet("class")) {
       let before = index - 1;
       while (tokens[before]?.type === "text" && !tokens[before]!.content.trim()) before--;
+      // SAFETY: only the close token created by `inline` carries this metadata shape.
       const own = (tokens[before]?.meta as { critic?: string } | null)?.critic;
       if (own) token.attrSet("class", `${own} ${token.attrGet("class")}`);
     }
