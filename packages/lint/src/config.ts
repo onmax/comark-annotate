@@ -13,13 +13,33 @@ const packages = [
   [
     "@onmax/comark/html",
     // The preset brings every package as its own dependency, which the project can't import. It comes first, since
-    // Comark keeps the first plugin of each name, so a package also installed on its own doesn't run twice.
+    // Comark keeps the first plugin of each name, so a package also installed on its own doesn't run twice. Its
+    // plugins get the options and blocks the entries below give their own: nothing drawn or downloaded, and files
+    // read from disk.
     () =>
       import("@onmax/comark/html").then((module) => {
-        const preset = module.default({ chips: { download: false } });
+        const preset = module.default({
+          cast: {},
+          charts: { draw: false },
+          chips: { download: false },
+          diagrams: { draw: false },
+          github: { references: false, html: false },
+          links: { external: false },
+          table: {},
+          tests: {},
+        });
         return { default: () => preset.plugins, components: preset.components };
       }),
-    ["code-group", "tabs-item"],
+    [
+      "code-group",
+      "tabs-item",
+      "stats",
+      "table",
+      "details",
+      "accordion-item",
+      "collapsible",
+      "ref",
+    ],
   ],
   ["comark-annotate/html", () => import("comark-annotate/html"), []],
   ["comark-carousel/html", () => import("comark-carousel/html"), []],

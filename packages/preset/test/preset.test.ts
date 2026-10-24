@@ -21,6 +21,8 @@ const document = [
   "![A cat](/cat.png)",
   "![Demo](demo.mp4)",
   '::card{title="Docs" to="/guide"}\nRead it.\n::',
+  "```csv\nBird,Seen\nHeron,2\n```",
+  "Ducks{++ and geese++}.",
 ].join("\n\n");
 
 const blocks = [
@@ -31,7 +33,10 @@ const blocks = [
   "data-zoom",
   'class="ccr"',
   'class="cb"',
-  'class="cm"',
+  // comark-media adds the kind, as in `cm cm-video`.
+  'class="cm ',
+  "<table",
+  "<ins>",
 ];
 
 describe("@onmax/comark", () => {
@@ -57,6 +62,15 @@ describe("@onmax/comark", () => {
     expect(off).not.toContain("Pasted.");
     const on = await createHtmlRenderer(html({ ...offline, include: { read } }))(markdown);
     expect(on).toContain("Pasted.");
+  });
+
+  it("reads a table's file only when given a reader", async () => {
+    const read = (path: string) => (path === "birds.csv" ? "Bird,Seen\nHeron,2" : undefined);
+    const markdown = '::table{src="birds.csv"}\n::';
+    const off = await createHtmlRenderer(html(offline))(markdown);
+    expect(off).not.toContain("Heron");
+    const on = await createHtmlRenderer(html({ ...offline, table: { read } }))(markdown);
+    expect(on).toContain("Heron");
   });
 
   it("renders the same blocks in Vue and React", async () => {

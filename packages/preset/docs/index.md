@@ -54,13 +54,18 @@ onmax({
   zoom: false,
   code: { actions: [{ id: "run", label: "Run" }] },
   github: { callouts: false, references: { repo: "owner/name" } },
+  table: { root: "data" },
   include: { root: "content" },
 });
 ```
 
-The keys are the packages' names without `comark-`. `github` takes its three plugins by name: `callouts`, `references`, and `html`.
+The keys are the packages' names without `comark-`, in camelCase: `fileTree`, `codeNotes`, `readingTime`. `github` takes its three plugins by name, `callouts`, `references`, and `html`, and `links` takes `external` and `anchors`.
 
-The icon resolver from `icon`'s options also draws the icons of cards, tabs, and code actions, so its `collections` and `fetch` apply to all of them. When you parse in a browser, pass `chips: { download: false }`, since a browser may not download another site's images.
+[cast](/cast/), [table](/table/), and [tests](/tests/) read files from disk on their own, so the preset gives them a reader that finds none: inline casts, CSV fences, and pasted reports still render. Pass `{ root }` to read files under a folder, or `{ read }` to read them yourself. [diagrams](/diagrams/) sends each diagram's source to `https://kroki.io` unless you pass your own `server`.
+
+The icon resolver from `icon`'s options also draws the icons of cards, details, file trees, tabs, and code actions, so its `collections` and `fetch` apply to all of them. When you parse in a browser, pass `chips: { download: false }`, since a browser may not download another site's images.
+
+[critic](/critic/) has no component to add its styles, so put `criticCss`, exported by every entry, in the page.
 
 ## Versions
 

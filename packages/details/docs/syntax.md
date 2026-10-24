@@ -14,7 +14,7 @@ Because.
 Or give the summary in a slot, where it can hold Markdown:
 
 ```md
-::details{summary="Why pnpm?"}
+::details
 #summary
 Why **pnpm**?
 

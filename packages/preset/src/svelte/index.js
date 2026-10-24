@@ -3,28 +3,33 @@ import { preset } from "@onmax/comark";
 import * as badge from "comark-badge/svelte";
 import * as cards from "comark-cards/svelte";
 import * as carousel from "comark-carousel/svelte";
+import * as cast from "comark-cast/svelte";
 import * as charts from "comark-charts/svelte";
 import * as chips from "comark-chips/svelte";
 import * as code from "comark-code/svelte";
-import * as embed from "comark-embed/svelte";
-import deflistPlugin from "comark-deflist";
+import * as codeNotes from "comark-code-notes/svelte";
+import * as colors from "comark-colors/svelte";
 import * as details from "comark-details/svelte";
-import * as fileTree from "comark-file-tree/svelte";
+import * as diagrams from "comark-diagrams/svelte";
+import * as embed from "comark-embed/svelte";
 import * as fields from "comark-fields/svelte";
+import * as fileTree from "comark-file-tree/svelte";
 import * as github from "comark-github/svelte";
 import * as icon from "comark-icon/svelte";
+import * as links from "comark-links/svelte";
 import * as media from "comark-media/svelte";
-import * as qr from "comark-qr/svelte";
-import * as steps from "comark-steps/svelte";
-import * as tabs from "comark-tabs/svelte";
+import * as metrics from "comark-metrics/svelte";
 import * as outline from "comark-outline/svelte";
-import readingTimePlugin from "comark-reading-time";
+import * as properties from "comark-properties/svelte";
+import * as qr from "comark-qr/svelte";
+import * as sources from "comark-sources/svelte";
+import * as steps from "comark-steps/svelte";
+import * as table from "comark-table/svelte";
+import * as tabs from "comark-tabs/svelte";
+import * as tests from "comark-tests/svelte";
 import * as zoom from "comark-zoom/svelte";
 
-const deflist = { default: deflistPlugin, components: {} };
-const readingTime = { default: readingTimePlugin, components: {} };
-// Narrow the renderer entry to the parse plugin and component map.
-const mediaPart = { default: (options) => media.default(options), components: media.components };
+export { criticCss } from "@onmax/comark";
 
 export default (options) =>
   preset(
@@ -32,22 +37,30 @@ export default (options) =>
       badge,
       cards,
       carousel,
+      cast,
       charts,
       chips,
       code,
-      embed,
-      deflist,
+      codeNotes,
+      colors,
       details,
-      fileTree,
+      diagrams,
+      embed,
       fields,
+      fileTree,
       github,
       icon,
-      media: mediaPart,
+      links,
+      media,
+      metrics,
       outline,
-      readingTime,
+      properties,
       qr,
+      sources,
       steps,
+      table,
       tabs,
+      tests,
       zoom,
     },
     options,

@@ -34,7 +34,7 @@ import onmax from "@onmax/comark/html"; // or /vue, /react, /svelte
 const render = createHtmlRenderer(onmax({ zoom: false, github: { references: { repo: "owner/name" } } }));
 ```
 
-Every plugin is on but `include`, which reads from disk. `false` turns one off along with its components, and an object passes it options. The Vue, React, and Svelte entries leave out annotate and diff. The preset ships with the plugins, so its version is theirs.
+Every plugin is on but `include`, which reads from disk, and cast, table, and tests read no files until you give them options. `false` turns one off along with its components, and an object passes it options. The Vue, React, and Svelte entries leave out annotate and diff. The preset ships with the plugins, so its version is theirs.
 
 ## Several plugins
 
