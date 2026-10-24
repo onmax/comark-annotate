@@ -55,7 +55,7 @@ Promise callbacks are microtasks. The event loop empties the microtask queue aft
 :::
 ::
 
-Pick an option and press Check. A right answer shows its reason and the explanation; a wrong one shows why it's wrong, with Try again and Show answer. The options are shuffled the same way for every reader, and each one gets a key from its text, so an answer saved today still matches after the author reorders them.
+Pick an option and press Check. A right answer shows its reason and the explanation; a wrong one shows why it's wrong, with Try again and Show answer. The verdict is said once, in the line under the options. The options are shuffled the same way for every reader, and each one gets a key from its text, so an answer saved today still matches after the author reorders them.
 
 A poll needs a host that collects votes, such as [Drop](https://drop.vitehub.dev): without one, its options show disabled. Once a host sends results, a question shows how every reader answered and a poll shows its results the way a social network does. A recall card blurs its answer until the reader asks for it, then asks whether they knew it.
 

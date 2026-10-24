@@ -60,6 +60,8 @@ export function script(config: ScriptConfig): void {
     closes: number;
     revealed: boolean;
     grade: "knew" | "missed" | null;
+    // Check was pressed with nothing selected.
+    prompted: boolean;
     // The reader answered on this page view, so changes may move; restored ones never do.
     live: boolean;
     // Its answer came from localStorage, which a host's state replaces.
@@ -147,32 +149,22 @@ export function script(config: ScriptConfig): void {
   function paintQuestion(model: Model) {
     const { labels, result } = model;
     model.el.dataset.state = result ?? (model.selected.size ? "selected" : "idle");
+    // The status line says the verdict; a row only says what it is: the reader's wrong pick, or a right option they
+    // didn't pick once the answer is shown. A right pick wears its icon and tint alone.
     for (const [at, option] of model.options.entries()) {
       const key = model.keys[at] ?? "";
       const input = model.inputs[at];
       const chosen = result ? model.checked.includes(key) : model.selected.has(key);
       const right = model.correct.has(key);
       let state = chosen ? "selected" : "idle";
-      let verdict = "";
-      if (result === "correct")
-        [state, verdict] = chosen ? ["correct", labels.correct] : ["idle", ""];
-      else if (result === "incorrect")
-        [state, verdict] = !chosen
-          ? ["idle", ""]
-          : right
-            ? ["correct", labels.correct]
-            : ["incorrect", labels.notQuite];
-      else if (result === "revealed")
-        [state, verdict] = right
-          ? chosen
-            ? ["correct", labels.correct]
-            : ["revealed", labels.correctAnswer]
-          : chosen
-            ? ["incorrect", labels.yourAnswer]
-            : ["idle", ""];
+      let label = "";
+      if (result && chosen)
+        [state, label] = right ? ["correct", ""] : ["incorrect", labels.yourAnswer];
+      else if (result === "revealed" && right) [state, label] = ["revealed", labels.correctAnswer];
+      else if (result) state = "idle";
       option.dataset.state = state;
       const word = $(option, ".cqz-verdict");
-      if (word) word.textContent = verdict;
+      if (word) word.textContent = label;
       const why = $(option, ".cqz-rationale");
       const shown = result === "revealed" || (result !== null && chosen);
       if (why) why.hidden = !shown;
@@ -184,55 +176,59 @@ export function script(config: ScriptConfig): void {
         else input.removeAttribute("aria-describedby");
       }
     }
-    const check = part(model, "[data-action='check']");
-    if (check) {
-      check.hidden = result !== null;
-      if (model.selected.size) check.removeAttribute("aria-disabled");
-      else check.setAttribute("aria-disabled", "true");
-    }
+    setBool(part(model, "[data-action='check']"), "hidden", result !== null);
     for (const action of ["retry", "reveal"])
       setBool(part(model, `[data-action='${action}']`), "hidden", result !== "incorrect");
-    const status = part(model, ".cqz-status");
-    if (status) {
-      const right = model.keys.filter((key) => model.correct.has(key));
-      const texts = right.map(
-        (key) =>
-          $(
-            model.options[model.keys.indexOf(key)] ?? model.el,
-            ".cqz-label",
-          )?.textContent?.trim() ?? "",
-      );
-      const message =
-        result === "correct"
-          ? `${icons.yes}<span class="cqz-status-label"></span>`
-          : result === "incorrect"
-            ? `${icons.no}<span class="cqz-status-label"></span>`
-            : result === "revealed"
-              ? `<span class="cqz-sr"></span>`
-              : "";
-      const label = result === "correct" ? labels.correct : result === "incorrect" ? labels.notQuite : "";
-      if (status.dataset.message !== message + label + texts.join()) {
-        status.dataset.message = message + label + texts.join();
-        status.innerHTML = message;
-        const statusLabel = $(status, ".cqz-status-label");
-        if (statusLabel) statusLabel.textContent = label;
-        const hidden = $(status, ".cqz-sr");
-        if (hidden) hidden.textContent = `${labels.correctAnswer}: ${texts.join("; ")}`;
-      }
-    }
     const done = result === "correct" || result === "revealed";
     setBool(part(model, ".cqz-explain"), "hidden", !done);
     // A hint can't help once the answer is out, unless the reader already has it open.
     const toggle = part(model, "[data-action='hint']");
     if (toggle) toggle.hidden = done && toggle.getAttribute("aria-expanded") !== "true";
-    paintResults(model, done, labels.answer, labels.answers);
+    const total = paintResults(model, done, labels.answer, labels.answers);
+    const right = model.options.flatMap((option, at) =>
+      model.correct.has(model.keys[at] ?? "")
+        ? [$(option, ".cqz-label")?.textContent?.trim() ?? ""]
+        : [],
+    );
+    const said =
+      result === "correct"
+        ? labels.correct
+        : result === "incorrect"
+          ? labels.notQuite
+          : result === null && model.prompted
+            ? labels.selectAnswer
+            : "";
+    status(
+      model,
+      result === "correct" ? icons.yes : result === "incorrect" ? icons.no : "",
+      said,
+      result === "revealed" ? `${labels.correctAnswer}: ${right.join("; ")}` : "",
+      total,
+    );
     const actions = part(model, ".cqz-actions");
     if (actions)
-      setBool(
-        actions,
-        "data-empty",
-        result === "revealed" && !model.el.hasAttribute("data-results") && toggle?.hidden !== false,
-      );
+      setBool(actions, "data-empty", result === "revealed" && !total && toggle?.hidden !== false);
+  }
+
+  // Rewrites the status line only when its words change, so a screen reader hears each message once.
+  function status(model: Model, icon: string, said: string, unseen: string, total: string) {
+    const line = part(model, ".cqz-status");
+    const message = [icon, said, unseen, total].join("\n");
+    if (!line || line.dataset.message === message) return;
+    line.dataset.message = message;
+    line.replaceChildren();
+    line.insertAdjacentHTML("beforeend", icon);
+    for (const [text, name] of [
+      [said, "cqz-said"],
+      [unseen, "cqz-sr"],
+      [total, "cqz-count"],
+    ]) {
+      if (!text) continue;
+      const span = document.createElement("span");
+      span.className = name ?? "";
+      span.textContent = text;
+      line.append(span);
+    }
   }
 
   function paintPoll(model: Model) {
@@ -290,7 +286,7 @@ export function script(config: ScriptConfig): void {
     }
   }
 
-  function paintResults(model: Model, visible: boolean, one: string, many: string) {
+  function paintResults(model: Model, visible: boolean, one: string, many: string): string {
     const data = results.get(model.id);
     const shown = visible && data !== undefined;
     setBool(model.el, "data-results", shown);
@@ -305,8 +301,10 @@ export function script(config: ScriptConfig): void {
       const percent = $(option, ".cqz-percent");
       if (percent) percent.textContent = shown ? `${Math.round(share * 100)}%` : "";
     }
+    const words = shown ? count(total === 1 ? one : many, total) : "";
     const sum = part(model, ".cqz-total");
-    if (sum) sum.textContent = shown ? count(total === 1 ? one : many, total) : "";
+    if (sum) sum.textContent = words;
+    return words;
   }
 
   function paint(model: Model, instant: boolean) {
@@ -426,6 +424,8 @@ export function script(config: ScriptConfig): void {
     const id = el.dataset.quizId;
     if (models.has(el) || !id || (kind !== "question" && kind !== "poll" && kind !== "recall"))
       return;
+    // While the page loads, the parser may have added the block but not all of its parts; its end marker comes last.
+    if (document.readyState === "loading" && !el.querySelector(":scope>template.cqz-end")) return;
     let written: unknown;
     try {
       written = JSON.parse(el.dataset.labels ?? "{}");
@@ -451,6 +451,7 @@ export function script(config: ScriptConfig): void {
       closes: Date.parse(el.dataset.closes ?? "") || Infinity,
       revealed: false,
       grade: null,
+      prompted: false,
       live: false,
       local: false,
       sent: "",
@@ -483,9 +484,15 @@ export function script(config: ScriptConfig): void {
   // The renderer inlines the script after the first block, so the page's later blocks arrive after it.
   new MutationObserver((records) => {
     for (const record of records)
-      for (const node of record.addedNodes) if (node instanceof Element) scan(node);
+      for (const node of record.addedNodes) {
+        if (!(node instanceof Element)) continue;
+        if (node.matches("template.cqz-end") && node.parentElement) scan(node.parentElement);
+        else scan(node);
+      }
   }).observe(html, { childList: true, subtree: true });
   const ready = () => {
+    // Blocks from a renderer without the end marker wait until here.
+    scan(document);
     announced = true;
     flush();
   };
@@ -538,7 +545,13 @@ export function script(config: ScriptConfig): void {
   const focus = (node: HTMLElement | undefined) => node?.focus();
 
   function check(model: Model) {
-    if (!model.selected.size || model.result) return;
+    if (model.result) return;
+    if (!model.selected.size) {
+      model.prompted = true;
+      paint(model, false);
+      return;
+    }
+    model.prompted = false;
     model.checked = model.keys.filter((key) => model.selected.has(key));
     const right =
       model.checked.length === model.correct.size &&
@@ -554,7 +567,6 @@ export function script(config: ScriptConfig): void {
   }
 
   function act(model: Model, action: string, button: HTMLElement) {
-    if (button.getAttribute("aria-disabled") === "true") return;
     if (action === "check") check(model);
     else if (action === "retry") {
       model.result = null;
@@ -616,6 +628,7 @@ export function script(config: ScriptConfig): void {
     const model = modelOf(input);
     if (!input || !model || model.kind !== "question" || model.result) return;
     model.selected = new Set(model.keys.filter((_, at) => model.inputs[at]?.checked));
+    model.prompted = false;
     paint(model, false);
   });
 

@@ -40,6 +40,9 @@ async function each<T>(items: T[], render: (item: T) => Promise<string>) {
   for (const item of items) html += await render(item);
   return html;
 }
+// The last child of every block. The parser may hand a long page to the browser in pieces, so the script waits for it
+// before it reads a block.
+const END = '<template class="cqz-end"></template>';
 const button = (action: string, variant: string, label: string, extra = "") =>
   `<button type="button" class="cqz-button" data-variant="${variant}" data-action="${action}"${extra}>${label}</button>`;
 
@@ -85,7 +88,7 @@ async function render(node: ElementNode, state: State) {
           `<div class="cqz-actions" data-slot="actions">${button("show", "outline", text("showAnswer"), ` aria-controls="${uid}-answer"`)}${button("knew", "ghost", text("knewIt"), ' aria-pressed="false" hidden')}${button("missed", "ghost", text("notYet"), ' aria-pressed="false" hidden')}<div class="cqz-status cqz-sr" data-slot="status" role="status"></div></div>` +
           `<details class="cqz-disclosure" data-slot="disclosure"><summary class="cqz-button" data-variant="outline">${text("showAnswer")}</summary><div class="cqz-answer" data-slot="answer">${await flow(answer)}</div></details>`
         : "") +
-      `</div>`
+      `${END}</div>`
     );
   }
 
@@ -110,7 +113,7 @@ async function render(node: ElementNode, state: State) {
     const notice = closed ? text("closed") : text("noHost");
     return (
       `<div ${root}>${head}${list}${tail}` +
-      `<div class="cqz-footer" data-slot="footer"><span class="cqz-total" data-slot="total" role="status"></span>${button("change", "link", text("changeVote"), " hidden")}<span class="cqz-notice" data-slot="notice">${notice}</span></div></div>`
+      `<div class="cqz-footer" data-slot="footer"><span class="cqz-total" data-slot="total" role="status"></span>${button("change", "link", text("changeVote"), " hidden")}<span class="cqz-notice" data-slot="notice">${notice}</span></div>${END}</div>`
     );
   }
 
@@ -135,7 +138,7 @@ async function render(node: ElementNode, state: State) {
       (why
         ? `<div class="cqz-rationale" data-slot="rationale" data-for="${attr(option.key)}" id="${uid}-${attr(option.key)}">${await flow(why)}</div>`
         : "") +
-      `</div>`
+      `${END}</div>`
     );
   });
   const hintHtml = hint
@@ -145,7 +148,7 @@ async function render(node: ElementNode, state: State) {
     ? `<div class="cqz-explain" data-slot="explain">${await flow(explain)}</div>`
     : "";
   const actions = gradable
-    ? `<div class="cqz-actions" data-slot="actions">${button("check", "default", text("check"), ' aria-disabled="true"')}${button("retry", "default", text("tryAgain"), " hidden")}${button("reveal", "outline", text("showAnswer"), " hidden")}<div class="cqz-status" data-slot="status" role="status"></div><span class="cqz-total" data-slot="total"></span>${hint ? `<button type="button" class="cqz-button cqz-hint-toggle" data-variant="ghost" data-action="hint" aria-expanded="false" aria-controls="${uid}-hint">${icons.hint}${text("hint")}</button>` : ""}</div>`
+    ? `<div class="cqz-actions" data-slot="actions">${button("check", "default", text("check"))}${button("retry", "default", text("tryAgain"), " hidden")}${button("reveal", "outline", text("showAnswer"), " hidden")}<div class="cqz-status" data-slot="status" role="status"></div>${hint ? `<button type="button" class="cqz-button cqz-hint-toggle" data-variant="ghost" data-action="hint" aria-expanded="false" aria-controls="${uid}-hint">${icons.hint}${text("hint")}</button>` : ""}</div>`
     : "";
   return (
     `<div ${root}>${head}${list}${tail}${actions}` +
@@ -155,7 +158,7 @@ async function render(node: ElementNode, state: State) {
     (gradable
       ? `<details class="cqz-disclosure" data-slot="disclosure"><summary class="cqz-button" data-variant="outline">${text("showAnswer")}</summary><div class="cqz-key" data-slot="key">${key}</div>${explainHtml}</details>`
       : "") +
-    `</div>`
+    `${END}</div>`
   );
 }
 

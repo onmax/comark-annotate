@@ -70,11 +70,13 @@ export const css = `@layer comark{${[
   `.cqz-option${graded}{border-color:color-mix(in oklab,var(--_cqz-correct) 50%,var(--_comark-border));background:color-mix(in oklab,var(--_cqz-correct) 8%,var(--_comark-background))}`,
   ".cqz-option[data-state='incorrect']{border-color:color-mix(in oklab,var(--_cqz-incorrect) 50%,var(--_comark-border));background:color-mix(in oklab,var(--_cqz-incorrect) 8%,var(--_comark-background))}",
   `.cqz-option:is(${right},[data-state='incorrect'],[data-state='voted']) :is(.cqz-input,.cqz-mark){opacity:0}`,
-  ".cqz[data-results][data-quiz-kind='poll'] .cqz-option :is(.cqz-input,.cqz-mark){opacity:0}",
+  // With results showing, only the marked rows keep an indicator, so a short bar never runs into an empty radio. The
+  // indicator keeps its space, so the labels stay put.
+  ".cqz[data-results] .cqz-option :is(.cqz-input,.cqz-mark){opacity:0}",
   `.cqz-option${graded} .cqz-yes{opacity:1;color:var(--_cqz-correct)}`,
   ".cqz-option[data-state='incorrect'] .cqz-no{opacity:1;color:var(--_cqz-incorrect)}",
   ".cqz-option[data-state='voted'] .cqz-yes{opacity:1}",
-  `.cqz-option:is(${right},[data-state='incorrect']) .cqz-verdict{display:block}`,
+  `.cqz-option:is(${right},[data-state='incorrect']) .cqz-verdict:not(:empty){display:block}`,
   `.cqz-option${graded} .cqz-verdict{color:color-mix(in oklab,var(--_cqz-correct) 75%,var(--_comark-foreground))}`,
   ".cqz-option[data-state='incorrect'] .cqz-verdict{color:color-mix(in oklab,var(--_cqz-incorrect) 80%,var(--_comark-foreground))}",
   ".cqz-option:has(.cqz-input:focus-visible){border-color:var(--_comark-ring);box-shadow:" +
@@ -98,14 +100,13 @@ export const css = `@layer comark{${[
   ".cqz-actions[data-empty]{height:0;margin-top:0;overflow:hidden}",
   ".cqz-button{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:.375rem;height:2rem;margin:0;padding:0 .75rem;border:1px solid transparent;border-radius:calc(var(--_comark-radius) - 2px);background:none;color:var(--_comark-foreground);font:500 .875rem/1.25rem var(--_comark-font);white-space:nowrap;cursor:pointer;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .16s var(--_cqz-ease),background-color .15s var(--_cqz-ease),border-color .15s var(--_cqz-ease),color .15s var(--_cqz-ease),box-shadow .15s var(--_cqz-ease)}",
   ".cqz-button::before{content:'';position:absolute;inset:-.25rem}",
-  ".cqz-button:active:not([aria-disabled='true']){transform:scale(.96)}",
-  ".cqz-button[aria-disabled='true']{opacity:.5;cursor:default}",
+  ".cqz-button:active{transform:scale(.96)}",
   ".cqz-button[data-variant='default']{background:var(--_cqz-primary);color:var(--_cqz-on-primary);box-shadow:0 1px 2px rgb(0 0 0/.05)}",
-  ".cqz-button[data-variant='default']:hover:not([aria-disabled='true']){background:color-mix(in oklab,var(--_cqz-primary) 90%,var(--_comark-background))}",
+  ".cqz-button[data-variant='default']:hover{background:color-mix(in oklab,var(--_cqz-primary) 90%,var(--_comark-background))}",
   ".cqz-button[data-variant='outline']{border-color:var(--_comark-border);background:var(--_comark-background);box-shadow:0 1px 2px rgb(0 0 0/.05)}",
-  ".cqz-button:is([data-variant='outline'],[data-variant='ghost']):hover:not([aria-disabled='true']){background:var(--_comark-accent)}",
+  ".cqz-button:is([data-variant='outline'],[data-variant='ghost']):hover{background:var(--_comark-accent)}",
   ".cqz-button[data-variant='ghost']{padding:0 .625rem;color:var(--_comark-muted)}",
-  ".cqz-button[data-variant='ghost']:hover:not([aria-disabled='true']){color:var(--_comark-foreground)}",
+  ".cqz-button[data-variant='ghost']:hover{color:var(--_comark-foreground)}",
   ".cqz-button[data-variant='link']{height:1.25rem;padding:0;border:0;color:var(--_comark-muted);text-decoration:underline;text-decoration-color:color-mix(in oklab,currentColor 40%,transparent);text-underline-offset:4px}",
   ".cqz-button[data-variant='link']:hover{color:var(--_comark-foreground)}",
   ".cqz-button[data-variant='link']::before{inset:-.625rem -.25rem}",
@@ -135,11 +136,15 @@ export const css = `@layer comark{${[
   ".cqz-total{color:var(--_comark-foreground);font-weight:500}",
   // An empty status keeps its place in the accessibility tree without taking a gap in the row.
   ".cqz-total:empty{position:absolute}",
-  ".cqz-actions .cqz-total{color:var(--_comark-muted);font-weight:400}",
+  ".cqz-count{color:var(--_comark-muted);font-weight:400;font-variant-numeric:tabular-nums}",
+  ".cqz-said+.cqz-count::before{content:'·';margin-inline-end:.375rem}",
+  ".cqz:is([data-state='idle'],[data-state='selected']) .cqz-status{color:var(--_comark-muted)}",
 
   // A recall card's answer stays under a blur, out of reach of screen readers and the tab order, until it's shown.
-  ".cqz-reveal{margin-top:.5rem;text-wrap:pretty;overflow-wrap:break-word;outline:none;transition:filter .2s var(--_cqz-ease)}",
-  ".cqz-reveal[aria-hidden='true']{max-height:5rem;overflow:hidden;filter:blur(6px);user-select:none;-webkit-mask-image:linear-gradient(#000 60%,transparent);mask-image:linear-gradient(#000 60%,transparent)}",
+  // The padding gives the blur room inside the box, and the negative margin cancels it, so the text sits where it would
+  // and the blur fades out instead of stopping at a hard edge.
+  ".cqz-reveal{margin:-.25rem -.75rem -.75rem;padding:.75rem;text-wrap:pretty;overflow-wrap:break-word;outline:none;transition:filter .2s var(--_cqz-ease)}",
+  ".cqz-reveal[aria-hidden='true']{max-height:6.5rem;overflow:hidden;filter:blur(6px);user-select:none;-webkit-mask-image:linear-gradient(#000 calc(100% - 1.25rem),transparent);mask-image:linear-gradient(#000 calc(100% - 1.25rem),transparent)}",
   ".cqz-reveal:focus-visible{border-radius:calc(var(--_comark-radius) - 4px);box-shadow:" +
     ring +
     "}",
@@ -166,7 +171,7 @@ export const css = `@layer comark{${[
 
   // Restored answers and results arrive at once, with no motion; so does everything for a reader who asks for less.
   ".cqz[data-instant],.cqz[data-instant] *{transition:none}",
-  "@media (prefers-reduced-motion:reduce){.cqz-bar{transition:none}.cqz-button{transition-property:background-color,border-color,color,box-shadow}.cqz-button:active:not([aria-disabled='true']){transform:none}}",
+  "@media (prefers-reduced-motion:reduce){.cqz-bar{transition:none}.cqz-button{transition-property:background-color,border-color,color,box-shadow}.cqz-button:active{transform:none}}",
   "@container (max-width:30rem){.cqz-choice{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:'indicator label percent' 'indicator verdict percent'}.cqz-verdict{justify-self:start}}",
   "@media (max-width:40rem){.cqz{padding:1rem}}",
   "@media print{.cqz{break-inside:avoid}}",

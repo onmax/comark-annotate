@@ -26,13 +26,13 @@ Set these on `.cqz` or any ancestor, such as `:root`:
 | --- | --- | --- |
 | `--cqz-primary` | Nuxt UI's `--ui-primary`, else shadcn/ui's `--primary`, else `--comark-foreground` | A selected option, the Check button, a poll vote |
 | `--cqz-primary-foreground` | `--primary-foreground`, else `--comark-background` | Text on the Check button, and a checked box's tick |
-| `--cqz-correct` | `--ui-success`, else `--success`, else `oklch(0.62 0.14 155)` | A right option's icon, border, tint, and word |
-| `--cqz-incorrect` | `--ui-error`, else `--destructive`, else shadcn/ui's red | A wrong option's icon, border, tint, and word |
+| `--cqz-correct` | `--ui-success`, else `--success`, else `oklch(0.62 0.14 155)` | A right option's icon, border, and tint, and the "Correct" verdict |
+| `--cqz-incorrect` | `--ui-error`, else `--destructive`, else shadcn/ui's red | A wrong pick's icon, border, and tint, and the "Not quite" verdict |
 | `--cqz-bar` | `--comark-foreground` at 6% | Each option's share of the results |
 | `--cqz-bar-strong` | The primary color at 14% | A poll's leading option and the reader's vote |
 | `--cqz-surface` | `--comark-foreground` at 2% over `--comark-background` | The card |
 
-A state's color shows as an icon, a border, a tint of 8%, and a word, never alone.
+A state's color always comes with an icon, a border, and a tint of 8%, and the status line under the options says the verdict in words, so color never carries it alone.
 
 ## Slots and states
 
@@ -46,8 +46,8 @@ Every part has a `data-slot`, and the block and each option a `data-state`:
 | `[data-slot="option"]` | Each option, with `data-key`, `data-state`, `data-correct` on a question's right ones, and `data-leading` on a poll's most chosen |
 | `[data-slot="indicator"]` | The radio or checkbox, and the icon that replaces it once answered |
 | `[data-slot="label"]`, `[data-slot="rationale"]` | An option's text and its reason |
-| `[data-slot="verdict"]`, `[data-slot="percent"]`, `[data-slot="bar"]` | An option's word, percent, and fill |
-| `[data-slot="actions"]`, `[data-slot="status"]` | The buttons, and the message read out after each check |
+| `[data-slot="verdict"]`, `[data-slot="percent"]`, `[data-slot="bar"]` | An option's label ("Your answer" or "Correct answer"), percent, and fill |
+| `[data-slot="actions"]`, `[data-slot="status"]` | The buttons, and the status line: the verdict and the count of answers, read out after each check |
 | `[data-slot="hint"]`, `[data-slot="explain"]`, `[data-slot="answer"]` | The slots |
 | `[data-slot="footer"]`, `[data-slot="total"]`, `[data-slot="notice"]` | A poll's footer: the count of votes and the host's notice |
 | `[data-slot="reveal"]` | A recall card's answer, blurred until it's shown |

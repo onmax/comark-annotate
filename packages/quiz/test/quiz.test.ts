@@ -62,7 +62,7 @@ describe("::question", () => {
       /<fieldset class="cqz-options" data-slot="options" aria-labelledby="[\w-]+-number [\w-]+-prompt">/,
     );
     expect(html).toContain('<div class="cqz-status" data-slot="status" role="status"></div>');
-    expect(html).toContain('data-action="check" aria-disabled="true">Check</button>');
+    expect(html).toContain('data-action="check">Check</button>');
     expect(html).toContain('<div class="cqz-hint-body">Think about queues.</div>');
     expect(html).toContain(
       '<div class="cqz-explain" data-slot="explain">Microtasks drain first.</div>',
@@ -73,6 +73,8 @@ describe("::question", () => {
       "A promise's then callback",
     ]);
     expect(html.match(/type="radio"/g)).toHaveLength(3);
+    // The script waits for this marker, the block's last child, before it reads a block a page is still loading.
+    expect(html).toMatch(/<template class="cqz-end"><\/template><\/div>$/);
   });
 
   it("reads without a script: the answer key, the rationales, and the explanation sit in a <details>", async () => {
@@ -266,11 +268,6 @@ describe("issues", () => {
       "`::poll` 2 (`#p`) has the same id as `::poll` 1 (`#p`)",
     ],
     [
-      "duplicate-id",
-      "::poll\nPick.\n\n- [ ] A\n- [ ] B\n::\n\n::poll\nPick.\n\n- [ ] A\n- [ ] B\n::",
-      "`::poll` 2 has the same id as `::poll` 1",
-    ],
-    [
       "longest-correct",
       "::question{#q}\nWhat does `await` do?\n\n- [x] It pauses the async function until the promise settles, then resumes it with the value\n- [ ] It blocks\n  > No.\n- [ ] It throws\n  > No.\n::",
       "`::question` 1 (`#q`): the right option",
@@ -327,6 +324,17 @@ describe("issues", () => {
       expect(ruleOf(result)).toEqual([`comark/quiz/${kind}`]);
       expect(result.issues[0]).toContain(start);
     });
+
+  it("reports two blocks without ids that hash to one id, besides each missing id", async () => {
+    const block = "::poll\nPick.\n\n- [ ] A\n- [ ] B\n::";
+    const result = await run(`${block}\n\n${block}`);
+    expect(ruleOf(result)).toEqual([
+      "comark/quiz/missing-id",
+      "comark/quiz/missing-id",
+      "comark/quiz/duplicate-id",
+    ]);
+    expect(result.issues[2]).toContain("`::poll` 2 has the same id as `::poll` 1");
+  });
 
   it("renders a block it can't read without throwing", async () => {
     const { html } = await run(

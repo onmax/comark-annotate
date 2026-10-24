@@ -1,6 +1,8 @@
 /** Every word the blocks show, so a host can translate them. `{count}` stands for a number. */
 export type QuizLabels = {
   check: string;
+  /** Said when Check is pressed with nothing selected. */
+  selectAnswer: string;
   tryAgain: string;
   showAnswer: string;
   hint: string;
@@ -25,6 +27,7 @@ export type QuizLabels = {
 
 export const DEFAULT_LABELS: QuizLabels = {
   check: "Check",
+  selectAnswer: "Select an answer",
   tryAgain: "Try again",
   showAnswer: "Show answer",
   hint: "Hint",

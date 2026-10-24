@@ -1,4 +1,5 @@
 import { createHtmlRenderer } from "@comark/html";
+import { createServer } from "node:http";
 import { expect, type Page, test } from "@playwright/test";
 import quiz, {
   components,
@@ -63,13 +64,18 @@ test("a right answer is marked, explained, and sent to the host", async ({ page 
   await expect
     .poll(() => page.evaluate(() => (window as unknown as { ready: string[] }).ready))
     .toEqual(["event-loop"]);
+  // Check is never disabled: with nothing selected, it says what's missing.
   const check = page.getByRole("button", { name: "Check" });
-  await expect(check).toHaveAttribute("aria-disabled", "true");
+  await check.click();
+  await expect(page.getByRole("status")).toHaveText("Select an answer");
+  expect(await answers(page)).toEqual([]);
   await page.getByRole("radio", { name: "A promise's then callback" }).check();
-  await expect(check).not.toHaveAttribute("aria-disabled");
+  await expect(page.getByRole("status")).toHaveText("");
   await check.click();
   await expect(option(page, "promise")).toHaveAttribute("data-state", "correct");
+  // The status line says the verdict once; the right pick has its icon and tint, and no word.
   await expect(page.getByRole("status")).toHaveText("Correct");
+  await expect(option(page, "promise").locator(".cqz-verdict")).toHaveText("");
   await expect(
     option(page, "promise").getByText("Promise callbacks are microtasks."),
   ).toBeVisible();
@@ -97,6 +103,7 @@ test("a wrong answer shows why, then Try again clears it for another go", async 
   await page.getByRole("button", { name: "Check" }).click();
   await expect(option(page, "setTimeout")).toHaveAttribute("data-state", "incorrect");
   await expect(page.getByRole("status")).toHaveText("Not quite");
+  await expect(option(page, "setTimeout").locator(".cqz-verdict")).toHaveText("Your answer");
   await expect(option(page, "setTimeout").getByText("A timer queues a task.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Check" })).toBeHidden();
   const retry = page.getByRole("button", { name: "Try again" });
@@ -291,6 +298,7 @@ test("a host's state replaces localStorage and restores answers and results with
   await expect(block).toHaveAttribute("data-results", "");
   expect(await again.evaluate(() => document.getAnimations().length)).toBe(0);
   await expect(option(again, "promise").locator(".cqz-percent")).toHaveText("75%");
+  await expect(block.getByRole("status")).toContainText("4 answers");
   await expect(again.getByRole("button", { name: "Check" })).toBeHidden();
 
   // Once a host has sent state, answers go to it alone.
@@ -313,4 +321,27 @@ test("without the script, the options read as a list and Show answer opens the k
   await expect(details.getByText("Correct answer")).toBeVisible();
   await expect(details.getByText("A timer queues a task.")).toBeVisible();
   await expect(details.getByText("Microtasks drain before the next task.")).toBeVisible();
+});
+
+test("a block that reaches the browser in two pieces is read once it's whole", async ({ page }) => {
+  const html = await render(`${question}\n\n${recall}`);
+  // The cut falls inside the recall card, before its answer arrives.
+  const cut = html.indexOf("<details", html.indexOf('data-quiz-kind="recall"'));
+  const server = createServer((_, response) => {
+    response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+    response.write(`<!doctype html><html lang="en"><body>${html.slice(0, cut)}`);
+    setTimeout(() => response.end(`${html.slice(cut)}</body></html>`), 300);
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  try {
+    await page.goto(`http://127.0.0.1:${address instanceof Object ? address.port : 0}/`);
+    await expect(page.locator(".cqz-reveal .cqz-answer")).toHaveText(
+      "Microtasks drain before the next task.",
+    );
+    await expect(page.locator("details")).toHaveCount(0);
+    await expect(page.locator(".cqz-options .cqz-rationale")).toHaveCount(3);
+  } finally {
+    server.close();
+  }
 });

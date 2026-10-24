@@ -34,7 +34,7 @@ Every word the blocks show is an option, so a host can translate them:
 quiz({ labels: { check: "Comprobar", tryAgain: "Otra vez", showAnswer: "Ver respuesta" } });
 ```
 
-The labels are `check`, `tryAgain`, `showAnswer`, `hint`, `correct`, `notQuite`, `yourAnswer`, `correctAnswer`, `vote` and `votes` (`"{count} votes"`), `answer` and `answers` (`"{count} answers"`), `changeVote`, `knewIt`, `notYet`, `noHost`, and `closed`.
+The labels are `check`, `selectAnswer`, `tryAgain`, `showAnswer`, `hint`, `correct`, `notQuite`, `yourAnswer`, `correctAnswer`, `vote` and `votes` (`"{count} votes"`), `answer` and `answers` (`"{count} answers"`), `changeVote`, `knewIt`, `notYet`, `noHost`, and `closed`.
 
 ## Saving answers
 
