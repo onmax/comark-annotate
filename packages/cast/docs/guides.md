@@ -22,15 +22,15 @@ Use `mode="log"` when the part that matters scrolled off the screen, such as the
 
 ## Theming
 
-The terminal is dark whatever the page's scheme, since programs pick their colors for a dark one. Set these on `.cca`:
+The terminal is a window in the page's scheme, as shadcn/ui draws a code block: a muted surface with a border and three dots. Its 16 colors switch with the scheme, darker on a light page so a program's white and yellow still read, whether the system or a `.light` or `.dark` class above sets it. Set these on `.cca`:
 
 | Variable | Default | Used for |
 | --- | --- | --- |
-| `--cca-background` | `#09090b` | The terminal's background, and inverted text |
-| `--cca-foreground` | `#e4e4e7` | Text with no color, and inverted backgrounds |
-| `--cca-0` to `--cca-15` | Tailwind's zinc, red, green, yellow, blue, purple, and cyan | The 16 terminal colors, then their bright versions |
+| `--cca-background` | `--comark-accent` mixed into `--comark-background` | The terminal's background, and inverted text |
+| `--cca-foreground` | `--comark-foreground` | Text with no color, and inverted backgrounds |
+| `--cca-0` to `--cca-15` | Tailwind's zinc, red, green, yellow, blue, purple, and cyan, a shade darker on a light page | The 16 terminal colors, then their bright versions |
 
-256-color and 24-bit colors are written as they were recorded. The frame reads the [shared tokens](/guide/theming/) `--comark-border` and `--comark-radius`, and the caption `--comark-muted` and `--comark-font`. The rules sit in a `comark` CSS layer, so any plain rule of your own wins, except the terminal's background, text color, and margin: a page's `pre` styles would put the program's colors on the wrong ground or push the terminal away from its caption, so change the colors through the variables and space the `.cca` figure instead.
+256-color and 24-bit colors are written as they were recorded. The frame reads the [shared tokens](/guide/theming/) `--comark-border` and `--comark-radius`, the dots and the caption `--comark-muted`, and the caption `--comark-font`. The rules sit in a `comark` CSS layer, so any plain rule of your own wins, except the terminal's background, text color, and margin: a page's `pre` styles would put the program's colors on the wrong ground or push the terminal away from its caption, so change the colors through the variables and space the `.cca` figure instead.
 
 | Class | Element |
 | --- | --- |

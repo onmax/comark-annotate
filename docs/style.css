@@ -2897,6 +2897,11 @@ pre {
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
+/* comark-cast's terminal draws its own border. */
+pre.cca-term {
+  box-shadow: none;
+}
+
 /* Not comark-code's numbered or marked lines, which are blocks with their newline inside, so a tint covers its row. */
 pre:not(.ck[data-code-lines] > pre) .line {
   display: inline !important;
