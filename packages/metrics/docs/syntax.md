@@ -1,6 +1,6 @@
 ---
 title: Syntax
-description: The props of delta, progress, and stats.
+description: The props of delta, progress, stats, and stat tiles.
 ---
 
 ## Delta
@@ -54,10 +54,38 @@ The table needs three columns: a name, the value before, and the value after. Th
 | --- | --- |
 | `better` | `lower` or `higher`, for every row. |
 | `unit` | The unit of a difference from 0, for cells written without one. |
+| `tiles` | Shows each row as a tile instead of a table row. |
+
+### Tiles
+
+```md
+::stats{tiles better="lower"}
+| Metric | Before | After |
+| --- | --- | --- |
+| JavaScript | 412 kB | 388 kB |
+| Largest paint | 2.4 s | 1.9 s |
+::
+```
+
+With `tiles`, each row becomes a tile: the after value large, the metric's name above it, and the change under it in a pill colored by `better`. The before value is read for the change and not shown. The tiles wrap to fit the width.
+
+A table of two columns, a name and a value, makes tiles with no change. A value can be any text:
+
+```md
+::stats{tiles}
+| Metric | Value |
+| --- | --- |
+| Tests | 1,204 |
+| Coverage | 92% |
+| Status | Passing |
+::
+```
+
+The tiles are a `<dl>`, so they read as name and value pairs with no styles and no script.
 
 ## Issues
 
-The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes: a missing or unreadable number, a `better` that isn't `lower` or `higher`, a `value` outside 0 to `max`, a `::stats` without a table or with other than three columns, a row whose cells aren't numbers or are in different units, and a prop a block doesn't read. Each issue names its block and says how to fix it, and each has its own rule in [Doctor](/doctor/):
+The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes: a missing or unreadable number, a `better` that isn't `lower` or `higher`, a `value` outside 0 to `max`, a `::stats` without a table or with other than three columns (two or three with `tiles`), a row whose cells aren't numbers or are in different units, and a prop a block doesn't read. Each issue names its block and says how to fix it, and each has its own rule in [Doctor](/doctor/):
 
 ```txt
 `:progress` 1: `value=85` is outside 0 to 1, so the bar was clamped. Write a fraction such as `value=0.85`, or set `max=100`.

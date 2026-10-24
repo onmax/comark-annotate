@@ -26,7 +26,7 @@ export default {
   },
   "comark/metrics/column-count": {
     code: "COMARK1608",
-    title: "Give a `::stats` table three columns in every row",
+    title: "Give a `::stats` table three columns, or two with `tiles`",
   },
   "comark/metrics/non-numeric-cell": {
     code: "COMARK1609",

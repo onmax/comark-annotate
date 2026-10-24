@@ -1,4 +1,4 @@
-A `::stats` table has three columns: a name, the value before, and the value after. A table with more or fewer columns is shown without a change column, and a row with more or fewer cells has no change. Move other columns to a table of their own.
+A `::stats` table has three columns: a name, the value before, and the value after. With `tiles`, it can also have two: a name and a value. A table with more or fewer columns is shown as written, without a change column or tiles, and a row with more or fewer cells has no change. Move other columns to a table of their own, or write `::stats{tiles}` for a table of names and values.
 
 ::incorrect
 ```md

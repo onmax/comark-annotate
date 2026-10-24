@@ -2,11 +2,11 @@
 title: comark-metrics
 description: Before and after numbers, progress, and tables of metrics, written in Markdown.
 keywords: KPI, stats, statistics, numbers, delta, change, percent, progress bar, performance, benchmark, bundle size, comparison table
-tagline: Write two numbers and get the arrow, the percent change, and whether it's better or worse. Wrap a table of befores and afters and get its change column.
+tagline: Write two numbers and get the arrow, the percent change, and whether it's better or worse. Wrap a table of befores and afters and get its change column, or a tile for each.
 install: pnpm add comark @comark/html comark-metrics
 group: Review blocks
 icon: trending-down
-blurb: Deltas, progress, and stats
+blurb: Deltas, progress, stats, and tiles
 credits: 'After <a href="https://quarto.org/docs/dashboards/data-display.html#value-boxes">Quarto</a>''s value boxes, <a href="https://docs.evidence.dev/components/data/delta">Evidence</a>''s delta, and <a href="https://facelessuser.github.io/pymdown-extensions/extensions/progressbar/">PyMdown</a>''s progress bars.'
 ---
 
@@ -20,6 +20,18 @@ Moving the pigeon map to a worker cut the main bundle :delta{from=412 to=388 uni
 :::example{label="Stats"}
 ```md
 ::stats{better="lower"}
+| Metric | Before | After |
+| --- | --- | --- |
+| JavaScript | 412 kB | 388 kB |
+| Largest paint | 2.4 s | 1.9 s |
+| Requests | 38 | 41 |
+::
+```
+:::
+
+:::example{label="Tiles"}
+```md
+::stats{tiles better="lower"}
 | Metric | Before | After |
 | --- | --- | --- |
 | JavaScript | 412 kB | 388 kB |

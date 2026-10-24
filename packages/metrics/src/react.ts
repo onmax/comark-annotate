@@ -1,8 +1,8 @@
-import { createElement, useEffect } from "react";
+import { createElement, type ReactNode, useEffect } from "react";
 import { addStyles } from "./client.ts";
 import type { DeltaAttributes, ProgressAttributes } from "./index.ts";
 
-export { default, PROGRESS_TAG } from "./index.ts";
+export { default, PROGRESS_TAG, STATS_TILES_TAG } from "./index.ts";
 export type { DeltaAttributes, MetricsMeta, ProgressAttributes } from "./index.ts";
 
 /** `:delta`, and each change in a `::stats` table, for `@comark/react`. */
@@ -37,5 +37,11 @@ export function ProgressBar({ value, max, percent, label }: ProgressAttributes) 
   );
 }
 
+/** `::stats{tiles}` for `@comark/react`. */
+export function StatTiles({ children }: { children?: ReactNode }) {
+  useEffect(addStyles, []);
+  return createElement("dl", { className: "cmt-tiles" }, children);
+}
+
 /** Pass these as `components` to `@comark/react`. */
-export const components = { Delta, ProgressBar };
+export const components = { Delta, ProgressBar, StatTiles };

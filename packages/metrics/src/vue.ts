@@ -1,7 +1,7 @@
 import { defineComponent, h, onMounted } from "vue";
 import { addStyles } from "./client.ts";
 
-export { default, PROGRESS_TAG } from "./index.ts";
+export { default, PROGRESS_TAG, STATS_TILES_TAG } from "./index.ts";
 export type { DeltaAttributes, MetricsMeta, ProgressAttributes } from "./index.ts";
 
 /** `:delta`, and each change in a `::stats` table, for `@comark/vue`. */
@@ -58,5 +58,15 @@ export const ProgressBar = defineComponent({
   },
 });
 
+/** `::stats{tiles}` for `@comark/vue`. */
+export const StatTiles = defineComponent({
+  name: "StatTiles",
+  inheritAttrs: false,
+  setup(_, { slots }) {
+    onMounted(addStyles);
+    return () => h("dl", { class: "cmt-tiles" }, slots.default?.());
+  },
+});
+
 /** Pass these as `components` to `@comark/vue`. */
-export const components = { Delta, ProgressBar };
+export const components = { Delta, ProgressBar, StatTiles };

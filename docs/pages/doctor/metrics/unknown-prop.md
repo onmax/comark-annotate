@@ -1,4 +1,4 @@
-`:delta` reads `from`, `to`, `unit`, and `better`, `:progress` reads `value`, `max`, and `label`, and `::stats` reads `unit` and `better`. Every other prop is ignored, so a misspelled `better` leaves the change in a neutral color.
+`:delta` reads `from`, `to`, `unit`, and `better`, `:progress` reads `value`, `max`, and `label`, and `::stats` reads `unit`, `better`, and `tiles`. Every other prop is ignored, so a misspelled `better` leaves the change in a neutral color.
 
 ::incorrect
 ```md
