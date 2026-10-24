@@ -1026,28 +1026,29 @@ kbd {
   translate: 0 8px;
 }
 
-/* chips and icons: the chips hold still and each one's favicon or avatar nudges in turn, as icons do. */
+/* chips and icons: the chips hold still and each one's favicon or avatar nudges in turn, as icons do. Only the
+   page's icons: the card's own header icon stays put. */
 .demo-chips .cp-img,
-.demo-icon .ci {
+.demo-icon .demo-page .ci {
   animation: demo-nudge 3.5s var(--ease-out) infinite both;
 }
 
 .demo-chips .cp:nth-of-type(2) .cp-img,
-.demo-icon .ci:nth-of-type(2) {
+.demo-icon .demo-page .ci:nth-of-type(2) {
   animation-delay: 150ms;
 }
 
 .demo-chips .cp:nth-of-type(3) .cp-img,
-.demo-icon .ci:nth-of-type(3) {
+.demo-icon .demo-page .ci:nth-of-type(3) {
   animation-delay: 300ms;
 }
 
 .demo-chips .cp:nth-of-type(4) .cp-img,
-.demo-icon .ci:nth-of-type(4) {
+.demo-icon .demo-page .ci:nth-of-type(4) {
   animation-delay: 450ms;
 }
 
-.demo-icon .ci:nth-of-type(5) {
+.demo-icon .demo-page .ci:nth-of-type(5) {
   animation-delay: 600ms;
 }
 
