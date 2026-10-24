@@ -20,6 +20,7 @@ type Manifest = {
   files: string[];
   engines?: { node: string };
   scripts: Record<string, string>;
+  dependencies?: Record<string, string>;
   peerDependencies?: Record<string, string>;
   peerDependenciesMeta?: Record<string, { optional?: boolean }>;
 };
@@ -58,6 +59,14 @@ describe.each(folders)("packages/%s", (folder) => {
     expect(read(`packages/${folder}/LICENSE`).startsWith(read("LICENSE").trimEnd())).toBe(true);
   });
 
+  // A package with no renderer runs from the preset's core, so it works in every renderer.
+  it("comes with the preset", () => {
+    if (folder === "preset" || folder === "lint") return;
+    expect(manifest("preset").dependencies?.[pkg.name]).toBe("workspace:^");
+    if (!withRenderer.includes(folder))
+      expect(read("packages/preset/src/index.ts")).toContain(`from "${pkg.name}"`);
+  });
+
   it("has docs with a place in the site, and a row in the README", () => {
     expect(existsSync(new URL(`packages/${folder}/docs/index.md`, repo))).toBe(true);
     expect(read("docs/build.ts")).toContain(`"${folder}",`);
@@ -75,29 +84,13 @@ describe.each(withRenderer)("the renderer of packages/%s", (folder) => {
     expect(read("packages/lint/src/config.ts")).toContain(`import("${name}/html")`);
   });
 
-  it("renders the docs and the playground", () => {
-    const plugins = read("docs/plugins.ts");
-    expect(plugins).toContain(`from "../packages/${folder}/src/html.ts"`);
-
-    // Keep the import and both runtime registries in sync. The import alone can
-    // remain present after a plugin is accidentally removed from the site.
-    // A folder such as file-tree imports as fileTree.
-    const name = folder.replace(/-(\w)/g, (_, letter: string) => letter.toUpperCase());
-    const imported =
-      folder === "github"
-        ? { plugin: "githubHtml", components: "githubComponents" }
-        : folder === "links"
-          ? { plugin: "anchors", components: "linksComponents" }
-          : {
-              plugin: name,
-              components: `${name}Components`,
-            };
-    const browser = plugins.slice(
-      plugins.indexOf("export const browserPlugins"),
-      plugins.indexOf("export const components"),
-    );
-    const componentMap = plugins.slice(plugins.indexOf("export const components"));
-    expect(browser).toMatch(new RegExp(`${imported.plugin}\\s*\\(`));
-    expect(componentMap).toContain(`...${imported.components}`);
+  // The site renders through the preset, so a package in it is on the site and in the playground.
+  it("is in the preset, which renders the docs and the playground", () => {
+    expect(read("docs/plugins.ts")).toContain('from "../packages/preset/src/html.ts"');
+    if (folder === "preset") return;
+    const preset = read("packages/preset/src/html.ts");
+    const local = folder.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
+    expect(preset).toContain(`import * as ${local} from "${name}/html"`);
+    expect(preset.slice(preset.indexOf("preset<"))).toMatch(new RegExp(`\\b${local}\\b`));
   });
 });
