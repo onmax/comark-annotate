@@ -80,6 +80,7 @@ const inlineCode = (text: string) => escapeHtml(text).replace(/`([^`]+)`/g, "<co
 // docs/ folder, and its index's frontmatter gives its group, icon, blurb, and credits. A package with no docs yet is
 // left out.
 const packageOrder = [
+  "preset",
   "annotate",
   "cast",
   "charts",
@@ -122,7 +123,6 @@ const packageOrder = [
   "xref",
   "reading-time",
   "lint",
-  "preset",
 ];
 const repo = new URL("../", root);
 // Paths from the repository's root, so an error names the file.
@@ -764,21 +764,34 @@ const copyIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" st
 const resetIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`;
 const checkIcon = `<svg class="check" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5"/></svg>`;
 // Humans install the package with their package manager; agents install the skill from this site, the package's
-// own when it has one.
+// own when it has one. A page about plugins installs every one through @onmax/comark by default, and offers its own
+// packages alone: the preset brings them as its dependencies, so the note says how to register them through it.
+const everyPlugin = "comark @comark/html @onmax/comark";
 function installerFor(install: string, skill: string) {
   const packages = install.replace(/^pnpm add /, "");
+  const own = packages
+    .split(" ")
+    .filter((name) => name.startsWith("comark-") && name !== "comark-linter");
+  const managers = (list: string) => ({
+    pnpm: `pnpm add ${list}`,
+    npm: `npm install ${list}`,
+    yarn: `yarn add ${list}`,
+    bun: `bun add ${list}`,
+  });
   const commands = {
-    pnpm: `pnpm add ${packages}`,
-    npm: `npm install ${packages}`,
-    yarn: `yarn add ${packages}`,
-    bun: `bun add ${packages}`,
+    all: managers(own.length ? everyPlugin : packages),
+    one: managers(packages),
     agents: `npx skills add ${site}${skill ? ` --skill ${skill}` : ""}`,
-  } satisfies Record<string, string>;
+  };
+  const scope = own.length
+    ? `<div class="installer-scope"><div class="seg" role="group" aria-label="Packages"><button type="button" data-scope="all" aria-pressed="true">Every plugin</button><button type="button" data-scope="one" aria-pressed="false">Only ${own.length === 1 ? escapeHtml(own[0]!) : "these"}</button></div>` +
+      `<p data-scope-note="all">Render with <code>onmax()</code> from <a href="/preset/">@onmax/comark/html</a>, which registers every plugin in order.</p></div>`
+    : "";
   return `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
 <div class="installer-bar"><div class="seg" role="group" aria-label="Audience"><button type="button" data-audience="humans" aria-pressed="true">${userIcon}For humans</button><button type="button" data-audience="agents" aria-pressed="false">${botIcon}For agents</button></div>
 <div class="seg installer-pm" role="group" aria-label="Package manager">${["pnpm", "npm", "yarn", "bun"].map((pm, i) => `<button type="button" data-pm="${pm}" aria-pressed="${i === 0}">${pm}</button>`).join("")}</div></div>
-<button type="button" class="install" data-copy="${escapeHtml(commands.pnpm)}" aria-label="Copy the install command"><span aria-hidden="true">$</span><code>${escapeHtml(commands.pnpm)}</code><span class="install-hint">${copyIcon}${checkIcon}</span></button>
-</div>`;
+<button type="button" class="install" data-copy="${escapeHtml(commands.all.pnpm)}" aria-label="Copy the install command"><span aria-hidden="true">$</span><code>${escapeHtml(commands.all.pnpm)}</code><span class="install-hint">${copyIcon}${checkIcon}</span></button>
+${scope}</div>`;
 }
 
 // The first column: one icon per section. Hovering or focusing it widens it over the second column to show every
@@ -886,9 +899,9 @@ for (const ex of document.querySelectorAll(".example")) ex.querySelector(".seg")
   for (const view of ["preview", "code"]) { const p = ex.querySelector(".example-" + view); p.hidden = b.dataset.view !== view; if (!p.hidden) reveal(p) }
 });
 for (const box of document.querySelectorAll(".installer")) {
-  const commands = JSON.parse(box.dataset.commands); const field = box.querySelector(".install"); let audience = "humans", pm = "pnpm";
-  const update = () => { const cmd = commands[audience === "agents" ? "agents" : pm]; field.dataset.copy = cmd; field.querySelector("code").textContent = cmd; box.querySelector(".installer-pm").hidden = audience === "agents"; for (const b of box.querySelectorAll("[data-audience]")) b.setAttribute("aria-pressed", b.dataset.audience === audience); for (const b of box.querySelectorAll("[data-pm]")) b.setAttribute("aria-pressed", b.dataset.pm === pm) };
-  box.addEventListener("click", e => { const b = e.target.closest("[data-audience],[data-pm]"); if (!b) return; if (b.dataset.audience) audience = b.dataset.audience; if (b.dataset.pm) pm = b.dataset.pm; update() });
+  const commands = JSON.parse(box.dataset.commands); const field = box.querySelector(".install"), scoped = box.querySelector(".installer-scope"); let audience = "humans", pm = "pnpm", scope = "all";
+  const update = () => { const cmd = audience === "agents" ? commands.agents : commands[scope][pm]; field.dataset.copy = cmd; field.querySelector("code").textContent = cmd; box.querySelector(".installer-pm").hidden = audience === "agents"; if (scoped) { scoped.hidden = audience === "agents"; scoped.querySelector("[data-scope-note]").hidden = scope !== "all" } for (const b of box.querySelectorAll("[data-audience]")) b.setAttribute("aria-pressed", b.dataset.audience === audience); for (const b of box.querySelectorAll("[data-pm]")) b.setAttribute("aria-pressed", b.dataset.pm === pm); for (const b of box.querySelectorAll("[data-scope]")) b.setAttribute("aria-pressed", b.dataset.scope === scope) };
+  box.addEventListener("click", e => { const b = e.target.closest("[data-audience],[data-pm],[data-scope]"); if (!b) return; if (b.dataset.audience) audience = b.dataset.audience; if (b.dataset.pm) pm = b.dataset.pm; if (b.dataset.scope) scope = b.dataset.scope; update() });
   field.addEventListener("click", async () => { await navigator.clipboard.writeText(field.dataset.copy); field.classList.add("copied"); setTimeout(() => field.classList.remove("copied"), 1200) });
 }
 const copyTokens = new WeakMap();

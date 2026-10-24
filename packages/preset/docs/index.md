@@ -3,7 +3,7 @@ title: "@onmax/comark"
 description: Every comark-plugins package in one install.
 tagline: onmax's preset, like @antfu/eslint-config for Comark. One import registers every plugin in the order they need, and each release brings their latest defaults.
 install: pnpm add comark @comark/html @onmax/comark
-group: Authoring tools
+group: Comark plugins
 icon: boxes
 blurb: Every plugin in one install
 ---

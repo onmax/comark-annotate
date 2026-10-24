@@ -1,8 +1,21 @@
 ---
 title: Renderers
 description: Which renderer each package supports, and how to use several in one document.
-tagline: Register every plugin you use in one renderer. The same markup comes out of HTML, Vue, React, and Svelte, and each package's docs page lists the props.
+tagline: Register every plugin at once with @onmax/comark, or the ones you pick in one renderer. The same markup comes out of HTML, Vue, React, and Svelte, and each package's docs page lists the props.
 ---
+
+## Every plugin at once
+
+[`@onmax/comark`](/preset/) is the install every page offers first: every package in one install, registered in the order they need, with one icon resolver shared by `:icon`, cards, details, file trees, tabs, and code actions. It returns the `plugins` and `components` for one renderer:
+
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html"; // or /vue, /react, /svelte
+
+const render = createHtmlRenderer(onmax({ zoom: false, github: { references: { repo: "owner/name" } } }));
+```
+
+Every plugin is on but `include`, which reads from disk, and cast, table, and tests read no files until you give them options. `false` turns one off along with its components, and an object passes it options. The Vue, React, and Svelte entries leave out annotate and diff, which render only to HTML. The preset ships with the plugins, so its version is theirs.
 
 ## Support
 
@@ -22,19 +35,6 @@ Each entry exports the parse plugin as `default` and the renderer's `components`
 Annotate renders only to HTML. A screenshot's notes are Markdown, and a Vue, React, or Svelte version would each have to copy the whole figure. Annotate also draws the marks on a chart, so those marks show only in `@comark/html`. The other renderers draw the chart without them.
 
 [include](/include/) has no components, because what it pastes renders like the rest of the page. It works with any renderer. [lint](/lint/) checks documents and doesn't render them.
-
-## Every plugin at once
-
-[`@onmax/comark`](https://npmx.dev/package/@onmax/comark) is onmax's preset: every package in one install, in the order they need, with one icon resolver shared by `:icon`, cards, tabs, and code actions. It returns the `plugins` and `components` for one renderer:
-
-```ts
-import { createHtmlRenderer } from "@comark/html";
-import onmax from "@onmax/comark/html"; // or /vue, /react, /svelte
-
-const render = createHtmlRenderer(onmax({ zoom: false, github: { references: { repo: "owner/name" } } }));
-```
-
-Every plugin is on but `include`, which reads from disk, and cast, table, and tests read no files until you give them options. `false` turns one off along with its components, and an object passes it options. The Vue, React, and Svelte entries leave out annotate and diff. The preset ships with the plugins, so its version is theirs.
 
 ## Several plugins
 

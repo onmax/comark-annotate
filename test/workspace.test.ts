@@ -20,6 +20,7 @@ type Manifest = {
   files: string[];
   engines?: { node: string };
   scripts: Record<string, string>;
+  dependencies?: Record<string, string>;
   peerDependencies?: Record<string, string>;
   peerDependenciesMeta?: Record<string, { optional?: boolean }>;
 };
@@ -56,6 +57,14 @@ describe.each(folders)("packages/%s", (folder) => {
 
   it("starts its LICENSE with the repository's", () => {
     expect(read(`packages/${folder}/LICENSE`).startsWith(read("LICENSE").trimEnd())).toBe(true);
+  });
+
+  // A package with no renderer runs from the preset's core, so it works in every renderer.
+  it("comes with the preset", () => {
+    if (folder === "preset" || folder === "lint") return;
+    expect(manifest("preset").dependencies?.[pkg.name]).toBe("workspace:^");
+    if (!withRenderer.includes(folder))
+      expect(read("packages/preset/src/index.ts")).toContain(`from "${pkg.name}"`);
   });
 
   it("has docs with a place in the site, and a row in the README", () => {
