@@ -268,9 +268,11 @@ function stats(node: ElementNode, name: string, data: Data, issues: Issue[]): No
     // Markdown tables pad short rows with empty cells. In tile mode, an empty
     // trailing value is still a malformed two-column row, so keep the table
     // visible instead of drawing an incomplete tile.
-    const trailingValueMissing: boolean =
-      tiles && columns === 3 && !textOf(cells.at(-1) ?? []).trim();
-    const rowColumns = trailingValueMissing ? columns - 1 : cells.length;
+    const trailingCell = cells.at(-1);
+    const trailingValueMissing: boolean = Boolean(
+      tiles && columns === 3 && trailingCell && !textOf(trailingCell).trim(),
+    );
+    const rowColumns: number = trailingValueMissing ? columns - 1 : cells.length;
     if (rowColumns !== columns) {
       malformedRow = true;
       issues.push({
