@@ -24,4 +24,8 @@ export default {
     code: "COMARK0206",
     title: "Use only the props of `::card` and `::columns`",
   },
+  "comark/cards/invalid-variant": {
+    code: "COMARK0207",
+    title: "Write a card's `variant` as `outline`, `soft`, or `subtle`",
+  },
 } satisfies Record<`comark/cards/${string}`, RuleInfo>;

@@ -2,10 +2,11 @@ import { Icon, type IconData } from "comark-icon/react";
 import { createElement, type ReactNode, useEffect } from "react";
 import { addStyles, external, isExternalHref, isSafeHref, rel } from "./client.ts";
 
-export { colors, default } from "./index.ts";
+export { colors, default, variants } from "./index.ts";
 export type {
   CardAttributes,
   CardColor,
+  CardVariant,
   CardsMeta,
   CardsOptions,
   ColumnsAttributes,
@@ -33,6 +34,7 @@ const arrow = () =>
 
 type CardProps = Children & {
   color?: string;
+  variant?: string;
   to?: string;
   target?: string;
   external?: string | boolean;
@@ -43,6 +45,7 @@ type CardProps = Children & {
 /** `::card` for `@comark/react`. */
 export function Card({
   color = "primary",
+  variant,
   to,
   target,
   external: opens,
@@ -55,7 +58,7 @@ export function Card({
   const linkTarget = target || (isExternalHref(href) ? "_blank" : undefined);
   return createElement(
     "div",
-    { className: "ccr", "data-color": color },
+    { className: "ccr", "data-color": color, "data-variant": variant },
     href
       ? createElement("a", {
           className: "ccr-link",

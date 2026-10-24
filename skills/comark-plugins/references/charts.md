@@ -1,11 +1,6 @@
----
-name: comark-charts
-description: Writes charts in Markdown with the comark-charts Comark plugin, as a table inside a `::chart` block, picks the chart type that fits the data, and marks the values that matter. Use when a Markdown document needs a chart, such as bundle sizes, benchmark or build times, before/after metrics, or a trend over time.
----
+# Charts
 
-# Charts from Markdown tables
-
-You write a Markdown table inside `::chart`; comark-charts draws it as an SVG chart and keeps the table under it. People see the chart, and anyone reading the Markdown or the page, an agent included, reads the numbers from the table. So the table is the source of truth: write the real numbers, and name every column so its header labels the chart.
+comark-charts draws the Markdown table inside `::chart` as an SVG chart and keeps the table under it. People see the chart, and anyone reading the Markdown or the page, an agent included, reads the numbers from the table. So the table is the source of truth: write the real numbers, and name every column so its header labels the chart.
 
 ## Write the table
 
@@ -21,7 +16,7 @@ You write a Markdown table inside `::chart`; comark-charts draws it as an SVG ch
 - The first column is x: one row per bar, point, or step. Every other column is a series of numbers, named by its header.
 - Cells hold plain numbers, like `1200` or `1,200`. Put the unit in the header or the title, like `size (kB)` or `Build time (ms)`. A cell that isn't a number is left out and reported.
 - Dates on x read as time when they look like `2026`, `2026-04`, `2026-04-15`, or an ISO date and time.
-- Close the block with `::`, and keep only the table inside; write explanations above or below it.
+- Inside the block, the table comes first, then any marks or Vega-Lite spec. Write explanations above or below the block.
 
 Props, all optional: `type` (below), `x` (the x column, default the first), `y` (the columns to draw, comma-separated, default all the others), `title` (the caption and the chart's name for screen readers), and `labels` (bar and stacked charts only: writes each value inside its bar or segment, or past the bar's end when it doesn't fit, as in `::chart{type="stacked" labels}`). Give every chart a `title` that says what it measures and in what unit.
 
@@ -48,12 +43,18 @@ For a before and after of one or two metrics, grouped `bar` reads best; past thr
 
 ## Mark what matters
 
-Point at the value the text talks about with an `::annotation` after the table, the way comark-annotate marks a screenshot. `at` is the row's x value copied from the table; `series` picks one column in that row, or on a `gantt`, the group of the bar when a task repeats.
+Point at the value the text talks about with an `::annotation` inside the chart, after the table. `at` is the row's x value copied from the table, and `series` picks one column in that row, or on a `gantt`, the group of the bar when a task repeats. `mark`, `color`, and `side` are under Marks in SKILL.md.
 
 ```md
+::chart{title="Coffee cups and commits, per month"}
+| month | coffee cups | commits |
+| --- | --: | --: |
+| 2026-06 | 940 | 660 |
+| 2026-07 | 1,010 | 720 |
 :::annotation{at="2026-07" series="commits" mark="circle" color="green"}
 The new espresso machine arrives, and commits pass 700.
 :::
+::
 ```
 
 For a target, budget, or limit, draw a line across the plot: `mark="line"` with `value`, a number on the value axis, and no `at`. The axis grows to reach it.
@@ -66,8 +67,11 @@ The 200 ms budget.
 
 `mark`, `color`, and `side` work as on screenshots: red for a problem, green for a fix, and `side="top"` with `mark="none"` for the one point that matters most. The renderer finds the bar, point, or slice and draws the mark around it, so there is nothing to measure. Keep it to two or three marks a chart.
 
-## Check it
+## Preview
 
-In a project with comark-charts installed, run `npx lint-comark report.md`. It prints one line per problem, each naming the chart by its position (`` `::chart` 2 ``) and saying how to fix it, and exits with 1 if there are any. Fix every one. In code, the same sentences are in `meta.issues` after `parseMarkdown(markdown, { plugins: [charts()] })`.
+The linter names each chart by its position, such as `` `::chart` 2 ``. No command renders a chart on its own. When you can render the document, with the app that publishes it or the renderer under Install in SKILL.md, open it and confirm the chart says what your text says: the right type, every series named, and the numbers in the expected order.
 
-When you can render the page, open it and confirm the chart says what your text says: the right type, every series named, and the numbers in the expected order.
+## Register
+
+- In `@onmax/comark`: on. Marks on charts show only through `@onmax/comark/html`.
+- Alone: `pnpm add comark @comark/html comark-charts`, then `createHtmlRenderer({ plugins: [charts()], components })` with both from `comark-charts/html`. Flint and Vega draw each chart while parsing, so the browser runs no chart code. `comark-charts/vue`, `/react`, and `/svelte` place the same SVG without its marks. `charts({ draw: false })` only checks the charts, which suits a lint step.

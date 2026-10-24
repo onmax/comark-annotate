@@ -70,6 +70,52 @@ describe("comark-table", () => {
     expect(html).not.toContain(`class="ctb-bar"`);
   });
 
+  it("tints a cell that is one tone span, and a row whose first cell is", async () => {
+    const tint = (color: string) => `background-color:color-mix(in srgb,${color} 20%,transparent)`;
+    const error = tint("var(--ui-error,var(--destructive,#dc2626))");
+    const success = tint("var(--ui-success,#16a34a)");
+    const html = flat(
+      await render(
+        '| Step | Time |\n| --- | --: |\n| [build]{tone="error"} | [1.9 s]{tone=success} |\n| lint | [z]{.x tone="warning"} |',
+      ),
+    );
+    expect(html).toContain(
+      `<tr><td style="${error}">build</td><td style="text-align:right;${success}">1.9 s</td></tr>`,
+    );
+    expect(html).toContain('<span class="x">z</span>');
+    expect(html).not.toContain("tone");
+    expect(html).not.toContain("ctb");
+    expect(body(await render('```csv\nname,ms\nparse,[12]{tone="info"}\n```'))).toBe(
+      `<tr><td>parse</td><tdstyle="text-align:right;${tint("var(--ui-info,#2563eb)")}">12</td></tr>`.replace(
+        /\s/g,
+        "",
+      ),
+    );
+    const sorted = flat(await render("::table{sort}\n| [A]{tone=info} |\n| - |\n| 1 |\n::"));
+    expect(sorted).toContain('<button type="button" class="ctb-sort">A</button>');
+    expect(await issues("::table{sort}\n| [A]{tone=info} |\n| - |\n| 1 |\n::")).toEqual([]);
+  });
+
+  it("reports a tone it doesn't know and a tone span that doesn't fill its cell", async () => {
+    const { meta } = await parseMarkdown(
+      '| a | b |\n| - | - |\n| 1 | [slow]{tone="warning"} today |\n| 2 | [3]{tone="red"} |',
+      { plugins: [table({ root })] },
+    );
+    expect(meta.issueRules).toEqual({
+      'Markdown table 1, row 1: the `tone` span "[slow]" doesn\'t fill its cell, so the cell isn\'t colored. Put the whole cell in the brackets, as `[slow today]{tone="warning"}`, or drop `{tone}`.':
+        "comark/table/partial-tone",
+      "Markdown table 1, row 2: \"red\" isn't a tone, so the cell isn't colored. Use `success`, `warning`, `error`, or `info`.":
+        "comark/table/unknown-tone",
+    });
+    const html = await render("| a |\n| - |\n| [3]{tone=red} |");
+    expect(html).not.toContain("background-color");
+    expect(html).toContain("3");
+    const invalidCell = await render(
+      "| a | b |\n| - | - |\n| [row]{tone=success} | [bad]{tone=red} |",
+    );
+    expect(invalidCell).toContain("<td>bad</td>");
+  });
+
   it("reads files through `read`, relative to `base`", async () => {
     const seen: string[] = [];
     const read = (path: string) => (seen.push(path), "a,b\n1,2");
