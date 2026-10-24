@@ -35,6 +35,16 @@ Count the pigeons,412,388
 ::
 ````
 :::
+
+:::example{label="Colors"}
+```md
+| Check | Time | Result |
+| --- | --: | --- |
+| [Unit tests]{tone="success"} | 1.9 s | 412 passed |
+| E2E | [48 s]{tone="warning"} | 3 slow |
+| [Type check]{tone="error"} | 6.2 s | 2 errors |
+```
+:::
 ::
 
-A benchmark or an export reads best as the table it is, and an agent writing a review shouldn't have to turn CSV into Markdown by hand. The plugin reads the file or the fence while parsing, so the table is plain HTML. A small script adds the copy buttons and sorting, and without it the table still reads.
+A benchmark or an export reads best as the table it is, and an agent writing a review shouldn't have to turn CSV into Markdown by hand. The plugin reads the file or the fence while parsing, so the table is plain HTML. A small script adds the copy buttons and sorting, and without it the table still reads. Any table, Markdown or data, can color a cell or a row by its status.

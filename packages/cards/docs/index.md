@@ -42,6 +42,19 @@ Each option under its own heading.
 ::
 ```
 :::
+:::example{label="States"}
+```md
+::card-group
+:::card{title="Failing" color="error" variant="soft" icon="lucide:circle-x"}
+`upload.test.ts` times out on files over 10 MB.
+:::
+
+:::card{title="Passing" color="success" variant="soft" icon="lucide:circle-check"}
+Every other test passes.
+:::
+::
+```
+:::
 ::
 
 A link card is one link that covers the card, named after its title, so a click anywhere opens it and a screen reader hears one link, not a card's worth of text. Links in the card's own text still work.

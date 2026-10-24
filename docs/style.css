@@ -2034,7 +2034,8 @@ nav > .nav-group:first-child {
   margin-bottom: 0.5rem;
 }
 
-.installer .seg button {
+.installer .seg button,
+.usage .seg button {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -2060,6 +2061,19 @@ nav > .nav-group:first-child {
 
 .installer-scope code {
   font-size: 0.75rem;
+}
+
+/* A Getting started page's code with every plugin or alone, under the installer's switch. */
+.usage {
+  margin: 1.25rem 0;
+}
+
+.usage > .seg {
+  margin-bottom: 0.5rem;
+}
+
+.usage pre {
+  margin: 0;
 }
 
 .install {

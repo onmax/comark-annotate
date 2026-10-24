@@ -1,5 +1,4 @@
 // Renders docs/pages and each package's docs/ with the plugins themselves into docs/dist, a static site served by Cloudflare at comark.onmax.me.
-import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -454,6 +453,13 @@ const toc = (document: { nodes: Node[] }) =>
     )
     .join("");
 
+// The plugins a page's install command adds, which @onmax/comark brings too. The linter isn't one.
+const ownPackages = (install: string) =>
+  install
+    .replace(/^pnpm add /, "")
+    .split(" ")
+    .filter((name) => name.startsWith("comark-") && name !== "comark-linter");
+
 async function parsePage(slug: string, section: Section) {
   const file = fileOf(slug);
   const document = await parseMarkdown(await readFile(new URL(file, repo), "utf8"), { plugins });
@@ -471,6 +477,17 @@ async function parsePage(slug: string, section: Section) {
     "install",
     "headline",
   ].map((key) => str(document.frontmatter[key]));
+  // The installer offers every plugin or the page's own, so the code that registers them shows both ways too.
+  const top = document.nodes.filter(isElement);
+  const usage = top.some(([tag]) => tag === "usage");
+  if (
+    ownPackages(install).length &&
+    top.some(([tag, attrs]) => tag === "h2" && attrs.id === "usage") &&
+    !usage
+  )
+    throw new Error(
+      `${file}: put the Usage code in ::usage, with every plugin through onmax() and then alone.`,
+    );
   const skill =
     section.npm &&
     existsSync(new URL(`../packages/${section.slug}/skills/${section.npm}/SKILL.md`, root))
@@ -485,6 +502,7 @@ async function parsePage(slug: string, section: Section) {
     description: rule ? plain(rule.title) : description,
     tagline: rule ? plain(rule.title) : tagline || description,
     install,
+    usage,
     headline,
     skill,
     // Words that find the page in search that it doesn't say itself, such as other tools' names for its blocks.
@@ -613,6 +631,24 @@ const ruleTable: NodeHandler = () =>
         `<tr><td><code>${entry.code}</code></td><td><a href="${href(entry.slug)}"><code>${escapeHtml(entry.rule)}</code></a></td><td>${inlineCode(entry.title)}</td><td>${entry.severity ?? "warning"}</td></tr>`,
     )
     .join("")}</tbody></table></div>`;
+// A Getting started page's code that registers its plugins: through the preset, then alone. It shows the one the
+// installer's switch picks, and has the same switch, so picking in either place switches both.
+const usageBlock =
+  (page: Page): NodeHandler =>
+  async ([, , ...children], state) => {
+    const own = ownPackages(page.install);
+    if (!own.length)
+      throw new Error(`${fileOf(page.slug)}: ::usage goes only on a page that installs plugins.`);
+    const [preset, alone, ...more] = children.filter(isPre);
+    if (!preset || !alone || more.length)
+      throw new Error(
+        `${fileOf(page.slug)}: ::usage takes two code blocks, the code with every plugin through onmax() and then with ${own.join(" and ")} alone.`,
+      );
+    return (
+      `<div class="usage">${scopeSwitch(own)}<div data-scope-panel="all">${await state.one(preset, state)}</div>` +
+      `<div data-scope-panel="one" hidden>${await state.one(alone, state)}</div></div>`
+    );
+  };
 
 const demoStyles = new Set<string>();
 async function renderDemo(slug: string, source: string) {
@@ -767,13 +803,16 @@ const resetIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" s
 const checkIcon = `<svg class="check" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5"/></svg>`;
 // Humans install the package with their package manager; agents install the skill from this site, the package's
 // own when it has one. A page about plugins installs every one through @onmax/comark by default, and offers its own
-// packages alone: the preset brings them as its dependencies, so the note says how to register them through it.
+// packages alone: the preset brings them as its dependencies, so the note says how to register them through it. On a
+// page with ::usage, the switch over that code picks the command instead, so the page shows the choice once, beside
+// the code each side needs.
 const everyPlugin = "comark @comark/html @onmax/comark";
-function installerFor(install: string, skill: string) {
+// The installer and a page's ::usage both draw it, and the script keeps them on one choice.
+const scopeSwitch = (own: string[]) =>
+  `<div class="seg" role="group" aria-label="Packages"><button type="button" data-scope="all" aria-pressed="true">Every plugin</button><button type="button" data-scope="one" aria-pressed="false">Only ${own.length === 1 ? escapeHtml(own[0]!) : "these"}</button></div>`;
+function installerFor(install: string, skill: string, usage = false) {
   const packages = install.replace(/^pnpm add /, "");
-  const own = packages
-    .split(" ")
-    .filter((name) => name.startsWith("comark-") && name !== "comark-linter");
+  const own = ownPackages(install);
   const managers = (list: string) => ({
     pnpm: `pnpm add ${list}`,
     npm: `npm install ${list}`,
@@ -783,12 +822,13 @@ function installerFor(install: string, skill: string) {
   const commands = {
     all: managers(own.length ? everyPlugin : packages),
     one: managers(packages),
-    agents: `npx skills add ${site}${skill ? ` --skill ${skill}` : ""}`,
+    agents: "npx skills add onmax/comark-plugins",
   };
-  const scope = own.length
-    ? `<div class="installer-scope"><div class="seg" role="group" aria-label="Packages"><button type="button" data-scope="all" aria-pressed="true">Every plugin</button><button type="button" data-scope="one" aria-pressed="false">Only ${own.length === 1 ? escapeHtml(own[0]!) : "these"}</button></div>` +
-      `<p data-scope-note="all">Render with <code>onmax()</code> from <a href="/preset/">@onmax/comark/html</a>, which registers every plugin in order.</p></div>`
-    : "";
+  const note = usage
+    ? ""
+    : `<p data-scope-panel="all">Render with <code>onmax()</code> from <a href="/preset/">@onmax/comark/html</a>, which registers every plugin in order.</p>`;
+  const scope =
+    own.length && !usage ? `<div class="installer-scope">${scopeSwitch(own)}${note}</div>` : "";
   return `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
 <div class="installer-bar"><div class="seg" role="group" aria-label="Audience"><button type="button" data-audience="humans" aria-pressed="true">${userIcon}For humans</button><button type="button" data-audience="agents" aria-pressed="false">${botIcon}For agents</button></div>
 <div class="seg installer-pm" role="group" aria-label="Package manager">${["pnpm", "npm", "yarn", "bun"].map((pm, i) => `<button type="button" data-pm="${pm}" aria-pressed="${i === 0}">${pm}</button>`).join("")}</div></div>
@@ -869,8 +909,8 @@ const menuIcon = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="t
 // A block, so the docs app can run it again for each page it navigates to.
 const script = `{
 const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-// One indicator per tab row or switch slides to the chosen item. A hidden row measures zero, so it's placed again,
-// without sliding, whenever its size changes.
+// One indicator per tab row or switch slides to the chosen item, however it gets chosen. A hidden row measures zero,
+// so it's placed again, without sliding, whenever its size changes.
 const indicate = (group, selector) => {
   const bar = group.appendChild(Object.assign(document.createElement("span"), { className: "indicator" }));
   bar.setAttribute("aria-hidden", "true");
@@ -879,32 +919,40 @@ const indicate = (group, selector) => {
     bar.dataset.still = ""; place(); requestAnimationFrame(() => delete bar.dataset.still);
     group.toggleAttribute("data-overflow", group.scrollWidth > group.clientWidth + 1);
   }).observe(group);
+  new MutationObserver(place).observe(group, { subtree: true, attributeFilter: ["aria-pressed", "aria-selected"] });
   group.dataset.indicator = "";
-  return place;
 };
 const reveal = el => { if (!reduce.matches) el.animate({ opacity: [0, 1] }, { duration: 200, easing: "ease-out" }) };
 for (const t of document.querySelectorAll(".examples")) {
-  const row = t.querySelector(".tablist"), place = indicate(row, "[aria-selected=true]");
+  const row = t.querySelector(".tablist");
+  indicate(row, "[aria-selected=true]");
   row.addEventListener("click", e => {
     const b = e.target.closest("[role=tab]"); if (!b || b.getAttribute("aria-selected") === "true") return;
     for (const x of t.querySelectorAll(":scope > .tablist > [role=tab]")) x.setAttribute("aria-selected", x === b);
     for (const p of t.querySelectorAll(":scope > [role=tabpanel]")) { p.hidden = p.dataset.tab !== b.dataset.tab; if (!p.hidden) reveal(p) }
-    place();
   });
 }
-for (const seg of document.querySelectorAll(".seg")) {
-  const place = indicate(seg, "[aria-pressed=true]");
-  seg.addEventListener("click", () => requestAnimationFrame(place));
-}
+for (const seg of document.querySelectorAll(".seg")) indicate(seg, "[aria-pressed=true]");
 for (const ex of document.querySelectorAll(".example")) ex.querySelector(".seg").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b || b.getAttribute("aria-pressed") === "true") return;
   for (const x of ex.querySelectorAll(".seg button")) x.setAttribute("aria-pressed", x === b);
   for (const view of ["preview", "code"]) { const p = ex.querySelector(".example-" + view); p.hidden = b.dataset.view !== view; if (!p.hidden) reveal(p) }
 });
+// Every plugin or the page's own packages, picked in the installer or over a page's usage code, and shown in both.
+let scope = "all";
+const onScope = [];
+for (const button of document.querySelectorAll("[data-scope]")) button.addEventListener("click", () => {
+  if (button.dataset.scope === scope) return;
+  scope = button.dataset.scope;
+  for (const b of document.querySelectorAll("[data-scope]")) b.setAttribute("aria-pressed", b.dataset.scope === scope);
+  for (const p of document.querySelectorAll("[data-scope-panel]")) { p.hidden = p.dataset.scopePanel !== scope; if (!p.hidden) reveal(p) }
+  for (const update of onScope) update();
+});
 for (const box of document.querySelectorAll(".installer")) {
-  const commands = JSON.parse(box.dataset.commands); const field = box.querySelector(".install"), scoped = box.querySelector(".installer-scope"); let audience = "humans", pm = "pnpm", scope = "all";
-  const update = () => { const cmd = audience === "agents" ? commands.agents : commands[scope][pm]; field.dataset.copy = cmd; field.querySelector("code").textContent = cmd; box.querySelector(".installer-pm").hidden = audience === "agents"; if (scoped) { scoped.hidden = audience === "agents"; scoped.querySelector("[data-scope-note]").hidden = scope !== "all" } for (const b of box.querySelectorAll("[data-audience]")) b.setAttribute("aria-pressed", b.dataset.audience === audience); for (const b of box.querySelectorAll("[data-pm]")) b.setAttribute("aria-pressed", b.dataset.pm === pm); for (const b of box.querySelectorAll("[data-scope]")) b.setAttribute("aria-pressed", b.dataset.scope === scope) };
-  box.addEventListener("click", e => { const b = e.target.closest("[data-audience],[data-pm],[data-scope]"); if (!b) return; if (b.dataset.audience) audience = b.dataset.audience; if (b.dataset.pm) pm = b.dataset.pm; if (b.dataset.scope) scope = b.dataset.scope; update() });
+  const commands = JSON.parse(box.dataset.commands); const field = box.querySelector(".install"), choice = box.querySelector(".installer-scope"); let audience = "humans", pm = "pnpm";
+  const update = () => { const cmd = audience === "agents" ? commands.agents : commands[scope][pm]; field.dataset.copy = cmd; field.querySelector("code").textContent = cmd; box.querySelector(".installer-pm").hidden = audience === "agents"; if (choice) choice.hidden = audience === "agents"; for (const b of box.querySelectorAll("[data-audience]")) b.setAttribute("aria-pressed", b.dataset.audience === audience); for (const b of box.querySelectorAll("[data-pm]")) b.setAttribute("aria-pressed", b.dataset.pm === pm) };
+  onScope.push(update);
+  box.addEventListener("click", e => { const b = e.target.closest("[data-audience],[data-pm]"); if (!b) return; if (b.dataset.audience) audience = b.dataset.audience; if (b.dataset.pm) pm = b.dataset.pm; update() });
   field.addEventListener("click", async () => { await navigator.clipboard.writeText(field.dataset.copy); field.classList.add("copied"); setTimeout(() => field.classList.remove("copied"), 1200) });
 }
 const copyTokens = new WeakMap();
@@ -1363,43 +1411,6 @@ await build({
   },
 });
 
-// The packages' agent skills, served for Agent Skills Discovery: v0.2 with a digest, and v0.1, which `npx skills add` reads.
-const skills = await Promise.all(
-  ["annotate/skills/comark-annotate", "charts/skills/comark-charts"].map(async (folder) => {
-    const text = await readFile(new URL(`../packages/${folder}/SKILL.md`, root), "utf8");
-    const meta = (await parseMarkdown(text)).frontmatter;
-    return { text, name: str(meta.name), description: str(meta.description) };
-  }),
-);
-for (const skill of skills)
-  for (const base of ["agent-skills", "skills"]) {
-    await mkdir(new URL(`.well-known/${base}/${skill.name}/`, dist), { recursive: true });
-    await writeFile(new URL(`.well-known/${base}/${skill.name}/SKILL.md`, dist), skill.text);
-  }
-await writeFile(
-  new URL(".well-known/agent-skills/index.json", dist),
-  JSON.stringify({
-    $schema: "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
-    skills: skills.map((skill) => ({
-      name: skill.name,
-      type: "skill-md",
-      description: skill.description,
-      url: `/.well-known/agent-skills/${skill.name}/SKILL.md`,
-      digest: `sha256:${createHash("sha256").update(skill.text).digest("hex")}`,
-    })),
-  }),
-);
-await writeFile(
-  new URL(".well-known/skills/index.json", dist),
-  JSON.stringify({
-    skills: skills.map((skill) => ({
-      name: skill.name,
-      description: skill.description,
-      files: ["SKILL.md"],
-    })),
-  }),
-);
-
 // The page around the content: header, rail, the section's column, and a menu that holds both on narrow screens. The
 // landing page has no sidebar, so its header links to the docs and the playground instead.
 const searchDialog = `<dialog class="search" aria-label="Search the docs">
@@ -1483,7 +1494,7 @@ await writeFile(
     description: landing.tagline,
     body: `<div class="landing">
 <div class="landing-hero enter"><div><h1>${escapeHtml(landing.headline)}</h1><p>${escapeHtml(landing.tagline)}</p></div>
-<div>${installerFor(landing.install, "")}<div class="actions"><a class="button primary" href="/play/">${siteIcon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the docs${siteIcon("arrow-right", 15)}</a></div></div></div>
+<div>${installerFor(landing.install, landing.skill, landing.usage)}<div class="actions"><a class="button primary" href="/play/">${siteIcon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the docs${siteIcon("arrow-right", 15)}</a></div></div></div>
 <main class="enter" style="--i:1">${await renderHtmlFromDocument(landing.document, { components: { ...components, packages: packageGrid, drop, hero } })}</main>
 ${footer()}
 </div>
@@ -1507,7 +1518,7 @@ for (const page of parsed) {
       body: `<div class="page">
 <div class="content">
 <div class="hero enter">${subpage ? `<p class="eyebrow mono">${npm}</p>` : ""}${page.rule ? `<p class="eyebrow mono">${page.rule.code} · ${page.rule.severity ?? "warning"}</p>` : ""}<h1>${escapeHtml(page.title)}</h1><p>${page.rule ? inlineCode(page.rule.title) : escapeHtml(page.tagline)}</p>
-${page.install ? installerFor(page.install, page.skill) : ""}</div>
+${page.install ? installerFor(page.install, page.skill, page.usage) : ""}</div>
 <main class="enter" style="--i:1">${(
         await renderHtmlFromDocument(page.document, {
           components: {
@@ -1522,6 +1533,7 @@ ${page.install ? installerFor(page.install, page.skill) : ""}</div>
             incorrect: ruleExample(page, "incorrect"),
             correct: ruleExample(page, "correct"),
             rules: ruleTable,
+            usage: usageBlock(page),
           },
         })
       ).replace(

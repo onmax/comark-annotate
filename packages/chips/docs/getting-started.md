@@ -8,12 +8,21 @@ install: pnpm add comark @comark/html comark-chips
 
 Register the plugin and pass the renderer's `components`:
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(onmax());
+```
+
 ```ts
 import { createHtmlRenderer } from "@comark/html";
 import chips, { components } from "comark-chips/html";
 
 const render = createHtmlRenderer({ plugins: [chips()], components });
 ```
+::
 
 Parsing downloads each favicon and avatar and inlines it. Each image is kept in `node_modules/.cache/comark-chips` for a week, so a site that builds many pages, or builds again, asks once per image.
 

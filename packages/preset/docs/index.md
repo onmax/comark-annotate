@@ -68,6 +68,10 @@ The icon resolver from `icon`'s options also draws the icons of cards, details, 
 
 [critic](/critic/) has no component to add its styles, so put `criticCss`, exported by every entry, in the page.
 
+## Agents
+
+The package ships the comark-plugins agent skill. [Agents](/guide/agents/) shows how to install it, or bundle it in an app so it always matches the plugins the app installed.
+
 ## Versions
 
 The preset ships in lockstep with the plugins, so `@onmax/comark@X` holds every plugin at version `X`. [comark-linter](/lint/) finds the preset when it's installed and checks documents with its plugins.

@@ -173,6 +173,28 @@ test("a package's card links to its docs without a copy control", async ({ page 
   await expect(page.getByRole("button", { name: "Copy pnpm add comark-github" })).toHaveCount(0);
 });
 
+test("a Getting started page's usage switch picks the install command, and an overview's installer keeps its own", async ({
+  page,
+}) => {
+  await page.goto("/carousel/getting-started/");
+  const command = page.locator(".install code");
+  const usage = page.locator(".usage");
+  await expect(page.locator(".installer [data-scope]")).toHaveCount(0);
+  await expect(command).toHaveText("pnpm add comark @comark/html @onmax/comark");
+  await expect(usage.getByText("@onmax/comark/html")).toBeVisible();
+
+  await usage.getByRole("button", { name: "Only comark-carousel" }).click();
+  await expect(command).toHaveText("pnpm add comark @comark/html comark-carousel");
+  await expect(usage.getByText("comark-carousel/html")).toBeVisible();
+  await expect(usage.getByText("@onmax/comark/html")).toBeHidden();
+  await page.getByRole("button", { name: "npm", exact: true }).click();
+  await expect(command).toHaveText("npm install comark @comark/html comark-carousel");
+
+  await page.goto("/carousel/");
+  await page.locator(".installer").getByRole("button", { name: "Only comark-carousel" }).click();
+  await expect(command).toHaveText("pnpm add comark @comark/html comark-carousel");
+});
+
 test("no page scrolls sideways on a phone", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   for (const path of [

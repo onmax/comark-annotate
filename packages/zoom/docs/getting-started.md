@@ -8,12 +8,21 @@ install: pnpm add comark @comark/html comark-zoom
 
 Register the plugin and pass the renderer's `components`:
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(onmax());
+```
+
 ```ts
 import { createHtmlRenderer } from "@comark/html";
 import zoom, { components } from "comark-zoom/html";
 
 const render = createHtmlRenderer({ plugins: [zoom()], components });
 ```
+::
 
 `zoom({ images: false })` leaves images alone, so only `::zoom` blocks and images you mark with `{data-zoom}` zoom.
 

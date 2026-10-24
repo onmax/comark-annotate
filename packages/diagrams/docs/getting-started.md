@@ -8,12 +8,21 @@ install: pnpm add comark @comark/html comark-diagrams
 
 Register the plugin and pass the renderer's `components`:
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(onmax());
+```
+
 ```ts
 import { createHtmlRenderer } from "@comark/html";
 import diagrams, { components } from "comark-diagrams/html";
 
 const render = createHtmlRenderer({ plugins: [diagrams()], components });
 ```
+::
 
 Parsing waits for each diagram from the Kroki server, so the page needs no script and no request when it's read. Every diagram is drawn once per process, so a site that builds many pages asks for each one once.
 

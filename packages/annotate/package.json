@@ -23,16 +23,14 @@
     "comark-annotate": "./dist/cli.mjs"
   },
   "files": [
-    "dist",
-    "skills"
+    "dist"
   ],
   "type": "module",
   "sideEffects": false,
   "exports": {
     ".": "./dist/index.mjs",
     "./html": "./dist/html.mjs",
-    "./package.json": "./package.json",
-    "./skills/*": "./skills/*"
+    "./package.json": "./package.json"
   },
   "publishConfig": {
     "access": "public",

@@ -1,4 +1,4 @@
-`::card` reads `title`, `description`, `icon`, `to`, `target`, and `color`, and `::columns` reads `cols`. Every other prop is ignored, so a card with `link` or `url` isn't a link, and `::columns{columns=3}` shows 2 columns.
+`::card` reads `title`, `description`, `icon`, `to`, `target`, `color`, and `variant`, and `::columns` reads `cols`. Every other prop is ignored, so a card with `link` or `url` isn't a link, and `::columns{columns=3}` shows 2 columns.
 
 ::incorrect
 ```md

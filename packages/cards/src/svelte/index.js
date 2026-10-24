@@ -6,6 +6,6 @@ import CardTitle from "./CardTitle.svelte";
 import Column from "./Column.svelte";
 import Columns from "./Columns.svelte";
 
-export { colors, default } from "comark-cards";
+export { colors, default, variants } from "comark-cards";
 export { Card, CardGroup, CardTitle, Column, Columns };
 export const components = { Card, CardTitle, CardGroup, Columns, Column };
