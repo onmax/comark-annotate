@@ -59,11 +59,10 @@ describe("comark-cards", () => {
   });
 
   it("washes a `soft` or `subtle` card in its color, and keeps an `outline` one plain", async () => {
-    const html = body(
-      await render(
-        '::card{title="Failing" color="error" variant="soft"}\n::\n\n::card{title="Passing" color="success" variant="subtle"}\n::\n\n::card{title="Plain" variant="outline"}\n::',
-      ),
+    const rendered = await render(
+      '::card{title="Failing" color="error" variant="soft"}\n::\n\n::card{title="Passing" color="success" variant="subtle"}\n::\n\n::card{title="Plain" variant="outline"}\n::',
     );
+    const html = body(rendered);
     expect(html).toBe(
       '<div class="ccr" data-color="error" data-variant="soft"><p class="ccr-title">Failing</p></div>' +
         '<div class="ccr" data-color="success" data-variant="subtle"><p class="ccr-title">Passing</p></div>' +
