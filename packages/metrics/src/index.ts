@@ -230,7 +230,8 @@ function stats(node: ElementNode, name: string, data: Data, issues: Issue[]): No
     return ["div", {}];
   }
   const tableFallback = (): ElementNode => {
-    return ["table", { ...table[1], class: "cmt-stats" }, ...(childrenOf(table) as Node[])];
+    table[1] = { ...table[1], class: "cmt-stats" };
+    return table;
   };
   if (content.length > 1)
     issues.push({
