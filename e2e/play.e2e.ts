@@ -87,9 +87,9 @@ test("search opens with Ctrl+K and goes to the heading you pick", async ({ page 
   const field = page.getByRole("combobox", { name: "Search the docs" });
   await expect(field).toBeFocused();
   await field.fill("side notes");
-  await expect(page.getByRole("option").first()).toContainText("annotate › Guides");
+  await expect(page.getByRole("option").first()).toContainText("Components › Annotate");
   await field.press("Enter");
-  await expect(page).toHaveURL(/\/annotate\/guides\/#side-notes$/);
+  await expect(page).toHaveURL(/\/annotate\/#side-notes$/);
   await page.keyboard.press("Control+k");
   await field.fill("zzzz");
   await expect(page.getByRole("status")).toHaveText("No page or heading matches.");
