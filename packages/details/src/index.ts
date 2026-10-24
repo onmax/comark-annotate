@@ -136,6 +136,9 @@ function summary(label: Node[], icon: string, name: string, walk: Walk, extra = 
 }
 
 function details(node: ElementNode, walk: Walk) {
+  // comark-code uses native details elements for collapsed code ranges. They already
+  // have their own summary and renderer, so leave them outside the disclosure syntax.
+  if (node[1].class === "ck-fold") return;
   const name = nameOf("details", walk);
   unknownProps(node, "details", name, walk);
   const attrs = resolve(node, walk);
