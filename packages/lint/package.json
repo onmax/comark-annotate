@@ -65,6 +65,7 @@
     "comark-links": "workspace:*",
     "comark-mark": "workspace:*",
     "comark-media": "workspace:*",
+    "comark-metrics": "workspace:*",
     "comark-outline": "workspace:*",
     "comark-properties": "workspace:*",
     "comark-qr": "workspace:*",
@@ -99,6 +100,7 @@
     "comark-links": "workspace:^",
     "comark-mark": "workspace:^",
     "comark-media": "workspace:^",
+    "comark-metrics": "workspace:^",
     "comark-outline": "workspace:^",
     "comark-properties": "workspace:^",
     "comark-qr": "workspace:^",
@@ -201,6 +203,9 @@
       "optional": true
     },
     "comark-diagrams": {
+      "optional": true
+    },
+    "comark-metrics": {
       "optional": true
     }
   },

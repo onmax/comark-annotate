@@ -24,6 +24,7 @@ import { anchors, components as linksComponents, external } from "../packages/li
 import media, { components as mediaComponents } from "../packages/media/src/html.ts";
 import properties, { components as propertiesComponents } from "../packages/properties/src/html.ts";
 import sources, { components as sourcesComponents } from "../packages/sources/src/html.ts";
+import metrics, { components as metricsComponents } from "../packages/metrics/src/html.ts";
 import steps, { components as stepsComponents } from "../packages/steps/src/html.ts";
 import cards, { components as cardsComponents } from "../packages/cards/src/html.ts";
 import badge, { components as badgeComponents } from "../packages/badge/src/html.ts";
@@ -64,6 +65,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   properties(),
   badge(),
   media(),
+  metrics(),
   cards(),
   qr(),
   sources(),
@@ -95,6 +97,7 @@ export const components = {
   ...propertiesComponents,
   ...badgeComponents,
   ...mediaComponents,
+  ...metricsComponents,
   ...cardsComponents,
   ...qrComponents,
   ...sourcesComponents,

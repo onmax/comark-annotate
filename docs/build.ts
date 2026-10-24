@@ -86,6 +86,7 @@ const packageOrder = [
   "diff",
   "embed",
   "media",
+  "metrics",
   "github",
   "properties",
   "sources",

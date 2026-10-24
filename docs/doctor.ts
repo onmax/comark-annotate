@@ -42,13 +42,15 @@ const plugins = () => [
   ...browserPlugins({}, { download: false }).map((plugin) => offline[plugin.name] ?? plugin),
   include({ root: fileURLToPath(new URL("docs/doctor-include/", repo)) }),
 ];
-// comark-tabs turns `::code-group` into `::tabs`, comark-include replaces `:include`, and comark-details turns its
-// items and collapsibles into `disclosure` while parsing, so no renderer has them.
+// comark-tabs turns `::code-group` into `::tabs`, comark-metrics `::stats` into a table, comark-include replaces
+// `:include`, and comark-details turns its items and collapsibles into `disclosure` while parsing, so no renderer has
+// them.
 const known = [
   ...Object.keys(components),
   "code-group",
   "tabs-item",
   "include",
+  "stats",
   "accordion-item",
   "collapsible",
 ];

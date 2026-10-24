@@ -83,6 +83,7 @@ const packages = [
     [],
   ],
   ["comark-media/html", () => import("comark-media/html"), []],
+  ["comark-metrics/html", () => import("comark-metrics/html"), ["stats"]],
   ["comark-steps/html", () => import("comark-steps/html"), []],
   ["comark-cards/html", () => import("comark-cards/html"), []],
   ["comark-badge/html", () => import("comark-badge/html"), []],
