@@ -88,6 +88,7 @@ const packageOrder = [
   "github",
   "icon",
   "qr",
+  "links",
   "zoom",
   "carousel",
   "tabs",
@@ -1333,9 +1334,11 @@ ${page.install ? installerFor(page.install, page.skill) : ""}</div>
         await renderHtmlFromDocument(page.document, {
           components: {
             ...components,
-            // comark-chips would take the `@user` that comark-github's references draw, so GitHub's pages show them
-            // as GitHub does.
-            example: exampleWithout(page.section.slug === "github" ? ["comark-chips"] : []),
+            // comark-chips would take the `@user` that comark-github's references draw, and the links comark-links
+            // marks, so those pages show plain links.
+            example: exampleWithout(
+              ["github", "links"].includes(page.section.slug) ? ["comark-chips"] : [],
+            ),
             examples: exampleTabs,
             matrix,
             incorrect: ruleExample(page, "incorrect"),

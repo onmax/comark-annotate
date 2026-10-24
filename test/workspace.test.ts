@@ -86,10 +86,12 @@ describe.each(withRenderer)("the renderer of packages/%s", (folder) => {
     const imported =
       folder === "github"
         ? { plugin: "githubHtml", components: "githubComponents" }
-        : {
-            plugin: name,
-            components: `${name}Components`,
-          };
+        : folder === "links"
+          ? { plugin: "anchors", components: "linksComponents" }
+          : {
+              plugin: name,
+              components: `${name}Components`,
+            };
     const browser = plugins.slice(
       plugins.indexOf("export const browserPlugins"),
       plugins.indexOf("export const components"),

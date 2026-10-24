@@ -61,6 +61,7 @@
     "comark-file-tree": "workspace:*",
     "comark-github": "workspace:*",
     "comark-icon": "workspace:*",
+    "comark-links": "workspace:*",
     "comark-mark": "workspace:*",
     "comark-media": "workspace:*",
     "comark-outline": "workspace:*",
@@ -91,6 +92,7 @@
     "comark-file-tree": "workspace:^",
     "comark-github": "workspace:^",
     "comark-icon": "workspace:^",
+    "comark-links": "workspace:^",
     "comark-mark": "workspace:^",
     "comark-media": "workspace:^",
     "comark-outline": "workspace:^",
@@ -181,6 +183,9 @@
       "optional": true
     },
     "comark-critic": {
+      "optional": true
+    },
+    "comark-links": {
       "optional": true
     }
   },

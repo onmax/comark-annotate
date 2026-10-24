@@ -60,6 +60,12 @@ const packages = [
   ["comark-diff/html", () => import("comark-diff/html"), []],
   ["comark-icon/html", () => import("comark-icon/html"), []],
   [
+    "comark-links/html",
+    // Neither of its plugins makes blocks, so either one will do.
+    () => import("comark-links/html").then((module) => ({ ...module, default: module.anchors })),
+    [],
+  ],
+  [
     "comark-mark",
     () => import("comark-mark").then((module) => ({ ...module, components: {} })),
     [],
