@@ -18,7 +18,7 @@ credits: 'Syntax from <a href="https://ui.nuxt.com/docs/typography">Nuxt UI</a>'
 Render with HTML, Vue, React, or Svelte.
 :::
 
-:::card{title="Source on GitHub" icon="lucide:github" to="https://github.com/onmax/comark-plugins" color="neutral"}
+:::card{title="Source on GitHub" icon="lucide:github" to="https://github.com/onmax/comark-ui" color="neutral"}
 Read the code, or open an issue.
 :::
 ::

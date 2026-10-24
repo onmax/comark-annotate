@@ -64,7 +64,7 @@ export const references = defineComarkPlugin<ReferencesOptions, GitHubMeta>((opt
       report(tree.meta, [
         {
           rule: "comark/github/invalid-repo",
-          message: `references: \`repo\` must be owner/name, such as "onmax/comark-plugins", not "${repo}"; until then #123 stays text.`,
+          message: `references: \`repo\` must be owner/name, such as "onmax/comark-ui", not "${repo}"; until then #123 stays text.`,
         },
       ]);
     walk(tree.nodes, 0, valid ? repo : undefined);

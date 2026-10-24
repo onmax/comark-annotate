@@ -18,7 +18,7 @@ const review = [
   "tags: [colors, docs]",
   "author: onmax",
   "status: Ready for review",
-  "pr: https://github.com/onmax/comark-plugins/pull/111",
+  "pr: https://github.com/onmax/comark-ui/pull/111",
   "date: 2026-10-23",
   "---",
   "",
@@ -33,7 +33,7 @@ describe("comark-properties", () => {
       new RegExp(
         '^<dl class="cfm">' +
           '<div data-key="status"><dt>Status</dt><dd>Ready for review</dd></div>' +
-          '<div data-key="pr"><dt>PR</dt><dd><a href="https://github.com/onmax/comark-plugins/pull/111">onmax/comark-plugins#111</a></dd></div>' +
+          '<div data-key="pr"><dt>PR</dt><dd><a href="https://github.com/onmax/comark-ui/pull/111">onmax/comark-ui#111</a></dd></div>' +
           '<div data-key="author"><dt>Author</dt><dd>onmax</dd></div>' +
           '<div data-key="date"><dt>Date</dt><dd>2026-10-23</dd></div>' +
           '<div data-key="tags"><dt>Tags</dt><dd><span class="cfm-tag">colors</span><span class="cfm-tag">docs</span></dd></div>' +

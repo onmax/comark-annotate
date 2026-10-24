@@ -1,20 +1,20 @@
 {
   "name": "@onmax/comark",
   "version": "0.4.1",
-  "description": "onmax's Comark preset: every comark-plugins package in one install, registered in the right order with shared icons. Turn any of them off or pass its options.",
+  "description": "onmax's Comark preset: every comark-ui package in one install, registered in the right order with shared icons. Turn any of them off or pass its options.",
   "keywords": [
     "comark",
     "markdown",
     "plugin",
     "preset"
   ],
-  "homepage": "https://comark.onmax.me/preset",
-  "bugs": "https://github.com/onmax/comark-plugins/issues",
+  "homepage": "https://comark-ui.onmax.me/preset",
+  "bugs": "https://github.com/onmax/comark-ui/issues",
   "license": "MIT",
   "author": "onmax",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/onmax/comark-plugins.git",
+    "url": "git+https://github.com/onmax/comark-ui.git",
     "directory": "packages/preset"
   },
   "files": [

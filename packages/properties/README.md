@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-properties)](https://npmx.dev/package/comark-properties)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-properties)](https://npmx.dev/package/comark-properties)
 [![license](https://npmx.dev/api/registry/badge/license/comark-properties)](https://npmx.dev/package/comark-properties)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/properties/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/properties/)
 
 A document's chosen frontmatter keys, such as status, pull request, author, date, and tags, as a box of properties at the top or where `::properties` sits. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 
@@ -22,7 +22,7 @@ const render = createHtmlRenderer({ plugins: [properties()], components });
 ```md
 ---
 status: Ready for review
-pr: https://github.com/onmax/comark-plugins/pull/111
+pr: https://github.com/onmax/comark-ui/pull/111
 author: onmax
 date: 2026-10-23
 tags: [colors, docs]

@@ -42,13 +42,13 @@ describe("comark-chips", () => {
 
   it("turns @user into a chip with their GitHub avatar, and a link into an account shows it too", async () => {
     const html = await render(
-      "Thanks @onmax, see [the repo](https://github.com/onmax/comark-plugins) and [issues](https://github.com/issues).",
+      "Thanks @onmax, see [the repo](https://github.com/onmax/comark-ui) and [issues](https://github.com/issues).",
     );
     expect(html).toContain(
       `<a class="cp" href="https://github.com/onmax" data-kind="avatar"><img class="cp-img" src="${DATA}" alt="">onmax</a>,`,
     );
     expect(html).toContain(
-      `<a class="cp" href="https://github.com/onmax/comark-plugins" data-kind="avatar">`,
+      `<a class="cp" href="https://github.com/onmax/comark-ui" data-kind="avatar">`,
     );
     expect(html).toMatch(/href="https:\/\/github.com\/issues" data-kind="favicon"/);
     expect(requests).toContain("https://github.com/onmax.png?size=64");

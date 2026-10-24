@@ -1,4 +1,4 @@
-// Renders docs/pages and each package's docs/ with the plugins themselves into docs/dist, a static site served by Cloudflare at comark.onmax.me.
+// Renders docs/pages and each package's docs/ with the plugins themselves into docs/dist, a static site served by Cloudflare at comark-ui.onmax.me.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -27,10 +27,10 @@ import { previewDocument } from "./preview.ts";
 const root = new URL("./", import.meta.url);
 const dist = new URL("dist/", root);
 const fonts = new URL("../node_modules/geist/dist/fonts/", root);
-const site = "https://comark.onmax.me";
+const site = "https://comark-ui.onmax.me";
 // `#123` on the site links to this repository's issues.
 const sitePlugins = () =>
-  browserPlugins({ "comark-github": { references: { repo: "onmax/comark-plugins" } } });
+  browserPlugins({ "comark-github": { references: { repo: "onmax/comark-ui" } } });
 // Only comark-include's examples include files, so includes resolve from its docs, where their partials sit.
 const contentPlugins = () => [
   include({ root: fileURLToPath(new URL("../packages/include/docs/", root)) }),
@@ -783,7 +783,7 @@ const drop: NodeHandler = async ([, , ...children], state) => {
 const github = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>`;
 const starIcon = `<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>`;
 // The repository's stars, read once per build. Offline or rate-limited, the button just says GitHub.
-const stars = await fetch("https://api.github.com/repos/onmax/comark-plugins", {
+const stars = await fetch("https://api.github.com/repos/onmax/comark-ui", {
   headers: { accept: "application/vnd.github+json" },
   signal: AbortSignal.timeout(5000),
 })
@@ -796,7 +796,7 @@ const stars = await fetch("https://api.github.com/repos/onmax/comark-plugins", {
   .then((repo) => repo?.stargazers_count)
   .catch(() => undefined);
 // GitHub, as on drop.vitehub.dev, with the stars after a divider.
-const githubLink = `<a class="github" href="https://github.com/onmax/comark-plugins" aria-label="comark-plugins on GitHub${stars === undefined ? "" : `, ${stars} stars`}">${github}<span class="github-label">GitHub</span>${stars === undefined ? "" : `<span class="github-stars">${starIcon}${new Intl.NumberFormat("en", { notation: "compact" }).format(stars)}</span>`}</a>`;
+const githubLink = `<a class="github" href="https://github.com/onmax/comark-ui" aria-label="comark-ui on GitHub${stars === undefined ? "" : `, ${stars} stars`}">${github}<span class="github-label">GitHub</span>${stars === undefined ? "" : `<span class="github-stars">${starIcon}${new Intl.NumberFormat("en", { notation: "compact" }).format(stars)}</span>`}</a>`;
 const userIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg>`;
 const botIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 8V4H8M4 8h16v12H4zM2 14h2M20 14h2M15 13v2M9 13v2"/></svg>`;
 const copyIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
@@ -823,7 +823,7 @@ function installerFor(install: string, skill: string, usage = false) {
   const commands = {
     all: managers(own.length ? everyPlugin : packages),
     one: managers(packages),
-    agents: "npx skills add onmax/comark-plugins",
+    agents: "npx skills add onmax/comark-ui",
   };
   const note = usage
     ? ""
@@ -848,7 +848,7 @@ const rail = (current: Section) =>
     )
     .join(
       "",
-    )}<a class="rail-drop" href="https://drop.vitehub.dev/?utm_source=comark-plugins&amp;utm_medium=sidebar"><img src="/drop.svg" alt="" width="18" height="18"><span class="rail-label"><strong>Review on Drop</strong><span>Comment on the exact spot</span></span></a></nav>`;
+    )}<a class="rail-drop" href="https://drop.vitehub.dev/?utm_source=comark-ui&amp;utm_medium=sidebar"><img src="/drop.svg" alt="" width="18" height="18"><span class="rail-label"><strong>Review on Drop</strong><span>Comment on the exact spot</span></span></a></nav>`;
 // The second column: the current section's pages, or the playground's presets.
 const column = (section: Section, current: string) => {
   // A package's examples at the foot of its column, two to a row as the playground lists them; each opens there, and
@@ -1437,7 +1437,7 @@ function shell(options: {
   const pageHead =
     options.head ?? (npm && section.slug !== "play" ? `\n${[...thumbnailStyles].join("")}` : "");
   const nav = rail(section) + column(section, slug);
-  const header = `<div class="top-start"><a class="name" href="/">${logo}comark plugins</a>${options.landing ? `<nav class="top-links" aria-label="Site"><a href="/guide/renderers/">Docs</a><a href="/play/">Playground</a><a href="https://drop.vitehub.dev">Drop</a></nav>` : ""}</div>
+  const header = `<div class="top-start"><a class="name" href="/">${logo}comark ui</a>${options.landing ? `<nav class="top-links" aria-label="Site"><a href="/guide/renderers/">Docs</a><a href="/play/">Playground</a><a href="https://drop.vitehub.dev">Drop</a></nav>` : ""}</div>
 <button type="button" class="search-open" aria-haspopup="dialog">${siteIcon("search", 15)}<span class="search-label">Search docs</span><kbd><span class="kbd-mac">⌘K</span><span class="kbd-other">Ctrl K</span></kbd></button>
 <div class="top-end">
 <nav>${npmxLink(npm)}${githubLink}</nav>
@@ -1462,11 +1462,11 @@ ${options.landing ? options.body : `<div class="layout">\n<aside class="sidebar"
 <meta property="og:description" content="${escapeHtml(options.description)}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${site}${href(slug)}">
-<meta property="og:site_name" content="comark plugins">
+<meta property="og:site_name" content="comark ui">
 <meta property="og:image" content="${site}/og/home.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Review documents, written in Markdown: comark plugins">
+<meta property="og:image:alt" content="Review documents, written in Markdown: comark ui">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="${site}/og/home.png">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">

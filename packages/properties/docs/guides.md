@@ -10,7 +10,7 @@ Agents that write review documents can keep the facts a reviewer scans for in th
 ```md
 ---
 status: Changes requested
-pr: https://github.com/onmax/comark-plugins/pull/111
+pr: https://github.com/onmax/comark-ui/pull/111
 author: claude
 date: 2026-10-23
 tags: [colors, docs]

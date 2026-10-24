@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-code-notes)](https://npmx.dev/package/comark-code-notes)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-code-notes)](https://npmx.dev/package/comark-code-notes)
 [![license](https://npmx.dev/api/registry/badge/license/comark-code-notes)](https://npmx.dev/package/comark-code-notes)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/code-notes/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/code-notes/)
 
 Numbered notes on lines of code, as in Quarto and AsciiDoc: a `// <1>` comment at the end of a line becomes a marker, and the numbered list after the fence becomes its notes, each linked to its marker and back. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 

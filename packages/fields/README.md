@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-fields)](https://npmx.dev/package/comark-fields)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-fields)](https://npmx.dev/package/comark-fields)
 [![license](https://npmx.dev/api/registry/badge/license/comark-fields)](https://npmx.dev/package/comark-fields)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/fields/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/fields/)
 
 Props, options, and parameters in Nuxt UI's `::field` syntax: each with its type, whether it's required, and its default, with an object's properties nested under it. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 

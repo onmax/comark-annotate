@@ -14,7 +14,8 @@ import { components as htmlComponents } from "../src/html.ts";
 import { components as reactComponents } from "../src/react.ts";
 import { components as vueComponents } from "../src/vue.ts";
 
-const markdown = 'Scan :qr{value="https://comark.onmax.me/?a=1&b=2"} on a phone.\n\n:qr\n\nAfter';
+const markdown =
+  'Scan :qr{value="https://comark-ui.onmax.me/?a=1&b=2"} on a phone.\n\n:qr\n\nAfter';
 // Drops what differs only in serialization: comments, whitespace between tags, the HTML renderer's inline styles, and
 // whether a bare `&` is escaped.
 const normalize = (html: string) =>
@@ -39,7 +40,7 @@ describe("comark-qr renderers", async () => {
 
   it("renders one code, and nothing for a broken one, in HTML", () => {
     expect(expected.match(/<span class="cqr"/g)).toHaveLength(1);
-    expect(expected).toContain('aria-label="QR code: https://comark.onmax.me/?a=1&b=2"');
+    expect(expected).toContain('aria-label="QR code: https://comark-ui.onmax.me/?a=1&b=2"');
   });
 
   for (const [name, render] of Object.entries(renderers))

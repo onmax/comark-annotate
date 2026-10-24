@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-critic)](https://npmx.dev/package/comark-critic)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-critic)](https://npmx.dev/package/comark-critic)
 [![license](https://npmx.dev/api/registry/badge/license/comark-critic)](https://npmx.dev/package/comark-critic)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/critic/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/critic/)
 
 [CriticMarkup](https://criticmarkup.com) in [Comark](https://comark.dev): suggested insertions, deletions, substitutions, highlights, and comments, rendered as native `<ins>`, `<del>`, and `<mark>` with a class each, or accepted or rejected. A parse plugin with no components, so it works in any renderer.
 
@@ -42,7 +42,7 @@ Without the plugin, Comark's attribute rule reads `{++added++}` as attributes an
 
 ## Styles
 
-The marks' styles are in `comark-critic/style.css`, also exported as `css`: insertions tinted green, deletions struck through in red, highlights amber, and comments as muted chips. Each mark has a class (`ccm-ins`, `ccm-del`, `ccm-mark`, `ccm-comment`), so they never restyle a `~~strikethrough~~`. They read the [shared tokens](https://comark.onmax.me/guide/theming/), so a shadcn/ui theme restyles them, and sit in the `comark` layer so your own rules win.
+The marks' styles are in `comark-critic/style.css`, also exported as `css`: insertions tinted green, deletions struck through in red, highlights amber, and comments as muted chips. Each mark has a class (`ccm-ins`, `ccm-del`, `ccm-mark`, `ccm-comment`), so they never restyle a `~~strikethrough~~`. They read the [shared tokens](https://comark-ui.onmax.me/guide/theming/), so a shadcn/ui theme restyles them, and sit in the `comark` layer so your own rules win.
 
 ## Credits
 

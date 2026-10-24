@@ -10,7 +10,7 @@ install: pnpm add comark @comark/html comark-properties comark-icon comark-metri
 ````md
 ---
 status: Ready for review
-pr: https://github.com/onmax/comark-plugins/pull/111
+pr: https://github.com/onmax/comark-ui/pull/111
 author: onmax
 tags: [map, performance]
 ---

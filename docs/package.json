@@ -1,5 +1,5 @@
 {
-  "name": "comark-plugins-docs",
+  "name": "comark-ui-docs",
   "private": true,
   "type": "module",
   "scripts": {

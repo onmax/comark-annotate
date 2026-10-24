@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-xref)](https://npmx.dev/package/comark-xref)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-xref)](https://npmx.dev/package/comark-xref)
 [![license](https://npmx.dev/api/registry/badge/license/comark-xref)](https://npmx.dev/package/comark-xref)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/xref/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/xref/)
 
 Numbered figures and tables, and references to them. A [Comark](https://comark.dev) plugin for any renderer.
 

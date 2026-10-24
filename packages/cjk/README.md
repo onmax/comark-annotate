@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-cjk)](https://npmx.dev/package/comark-cjk)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-cjk)](https://npmx.dev/package/comark-cjk)
 [![license](https://npmx.dev/api/registry/badge/license/comark-cjk)](https://npmx.dev/package/comark-cjk)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/cjk/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/cjk/)
 
 Bold, italics, and strikethrough that work next to Chinese, Japanese, and Korean punctuation in [Comark](https://comark.dev). A parse plugin with no components and no styles, so it works in any renderer.
 

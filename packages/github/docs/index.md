@@ -53,7 +53,7 @@ credits: 'Syntax from <a href="https://docs.github.com/en/get-started/writing-on
 
 :::example{label="References"}
 ```md
-Thanks @onmax: this fixes #51, and onmax/comark-plugins#73 builds on it.
+Thanks @onmax: this fixes #51, and onmax/comark-ui#73 builds on it.
 ```
 :::
 

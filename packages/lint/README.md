@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-linter)](https://npmx.dev/package/comark-linter)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-linter)](https://npmx.dev/package/comark-linter)
 [![license](https://npmx.dev/api/registry/badge/license/comark-linter)](https://npmx.dev/package/comark-linter)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/lint/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/lint/)
 
 Finds unclosed blocks, unknown components, broken links and anchors, local URLs, and plugin issues in [Comark](https://comark.dev) documents. A library, a CLI, and a [Vite Doctor](https://github.com/onmax/vite-doctor) extension. Every message names the block and says how to fix it.
 
@@ -19,7 +19,7 @@ The package is `comark-linter`, since npm refuses `comark-lint` as too close to 
 docs/pigeons-vs-deploys.md:8:1 comark/unclosed-block `::compare` opened on line 8 is never closed. Add a line with `::` after its last child.
 ```
 
-The CLI checks each file with every comark-plugins package installed, `@onmax/comark` included, prints `file:line:column rule message`, or JSON with `--format json`, and exits with 1 on any problem. Add your own plugins and component names with `--config lint-comark.config.ts`, which exports `defineConfig({ plugins, components, links })`. `--check-urls` also requests every external URL and reports the dead ones.
+The CLI checks each file with every comark-ui package installed, `@onmax/comark` included, prints `file:line:column rule message`, or JSON with `--format json`, and exits with 1 on any problem. Add your own plugins and component names with `--config lint-comark.config.ts`, which exports `defineConfig({ plugins, components, links })`. `--check-urls` also requests every external URL and reports the dead ones.
 
 ```ts
 import { lint } from "comark-linter";
@@ -55,6 +55,6 @@ export default defineDoctorConfig({ extends: ["auto"], extensions: [comark()] })
 | `comark/blocked-url` | `COMARK0012` | A localhost, private, tunnel, or deploy preview URL |
 | `comark/dead-url` | `COMARK0013` | An external URL that answers 404 or 410, or whose host is gone, with `--check-urls` |
 
-Each comark-plugins package adds one rule per kind of problem its plugin reports, named in `meta.issueRules`, with a code in its own hundred. [Doctor](https://comark.onmax.me/doctor/) has a page for every rule.
+Each comark-ui package adds one rule per kind of problem its plugin reports, named in `meta.issueRules`, with a code in its own hundred. [Doctor](https://comark-ui.onmax.me/doctor/) has a page for every rule.
 
 Comark gives parsed nodes no positions, so block components take their line from the parser's tokens and everything else is found by searching the source.
