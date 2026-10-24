@@ -97,6 +97,12 @@ const packages = [
   ["comark-media/html", () => import("comark-media/html"), []],
   ["comark-metrics/html", () => import("comark-metrics/html"), ["stats"]],
   ["comark-steps/html", () => import("comark-steps/html"), []],
+  [
+    "comark-table/html",
+    // `::table` shares its name with Markdown tables, which no component draws.
+    () => import("comark-table/html"),
+    ["table"],
+  ],
   ["comark-cards/html", () => import("comark-cards/html"), []],
   ["comark-badge/html", () => import("comark-badge/html"), []],
   ["comark-qr/html", () => import("comark-qr/html"), []],

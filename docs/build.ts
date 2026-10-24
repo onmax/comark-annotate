@@ -90,6 +90,7 @@ const packageOrder = [
   "embed",
   "media",
   "metrics",
+  "table",
   "github",
   "properties",
   "sources",

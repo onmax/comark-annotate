@@ -21,6 +21,8 @@ const withoutExamples = new Set([
   "comark/critic/invalid-mode",
   "comark/diagrams/draw-failed",
   "comark/diagrams/server-unreachable",
+  "comark/table/read-failed",
+  "comark/table/base-outside-root",
 ]);
 
 describe("Doctor pages", () => {

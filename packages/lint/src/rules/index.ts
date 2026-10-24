@@ -26,6 +26,7 @@ import properties from "./properties.ts";
 import sources from "./sources.ts";
 import metrics from "./metrics.ts";
 import steps from "./steps.ts";
+import table from "./table.ts";
 import tabs from "./tabs.ts";
 import type { RuleInfo } from "./types.ts";
 
@@ -62,4 +63,5 @@ export const catalog = {
   ...critic,
   ...properties,
   ...sources,
+  ...table,
 } satisfies Record<string, RuleInfo>;
