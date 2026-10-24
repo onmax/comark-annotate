@@ -22,7 +22,7 @@ import * as zoom from "comark-zoom/react";
 const deflist = { default: deflistPlugin, components: {} };
 const readingTime = { default: readingTimePlugin, components: {} };
 // Narrow the renderer entry to the parse plugin and component map.
-const mediaPart = { default: () => media.default(), components: media.components };
+const mediaPart = { default: (options: import("comark-media").MediaOptions | undefined) => media.default(options), components: media.components };
 import { type Preset, type PresetOptions, preset } from "./index.ts";
 
 export type { PresetOptions } from "./index.ts";

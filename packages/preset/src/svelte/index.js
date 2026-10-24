@@ -24,7 +24,7 @@ import * as zoom from "comark-zoom/svelte";
 const deflist = { default: deflistPlugin, components: {} };
 const readingTime = { default: readingTimePlugin, components: {} };
 // Narrow the renderer entry to the parse plugin and component map.
-const mediaPart = { default: () => media.default(), components: media.components };
+const mediaPart = { default: (options) => media.default(options), components: media.components };
 
 export default (options) =>
   preset(

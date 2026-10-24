@@ -10,6 +10,7 @@ import { createIcons, type IconOptions, type Icons } from "comark-icon";
 import include, { type IncludeOptions } from "comark-include";
 import type { TabsOptions } from "comark-tabs";
 import type { ZoomOptions } from "comark-zoom";
+import type { MediaOptions } from "comark-media";
 
 /** `false` turns a plugin off, and an object turns it on with those options. Everything but `include` is on. */
 export type PresetOptions = {
@@ -41,7 +42,7 @@ export type PresetOptions = {
     | boolean;
   /** Also resolves the icons of cards, tabs, and code actions, so they all share its `collections` and `fetch`. */
   icon?: IconOptions | boolean;
-  media?: boolean;
+  media?: MediaOptions | boolean;
   outline?: boolean;
   readingTime?: ReadingTimeOptions | boolean;
   qr?: boolean;
@@ -77,7 +78,7 @@ export type Renderer<C> = {
     components: Record<string, C>;
   };
   icon: Part<C, IconOptions | Icons>;
-  media: Part<C>;
+  media: Part<C, MediaOptions>;
   outline: Part<C>;
   readingTime: Part<C, ReadingTimeOptions>;
   qr: Part<C>;
