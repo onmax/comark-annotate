@@ -69,7 +69,9 @@ describe("comark-cards", () => {
         '<div class="ccr" data-color="success" data-variant="subtle"><p class="ccr-title">Passing</p></div>' +
         '<div class="ccr" data-color="primary"><p class="ccr-title">Plain</p></div>',
     );
-    expect(html).toContain(".ccr[data-variant='soft']:has(>.ccr-link):hover{border-color:transparent}");
+    expect(html).toContain(
+      ".ccr[data-variant='soft']:has(>.ccr-link):hover{border-color:transparent}",
+    );
     expect(html).toContain(
       ".ccr[data-variant='subtle']:has(>.ccr-link):hover{border-color:color-mix(in srgb,var(--ccr) 30%,var(--_comark-background))}",
     );
