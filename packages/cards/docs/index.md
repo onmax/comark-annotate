@@ -84,6 +84,7 @@ Every option it takes.
 | `to` | Makes it a link card. A web address opens in a new tab with an arrow in the corner. |
 | `target` | Where the link opens, such as `_self` to keep a web address in the tab. |
 | `color` | Tints the icon and a hovered link card's border: `primary`, the default, `secondary`, `success`, `info`, `warning`, `error`, or `neutral`. |
+| `variant` | The card's appearance: `outline` (the default), `soft` (a light color wash), or `subtle` (a wash with a colored border). An unknown value falls back to `outline` and adds an issue. |
 
 `::card-group` sets its cards in two columns, and in one when the group is narrower than 36rem, whatever the screen's width, so a group in a sidebar or a narrow column stacks too. A card works on its own too.
 

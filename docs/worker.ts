@@ -17,10 +17,10 @@ export default {
     if (url.hostname !== OLD_HOST) {
       const merged = MERGED.exec(url.pathname);
       const moved = merged ? `/${merged[1]}/` : MOVED[url.pathname];
-      if (moved) return Response.redirect(`https://comark.onmax.me${moved}${url.search}`, 301);
+      if (moved) return Response.redirect(`https://comark.onmax.me${moved}${url.search}${url.hash}`, 301);
       return env.ASSETS.fetch(request);
     }
     const path = KEEP.test(url.pathname) ? url.pathname : `/annotate${url.pathname}`;
-    return Response.redirect(`https://comark.onmax.me${path}${url.search}`, 301);
+    return Response.redirect(`https://comark.onmax.me${path}${url.search}${url.hash}`, 301);
   },
 };
