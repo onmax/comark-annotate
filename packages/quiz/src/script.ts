@@ -427,13 +427,14 @@ export function script(config: ScriptConfig): void {
     // While the page loads, the parser may have added the block but not all of its parts; its end marker comes last.
     // Renderers that do not emit the end marker can still append a complete root in one operation.
     // Streamed roots remain deferred until their marker (or until all interactive parts are present).
+    const optionRows = el.querySelectorAll(":scope>.cqz-options>.cqz-option").length;
     const complete =
       kind === "poll"
-        ? !!el.querySelector(":scope>.cqz-options") && !!el.querySelector(":scope>.cqz-footer")
+        ? optionRows > 0 && !!el.querySelector(":scope>.cqz-footer")
         : kind === "recall"
           ? !!el.querySelector(":scope>.cqz-actions") &&
             !!el.querySelector(":scope>.cqz-disclosure .cqz-answer")
-          : !!el.querySelector(":scope>.cqz-options") && !!el.querySelector(":scope>.cqz-actions");
+          : optionRows > 0 && !!el.querySelector(":scope>.cqz-actions");
     if (!el.querySelector(":scope>template.cqz-end") && !complete) return;
     let written: unknown;
     try {
