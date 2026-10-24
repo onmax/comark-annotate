@@ -1140,6 +1140,7 @@ const endings = new Set(["", "e", "ed", "er", "es", "ing", "ion", "ation", "ly"]
 // nearly everything.
 const close = (q, w) => {
   if (w === q) return 1;
+  if (common.has(q)) return 0;
   if (common.has(w)) return 0;
   if (w.startsWith(q)) return 0.6 + 0.3 * q.length / w.length;
   let same = 0;
