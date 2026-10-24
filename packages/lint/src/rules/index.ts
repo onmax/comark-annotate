@@ -29,6 +29,7 @@ import metrics from "./metrics.ts";
 import steps from "./steps.ts";
 import table from "./table.ts";
 import tabs from "./tabs.ts";
+import tests from "./tests.ts";
 import type { RuleInfo } from "./types.ts";
 import xref from "./xref.ts";
 
@@ -59,6 +60,7 @@ export const catalog = {
   ...diagrams,
   ...cast,
   ...codeNotes,
+  ...tests,
   ...fields,
   ...metrics,
   ...fileTree,

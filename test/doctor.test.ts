@@ -6,9 +6,10 @@ import { checkExample, doctorRules, examplesOf } from "../docs/doctor.ts";
 
 const repo = new URL("../", import.meta.url);
 // These pages show code instead: nothing in this repo still reports an issue without its own rule, so plugin-issue's
-// shows a plugin of your own; downloads, dead URLs, and diagrams depend on the network; a bad `repo` is a plugin
-// option, not Markdown; and a value too long for a QR code, the order of comark-code and Shiki, and a bad critic `mode`
-// are plugin options, not Markdown; and a label used twice is an id used twice, which comark/duplicate-id reports too.
+// shows a plugin of your own; downloads, dead URLs, and diagrams depend on the network; a label used twice is an id
+// used twice, which comark/duplicate-id reports too; and a bad `repo`, a value too long for a QR code, the order of
+// Shiki against comark-code and comark-code-notes, a bad critic `mode`, a bad table `base`, and a `read` that fails are
+// plugin options, not Markdown.
 const withoutExamples = new Set([
   "comark/plugin-issue",
   "comark/dead-url",
@@ -25,6 +26,7 @@ const withoutExamples = new Set([
   "comark/table/base-outside-root",
   "comark/xref/duplicate-label",
   "comark/code-notes/shiki-order",
+  "comark/tests/read-failed",
 ]);
 
 describe("Doctor pages", () => {

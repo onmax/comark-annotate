@@ -121,6 +121,7 @@ const packages = [
   ],
   ["comark-file-tree/html", () => import("comark-file-tree/html"), []],
   ["comark-tabs/html", () => import("comark-tabs/html"), ["code-group", "tabs-item"]],
+  ["comark-tests/html", () => import("comark-tests/html"), []],
   [
     "comark-xref",
     // It draws with plain elements, so it has no components; `:ref` is replaced while parsing.

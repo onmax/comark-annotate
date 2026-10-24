@@ -16,6 +16,7 @@ import { lint, type Diagnostic, type Rule } from "../packages/lint/src/index.ts"
 import { catalog, type RuleInfo } from "../packages/lint/src/rules/index.ts";
 import table from "../packages/table/src/index.ts";
 import tabs from "../packages/tabs/src/index.ts";
+import tests from "../packages/tests/src/index.ts";
 import { browserPlugins, components } from "./plugins.ts";
 
 const repo = new URL("../", import.meta.url);
@@ -32,8 +33,8 @@ export const doctorRules = Object.entries(catalog as Record<string, RuleInfo>).m
 export const doctorRule = (slug: string) => doctorRules.find((entry) => entry.slug === slug);
 
 // Icons come from lucide alone, so an example's icon problem doesn't depend on the network, and no diagram goes to
-// Kroki. The include, cast, and table examples read files from docs/doctor-include/, outside the pages so none is
-// linted or built as one.
+// Kroki. The include, cast, table, and tests examples read files from docs/doctor-include/, outside the pages so none
+// is linted or built as one.
 const icons = createIcons({ collections: { lucide }, fetch: false });
 const files = fileURLToPath(new URL("docs/doctor-include/", repo));
 const offline: Record<string, ReturnType<typeof browserPlugins>[number]> = {
@@ -43,6 +44,7 @@ const offline: Record<string, ReturnType<typeof browserPlugins>[number]> = {
   "comark-diagrams": diagrams({ draw: false }),
   "comark-cast": cast({ root: files }),
   "comark-table": table({ root: files }),
+  "comark-tests": tests({ root: files }),
 };
 const plugins = () => [
   ...browserPlugins({}, { download: false }).map((plugin) => offline[plugin.name] ?? plugin),

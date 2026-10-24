@@ -46,6 +46,7 @@ Plugins for review documents, built on [Comark](https://comark.dev). This is an 
 | [`comark-reading-time`](./packages/reading-time) | A document's word count and reading time in `meta.readingTime`, with code blocks left out and CJK counted by character. |
 | [`comark-tabs`](./packages/tabs) | Tabs and code groups that switch together across the page, and read without a script. |
 | [`comark-outline`](./packages/outline) | A table of contents in the body of a page: `::toc` becomes a nested list of links to its headings. |
+| [`comark-tests`](./packages/tests) | Test results from a JUnit XML report: pass, fail, and skip counts, the duration, and each failure with its stack. |
 | [`comark-xref`](./packages/xref) | Numbered figures and tables, and `:ref{#fig-x}` references that read "Figure 1". |
 | [`comark-zoom`](./packages/zoom) | Zoom images and any block like medium-zoom, with Escape, Back, and click-outside to close. |
 

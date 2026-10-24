@@ -91,6 +91,7 @@ const packageOrder = [
   "media",
   "metrics",
   "table",
+  "tests",
   "github",
   "properties",
   "sources",
