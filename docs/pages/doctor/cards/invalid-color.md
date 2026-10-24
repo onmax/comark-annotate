@@ -1,4 +1,4 @@
-A card's `color` tints its icon and a hovered link card's border. It takes one of Nuxt UI's colors: `primary`, `secondary`, `success`, `info`, `warning`, `error`, or `neutral`. Any other value, such as a CSS color, shows as primary.
+A card's `color` tints its icon, a hovered link card's border, and the background of a `soft` or `subtle` card. It takes one of Nuxt UI's colors: `primary`, `secondary`, `success`, `info`, `warning`, `error`, or `neutral`. Any other value, such as a CSS color, shows as primary.
 
 ::incorrect
 ```md

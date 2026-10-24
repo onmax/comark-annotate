@@ -2,10 +2,11 @@ import { defineComponent, h, onMounted, type PropType } from "vue";
 import { Icon, type IconData } from "comark-icon/vue";
 import { addStyles, external, isExternalHref, isSafeHref, rel } from "./client.ts";
 
-export { colors, default } from "./index.ts";
+export { colors, default, variants } from "./index.ts";
 export type {
   CardAttributes,
   CardColor,
+  CardVariant,
   CardsMeta,
   CardsOptions,
   ColumnsAttributes,
@@ -36,6 +37,7 @@ export const Card = defineComponent({
   inheritAttrs: false,
   props: {
     color: { type: String, default: "primary" },
+    variant: String,
     to: String,
     target: String,
     external: [String, Boolean],
@@ -46,7 +48,7 @@ export const Card = defineComponent({
   setup(props, { slots }) {
     onMounted(addStyles);
     return () =>
-      h("div", { class: "ccr", "data-color": props.color }, [
+      h("div", { class: "ccr", "data-color": props.color, "data-variant": props.variant }, [
         isSafeHref(props.to)
           ? h("a", {
               class: "ccr-link",

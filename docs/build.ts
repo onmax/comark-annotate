@@ -1,5 +1,4 @@
 // Renders docs/pages and each package's docs/ with the plugins themselves into docs/dist, a static site served by Cloudflare at comark.onmax.me.
-import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -631,8 +630,8 @@ const ruleTable: NodeHandler = () =>
         `<tr><td><code>${entry.code}</code></td><td><a href="${href(entry.slug)}"><code>${escapeHtml(entry.rule)}</code></a></td><td>${inlineCode(entry.title)}</td><td>${entry.severity ?? "warning"}</td></tr>`,
     )
     .join("")}</tbody></table></div>`;
-// A Getting started page's code that registers its plugins: through the preset, then alone. Its switch picks the
-// install command above too, in place of the installer's own.
+// A Getting started page's code that registers its plugins: through the preset, then alone. It shows the one the
+// installer's switch picks, and has the same switch, so picking in either place switches both.
 const usageBlock =
   (page: Page): NodeHandler =>
   async ([, , ...children], state) => {
@@ -807,7 +806,7 @@ const checkIcon = `<svg class="check" viewBox="0 0 24 24" width="15" height="15"
 // page with ::usage, the switch over that code picks the command instead, so the page shows the choice once, beside
 // the code each side needs.
 const everyPlugin = "comark @comark/html @onmax/comark";
-// The installer draws it, or a page's ::usage when it has one; the script keeps every copy on one choice.
+// The installer and a page's ::usage both draw it, and the script keeps them on one choice.
 const scopeSwitch = (own: string[]) =>
   `<div class="seg" role="group" aria-label="Packages"><button type="button" data-scope="all" aria-pressed="true">Every plugin</button><button type="button" data-scope="one" aria-pressed="false">Only ${own.length === 1 ? escapeHtml(own[0]!) : "these"}</button></div>`;
 function installerFor(install: string, skill: string, usage = false) {
@@ -822,13 +821,13 @@ function installerFor(install: string, skill: string, usage = false) {
   const commands = {
     all: managers(own.length ? everyPlugin : packages),
     one: managers(packages),
-    agents: `npx skills add ${site}${skill ? ` --skill ${skill}` : ""}`,
+    agents: "npx skills add onmax/comark-plugins",
   };
+  const note = usage
+    ? ""
+    : `<p data-scope-panel="all">Render with <code>onmax()</code> from <a href="/preset/">@onmax/comark/html</a>, which registers every plugin in order.</p>`;
   const scope =
-    own.length && !usage
-      ? `<div class="installer-scope">${scopeSwitch(own)}` +
-        `<p data-scope-panel="all">Render with <code>onmax()</code> from <a href="/preset/">@onmax/comark/html</a>, which registers every plugin in order.</p></div>`
-      : "";
+    own.length && !usage ? `<div class="installer-scope">${scopeSwitch(own)}${note}</div>` : "";
   return `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
 <div class="installer-bar"><div class="seg" role="group" aria-label="Audience"><button type="button" data-audience="humans" aria-pressed="true">${userIcon}For humans</button><button type="button" data-audience="agents" aria-pressed="false">${botIcon}For agents</button></div>
 <div class="seg installer-pm" role="group" aria-label="Package manager">${["pnpm", "npm", "yarn", "bun"].map((pm, i) => `<button type="button" data-pm="${pm}" aria-pressed="${i === 0}">${pm}</button>`).join("")}</div></div>
@@ -909,8 +908,8 @@ const menuIcon = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="t
 // A block, so the docs app can run it again for each page it navigates to.
 const script = `{
 const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-// One indicator per tab row or switch slides to the chosen item. A hidden row measures zero, so it's placed again,
-// without sliding, whenever its size changes.
+// One indicator per tab row or switch slides to the chosen item, however it gets chosen. A hidden row measures zero,
+// so it's placed again, without sliding, whenever its size changes.
 const indicate = (group, selector) => {
   const bar = group.appendChild(Object.assign(document.createElement("span"), { className: "indicator" }));
   bar.setAttribute("aria-hidden", "true");
@@ -919,30 +918,26 @@ const indicate = (group, selector) => {
     bar.dataset.still = ""; place(); requestAnimationFrame(() => delete bar.dataset.still);
     group.toggleAttribute("data-overflow", group.scrollWidth > group.clientWidth + 1);
   }).observe(group);
+  new MutationObserver(place).observe(group, { subtree: true, attributeFilter: ["aria-pressed", "aria-selected"] });
   group.dataset.indicator = "";
-  return place;
 };
 const reveal = el => { if (!reduce.matches) el.animate({ opacity: [0, 1] }, { duration: 200, easing: "ease-out" }) };
 for (const t of document.querySelectorAll(".examples")) {
-  const row = t.querySelector(".tablist"), place = indicate(row, "[aria-selected=true]");
+  const row = t.querySelector(".tablist");
+  indicate(row, "[aria-selected=true]");
   row.addEventListener("click", e => {
     const b = e.target.closest("[role=tab]"); if (!b || b.getAttribute("aria-selected") === "true") return;
     for (const x of t.querySelectorAll(":scope > .tablist > [role=tab]")) x.setAttribute("aria-selected", x === b);
     for (const p of t.querySelectorAll(":scope > [role=tabpanel]")) { p.hidden = p.dataset.tab !== b.dataset.tab; if (!p.hidden) reveal(p) }
-    place();
   });
 }
-for (const seg of document.querySelectorAll(".seg")) {
-  const place = indicate(seg, "[aria-pressed=true]");
-  seg.addEventListener("click", () => requestAnimationFrame(place));
-}
+for (const seg of document.querySelectorAll(".seg")) indicate(seg, "[aria-pressed=true]");
 for (const ex of document.querySelectorAll(".example")) ex.querySelector(".seg").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b || b.getAttribute("aria-pressed") === "true") return;
   for (const x of ex.querySelectorAll(".seg button")) x.setAttribute("aria-pressed", x === b);
   for (const view of ["preview", "code"]) { const p = ex.querySelector(".example-" + view); p.hidden = b.dataset.view !== view; if (!p.hidden) reveal(p) }
 });
-// Every plugin or the page's own packages, picked in the installer or over a page's usage code. The choice sets the
-// install command and the code.
+// Every plugin or the page's own packages, picked in the installer or over a page's usage code, and shown in both.
 let scope = "all";
 const onScope = [];
 for (const button of document.querySelectorAll("[data-scope]")) button.addEventListener("click", () => {
@@ -1268,43 +1263,6 @@ await build({
   },
 });
 
-// The packages' agent skills, served for Agent Skills Discovery: v0.2 with a digest, and v0.1, which `npx skills add` reads.
-const skills = await Promise.all(
-  ["annotate/skills/comark-annotate", "charts/skills/comark-charts"].map(async (folder) => {
-    const text = await readFile(new URL(`../packages/${folder}/SKILL.md`, root), "utf8");
-    const meta = (await parseMarkdown(text)).frontmatter;
-    return { text, name: str(meta.name), description: str(meta.description) };
-  }),
-);
-for (const skill of skills)
-  for (const base of ["agent-skills", "skills"]) {
-    await mkdir(new URL(`.well-known/${base}/${skill.name}/`, dist), { recursive: true });
-    await writeFile(new URL(`.well-known/${base}/${skill.name}/SKILL.md`, dist), skill.text);
-  }
-await writeFile(
-  new URL(".well-known/agent-skills/index.json", dist),
-  JSON.stringify({
-    $schema: "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
-    skills: skills.map((skill) => ({
-      name: skill.name,
-      type: "skill-md",
-      description: skill.description,
-      url: `/.well-known/agent-skills/${skill.name}/SKILL.md`,
-      digest: `sha256:${createHash("sha256").update(skill.text).digest("hex")}`,
-    })),
-  }),
-);
-await writeFile(
-  new URL(".well-known/skills/index.json", dist),
-  JSON.stringify({
-    skills: skills.map((skill) => ({
-      name: skill.name,
-      description: skill.description,
-      files: ["SKILL.md"],
-    })),
-  }),
-);
-
 // The page around the content: header, rail, the section's column, and a menu that holds both on narrow screens. The
 // landing page has no sidebar, so its header links to the docs and the playground instead.
 const searchDialog = `<dialog class="search" aria-label="Search the docs">
@@ -1388,7 +1346,7 @@ await writeFile(
     description: landing.tagline,
     body: `<div class="landing">
 <div class="landing-hero enter"><div><h1>${escapeHtml(landing.headline)}</h1><p>${escapeHtml(landing.tagline)}</p></div>
-<div>${installerFor(landing.install, "")}<div class="actions"><a class="button primary" href="/play/">${siteIcon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the docs${siteIcon("arrow-right", 15)}</a></div></div></div>
+<div>${installerFor(landing.install, landing.skill, landing.usage)}<div class="actions"><a class="button primary" href="/play/">${siteIcon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the docs${siteIcon("arrow-right", 15)}</a></div></div></div>
 <main class="enter" style="--i:1">${await renderHtmlFromDocument(landing.document, { components: { ...components, packages: packageGrid, drop, hero } })}</main>
 ${footer()}
 </div>

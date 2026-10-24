@@ -37,9 +37,9 @@ Right.
 ::
 ```
 
-`::card` takes `title` (or a `#title` slot), `description`, `icon`, `to`, `target`, and `color`. A card with `to` is covered by one link named after its title; a web address opens in a new tab. `::columns{cols}` makes a cell of each block inside, and `:::column` groups several. Icons resolve through comark-icon; pass `iconResolver` to share the page's.
+`::card` takes `title` (or a `#title` slot), `description`, `icon`, `to`, `target`, `color`, and `variant`: `soft` washes the card in its color, and `subtle` draws its border in it too. A card with `to` is covered by one link named after its title; a web address opens in a new tab. `::columns{cols}` makes a cell of each block inside, and `:::column` groups several. Icons resolve through comark-icon; pass `iconResolver` to share the page's.
 
-The plugin adds every problem to `meta.issues`, so a host can reject a document before publishing it: `href` written instead of `to`, a script link, an unknown color, a `cols` outside 1 to 6, and an icon it can't draw. Each issue names its block and says how to fix it.
+The plugin adds every problem to `meta.issues`, so a host can reject a document before publishing it: `href` written instead of `to`, a script link, an unknown color or variant, a `cols` outside 1 to 6, and an icon it can't draw. Each issue names its block and says how to fix it.
 
 ## Renderers
 

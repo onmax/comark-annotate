@@ -1,5 +1,6 @@
 // A new package has to be registered in several places that nothing else checks: its manifest's shared fields, the
-// linter that loads it, the docs that render it, and the README that lists it. This fails on the first one missed.
+// linter that loads it, the docs that render it, the README that lists it, and the agent skill that teaches it. This
+// fails on the first one missed.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -71,6 +72,16 @@ describe.each(folders)("packages/%s", (folder) => {
     expect(existsSync(new URL(`packages/${folder}/docs/index.md`, repo))).toBe(true);
     expect(read("docs/build.ts")).toContain(`"${folder}",`);
     expect(read("README.md")).toContain(`[\`${pkg.name}\`](./packages/${folder})`);
+  });
+
+  // Agents write most documents, and they learn a package from the skill rather than the site. Hosts whose agents only
+  // write Markdown, such as Drop, cut each reference at its Register section, so it comes last.
+  it("has a reference in the agent skill, linked from SKILL.md, that ends with Register", () => {
+    const skill = "skills/comark-plugins/";
+    expect(existsSync(new URL(`${skill}references/${folder}.md`, repo))).toBe(true);
+    expect(read(`${skill}SKILL.md`)).toContain(`](references/${folder}.md)`);
+    const reference = read(`${skill}references/${folder}.md`);
+    expect(reference.match(/^## .*/gm)?.at(-1)).toBe("## Register");
   });
 });
 
