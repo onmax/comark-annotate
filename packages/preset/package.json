@@ -1,6 +1,6 @@
 {
   "name": "@onmax/comark",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "onmax's Comark preset: every comark-plugins package in one install, registered in the right order with shared icons. Turn any of them off or pass its options.",
   "keywords": [
     "comark",
