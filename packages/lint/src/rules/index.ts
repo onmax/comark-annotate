@@ -5,6 +5,7 @@ import carousel from "./carousel.ts";
 import charts from "./charts.ts";
 import chips from "./chips.ts";
 import code from "./code.ts";
+import colors from "./colors.ts";
 import core from "./core.ts";
 import details from "./details.ts";
 import diff from "./diff.ts";
@@ -43,6 +44,7 @@ export const catalog = {
   ...outline,
   ...media,
   ...qr,
+  ...colors,
   ...fields,
   ...fileTree,
   ...details,

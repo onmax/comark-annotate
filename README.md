@@ -15,6 +15,7 @@ Plugins for review documents, built on [Comark](https://comark.dev). This is an 
 | [`comark-charts`](./packages/charts) | Charts from Markdown tables. |
 | [`comark-chips`](./packages/chips) | Links and `@user` mentions as chips with the site's favicon or the person's avatar, inlined while parsing. |
 | [`comark-code`](./packages/code) | Copy and Wrap buttons on code blocks, and buttons of your own that hand the code to your app. |
+| [`comark-colors`](./packages/colors) | A swatch next to inline code that holds a color, like GitLab, and `::palette` grids of named colors. |
 | [`comark-deflist`](./packages/deflist) | Definition lists: a term, then `: definition` lines, rendered as native `<dl>`, `<dt>`, and `<dd>`. |
 | [`comark-details`](./packages/details) | Details, accordions, and collapsibles in Nuxt UI's syntax, drawn as native `<details>` with a real `<summary>`, so they open with no script. |
 | [`comark-diff`](./packages/diff) | A code change shown like a suggested change in a pull request review: the file, red and green lines, and the words that changed. |

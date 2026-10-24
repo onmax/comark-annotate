@@ -80,6 +80,7 @@ const packageOrder = [
   "annotate",
   "charts",
   "chips",
+  "colors",
   "diff",
   "embed",
   "media",
