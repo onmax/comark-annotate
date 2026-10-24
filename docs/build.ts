@@ -117,6 +117,7 @@ const packageOrder = [
   "keys",
   "include",
   "outline",
+  "xref",
   "reading-time",
   "lint",
 ];

@@ -29,6 +29,7 @@ import steps from "./steps.ts";
 import table from "./table.ts";
 import tabs from "./tabs.ts";
 import type { RuleInfo } from "./types.ts";
+import xref from "./xref.ts";
 
 export type { RuleInfo } from "./types.ts";
 
@@ -64,4 +65,5 @@ export const catalog = {
   ...properties,
   ...sources,
   ...table,
+  ...xref,
 } satisfies Record<string, RuleInfo>;

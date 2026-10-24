@@ -40,6 +40,7 @@ import fileTree, { components as fileTreeComponents } from "../packages/file-tre
 import details, { components as detailsComponents } from "../packages/details/src/html.ts";
 import tabs, { components as tabsComponents } from "../packages/tabs/src/html.ts";
 import outline, { components as outlineComponents } from "../packages/outline/src/html.ts";
+import xref from "../packages/xref/src/index.ts";
 import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts";
 import type { PlayConfig } from "./config.ts";
 
@@ -85,6 +86,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   readingTime(),
   tabs(),
   outline(),
+  xref(),
   zoom(config["comark-zoom"]),
   code(config["comark-code"]),
 ];
