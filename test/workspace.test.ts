@@ -42,7 +42,8 @@ describe.each(folders)("packages/%s", (folder) => {
       author: "onmax",
       type: "module",
       // comark-ui is what the whole site documents, so its home is the site.
-      homepage: folder === "ui" ? "https://comark-ui.onmax.me" : `https://comark-ui.onmax.me/${folder}`,
+      homepage:
+        folder === "ui" ? "https://comark-ui.onmax.me" : `https://comark-ui.onmax.me/${folder}`,
       bugs: "https://github.com/onmax/comark-ui/issues",
       repository: { directory: `packages/${folder}` },
       engines: { node: ">=22.12.0" },
