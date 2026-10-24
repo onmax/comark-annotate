@@ -1080,6 +1080,9 @@ importers:
       comark-qr:
         specifier: workspace:*
         version: link:../qr
+      comark-quiz:
+        specifier: workspace:*
+        version: link:../quiz
       comark-reading-time:
         specifier: workspace:*
         version: link:../reading-time
@@ -1323,6 +1326,9 @@ importers:
       comark-qr:
         specifier: workspace:^
         version: link:../qr
+      comark-quiz:
+        specifier: workspace:^
+        version: link:../quiz
       comark-reading-time:
         specifier: workspace:^
         version: link:../reading-time
@@ -1454,6 +1460,18 @@ importers:
       vue:
         specifier: 'catalog:'
         version: 3.5.44(typescript@6.0.3)
+
+  packages/quiz:
+    devDependencies:
+      '@comark/html':
+        specifier: 'catalog:'
+        version: 0.8.1(shiki@4.5.0)
+      comark:
+        specifier: 'catalog:'
+        version: 0.8.1(shiki@4.5.0)
+      comark-zoom:
+        specifier: workspace:*
+        version: link:../zoom
 
   packages/reading-time:
     devDependencies:
