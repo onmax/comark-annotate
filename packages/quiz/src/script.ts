@@ -511,10 +511,12 @@ export function script(config: ScriptConfig): void {
     for (const record of records)
       for (const node of record.addedNodes) {
         if (!(node instanceof Element)) continue;
-        const root = (node.matches(".cqz[data-quiz-id]")
-          ? node
-          : node.closest(".cqz[data-quiz-id]") ??
-            node.parentElement?.closest(".cqz[data-quiz-id]")) as HTMLElement | null;
+        const root = (
+          node.matches(".cqz[data-quiz-id]")
+            ? node
+            : (node.closest(".cqz[data-quiz-id]") ??
+              node.parentElement?.closest(".cqz[data-quiz-id]"))
+        ) as HTMLElement | null;
         if (root) deferScan(root);
         else scan(node.parentElement ?? node);
       }
