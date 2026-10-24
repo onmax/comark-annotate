@@ -1,6 +1,7 @@
 ---
 title: Chart plugins compared
 description: comark-charts next to comark-vega and comark-flint-chart, the other chart plugins for Comark.
+keywords: Vega, Vega-Lite, Flint, alternatives, comparison, vs
 tagline: Three Comark plugins draw charts with Vega. In comark-charts you write a Markdown table, so one block serves the people who look at the chart and the agents who read its numbers.
 ---
 

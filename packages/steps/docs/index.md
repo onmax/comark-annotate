@@ -1,6 +1,7 @@
 ---
 title: comark-steps
 description: Numbered steps, written in Markdown.
+keywords: tutorial, procedure, numbered list, walkthrough, how-to, stepper, timeline
 tagline: Turn the headings of a tutorial, or a numbered list, into numbered steps down a line. Nuxt UI's syntax, with no script.
 install: pnpm add comark @comark/html comark-steps
 group: Docs blocks

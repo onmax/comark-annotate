@@ -1,6 +1,7 @@
 ---
 title: Agents
 description: onmax's agent skill for every package, and the commands an agent uses to check what it wrote.
+keywords: AI, Claude, Claude Code, Codex, Cursor, LLM, skills, agent skills, prompt
 tagline: Agents write most review documents. Install the skill so yours knows the syntax, then let it check its own work before it hands the document over.
 ---
 

@@ -1,6 +1,7 @@
 ---
 title: Theming
 description: One set of --comark-* tokens themes every plugin, on top of shadcn/ui's variables.
+keywords: CSS, colors, dark mode, light mode, CSS variables, custom properties, shadcn, Tailwind, styles, theme, Nuxt UI
 tagline: The plugins follow shadcn/ui. On a site that uses its variables they match with no setup; elsewhere, eight tokens theme them all at once.
 ---
 

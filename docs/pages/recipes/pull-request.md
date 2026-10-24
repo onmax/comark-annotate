@@ -1,6 +1,7 @@
 ---
 title: A pull request description
 description: Its status from the frontmatter, the numbers that moved, the test run, and a suggestion still open, in one description.
+keywords: PR description, PR body, GitHub
 tagline: Write a pull request's description in Markdown, with its status on top and its evidence under it, and every block checked before it's posted.
 install: pnpm add comark @comark/html comark-properties comark-icon comark-metrics comark-tests comark-critic
 ---
