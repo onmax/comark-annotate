@@ -1,7 +1,7 @@
-// The docs moved from comark-annotate.onmax.me to comark.onmax.me/annotate. Old links redirect; images and fonts
-// keep their paths.
+// The docs moved from comark-annotate.onmax.me to comark.onmax.me/annotate. Old links redirect; the skill, images,
+// and fonts keep their paths, so agents that installed the skill from the old address still find it.
 const OLD_HOST = "comark-annotate.onmax.me";
-const KEEP = /^\/fonts\/|\.(png|svg|woff2)$/;
+const KEEP = /^\/(\.well-known\/|fonts\/)|\.(png|svg|woff2)$/;
 
 export default {
   fetch(request: Request, env: { ASSETS: { fetch: (request: Request) => Promise<Response> } }) {

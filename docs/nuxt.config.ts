@@ -80,12 +80,23 @@ export default defineNuxtConfig({
     },
   },
   modules: [
+    "nuxt-agent-discovery",
     async (_, nuxt) => {
       await writeAssets();
       nuxt.options.nitro.publicAssets ??= [];
       nuxt.options.nitro.publicAssets.push({ dir: fileURLToPath(generated), maxAge: 0 });
     },
   ],
+  // Only the agent skill at the repository's root, under /.well-known/skills/; the pages are built by docs/build.ts.
+  agentDiscovery: {
+    siteUrl: "https://comark.onmax.me",
+    source: false,
+    discovery: { link: false, apiCatalog: false, sitemapXml: false },
+    errors: false,
+    sitemap: { markdown: false },
+    robots: { aiPolicy: false },
+    skills: { dir: "../skills" },
+  },
   nitro: {
     output: { dir: fileURLToPath(new URL("dist/", root)) },
     // The playground is a static app copied into the output, not a Nuxt page.

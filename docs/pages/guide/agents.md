@@ -12,6 +12,8 @@ tagline: Agents write most review documents. Install the skill so yours knows th
 npx skills add onmax/comark-plugins
 ```
 
+This site serves it too, so `npx skills add https://comark.onmax.me` installs the same skill.
+
 ## Bundle the skill in your app
 
 An app that renders these documents for its own agents, like [Drop](https://drop.vitehub.dev/?utm_source=comark-plugins&utm_medium=guide), can ship this skill instead of writing one. `@onmax/comark` includes it, so the app copies it at build time and its agents always read the syntax of the plugins it installed:
