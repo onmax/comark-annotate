@@ -435,7 +435,11 @@ export function script(config: ScriptConfig): void {
           ? !!el.querySelector(":scope>.cqz-actions") &&
             !!el.querySelector(":scope>.cqz-disclosure .cqz-answer")
           : optionRows > 0 && !!el.querySelector(":scope>.cqz-actions");
-    if (!el.querySelector(":scope>template.cqz-end") && !complete) return;
+    const marked = !!el.querySelector(":scope>template.cqz-end");
+    // Markerless roots are only safe to read after the initial document has
+    // settled. During parsing, a renderer may append their children in pieces.
+    if (!marked && !announced) return;
+    if (!marked && !complete) return;
     let written: unknown;
     try {
       written = JSON.parse(el.dataset.labels ?? "{}");
@@ -491,19 +495,34 @@ export function script(config: ScriptConfig): void {
     for (const el of $$(node, ".cqz[data-quiz-id]")) setup(el);
   };
   scan(document);
+  const pending = new Set<HTMLElement>();
+  let pendingTimer = 0;
+  const deferScan = (root: HTMLElement) => {
+    pending.add(root);
+    if (pendingTimer) return;
+    pendingTimer = window.setTimeout(() => {
+      pendingTimer = 0;
+      for (const el of pending) if (el.isConnected) setup(el);
+      pending.clear();
+    }, 0);
+  };
   // The renderer inlines the script after the first block, so the page's later blocks arrive after it.
   new MutationObserver((records) => {
     for (const record of records)
       for (const node of record.addedNodes) {
         if (!(node instanceof Element)) continue;
-        if (node.matches("template.cqz-end") && node.parentElement) scan(node.parentElement);
+        const root = (node.matches(".cqz[data-quiz-id]")
+          ? node
+          : node.closest(".cqz[data-quiz-id]") ??
+            node.parentElement?.closest(".cqz[data-quiz-id]")) as HTMLElement | null;
+        if (root) deferScan(root);
         else scan(node.parentElement ?? node);
       }
   }).observe(html, { childList: true, subtree: true });
   const ready = () => {
     // Blocks from a renderer without the end marker wait until here.
-    scan(document);
     announced = true;
+    scan(document);
     flush();
   };
   if (document.readyState === "loading")
