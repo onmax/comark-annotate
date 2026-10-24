@@ -14,7 +14,8 @@ import { components as htmlComponents } from "../src/html.ts";
 import { components as reactComponents } from "../src/react.ts";
 import { components as vueComponents } from "../src/vue.ts";
 
-const markdown = '::table{sort}\n```csv\nName,Size\n"zoom & tabs",3\n```\n::';
+const markdown =
+  '::table{sort}\n```csv\nName,Size\n"zoom & tabs",3\nchips,[9]{tone="error"}\n```\n::';
 // Drops what differs only in serialization: comments, whitespace between tags, the HTML renderer's inline script and
 // styles, and how React writes a style.
 const normalize = (html: string) =>
@@ -42,6 +43,7 @@ describe("comark-table renderers", async () => {
     expect(expected).toContain('<div class="ctb"><div class="ctb-bar">');
     expect(expected).toContain('<button type="button" class="ctb-sort">Name</button>');
     expect(expected).toContain("zoom & tabs");
+    expect(expected).toContain('#dc2626)) 20%,transparent)">9</td>');
   });
 
   for (const [name, render] of Object.entries(renderers))
