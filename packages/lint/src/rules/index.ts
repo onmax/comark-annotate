@@ -23,6 +23,7 @@ import include from "./include.ts";
 import media from "./media.ts";
 import outline from "./outline.ts";
 import qr from "./qr.ts";
+import quiz from "./quiz.ts";
 import properties from "./properties.ts";
 import sources from "./sources.ts";
 import metrics from "./metrics.ts";
@@ -70,4 +71,5 @@ export const catalog = {
   ...sources,
   ...table,
   ...xref,
+  ...quiz,
 } satisfies Record<string, RuleInfo>;
