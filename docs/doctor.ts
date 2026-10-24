@@ -7,6 +7,7 @@ import { parseMarkdown } from "comark";
 import { textContent } from "comark/utils";
 import { icons as lucide } from "@iconify-json/lucide";
 import cards from "../packages/cards/src/index.ts";
+import critic, { type CriticOptions } from "../packages/critic/src/index.ts";
 import icon, { createIcons } from "../packages/icon/src/index.ts";
 import include from "../packages/include/src/index.ts";
 import { lint, type Diagnostic, type Rule } from "../packages/lint/src/index.ts";
@@ -56,8 +57,18 @@ const fileOf: Partial<Record<Rule, string>> = {
   "comark/broken-link": fileURLToPath(new URL("docs/doctor-include/page.md", repo)),
 };
 
-export const lintExample = (source: string, rule?: Rule) =>
-  lint(source, { plugins: plugins(), components: known, file: rule && fileOf[rule] });
+export const lintExample = (
+  source: string,
+  rule?: Rule,
+  criticMode?: "view" | "accept" | "reject" | "merge",
+) => {
+  const configured = plugins();
+  if (criticMode) {
+    const index = configured.findIndex((plugin) => plugin.name === "comark-critic");
+    if (index >= 0) configured[index] = critic({ mode: criticMode as CriticOptions["mode"] });
+  }
+  return lint(source, { plugins: configured, components: known, file: rule && fileOf[rule] });
+};
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
 
@@ -90,7 +101,11 @@ export async function checkExample(
   kind: "incorrect" | "correct",
   source: string,
 ): Promise<{ found: Diagnostic[]; problem?: string }> {
-  const found = await lintExample(source, rule);
+  const found = await lintExample(
+    source,
+    rule,
+    rule === "comark/critic/invalid-mode" && kind === "incorrect" ? "merge" : undefined,
+  );
   const other = found.filter((diagnostic) => diagnostic.rule !== rule);
   const list = (diagnostics: Diagnostic[]) =>
     diagnostics.map((d) => `\n  ${d.rule}: ${d.message} ${d.fix}`).join("");

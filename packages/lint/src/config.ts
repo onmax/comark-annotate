@@ -40,6 +40,11 @@ const packages = [
       })),
     [],
   ],
+  [
+    "comark-critic",
+    () => import("comark-critic").then((module) => ({ ...module, components: {} })),
+    [],
+  ],
   ["comark-colors/html", () => import("comark-colors/html"), []],
   // Syntax plugins have no components, and are loaded so their syntax isn't read as something else.
   [

@@ -7,7 +7,8 @@ import { checkExample, doctorRules, examplesOf } from "../docs/doctor.ts";
 const repo = new URL("../", import.meta.url);
 // These pages show code instead: nothing in this repo still reports an issue without its own rule, so plugin-issue's
 // shows a plugin of your own; downloads and dead URLs depend on the network; a bad `repo` is a plugin option, not
-// Markdown; and a value too long for a QR code and the order of comark-code and Shiki are plugin options, not Markdown.
+// Markdown; and a value too long for a QR code, the order of comark-code and Shiki, and a bad critic `mode` are plugin
+// options, not Markdown.
 const withoutExamples = new Set([
   "comark/plugin-issue",
   "comark/dead-url",
@@ -17,6 +18,7 @@ const withoutExamples = new Set([
   "comark/chips/rate-limited",
   "comark/github/invalid-repo",
   "comark/qr/value-too-long",
+  "comark/critic/invalid-mode",
 ]);
 
 describe("Doctor pages", () => {

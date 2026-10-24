@@ -8,6 +8,7 @@ import code from "./code.ts";
 import colors from "./colors.ts";
 import core from "./core.ts";
 import details from "./details.ts";
+import critic from "./critic.ts";
 import diff from "./diff.ts";
 import embed from "./embed.ts";
 import fields from "./fields.ts";
@@ -48,4 +49,5 @@ export const catalog = {
   ...fields,
   ...fileTree,
   ...details,
+  ...critic,
 } satisfies Record<string, RuleInfo>;

@@ -13,6 +13,7 @@ import { icons as lucide } from "@iconify-json/lucide";
 import dark from "shiki/themes/vitesse-dark.mjs";
 import light from "shiki/themes/vitesse-light.mjs";
 import { build } from "vite";
+import { css as criticCss } from "../packages/critic/src/index.ts";
 import { createIcons, css as iconCss, iconHtml } from "../packages/icon/src/html.ts";
 import include from "../packages/include/src/index.ts";
 import { lint, type Diagnostic } from "../packages/lint/src/index.ts";
@@ -100,6 +101,8 @@ const packageOrder = [
   "deflist",
   "figure",
   "mark",
+  "critic",
+  "deflist",
   "include",
   "outline",
   "reading-time",
@@ -1166,7 +1169,8 @@ await mkdir(new URL("fonts/", dist), { recursive: true });
 await cp(new URL("public/", root), dist, { recursive: true });
 for (const font of ["geist-sans/Geist-Variable.woff2", "geist-mono/GeistMono-Variable.woff2"])
   await cp(new URL(font, fonts), new URL(`fonts/${font.split("/")[1]}`, dist));
-const style = await readFile(new URL("style.css", root), "utf8");
+// comark-critic has no component to add its styles, so the site carries them.
+const style = (await readFile(new URL("style.css", root), "utf8")) + criticCss;
 await writeFile(new URL("search.json", dist), JSON.stringify(searchIndex));
 // Pages inline the styles; the playground's preview loads them.
 await writeFile(new URL("style.css", dist), style);
@@ -1409,7 +1413,7 @@ ${themePane}
 const generatedPages = new URL(".generated/pages/", root);
 await rm(generatedPages, { recursive: true, force: true });
 await mkdir(generatedPages, { recursive: true });
-await writeFile(new URL("site.json", generatedPages), JSON.stringify({ css: iconCss }));
+await writeFile(new URL("site.json", generatedPages), JSON.stringify({ css: iconCss + criticCss }));
 for (const [slug, fragment] of fragments)
   await writeFile(
     new URL(`${slug.replaceAll("/", "~") || "index"}.json`, generatedPages),
