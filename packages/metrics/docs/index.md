@@ -103,9 +103,31 @@ The table needs three columns: a name, the value before, and the value after. Th
 | `better` | `lower` or `higher`, for every row. |
 | `unit` | The unit of a difference from 0, for cells written without one. |
 
+With `tiles`, each row becomes a tile: the name is above the after value, and the change is shown below it in a pill. The before value is used for the change but is not displayed:
+
+```md
+::stats{tiles better="lower"}
+| Metric | Before | After |
+| --- | --- | --- |
+| JavaScript | 412 kB | 388 kB |
+| Largest paint | 2.4 s | 1.9 s |
+::
+```
+
+Tiles also accept a two-column table when there is no before value. The value can be any text and is shown without a change:
+
+```md
+::stats{tiles}
+| Metric | Value |
+| --- | --- |
+| Tests | 1,204 |
+| Status | Passing |
+::
+```
+
 ### Issues
 
-The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes: a missing or unreadable number, a `better` that isn't `lower` or `higher`, a `value` outside 0 to `max`, a `::stats` without a table or with other than three columns, a row whose cells aren't numbers or are in different units, and a prop a block doesn't read. Each issue names its block and says how to fix it, and each has its own rule in [Doctor](/doctor/):
+The plugin adds every problem to `meta.issues`, as [Validation](/guide/validation/) describes: a missing or unreadable number, a `better` that isn't `lower` or `higher`, a `value` outside 0 to `max`, a `::stats` without a table or with other than three columns (or two or three columns when `tiles` is set), a row whose cells aren't numbers or are in different units, and a prop a block doesn't read. Each issue names its block and says how to fix it, and each has its own rule in [Doctor](/doctor/):
 
 ```txt
 `:progress` 1: `value=85` is outside 0 to 1, so the bar was clamped. Write a fraction such as `value=0.85`, or set `max=100`.
@@ -168,9 +190,12 @@ Deltas, bars, and tables read these [shared tokens](/guide/theming/):
 
 | Token | Used for |
 | --- | --- |
-| `--comark-foreground` | The progress bar, when the page has no `--primary` |
+| `--comark-foreground` | Tile values and the progress bar, when the page has no `--primary` |
 | `--comark-muted` | The value before, a change with no verdict, a bar's label and percent |
 | `--comark-font` | Inherited text, with tabular numbers |
+| `--comark-border` | Tile borders |
+| `--comark-background` | Tile backgrounds |
+| `--comark-radius` | Tile corner radius |
 
 ### Variables
 
@@ -190,3 +215,6 @@ Set `--cmt-better` and `--cmt-worse` on `.cmt-delta`, and `--cmt-bar` on `.cmt-p
 | `.cmt-from`, `.cmt-to`, `.cmt-change` | Its value before, after, and the arrow with the percent |
 | `.cmt-progress` | A progress bar, with `.cmt-label` before it and `.cmt-percent` after |
 | `.cmt-stats` | A `::stats` table |
+| `.cmt-tiles` | The grid rendered by `::stats{tiles}` |
+| `.cmt-tile` | One stat tile, containing its name, value, and optional change |
+| `.cmt-value` | The large value inside a tile |
