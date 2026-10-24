@@ -419,13 +419,13 @@ export function script(config: ScriptConfig): void {
     queueMicrotask(flush);
   };
 
-  function setup(el: HTMLElement) {
+  function setup(el: HTMLElement, allowIncomplete = false) {
     const kind = el.dataset.quizKind;
     const id = el.dataset.quizId;
     if (models.has(el) || !id || (kind !== "question" && kind !== "poll" && kind !== "recall"))
       return;
     // While the page loads, the parser may have added the block but not all of its parts; its end marker comes last.
-    if (document.readyState === "loading" && !el.querySelector(":scope>template.cqz-end")) return;
+    if (!allowIncomplete && !el.querySelector(":scope>template.cqz-end")) return;
     let written: unknown;
     try {
       written = JSON.parse(el.dataset.labels ?? "{}");
@@ -476,11 +476,12 @@ export function script(config: ScriptConfig): void {
     later();
   }
 
-  const scan = (node: ParentNode) => {
-    if (node instanceof HTMLElement && node.matches(".cqz[data-quiz-id]")) setup(node);
-    for (const el of $$(node, ".cqz[data-quiz-id]")) setup(el);
+  const scan = (node: ParentNode, allowIncomplete = false) => {
+    if (node instanceof HTMLElement && node.matches(".cqz[data-quiz-id]"))
+      setup(node, allowIncomplete);
+    for (const el of $$(node, ".cqz[data-quiz-id]")) setup(el, allowIncomplete);
   };
-  scan(document);
+  scan(document, document.readyState !== "loading");
   // The renderer inlines the script after the first block, so the page's later blocks arrive after it.
   new MutationObserver((records) => {
     for (const record of records)
@@ -492,7 +493,7 @@ export function script(config: ScriptConfig): void {
   }).observe(html, { childList: true, subtree: true });
   const ready = () => {
     // Blocks from a renderer without the end marker wait until here.
-    scan(document);
+    scan(document, true);
     announced = true;
     flush();
   };
