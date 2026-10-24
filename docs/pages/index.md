@@ -1,8 +1,8 @@
 ---
 title: Comark UI
-description: The Markdown UI Library for Review Documents
-headline: The Markdown UI Library for Review Documents
-tagline: "Comark UI is a free, open source plugin library for Comark: 40+ blocks for annotated screenshots, code changes, charts, and more, written in Markdown. Install them all with one package, or each on its own."
+description: The Markdown UI Library
+headline: The Markdown UI Library
+tagline: "Comark UI is a free, open source plugin library for Comark: 40+ blocks for docs, reviews, and agent reports, from tabs and charts to annotated screenshots, written in Markdown. Install them all with one package, or each on its own."
 install: pnpm add comark @comark/html @onmax/comark
 ---
 
