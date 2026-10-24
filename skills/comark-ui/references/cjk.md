@@ -19,5 +19,5 @@ The syntax stays CommonMark's. Only the rule for where a delimiter opens and clo
 
 ## Register
 
-- In `@onmax/comark`: on by default. `cjk: false` turns it off; it takes no options.
+- In `comark-ui`: on by default. `cjk: false` turns it off; it takes no options.
 - Alone: `pnpm add comark comark-cjk`, then `plugins: [cjk()]` with `import cjk from "comark-cjk"`. It has no components and no styles, so it works in any renderer and in streaming parses.

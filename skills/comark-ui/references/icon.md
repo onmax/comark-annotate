@@ -24,5 +24,5 @@ Give a `label` when the icon says something the words around it don't, such as a
 
 ## Register
 
-- In `@onmax/comark`: on. Its `icon` option takes `collections` and `fetch`, as below, and its resolver also draws the icons of cards, details, file trees, tabs, and code actions.
+- In `comark-ui`: on. Its `icon` option takes `collections` and `fetch`, as below, and its resolver also draws the icons of cards, details, file trees, tabs, and code actions.
 - Alone: `pnpm add comark @comark/html comark-icon`, then `createHtmlRenderer({ plugins: [icon()], components })` with both from `comark-icon/html`. `comark-icon/vue`, `/react`, and `/svelte` render it too. With no options it downloads each icon from the Iconify API while parsing, once per process. To build offline, install the sets you use and pass them, as in `icon({ collections: { lucide }, fetch: false })` with `icons as lucide` from `@iconify-json/lucide`. A collection can also map names to SVG markup, for icons of your own, and `fetch` can be the URL of your own Iconify API. Plugins that draw icons take an `Icons` from `createIcons()`, so pass the same one to each and set the options once.

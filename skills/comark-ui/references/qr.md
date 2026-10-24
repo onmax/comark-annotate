@@ -16,5 +16,5 @@ The code is black on white in both color schemes and 8rem wide, with error corre
 
 ## Register
 
-- In `@onmax/comark`: on. It takes no options.
+- In `comark-ui`: on. It takes no options.
 - Alone: `pnpm add comark @comark/html comark-qr`, then `createHtmlRenderer({ plugins: [qr()], components })` with both from `comark-qr/html`. `comark-qr/vue`, `/react`, and `/svelte` render it too. It has no options and no script; `--cqr-size` on `.cqr` sets the width.

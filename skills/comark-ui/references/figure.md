@@ -17,9 +17,9 @@ comark-figure turns an image with a title, alone in its paragraph, into a native
 
 ## Numbered figures
 
-For a figure the text refers to by number, give the image comark-xref's `{#fig-…}` id and no title, and xref captions it with "Figure 1:" and its alt text. `@onmax/comark` runs both plugins, and there an image with both a title and a `fig-` id becomes an unnumbered figure. xref then reports it as sharing its paragraph with text, and every `:ref` to it as pointing at nothing.
+For a figure the text refers to by number, give the image comark-xref's `{#fig-…}` id and no title, and xref captions it with "Figure 1:" and its alt text. `comark-ui` runs both plugins, and there an image with both a title and a `fig-` id becomes an unnumbered figure. xref then reports it as sharing its paragraph with text, and every `:ref` to it as pointing at nothing.
 
 ## Register
 
-- In `@onmax/comark`: on by default. `figure: { unwrap: true }` also lifts every image alone in its paragraph out of the `<p>`, with a title or without, so the page's CSS can size those images apart from the ones inside a sentence. Comark's `autoUnwrap` does that only in list items and blockquotes.
+- In `comark-ui`: on by default. `figure: { unwrap: true }` also lifts every image alone in its paragraph out of the `<p>`, with a title or without, so the page's CSS can size those images apart from the ones inside a sentence. Comark's `autoUnwrap` does that only in list items and blockquotes.
 - Alone: `pnpm add comark comark-figure`, then `plugins: [figure()]` with `import figure from "comark-figure"`, and the same `unwrap` option. It has no components, classes, or styles, so it works in any renderer. With comark-zoom, the image in a figure still zooms, in either plugin order. Browsers indent a figure by 40px on each side until the page's CSS sets its margin.

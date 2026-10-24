@@ -32,5 +32,5 @@ The redesign moves the filters into one row and adds an empty state.
 
 ## Register
 
-- In `@onmax/comark`: on in every entry, with no options.
+- In `comark-ui`: on in every entry, with no options.
 - Alone: `pnpm add comark @comark/html comark-outline`, then `createHtmlRenderer({ plugins: [outline()], components })` with both from `comark-outline/html`. `comark-outline/vue`, `/react`, and `/svelte` render it too. It reads the headings itself, so it works in any plugin order and without Comark's toc plugin, which only fills `meta.toc` for a sidebar. The npm name is `comark-outline` because npm refused `comark-toc`.

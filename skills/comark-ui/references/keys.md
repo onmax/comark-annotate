@@ -24,5 +24,5 @@ One unknown name, a space, or a bare symbol, as in `++ctrl+/++`, leaves the whol
 
 ## Register
 
-- In `@onmax/comark`: on by default. `keys: { separator: "", keys: { hyper: "Hyper" } }` changes what sits between two keys (default `"+"`; `""` puts nothing) and adds keys or renames built-in ones, by lowercase name.
+- In `comark-ui`: on by default. `keys: { separator: "", keys: { hyper: "Hyper" } }` changes what sits between two keys (default `"+"`; `""` puts nothing) and adds keys or renames built-in ones, by lowercase name.
 - Alone: `pnpm add comark comark-keys`, then `plugins: [keys()]` with `import keys from "comark-keys"`, and the same options. It ships no styles, and browsers show `<kbd>` in a monospace font, so draw keycaps with the page's CSS on `.ckb kbd`. Each named key also gets a class with its full name, such as `ckb-control`. A `{.class}` after a shortcut replaces its `ckb` class, so skip it when the page styles `.ckb`.

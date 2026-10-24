@@ -990,9 +990,6 @@ importers:
 
   packages/lint:
     devDependencies:
-      '@onmax/comark':
-        specifier: workspace:*
-        version: link:../preset
       comark:
         specifier: 'catalog:'
         version: 0.8.1(shiki@4.5.0)
@@ -1113,6 +1110,9 @@ importers:
       comark-tests:
         specifier: workspace:*
         version: link:../tests
+      comark-ui:
+        specifier: workspace:*
+        version: link:../ui
       comark-xref:
         specifier: workspace:*
         version: link:../xref
@@ -1227,166 +1227,6 @@ importers:
       comark-zoom:
         specifier: workspace:*
         version: link:../zoom
-      react:
-        specifier: 'catalog:'
-        version: 19.3.1
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.1(react@19.3.1)
-      svelte:
-        specifier: 'catalog:'
-        version: 5.57.2(@typescript-eslint/types@8.71.1)
-      vue:
-        specifier: 'catalog:'
-        version: 3.5.44(typescript@6.0.3)
-
-  packages/preset:
-    dependencies:
-      comark-annotate:
-        specifier: workspace:^
-        version: link:../annotate
-      comark-badge:
-        specifier: workspace:^
-        version: link:../badge
-      comark-cards:
-        specifier: workspace:^
-        version: link:../cards
-      comark-carousel:
-        specifier: workspace:^
-        version: link:../carousel
-      comark-cast:
-        specifier: workspace:^
-        version: link:../cast
-      comark-charts:
-        specifier: workspace:^
-        version: link:../charts
-      comark-chips:
-        specifier: workspace:^
-        version: link:../chips
-      comark-cjk:
-        specifier: workspace:^
-        version: link:../cjk
-      comark-code:
-        specifier: workspace:^
-        version: link:../code
-      comark-code-notes:
-        specifier: workspace:^
-        version: link:../code-notes
-      comark-colors:
-        specifier: workspace:^
-        version: link:../colors
-      comark-critic:
-        specifier: workspace:^
-        version: link:../critic
-      comark-deflist:
-        specifier: workspace:^
-        version: link:../deflist
-      comark-details:
-        specifier: workspace:^
-        version: link:../details
-      comark-diagrams:
-        specifier: workspace:^
-        version: link:../diagrams
-      comark-diff:
-        specifier: workspace:^
-        version: link:../diff
-      comark-embed:
-        specifier: workspace:^
-        version: link:../embed
-      comark-fields:
-        specifier: workspace:^
-        version: link:../fields
-      comark-figure:
-        specifier: workspace:^
-        version: link:../figure
-      comark-file-tree:
-        specifier: workspace:^
-        version: link:../file-tree
-      comark-footnotes:
-        specifier: workspace:^
-        version: link:../footnotes
-      comark-github:
-        specifier: workspace:^
-        version: link:../github
-      comark-icon:
-        specifier: workspace:^
-        version: link:../icon
-      comark-include:
-        specifier: workspace:^
-        version: link:../include
-      comark-keys:
-        specifier: workspace:^
-        version: link:../keys
-      comark-links:
-        specifier: workspace:^
-        version: link:../links
-      comark-mark:
-        specifier: workspace:^
-        version: link:../mark
-      comark-media:
-        specifier: workspace:^
-        version: link:../media
-      comark-metrics:
-        specifier: workspace:^
-        version: link:../metrics
-      comark-outline:
-        specifier: workspace:^
-        version: link:../outline
-      comark-pele:
-        specifier: 'catalog:'
-        version: 1.1.0(comark@0.8.1(shiki@4.5.0))(react@19.3.1)(svelte@5.57.2(@typescript-eslint/types@8.71.1))(vue@3.5.44(typescript@6.0.3))
-      comark-properties:
-        specifier: workspace:^
-        version: link:../properties
-      comark-qr:
-        specifier: workspace:^
-        version: link:../qr
-      comark-quiz:
-        specifier: workspace:^
-        version: link:../quiz
-      comark-reading-time:
-        specifier: workspace:^
-        version: link:../reading-time
-      comark-sources:
-        specifier: workspace:^
-        version: link:../sources
-      comark-steps:
-        specifier: workspace:^
-        version: link:../steps
-      comark-table:
-        specifier: workspace:^
-        version: link:../table
-      comark-tabs:
-        specifier: workspace:^
-        version: link:../tabs
-      comark-tests:
-        specifier: workspace:^
-        version: link:../tests
-      comark-xref:
-        specifier: workspace:^
-        version: link:../xref
-      comark-zoom:
-        specifier: workspace:^
-        version: link:../zoom
-    devDependencies:
-      '@comark/html':
-        specifier: 'catalog:'
-        version: 0.8.1(shiki@4.5.0)
-      '@comark/react':
-        specifier: 'catalog:'
-        version: 0.8.1(react@19.3.1)(shiki@4.5.0)
-      '@comark/vue':
-        specifier: 'catalog:'
-        version: 0.8.1(shiki@4.5.0)(vue@3.5.44(typescript@6.0.3))
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-      comark:
-        specifier: 'catalog:'
-        version: 0.8.1(shiki@4.5.0)
       react:
         specifier: 'catalog:'
         version: 19.3.1
@@ -1671,6 +1511,166 @@ importers:
       comark-zoom:
         specifier: workspace:*
         version: link:../zoom
+      react:
+        specifier: 'catalog:'
+        version: 19.3.1
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.3.1(react@19.3.1)
+      svelte:
+        specifier: 'catalog:'
+        version: 5.57.2(@typescript-eslint/types@8.71.1)
+      vue:
+        specifier: 'catalog:'
+        version: 3.5.44(typescript@6.0.3)
+
+  packages/ui:
+    dependencies:
+      comark-annotate:
+        specifier: workspace:^
+        version: link:../annotate
+      comark-badge:
+        specifier: workspace:^
+        version: link:../badge
+      comark-cards:
+        specifier: workspace:^
+        version: link:../cards
+      comark-carousel:
+        specifier: workspace:^
+        version: link:../carousel
+      comark-cast:
+        specifier: workspace:^
+        version: link:../cast
+      comark-charts:
+        specifier: workspace:^
+        version: link:../charts
+      comark-chips:
+        specifier: workspace:^
+        version: link:../chips
+      comark-cjk:
+        specifier: workspace:^
+        version: link:../cjk
+      comark-code:
+        specifier: workspace:^
+        version: link:../code
+      comark-code-notes:
+        specifier: workspace:^
+        version: link:../code-notes
+      comark-colors:
+        specifier: workspace:^
+        version: link:../colors
+      comark-critic:
+        specifier: workspace:^
+        version: link:../critic
+      comark-deflist:
+        specifier: workspace:^
+        version: link:../deflist
+      comark-details:
+        specifier: workspace:^
+        version: link:../details
+      comark-diagrams:
+        specifier: workspace:^
+        version: link:../diagrams
+      comark-diff:
+        specifier: workspace:^
+        version: link:../diff
+      comark-embed:
+        specifier: workspace:^
+        version: link:../embed
+      comark-fields:
+        specifier: workspace:^
+        version: link:../fields
+      comark-figure:
+        specifier: workspace:^
+        version: link:../figure
+      comark-file-tree:
+        specifier: workspace:^
+        version: link:../file-tree
+      comark-footnotes:
+        specifier: workspace:^
+        version: link:../footnotes
+      comark-github:
+        specifier: workspace:^
+        version: link:../github
+      comark-icon:
+        specifier: workspace:^
+        version: link:../icon
+      comark-include:
+        specifier: workspace:^
+        version: link:../include
+      comark-keys:
+        specifier: workspace:^
+        version: link:../keys
+      comark-links:
+        specifier: workspace:^
+        version: link:../links
+      comark-mark:
+        specifier: workspace:^
+        version: link:../mark
+      comark-media:
+        specifier: workspace:^
+        version: link:../media
+      comark-metrics:
+        specifier: workspace:^
+        version: link:../metrics
+      comark-outline:
+        specifier: workspace:^
+        version: link:../outline
+      comark-pele:
+        specifier: 'catalog:'
+        version: 1.1.0(comark@0.8.1(shiki@4.5.0))(react@19.3.1)(svelte@5.57.2(@typescript-eslint/types@8.71.1))(vue@3.5.44(typescript@6.0.3))
+      comark-properties:
+        specifier: workspace:^
+        version: link:../properties
+      comark-qr:
+        specifier: workspace:^
+        version: link:../qr
+      comark-quiz:
+        specifier: workspace:^
+        version: link:../quiz
+      comark-reading-time:
+        specifier: workspace:^
+        version: link:../reading-time
+      comark-sources:
+        specifier: workspace:^
+        version: link:../sources
+      comark-steps:
+        specifier: workspace:^
+        version: link:../steps
+      comark-table:
+        specifier: workspace:^
+        version: link:../table
+      comark-tabs:
+        specifier: workspace:^
+        version: link:../tabs
+      comark-tests:
+        specifier: workspace:^
+        version: link:../tests
+      comark-xref:
+        specifier: workspace:^
+        version: link:../xref
+      comark-zoom:
+        specifier: workspace:^
+        version: link:../zoom
+    devDependencies:
+      '@comark/html':
+        specifier: 'catalog:'
+        version: 0.8.1(shiki@4.5.0)
+      '@comark/react':
+        specifier: 'catalog:'
+        version: 0.8.1(react@19.3.1)(shiki@4.5.0)
+      '@comark/vue':
+        specifier: 'catalog:'
+        version: 0.8.1(shiki@4.5.0)(vue@3.5.44(typescript@6.0.3))
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.3.0(@types/react@19.3.0)
+      comark:
+        specifier: 'catalog:'
+        version: 0.8.1(shiki@4.5.0)
       react:
         specifier: 'catalog:'
         version: 19.3.1

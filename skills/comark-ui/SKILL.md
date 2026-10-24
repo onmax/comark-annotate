@@ -1,6 +1,6 @@
 ---
 name: comark-ui
-description: Writes PR evidence, explanations of how something works, and docs pages in Markdown with comark-ui. Use when a document needs an annotated screenshot, a before/after, a chart, a diagram, a code change, or another comark block, or when setting up @onmax/comark or a comark-* package.
+description: Writes PR evidence, explanations of how something works, and docs pages in Markdown with comark-ui. Use when a document needs an annotated screenshot, a before/after, a chart, a diagram, a code change, or another comark block, or when setting up comark-ui or a comark-* package.
 ---
 
 # comark-ui
@@ -9,20 +9,20 @@ You write Markdown; the comark plugins render it as static HTML, from marks on s
 
 ## Install
 
-Prefer `@onmax/comark`, every plugin in one install, registered in the order they need:
+Prefer `comark-ui`, every plugin in one install, registered in the order they need:
 
 ```sh
-pnpm add comark @comark/html @onmax/comark
+pnpm add comark @comark/html comark-ui
 ```
 
 ```ts
 import { createHtmlRenderer } from "@comark/html";
-import onmax from "@onmax/comark/html";
+import comarkUi from "comark-ui/html";
 
-const render = createHtmlRenderer(onmax());
+const render = createHtmlRenderer(comarkUi());
 ```
 
-Every plugin is on except `include`. The [preset reference](references/preset.md) covers its options, the plugins that read files or use the network, and its Vue, React, and Svelte entries.
+Every plugin is on except `include`. The [comark-ui reference](references/ui.md) covers its options, the plugins that read files or use the network, and its Vue, React, and Svelte entries.
 
 When a project wants only some plugins, install those packages and register each plugin with its components:
 
@@ -126,5 +126,5 @@ Mark only what your text talks about. Each note says what changed or what is wro
 
 ## Check the result
 
-1. Lint the file: `npx lint-comark report.md`, in a project with `comark-linter` and the plugins installed, where `@onmax/comark` counts as every plugin. It prints one line per problem with its line, its rule, and how to fix it, and exits with 1 while any remain. Fix every one, and run it again until it exits with 0. The [lint reference](references/lint.md) covers its flags, its config file, the library, and Vite Doctor.
+1. Lint the file: `npx lint-comark report.md`, in a project with `comark-linter` and the plugins installed, where `comark-ui` counts as every plugin. It prints one line per problem with its line, its rule, and how to fix it, and exits with 1 while any remain. Fix every one, and run it again until it exits with 0. The [lint reference](references/lint.md) covers its flags, its config file, the library, and Vite Doctor.
 2. Look at the render, made as the block's reference says. Open it in a browser and take a screenshot: each mark sits on its target, each number matches its note, and each chart says what your text says. If you can't verify something, say so when you hand the document over instead of guessing.

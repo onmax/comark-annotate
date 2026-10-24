@@ -55,5 +55,5 @@ When the host reads files, have CI write the report next to the document and poi
 
 ## Register
 
-- In `@onmax/comark`: on. A pasted report renders, and every `src` reports a missing file until you pass `tests: { root: "." }` or `{ read }`.
+- In `comark-ui`: on. A pasted report renders, and every `src` reports a missing file until you pass `tests: { root: "." }` or `{ read }`.
 - Alone: `pnpm add comark @comark/html comark-tests`, then `createHtmlRenderer({ plugins: [tests({ root: "." })], components })` with both from `comark-tests/html`. `root` is the folder `src` can't leave, default `.`, the working directory. `base` is the document's folder under it, where relative paths start. `read(path)` returns a file's text, for browsers and edge runtimes. The output needs no script. `comark-tests/vue`, `/react`, and `/svelte` render it too. With comark-code registered, each stack gets a Copy button.

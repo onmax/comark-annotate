@@ -38,11 +38,11 @@ The plugin also numbers any other element with a `fig-` id as a figure, such as 
 
 ## With other plugins
 
-- Leave the title off a labeled image, since its alt text is the caption. comark-figure, on in `@onmax/comark`, makes a titled image its own figure first, and xref then reports it as sharing its paragraph.
+- Leave the title off a labeled image, since its alt text is the caption. comark-figure, on in `comark-ui`, makes a titled image its own figure first, and xref then reports it as sharing its paragraph.
 - Keep comark-table's `sort`, `copy`, and `src` off a labeled `::table`. With them, comark-table takes the block, drops the label, and reports `caption` as an unknown prop.
 - Write `:ref{#fig-name}` where Pandoc writes `@fig-name`, which comark-chips and comark-github read as a mention.
 
 ## Register
 
-- In `@onmax/comark`: on in every entry. `xref: { figure: "Abbildung", table: "Tabelle" }` sets the words before the numbers, `"Figure"` and `"Table"` by default.
+- In `comark-ui`: on in every entry. `xref: { figure: "Abbildung", table: "Tabelle" }` sets the words before the numbers, `"Figure"` and `"Table"` by default.
 - Alone: `pnpm add comark comark-xref`, then `createHtmlRenderer({ plugins: [xref()] })` with `xref` from `comark-xref`. It has no components and no styles, so it works with any renderer. Its output is `figure`, `figcaption`, `caption`, and `a`, with the classes `cxr`, `cxr-label`, and `cxr-ref` for your own rules.

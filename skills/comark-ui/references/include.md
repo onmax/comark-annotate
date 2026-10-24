@@ -40,5 +40,5 @@ comark-linter doesn't load comark-include, so it reports `:include` as an unknow
 
 ## Register
 
-- In `@onmax/comark`: off, since it reads files from disk. `include: { root: "content", base: "guide" }` turns it on; `include: true` reads under the working directory.
+- In `comark-ui`: off, since it reads files from disk. `include: { root: "content", base: "guide" }` turns it on; `include: true` reads under the working directory.
 - Alone: `pnpm add comark comark-include`, then `parseMarkdown(markdown, { plugins: [include({ root: "content", base: "guide" })] })` with `include` from `comark-include`, first in `plugins`. It has no components, because the pasted text renders like the rest of the document in any renderer, and it doesn't work with streaming parses. `root` is the folder includes can't leave (default `"."`). `base` is the document's folder under `root` (default `""`); Comark doesn't tell plugins where a document lives, so set it per document. In a browser or an edge runtime, pass `read(path)`, which returns a file's text by its POSIX path under `root`, or `undefined`, and may be async. The default reader refuses symlinks that lead out of `root`, and your own must refuse them too. `depth` caps nesting (default 8). `meta.includes` lists every file a document read or tried to read, so a watcher can rebuild the page when one changes or appears.

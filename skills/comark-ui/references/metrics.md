@@ -30,5 +30,5 @@ Tests moved to Vitest: :progress{value=17 max=20 label="Migrated"}
 
 ## Register
 
-- In `@onmax/comark`: on. It takes no options.
+- In `comark-ui`: on. It takes no options.
 - Alone: `pnpm add comark @comark/html comark-metrics`, then `createHtmlRenderer({ plugins: [metrics()], components })` with both from `comark-metrics/html`. `comark-metrics/vue`, `/react`, and `/svelte` render it too. It has no options and no script.

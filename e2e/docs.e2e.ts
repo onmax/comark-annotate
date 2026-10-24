@@ -132,7 +132,7 @@ test("the index's canvas switches to the list, and remembers it", async ({ page 
   const canvas = page.locator(".canvas");
   await expect(canvas).toHaveAttribute("data-view", "canvas");
   await page.getByRole("button", { name: "List", exact: true }).click();
-  await expect(page.getByRole("link", { name: /annotate/ }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /Annotate/ }).first()).toBeVisible();
   await page.reload();
   await expect(canvas).toHaveAttribute("data-view", "list");
   await page.getByRole("button", { name: "Canvas", exact: true }).click();
@@ -151,7 +151,7 @@ test("hovering the rail shows every section's name over the pages, without movin
   page,
 }) => {
   await page.goto("/lint/");
-  const label = page.locator(".sidebar .rail-label", { hasText: "carousel" });
+  const label = page.locator(".sidebar .rail-label", { hasText: "Components" });
   const pages = page.locator(".sidebar .pages");
   await page.mouse.move(500, 0);
   const left = (await pages.boundingBox())?.x;
@@ -168,31 +168,24 @@ test("hovering the rail shows every section's name over the pages, without movin
 test("a package's card links to its docs without a copy control", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "List", exact: true }).click();
-  const card = page.locator(".grid a", { has: page.getByText("github", { exact: true }) });
+  const card = page.locator(".grid a", { has: page.getByText("GitHub", { exact: true }) });
   await expect(card).toHaveAttribute("href", "/github/");
   await expect(page.getByRole("button", { name: "Copy pnpm add comark-github" })).toHaveCount(0);
 });
 
-test("a Getting started page's usage switch picks the install command, and an overview's installer keeps its own", async ({
+test("Getting started installs comark-ui, and a block's page ends with its own package instead", async ({
   page,
 }) => {
-  await page.goto("/carousel/getting-started/");
+  await page.goto("/getting-started/");
   const command = page.locator(".install code");
-  const usage = page.locator(".usage");
-  await expect(page.locator(".installer [data-scope]")).toHaveCount(0);
-  await expect(command).toHaveText("pnpm add comark @comark/html @onmax/comark");
-  await expect(usage.getByText("@onmax/comark/html")).toBeVisible();
-
-  await usage.getByRole("button", { name: "Only comark-carousel" }).click();
-  await expect(command).toHaveText("pnpm add comark @comark/html comark-carousel");
-  await expect(usage.getByText("comark-carousel/html")).toBeVisible();
-  await expect(usage.getByText("@onmax/comark/html")).toBeHidden();
+  await expect(command).toHaveText("pnpm add comark @comark/html comark-ui");
   await page.getByRole("button", { name: "npm", exact: true }).click();
-  await expect(command).toHaveText("npm install comark @comark/html comark-carousel");
+  await expect(command).toHaveText("npm install comark @comark/html comark-ui");
 
   await page.goto("/carousel/");
-  await page.locator(".installer").getByRole("button", { name: "Only comark-carousel" }).click();
-  await expect(command).toHaveText("pnpm add comark @comark/html comark-carousel");
+  await expect(page.locator(".installer")).toHaveCount(0);
+  await expect(page.locator(".sidebar .rail a[aria-current]")).toHaveText("Components");
+  await expect(page.locator("main")).toContainText("pnpm add comark @comark/html comark-carousel");
 });
 
 test("no page scrolls sideways on a phone", async ({ page }) => {
@@ -201,10 +194,11 @@ test("no page scrolls sideways on a phone", async ({ page }) => {
     "/",
     "/guide/renderers/",
     "/guide/theming/",
-    "/annotate/guides/",
-    "/charts/guides/",
-    "/embed/syntax/",
-    "/github/getting-started/",
+    "/getting-started/",
+    "/annotate/",
+    "/charts/",
+    "/embed/",
+    "/github/",
     "/lint/vite-doctor/",
   ]) {
     await page.goto(path);

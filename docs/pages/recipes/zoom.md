@@ -2,7 +2,7 @@
 title: Screenshots in a zoom group
 description: Annotated screenshots spread across a page, paged through in one zoomed view.
 tagline: Wrap screenshots in ::zoom blocks with one group, and the reader pages through all of them, marks and notes included, without scrolling back.
-install: pnpm add comark @comark/html comark-annotate comark-zoom
+install: pnpm add comark @comark/html comark-ui
 ---
 
 ::example{label="Zoom group"}

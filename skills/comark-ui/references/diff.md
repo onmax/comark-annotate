@@ -39,5 +39,5 @@ A line a block highlights, like `` ```ts {2} ``, stays highlighted. `meta.issues
 
 ## Register
 
-- In `@onmax/comark`: on, in `@onmax/comark/html` only.
+- In `comark-ui`: on, in `comark-ui/html` only.
 - Alone: `pnpm add comark @comark/html comark-diff`, then `createHtmlRenderer({ plugins: [diff()], components })` with both from `comark-diff/html`. It renders only to HTML, takes no options, and needs no script. Add Comark's `shiki` plugin, in any order, to keep the code's highlighting.

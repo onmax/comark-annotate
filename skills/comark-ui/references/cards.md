@@ -53,5 +53,5 @@ Each block directly inside `::columns` is one cell, and `:::column` groups sever
 
 ## Register
 
-- In `@onmax/comark`: on, under the key `cards`, which takes only `true` or `false`. Its icons come from the preset's shared resolver, so `icon: { collections }` applies to them.
+- In `comark-ui`: on, under the key `cards`, which takes only `true` or `false`. Its icons come from the preset's shared resolver, so `icon: { collections }` applies to them.
 - Alone: `pnpm add comark @comark/html comark-cards`, then `createHtmlRenderer({ plugins: [cards()], components })` with both from `comark-cards/html`. By default icons come from the Iconify API while parsing. To share one resolver with the page's other plugins, add `comark-icon`, make one with `createIcons()`, and pass it as `cards({ iconResolver })`. The output needs no script. `comark-cards/vue`, `/react`, and `/svelte` render it too.

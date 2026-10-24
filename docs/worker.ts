@@ -7,13 +7,26 @@ const MOVED: Record<string, string | undefined> = {
   "comark-annotate.onmax.me": "/annotate",
 };
 const KEEP = /^\/(\.well-known\/|fonts\/)|\.(png|svg|woff2)$/;
+// Each package had a page per topic until its pages merged into one; the linter keeps its own, and the guides are
+// their own section with a Theming page. The preset's page is Getting started now that it's comark-ui.
+const MERGED =
+  /^\/(?!lint\/|guide\/)([\w-]+)\/(?:getting-started|syntax|components|guides|theming)\/?$/;
+const RENAMED: Record<string, string> = {
+  "/preset/": "/getting-started/",
+  "/preset": "/getting-started/",
+};
 
 export default {
   fetch(request: Request, env: { ASSETS: { fetch: (request: Request) => Promise<Response> } }) {
     const url = new URL(request.url);
     const prefix = MOVED[url.hostname];
-    if (prefix === undefined) return env.ASSETS.fetch(request);
+    if (prefix === undefined) {
+      const merged = MERGED.exec(url.pathname);
+      const moved = merged ? `/${merged[1]}/` : RENAMED[url.pathname];
+      if (moved) return Response.redirect(`${SITE}${moved}${url.search}${url.hash}`, 301);
+      return env.ASSETS.fetch(request);
+    }
     const path = KEEP.test(url.pathname) ? url.pathname : `${prefix}${url.pathname}`;
-    return Response.redirect(`${SITE}${path}${url.search}`, 301);
+    return Response.redirect(`${SITE}${path}${url.search}${url.hash}`, 301);
   },
 };

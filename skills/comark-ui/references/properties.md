@@ -28,5 +28,5 @@ The palette page now shows every token of the theme.
 
 ## Register
 
-- In `@onmax/comark`: on, with the default keys, so a document whose frontmatter has any of them gets the box at the top. `properties: { keys: ["status", "owner", "due"], labels: { due: "Due date" } }` picks the keys and their order and names their labels. `top: false` shows the box only where `::properties` sits.
+- In `comark-ui`: on, with the default keys, so a document whose frontmatter has any of them gets the box at the top. `properties: { keys: ["status", "owner", "due"], labels: { due: "Due date" } }` picks the keys and their order and names their labels. `top: false` shows the box only where `::properties` sits.
 - Alone: `pnpm add comark @comark/html comark-properties`, then `createHtmlRenderer({ plugins: [properties()], components })` with both from `comark-properties/html`. It takes the same options. `comark-properties/vue`, `/react`, and `/svelte` render it too.

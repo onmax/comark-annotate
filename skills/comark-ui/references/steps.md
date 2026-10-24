@@ -30,5 +30,5 @@ Put any introduction above `::steps`, since the block holds only steps. A paragr
 
 ## Register
 
-- In `@onmax/comark`: on, as `steps`, with no options.
+- In `comark-ui`: on, as `steps`, with no options.
 - Alone: `pnpm add comark @comark/html comark-steps`, then `createHtmlRenderer({ plugins: [steps()], components })` with both from `comark-steps/html`. `comark-steps/vue`, `/react`, and `/svelte` export the same pair for those renderers. It takes no options and goes anywhere in `plugins`.

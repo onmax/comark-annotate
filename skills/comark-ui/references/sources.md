@@ -20,5 +20,5 @@ Pigeons find home by the sun and by the earth's magnetic field :cite[1], and som
 
 ## Register
 
-- In `@onmax/comark`: on. It takes no options.
+- In `comark-ui`: on. It takes no options.
 - Alone: `pnpm add comark @comark/html comark-sources`, then `createHtmlRenderer({ plugins: [sources()], components })` with both from `comark-sources/html`. `comark-sources/vue`, `/react`, and `/svelte` render it too. Citations are plain `sup` links that work in any renderer, and the `sources` component draws the list and carries the styles for both. It has no options and no script.

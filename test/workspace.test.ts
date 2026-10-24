@@ -41,7 +41,9 @@ describe.each(folders)("packages/%s", (folder) => {
       license: "MIT",
       author: "onmax",
       type: "module",
-      homepage: `https://comark-ui.onmax.me/${folder}`,
+      // comark-ui is what the whole site documents, so its home is the site.
+      homepage:
+        folder === "ui" ? "https://comark-ui.onmax.me" : `https://comark-ui.onmax.me/${folder}`,
       bugs: "https://github.com/onmax/comark-ui/issues",
       repository: { directory: `packages/${folder}` },
       engines: { node: ">=22.12.0" },
@@ -62,16 +64,17 @@ describe.each(folders)("packages/%s", (folder) => {
 
   // A package with no renderer runs from the preset's core, so it works in every renderer.
   it("comes with the preset", () => {
-    if (folder === "preset" || folder === "lint") return;
-    expect(manifest("preset").dependencies?.[pkg.name]).toBe("workspace:^");
+    if (folder === "ui" || folder === "lint") return;
+    expect(manifest("ui").dependencies?.[pkg.name]).toBe("workspace:^");
     if (!withRenderer.includes(folder))
-      expect(read("packages/preset/src/index.ts")).toContain(`from "${pkg.name}"`);
+      expect(read("packages/ui/src/index.ts")).toContain(`from "${pkg.name}"`);
   });
 
   it("has docs with a place in the site, and a row in the README", () => {
+    expect(read("README.md")).toContain(`[\`${pkg.name}\`](./packages/${folder})`);
+    if (folder === "ui") return;
     expect(existsSync(new URL(`packages/${folder}/docs/index.md`, repo))).toBe(true);
     expect(read("docs/build.ts")).toContain(`"${folder}",`);
-    expect(read("README.md")).toContain(`[\`${pkg.name}\`](./packages/${folder})`);
   });
 
   // Agents write most documents, and they learn a package from the skill rather than the site. Hosts whose agents only
@@ -97,9 +100,9 @@ describe.each(withRenderer)("the renderer of packages/%s", (folder) => {
 
   // The site renders through the preset, so a package in it is on the site and in the playground.
   it("is in the preset, which renders the docs and the playground", () => {
-    expect(read("docs/plugins.ts")).toContain('from "../packages/preset/src/html.ts"');
-    if (folder === "preset") return;
-    const preset = read("packages/preset/src/html.ts");
+    expect(read("docs/plugins.ts")).toContain('from "../packages/ui/src/html.ts"');
+    if (folder === "ui") return;
+    const preset = read("packages/ui/src/html.ts");
     const local = folder.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
     expect(preset).toContain(`import * as ${local} from "${name}/html"`);
     expect(preset.slice(preset.indexOf("preset<"))).toMatch(new RegExp(`\\b${local}\\b`));

@@ -70,7 +70,7 @@ test("opening and closing the zoom doesn't shift the page sideways", async ({ pa
 });
 
 test("a zoomed table keeps its header row", async ({ page }) => {
-  await page.goto("/zoom/components/");
+  await page.goto("/zoom/");
   const block = page
     .locator("main .example-preview .cz")
     .filter({ has: page.locator("table") })
@@ -83,7 +83,7 @@ test("a zoomed table keeps its header row", async ({ page }) => {
 test("a zoomed block keeps its text styles, so it closes onto the original without a jump", async ({
   page,
 }) => {
-  await page.goto("/zoom/components/");
+  await page.goto("/zoom/");
   const block = page
     .locator("main .example-preview .cz")
     .filter({ has: page.locator("table") })

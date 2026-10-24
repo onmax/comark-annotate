@@ -27,5 +27,5 @@ comark-carousel turns the blocks inside `::carousel` into slides that scroll and
 
 ## Register
 
-- In `@onmax/comark`: on, as `carousel`, with no options.
+- In `comark-ui`: on, as `carousel`, with no options.
 - Alone: `pnpm add comark @comark/html comark-carousel`, then `createHtmlRenderer({ plugins: [carousel()], components })` with both from `comark-carousel/html`. `comark-carousel/vue`, `/react`, and `/svelte` export the same pair for those renderers. comark-zoom installs with it, so slides zoom without `zoom()`. A page rendered on a server with Vue, React, or Svelte needs zoom's styles too: add `comark-zoom` and import `comark-zoom/style.css` beside `comark-carousel/style.css`.

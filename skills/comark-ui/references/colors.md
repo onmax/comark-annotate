@@ -29,5 +29,5 @@ Put the old and new values side by side in a table, one token per row, as above,
 
 ## Register
 
-- In `@onmax/comark`: on. It takes no options.
+- In `comark-ui`: on. It takes no options.
 - Alone: `pnpm add comark @comark/html comark-colors`, then `createHtmlRenderer({ plugins: [colors()], components })` with both from `comark-colors/html`. `comark-colors/vue`, `/react`, and `/svelte` render it too. Every entry exports `isColor(value)`, the test the plugin runs on inline code.
