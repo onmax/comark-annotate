@@ -14,7 +14,7 @@ import { createHtmlRenderer } from "@comark/html";
 import onmax from "@onmax/comark/html";
 
 const render = createHtmlRenderer(
-  onmax({ github: { references: { repo: "onmax/comark-plugins" } } }),
+  onmax({ github: { references: { repo: "onmax/comark-ui" } } }),
 );
 ```
 
@@ -23,7 +23,7 @@ import { createHtmlRenderer } from "@comark/html";
 import { callouts, components, html, references } from "comark-github/html";
 
 const render = createHtmlRenderer({
-  plugins: [callouts(), references({ repo: "onmax/comark-plugins" }), html()],
+  plugins: [callouts(), references({ repo: "onmax/comark-ui" }), html()],
   components,
 });
 ```

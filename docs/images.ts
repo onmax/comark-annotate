@@ -256,7 +256,7 @@ body{--fg:#f5f5f5;--muted:#a3a3a3;--line:#262626;background:#0a0a0a;color:var(--
 .page img{max-width:100%}
 .page>:first-child{margin-top:0}`,
     `<div class="copy">
-<div class="brand">${logo}comark plugins</div>
+<div class="brand">${logo}comark ui</div>
 <h1>Review documents,<br>written in <span class="marked">Markdown.${underline}</span></h1>
 <p>Annotated screenshots, charts, tabs, icons,<br>and more. Plugins for Comark.</p>
 <div class="install"><span>+</span>${plugins} plugins</div>

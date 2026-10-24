@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-metrics)](https://npmx.dev/package/comark-metrics)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-metrics)](https://npmx.dev/package/comark-metrics)
 [![license](https://npmx.dev/api/registry/badge/license/comark-metrics)](https://npmx.dev/package/comark-metrics)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/metrics/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/metrics/)
 
 Before → after numbers with the percent change, colored by whether lower or higher is better; progress bars; and tables of metrics with a change column. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 

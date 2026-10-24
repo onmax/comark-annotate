@@ -1,6 +1,6 @@
 # Every plugin in one install
 
-@onmax/comark registers every comark-plugins package for one renderer, in the order they need, with one icon resolver shared by `:icon`, cards, details, file trees, tabs, and code actions. Install in SKILL.md shows its basic use. This page covers its options, what it turns on, its other renderers, and how the linter uses it.
+@onmax/comark registers every comark-ui package for one renderer, in the order they need, with one icon resolver shared by `:icon`, cards, details, file trees, tabs, and code actions. Install in SKILL.md shows its basic use. This page covers its options, what it turns on, its other renderers, and how the linter uses it.
 
 ## Options
 

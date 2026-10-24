@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-chips)](https://npmx.dev/package/comark-chips)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-chips)](https://npmx.dev/package/comark-chips)
 [![license](https://npmx.dev/api/registry/badge/license/comark-chips)](https://npmx.dev/package/comark-chips)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/chips/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/chips/)
 
 Links and `@user` mentions as chips with the site's favicon or the person's avatar, as on [antfu.me](https://antfu.me). A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 
@@ -56,6 +56,6 @@ Each entry exports the parse plugin as `default` and the renderer's `components`
 
 ## Customize
 
-Chips follow shadcn/ui's Badge and the shared `--comark-*` tokens. A chip is an `a.cp` with `data-kind="favicon"` or `data-kind="avatar"`, holding an `img.cp-img`. The rules sit in a `comark` CSS layer, so any plain rule of your own wins. `--cp-background`, `--cp-ring`, `--cp-radius`, and the other `--cp-*` variables change the fill, the ring, and the corners; see the chips' [Theming page](https://comark.onmax.me/chips/theming/).
+Chips follow shadcn/ui's Badge and the shared `--comark-*` tokens. A chip is an `a.cp` with `data-kind="favicon"` or `data-kind="avatar"`, holding an `img.cp-img`. The rules sit in a `comark` CSS layer, so any plain rule of your own wins. `--cp-background`, `--cp-ring`, `--cp-radius`, and the other `--cp-*` variables change the fill, the ring, and the corners; see the chips' [Theming page](https://comark-ui.onmax.me/chips/theming/).
 
-Docs and live demos: [comark.onmax.me/chips](https://comark.onmax.me/chips/).
+Docs and live demos: [comark-ui.onmax.me/chips](https://comark-ui.onmax.me/chips/).

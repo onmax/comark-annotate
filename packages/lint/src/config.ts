@@ -3,7 +3,7 @@ import type { LintOptions } from "./index.ts";
 /** Every option but `file`, which names one document. */
 export type Config = Omit<LintOptions, "file">;
 
-/** Types a `lint-comark.config.ts`. Its plugins and components are added to the installed comark-plugins packages. */
+/** Types a `lint-comark.config.ts`. Its plugins and components are added to the installed comark-ui packages. */
 export const defineConfig = (config: Config): Config => config;
 
 // Each one is an optional peer dependency, so a project lints with exactly the plugins it renders with. The names
@@ -23,6 +23,7 @@ const packages = [
           charts: { draw: false },
           chips: { download: false },
           diagrams: { draw: false },
+          mermaid: false,
           github: { references: false, html: false },
           links: { external: false },
           table: {},
@@ -79,6 +80,12 @@ const packages = [
     [],
   ],
   ["comark-cjk", () => import("comark-cjk").then((module) => ({ ...module, components: {} })), []],
+  [
+    "comark-pele",
+    // Pele renders SVG directly; it has no lint components to discover.
+    () => import("comark-pele").then((module) => ({ ...module, components: {} })),
+    [],
+  ],
   [
     "comark-diagrams/html",
     // Linting reads no drawings, so it sends no diagram to Kroki.
@@ -171,7 +178,7 @@ const missing = (error: unknown, name: string) =>
   error.message.match(/Cannot find package '([^']+)'/)?.[1] ===
     name.match(/^(@[^/]+\/)?[^/]+/)?.[0];
 
-/** The parse plugins and components of every comark-plugins package installed, plus `config`'s, and its other options. */
+/** The parse plugins and components of every comark-ui package installed, plus `config`'s, and its other options. */
 export async function resolveConfig(
   config: Config = {},
 ): Promise<Config & Required<Pick<LintOptions, "plugins" | "components">>> {

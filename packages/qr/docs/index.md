@@ -13,7 +13,7 @@ credits: 'Encoded with <a href="https://antfu.me">Anthony Fu</a>''s <a href="htt
 ::examples
 :::example{label="Preview link"}
 ```md
-Open the preview on your phone: :qr{value="https://comark.onmax.me/qr/"}
+Open the preview on your phone: :qr{value="https://comark-ui.onmax.me/qr/"}
 ```
 :::
 ::

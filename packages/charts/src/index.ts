@@ -89,7 +89,7 @@ export default defineComarkPlugin<ChartsOptions | void, ChartsMeta>((options) =>
       } catch (error) {
         const fix = spec
           ? "Check its Vega-Lite spec against https://vega.github.io/vega-lite/docs/"
-          : "Check the table, or report it at https://github.com/onmax/comark-plugins/issues";
+          : "Check the table, or report it at https://github.com/onmax/comark-ui/issues";
         issues.push({
           rule: "comark/charts/draw-failed",
           message: `\`::chart\` ${number} couldn't be drawn (${error instanceof Error ? error.message : String(error)}), so it shows its table alone. ${fix}.`,
