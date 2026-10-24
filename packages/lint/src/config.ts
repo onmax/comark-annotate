@@ -80,7 +80,12 @@ const packages = [
     [],
   ],
   ["comark-cjk", () => import("comark-cjk").then((module) => ({ ...module, components: {} })), []],
-  ["comark-pele", () => import("comark-pele"), []],
+  [
+    "comark-pele",
+    // Pele renders SVG directly; it has no lint components to discover.
+    () => import("comark-pele").then((module) => ({ ...module, components: {} })),
+    [],
+  ],
   [
     "comark-diagrams/html",
     // Linting reads no drawings, so it sends no diagram to Kroki.
