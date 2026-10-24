@@ -324,6 +324,26 @@ describe("comark-annotate", () => {
     expect(Number(await shot("right"))).toBeGreaterThan(70);
   });
 
+  it("draws a line along the longer side of its box, through the middle", async () => {
+    const shot = (w: number, h: number) =>
+      run(
+        `::screenshot{src="a.png" alt="A"}\n:::annotation{x=10 y=10 w=${w} h=${h} mark="line"}\nThe fold.\n:::\n::`,
+      ).then(({ issues, html }) => {
+        expect(issues).toEqual([]);
+        const [, x, y] = /ca-mark ca-line"[^>]*><svg [^>]*><path d="M([\d.-]+) ([\d.-]+)Q/.exec(
+          html,
+        )!;
+        return [Number(x), Number(y)];
+      });
+    // The reference width is 420px: an 80% wide box is 336px across, and a 4% high one about 10px down.
+    const [x, y] = await shot(80, 4);
+    expect(Math.abs(x!)).toBeLessThan(2);
+    expect(Math.abs(y! - 5.25)).toBeLessThan(2);
+    const [down, along] = await shot(2, 80);
+    expect(Math.abs(down! - 4.2)).toBeLessThan(2);
+    expect(Math.abs(along!)).toBeLessThan(2);
+  });
+
   it("colors every mark without its own color in the figure's `ink`", async () => {
     const { issues, html } = await run(
       `::compare{ink="violet"}\n:::screenshot{src="a.png" alt="A"}\n::::annotation{x=10 y=10 w=10 h=10}\nInked.\n::::\n::::annotation{x=40 y=10 w=10 h=10 color="red"}\nOwn color.\n::::\n:::\n\n:::screenshot{src="b.png" alt="B" ink="#16a34a"}\n::::annotation{x=10 y=10 w=10 h=10}\nOwn ink.\n::::\n:::\n::`,

@@ -18,7 +18,7 @@ comark-charts draws the Markdown table inside `::chart` as an SVG chart and keep
 - Dates on x read as time when they look like `2026`, `2026-04`, `2026-04-15`, or an ISO date and time.
 - Inside the block, the table comes first, then any marks or Vega-Lite spec. Write explanations above or below the block.
 
-Props, all optional: `type` (below), `x` (the x column, default the first), `y` (the columns to draw, comma-separated, default all the others), and `title` (the caption and the chart's name for screen readers). Give every chart a `title` that says what it measures and in what unit.
+Props, all optional: `type` (below), `x` (the x column, default the first), `y` (the columns to draw, comma-separated, default all the others), `title` (the caption and the chart's name for screen readers), and `labels` (bar and stacked charts only: writes each value inside its bar or segment, or past the bar's end when it doesn't fit, as in `::chart{type="stacked" labels}`). Give every chart a `title` that says what it measures and in what unit.
 
 ## Choose the type
 
@@ -57,7 +57,15 @@ The new espresso machine arrives, and commits pass 700.
 ::
 ```
 
-The renderer finds the bar, point, or slice and draws the mark around it, so there is nothing to measure. Keep it to two or three marks a chart, with `side="top"` and `mark="none"` for the one point that matters most.
+For a target, budget, or limit, draw a line across the plot: `mark="line"` with `value`, a number on the value axis, and no `at`. The axis grows to reach it.
+
+```md
+:::annotation{mark="line" value="200" color="red" side="right"}
+The 200 ms budget.
+:::
+```
+
+`mark`, `color`, and `side` work as on screenshots: red for a problem, green for a fix, and `side="top"` with `mark="none"` for the one point that matters most. The renderer finds the bar, point, or slice and draws the mark around it, so there is nothing to measure. Keep it to two or three marks a chart.
 
 ## Preview
 
