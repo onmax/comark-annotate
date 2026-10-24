@@ -720,13 +720,16 @@ function duplicateIds(nodes: Node[], source: Source, headingIds?: HeadingIdsOpti
       const explicitId = /\s+\{#([^}]+)\}\s*$/.exec(heading[3]!)?.[1];
       const content = heading[3]!.replace(/\s+\{#[^}]+\}\s*$/, "");
       while (ancestors.at(-1) && ancestors.at(-1)!.level >= level) ancestors.pop();
-      const generated = slug(
-        headingIds === "nested" && level >= 3
-          ? [...ancestors.filter((item) => item.level >= 2).map((item) => item.text), content].join(
-              " ",
-            )
-          : content,
-      );
+      let headingText = content;
+      if (headingIds === "nested" && level >= 3) {
+        const parts: string[] = [];
+        for (const item of ancestors) {
+          if (item.level >= 2) parts.push(item.text);
+        }
+        parts.push(content);
+        headingText = parts.join(" ");
+      }
+      const generated = slug(headingText);
       // An explicit heading label is the parser's sole source for this ID when it
       // matches the generated slug; do not count that heading twice.
       if (generated === id && explicitId !== id)
