@@ -17,6 +17,7 @@ Plugins for review documents, built on [Comark](https://comark.dev). This is an 
 | [`comark-chips`](./packages/chips) | Links and `@user` mentions as chips with the site's favicon or the person's avatar, inlined while parsing. |
 | [`comark-cjk`](./packages/cjk) | Bold, italics, and strikethrough next to Chinese, Japanese, and Korean punctuation, as in `**この文は太字。**次の文`. |
 | [`comark-code`](./packages/code) | Copy and Wrap buttons on code blocks, and buttons of your own that hand the code to your app. |
+| [`comark-code-notes`](./packages/code-notes) | Numbered notes on lines of code: a `// <1>` marker in a fence links to the numbered list after it, and back. |
 | [`comark-colors`](./packages/colors) | A swatch next to inline code that holds a color, like GitLab, and `::palette` grids of named colors. |
 | [`comark-critic`](./packages/critic) | CriticMarkup: `{++insertions++}`, `{--deletions--}`, `{~~old~>new~~}`, highlights, and comments as native `<ins>`, `<del>`, and `<mark>`, shown, accepted, or rejected. |
 | [`comark-deflist`](./packages/deflist) | Definition lists: a term, then `: definition` lines, rendered as native `<dl>`, `<dt>`, and `<dd>`. |

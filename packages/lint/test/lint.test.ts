@@ -367,6 +367,10 @@ describe("comark/empty-link", () => {
       expect.objectContaining({ rule: "comark/empty-link", line: 3 }),
     ]);
   });
+
+  it("leaves a raw HTML link with an aria-label alone", async () => {
+    expect(await check(`See <a href="/census/" aria-label="The census"></a>.`)).toEqual([]);
+  });
 });
 
 describe("meta.issueRules", () => {

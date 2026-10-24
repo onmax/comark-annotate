@@ -24,6 +24,7 @@ const withoutExamples = new Set([
   "comark/table/read-failed",
   "comark/table/base-outside-root",
   "comark/xref/duplicate-label",
+  "comark/code-notes/shiki-order",
 ]);
 
 describe("Doctor pages", () => {

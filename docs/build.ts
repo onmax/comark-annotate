@@ -105,6 +105,7 @@ const packageOrder = [
   "file-tree",
   "fields",
   "badge",
+  "code-notes",
   "cards",
   "steps",
   "cjk",

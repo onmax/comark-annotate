@@ -12,6 +12,7 @@ import deflist from "../packages/deflist/src/index.ts";
 import figure from "../packages/figure/src/index.ts";
 import critic from "../packages/critic/src/index.ts";
 import diagrams, { components as diagramsComponents } from "../packages/diagrams/src/html.ts";
+import codeNotes, { components as codeNotesComponents } from "../packages/code-notes/src/html.ts";
 import diff, { components as diffComponents } from "../packages/diff/src/html.ts";
 import embed, { components as embedComponents } from "../packages/embed/src/html.ts";
 import footnotes from "../packages/footnotes/src/index.ts";
@@ -89,6 +90,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   xref(),
   zoom(config["comark-zoom"]),
   code(config["comark-code"]),
+  codeNotes(),
 ];
 
 export const components = {
@@ -96,6 +98,7 @@ export const components = {
   ...carouselComponents,
   ...castComponents,
   ...codeComponents,
+  ...codeNotesComponents,
   ...chartsComponents,
   ...chipsComponents,
   ...colorsComponents,

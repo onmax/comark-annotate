@@ -14,6 +14,7 @@ const packages = [
   ["comark-carousel/html", () => import("comark-carousel/html"), []],
   ["comark-cast/html", () => import("comark-cast/html"), []],
   ["comark-code/html", () => import("comark-code/html"), []],
+  ["comark-code-notes/html", () => import("comark-code-notes/html"), []],
   [
     "comark-charts/html",
     // Linting reads no drawings, so it loads no Vega.

@@ -7,6 +7,7 @@ import charts from "./charts.ts";
 import chips from "./chips.ts";
 import code from "./code.ts";
 import colors from "./colors.ts";
+import codeNotes from "./code-notes.ts";
 import core from "./core.ts";
 import details from "./details.ts";
 import critic from "./critic.ts";
@@ -57,6 +58,7 @@ export const catalog = {
   ...colors,
   ...diagrams,
   ...cast,
+  ...codeNotes,
   ...fields,
   ...metrics,
   ...fileTree,
