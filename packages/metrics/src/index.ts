@@ -232,7 +232,7 @@ function stats(node: ElementNode, name: string, data: Data, issues: Issue[]): No
   const tableFallback = (): ElementNode => [
     table[0],
     { ...table[1], class: "cmt-stats" },
-    ...table.slice(2),
+    ...(table.slice(2) as Node[]),
   ];
   if (content.length > 1)
     issues.push({
