@@ -76,7 +76,9 @@ export default defineComarkPlugin<ChartsOptions | void, ChartsMeta>((options) =>
         chart.title ||
         (spec
           ? `chart of ${chart.columns.join(", ")}`
-          : `${chart.type} chart of ${chart.series.join(", ")} by ${chart.x}`);
+          : chart.type === "gantt"
+            ? `gantt chart of ${chart.x}, from ${chart.series.join(" to ")}`
+            : `${chart.type} chart of ${chart.series.join(", ")} by ${chart.x}`);
       let drawn: Awaited<ReturnType<typeof draw>>;
       try {
         // Flint and Vega take hundreds of milliseconds to load, so a document with no chart never loads them.

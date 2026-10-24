@@ -30,6 +30,7 @@ It reports:
 - An x value that appears twice.
 - Content besides the table and its annotations.
 - Data that doesn't fit the type, such as a line or an area of one row, a scatter without numbers on x, a dumbbell with one column, a pie or a waterfall with several, and a pie with a negative number or nothing but zeros.
+- A gantt without one start and one end column, a row missing either, a bar that ends before it starts, and two columns of names to color by.
 
 Annotations are checked too: a missing or unknown `at`, a `series` the chart doesn't draw, a mark on an empty cell, and the mark, color, and side, as comark-annotate checks them on screenshots.
 
@@ -38,6 +39,7 @@ Rendering never throws. A chart with a problem draws what it can:
 - A cell that isn't a number is left out, and so is a mark the plugin can't place.
 - A type that doesn't fit falls back to the default.
 - A pie or a waterfall draws only its first column.
+- A gantt row without a start or an end isn't drawn, and a gantt colors by its first column of names.
 - A chart with nothing to draw shows its content as it is.
 
 [comark-linter](/lint/) reports the same issues with their line numbers. Each one has its own rule in [Doctor](/doctor/).

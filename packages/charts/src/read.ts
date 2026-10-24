@@ -11,7 +11,8 @@ export type ChartType =
   | "scatter"
   | "dumbbell"
   | "waterfall"
-  | "pie";
+  | "pie"
+  | "gantt";
 
 /** How the x values read: dates and numbers sit on a scale, anything else is a name. */
 export type XKind = "year" | "month" | "date" | "time" | "number" | "name";
@@ -25,9 +26,16 @@ export interface Chart {
   xKind: XKind;
   /** The headers of the columns drawn as series, in table order. */
   series: string[];
-  /** One row per table row: its x value and one number per series, or undefined for an empty or unreadable cell. */
-  rows: { x: string; values: (number | undefined)[] }[];
+  /**
+   * One row per table row: its x value and one number per series, or undefined for an empty or unreadable cell. A
+   * gantt's are its start and end, and its group when it has a column of them.
+   */
+  rows: { x: string; values: (number | undefined)[]; group?: string }[];
   marks: ChartMark[];
+  /** How a gantt's starts and ends read: numbers, or dates kept as milliseconds since 1970 in UTC. */
+  scale?: Exclude<XKind, "name">;
+  /** The column of names a gantt colors its bars by. */
+  group?: string;
 }
 
 /**
@@ -67,6 +75,7 @@ export const TYPES: readonly ChartType[] = [
   "dumbbell",
   "waterfall",
   "pie",
+  "gantt",
 ];
 const PROPS = new Set(["type", "x", "y", "title", "class", "id"]);
 const MARK_PROPS = new Set(["at", "series", "mark", "color", "side", "class", "id"]);
@@ -219,6 +228,8 @@ export function readChart(
     });
     return;
   }
+  if (text(attrs.type) === "gantt")
+    return readGantt(name, attrs, columns, cells, x, y ? named : undefined, annotations, issues);
 
   const rows = cells.map((row, index) => {
     const xValue = row[xIndex] ?? "";
@@ -311,6 +322,30 @@ export function readChart(
     });
     type = "bar";
   }
+  return {
+    type,
+    title: text(attrs.title),
+    x,
+    xKind,
+    series,
+    rows: points.map((row) => ({ x: row.x, values: row.values.slice(0, series.length) })),
+    marks: readMarks(name, x, annotations, points, series, issues),
+  };
+}
+
+/**
+ * Reads the annotations after a chart's table into marks on the rows they name. A gantt passes its `groups`, since
+ * it may repeat a task across them, and an annotation's `series` names the group rather than a column.
+ */
+function readMarks(
+  name: string,
+  x: string,
+  annotations: ElementNode[],
+  points: { x: string; blank: boolean[]; group?: string }[],
+  series: string[],
+  issues: Issue[],
+  groups?: { column?: string; names: string[] },
+): ChartMark[] {
   const marks: ChartMark[] = [];
   let stamp = 1;
   for (const [index, child] of annotations.entries()) {
@@ -321,41 +356,63 @@ export function readChart(
       if (!MARK_PROPS.has(key))
         found.push({
           rule: "comark/charts/unknown-prop",
-          message: `${code(key)} isn't a prop of an annotation in a chart. Point at a row with \`at\`, and a column with \`series\`.`,
+          message: `${code(key)} isn't a prop of an annotation in a chart. Point at a row with \`at\`, and ${groups ? "its group" : "a column"} with \`series\`.`,
         });
     const markProblems: Parameters<typeof readMark>[2] = [];
     const mark = readMark(child, markAttrs, markProblems);
     found.push(...markProblems);
     const at = text(markAttrs.at);
-    const row = points.findIndex((point) => point.x === at);
-    const sample = points
+    const seriesName = text(markAttrs.series);
+    const group = groups?.names.includes(seriesName) ? seriesName : undefined;
+    const among = points.flatMap((point, row) =>
+      group === undefined || point.group === group ? [{ ...point, row }] : [],
+    );
+    const matches = among.filter((point) => point.x === at);
+    const row = matches[0]?.row ?? -1;
+    const sample = among
       .slice(0, 3)
       .map((point) => code(point.x))
       .join(", ");
     if (!at)
       found.push({
         rule: "comark/charts/invalid-at",
-        message: `\`at\` is required: the ${code(x)} of the row it marks, one of ${sample}${points.length > 3 ? "…" : ""}.`,
+        message: `\`at\` is required: the ${code(x)} of the row it marks, one of ${sample}${among.length > 3 ? "…" : ""}.`,
       });
     else if (row === -1)
       found.push({
         rule: "comark/charts/invalid-at",
-        message: `\`at="${at}"\` isn't a ${code(x)} in the table. Copy it from the table, such as ${sample}.`,
+        message: `\`at="${at}"\` isn't a ${code(x)} ${group === undefined ? "in the table" : `of the ${code(group)} rows`}. Copy it from the table, such as ${sample}.`,
       });
-    const seriesName = text(markAttrs.series);
-    if (seriesName && !series.includes(seriesName))
+    else if (groups?.column && !seriesName && matches.length > 1)
+      found.push({
+        rule: "comark/charts/invalid-at",
+        message: `\`at="${at}"\` names a row in ${list(matches.map((point) => code(point.group ?? "")))}. Add \`series\` with the ${code(groups.column)} of the one it marks.`,
+      });
+    if (seriesName && groups && group === undefined)
+      found.push({
+        rule: "comark/charts/unknown-series",
+        message: groups.column
+          ? `\`series="${seriesName}"\` isn't a ${code(groups.column)} in the table. Use ${list(groups.names.map(code), "or")}, or leave it out.`
+          : `\`series\` names the group of the row a gantt annotation marks, and this table has no column of groups. Leave \`series\` out.`,
+      });
+    else if (seriesName && !groups && !series.includes(seriesName))
       found.push({
         rule: "comark/charts/unknown-series",
         message: `\`series="${seriesName}"\` isn't a column the chart draws. Use ${list(series.map(code), "or")}, or leave it out to mark the whole row.`,
       });
     const blank = points[row]?.blank;
-    const column = series.indexOf(seriesName);
-    if (blank && column !== -1 && blank[column])
+    const column = groups ? -1 : series.indexOf(seriesName);
+    if (blank && groups && blank.some(Boolean))
+      found.push({
+        rule: "comark/charts/marks-empty-cell",
+        message: `\`at="${at}"\` marks a row with no start or no end, so the mark isn't drawn. Fill in both, or mark another row.`,
+      });
+    else if (blank && column !== -1 && blank[column])
       found.push({
         rule: "comark/charts/marks-empty-cell",
         message: `\`at="${at}"\` marks an empty ${code(seriesName)} cell, so the mark isn't drawn. Fill in the cell, or mark another row.`,
       });
-    else if (blank && !seriesName && series.every((_, index) => blank[index]))
+    else if (blank && !groups && !seriesName && series.every((_, index) => blank[index]))
       found.push({
         rule: "comark/charts/marks-empty-cell",
         message: `\`at="${at}"\` marks a row with no numbers, so the mark isn't drawn. Fill in the row, or mark another one.`,
@@ -369,17 +426,162 @@ export function readChart(
       n: index + 1,
       number: mark.side ? undefined : stamp++,
       row,
-      series: series.includes(seriesName) ? seriesName : undefined,
+      series: !groups && series.includes(seriesName) ? seriesName : undefined,
     });
   }
+  return marks;
+}
+
+const dated = (cell: string) => KINDS.some(([, pattern]) => pattern.test(cell));
+
+/** Milliseconds since 1970 for a date as a table writes it, in UTC, so a chart reads the same wherever it's drawn. */
+function readDate(cell: string) {
+  if (!dated(cell)) return;
+  // Date.parse moves a day the month doesn't have, such as `2026-02-31`, into the next month.
+  const [year, month, day] = cell.slice(0, 10).split("-").map(Number);
+  if (day !== undefined && new Date(Date.UTC(year!, month! - 1, day)).getUTCDate() !== day) return;
+  // A time with no zone would read in the zone of the machine drawing the chart.
+  const iso = cell.replace(" ", "T");
+  const time = Date.parse(
+    /T.*(?:Z|[+-]\d{2}:?\d{2})$/.test(iso) || !iso.includes("T") ? iso : `${iso}Z`,
+  );
+  return Number.isNaN(time) ? undefined : time;
+}
+
+/**
+ * Reads a gantt's table: a bar per row from its start to its end, two columns of numbers or of dates, and a column of
+ * names, when there is one, that groups the bars by color.
+ */
+function readGantt(
+  name: string,
+  attrs: ElementNode[1],
+  columns: string[],
+  cells: string[][],
+  x: string,
+  named: string[] | undefined,
+  annotations: ElementNode[],
+  issues: Issue[],
+): Chart | undefined {
+  const cellsOf = (column: string) => cells.flatMap((row) => row[columns.indexOf(column)] || []);
+  // A column is of times when most of its cells are, so a typo in one is reported rather than taking the column.
+  const times = (column: string) => {
+    const filled = cellsOf(column);
+    return (
+      filled.filter((cell) => readNumber(cell) !== undefined || dated(cell)).length * 2 >=
+      filled.length
+    );
+  };
+  const others = columns.filter((column) => column !== x && !named?.includes(column));
+  const span = named ?? others.filter(times);
+  if (span.length !== 2) {
+    issues.push({
+      rule: "comark/charts/start-and-end",
+      message: named
+        ? `${name}: \`y\` names a gantt's start and end columns, and it names ${span.length === 1 ? "one" : span.length}, ${list(span.map(code))}. Name two, as in \`y="start, end"\`.`
+        : `${name}: a gantt draws each row from its start to its end, two columns of numbers or dates, and its table has ${span.length ? `${span.length === 1 ? "one" : span.length}, ${list(span.map(code))}` : "none"}. ${span.length > 2 ? 'Name the two with `y`, as in `y="start, end"`. To color the bars by one of the others, such as a shard, write it as names, like `shard 1`.' : "Add a column for where each row starts and one for where it ends."}`,
+    });
+    return;
+  }
+  // SAFETY: span holds exactly two columns, since every other length returned above.
+  const [startColumn, endColumn] = span as [string, string];
+  // Numbers and dates left out of `y`, such as a duration, are left out of the chart too.
+  const names = others.filter((column) => !span.includes(column) && !times(column));
+  if (names.length > 1)
+    issues.push({
+      rule: "comark/charts/too-many-groups",
+      message: `${name}: a gantt colors its bars by one column of names, and its table has ${list(names.map(code))}. Keep ${code(names[0]!)}, and move the others out of the table.`,
+    });
+  const group = names[0];
+
+  // Dates and numbers don't share an axis, so the starts and ends take the kind most of them are.
+  const filled = [...cellsOf(startColumn), ...cellsOf(endColumn)];
+  const kind = kindOf(filled);
+  const scale =
+    kind !== "name"
+      ? kind
+      : filled.filter((cell) => readNumber(cell) !== undefined).length > filled.filter(dated).length
+        ? "number"
+        : "time";
+  const read = (cell: string) => (scale === "number" ? readNumber(cell) : readDate(cell));
+  const example =
+    "Write every start and end as a number, such as `1.5` or `1,200`, or every one as a date, such as `2026-04-15` or `2026-04-15T09:30`.";
+
+  const rows = cells.map((row, index) => {
+    const xValue = row[columns.indexOf(x)] ?? "";
+    if (!xValue)
+      issues.push({
+        rule: "comark/charts/missing-x",
+        message: `${name}: row ${index + 1} has no ${code(x)}. Fill it in, or remove the row.`,
+      });
+    const blank = span.map((column) => !row[columns.indexOf(column)]);
+    const values = span.map((column) => {
+      const cell = row[columns.indexOf(column)] ?? "";
+      const value = cell ? read(cell) : undefined;
+      if (cell && value === undefined)
+        issues.push({
+          rule: "comark/charts/non-numeric-value",
+          message: `${name}: row ${index + 1} has ${code(cell)} in ${code(column)}, which isn't ${scale === "number" ? "a number" : "a date"} like the other starts and ends. ${example}`,
+        });
+      return value;
+    });
+    const missing = span.filter((_, column) => blank[column]);
+    if (xValue && missing.length)
+      issues.push({
+        rule: "comark/charts/start-and-end",
+        message: `${name}: row ${index + 1} has no ${list(missing.map(code), "or")}, so its bar isn't drawn. Fill ${missing.length > 1 ? "them" : "it"} in; for a milestone, give it the same ${code(endColumn)} as its ${code(startColumn)}.`,
+      });
+    const [start, end] = values;
+    const reversed = start !== undefined && end !== undefined && end < start;
+    if (reversed)
+      issues.push({
+        rule: "comark/charts/end-before-start",
+        message: `${name}: row ${index + 1} ends at ${code(row[columns.indexOf(endColumn)]!)}, before it starts at ${code(row[columns.indexOf(startColumn)]!)}. Swap them, or fix the ${code(endColumn)}.`,
+      });
+    return {
+      x: xValue,
+      // A bar that ends before it starts isn't drawn, as one with no end isn't.
+      values: reversed ? [undefined, undefined] : values,
+      blank,
+      ...(group !== undefined && { group: row[columns.indexOf(group)] ?? "" }),
+    };
+  });
+  const points = rows.filter((row) => row.x);
+  // A task may repeat in another group, such as the same step in two runs, but not within its own.
+  const firstOf = new Map<string, number>();
+  for (const [index, row] of rows.entries()) {
+    if (!row.x) continue;
+    const key = JSON.stringify([row.x, row.group]);
+    const first = firstOf.get(key);
+    if (first === undefined) firstOf.set(key, index);
+    else {
+      issues.push({
+        rule: "comark/charts/duplicate-x",
+        message: `${name}: rows ${first + 1} and ${index + 1} both have ${code(row.x)} in ${code(x)}${group === undefined ? "" : ` and ${code(row.group ?? "")} in ${code(group)}`}. Give each row its own ${code(x)}${group === undefined ? "" : ` within a ${code(group)}`}.`,
+      });
+      break;
+    }
+  }
+  const groups = [...new Set(points.map((row) => row.group ?? ""))];
+  const marks = readMarks(name, x, annotations, points, span, issues, {
+    column: group,
+    names: group === undefined ? [] : groups,
+  });
+  // With no bar to draw, the table shows as it is, as for any chart that can't be drawn.
+  if (!points.some(({ values: [start, end] }) => start !== undefined && end !== undefined)) return;
   return {
-    type,
+    type: "gantt",
     title: text(attrs.title),
     x,
-    xKind,
-    series,
-    rows: points.map((row) => ({ x: row.x, values: row.values.slice(0, series.length) })),
+    xKind: "name",
+    series: span,
+    rows: points.map(({ x, values, group }) => ({
+      x,
+      values,
+      ...(group !== undefined && { group }),
+    })),
     marks,
+    scale,
+    ...(group !== undefined && { group }),
   };
 }
 

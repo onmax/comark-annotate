@@ -1,4 +1,4 @@
-`series` marks one column's value in the row, and names a column the chart draws. With any other name the mark covers the whole row. Leave `series` out to mark the row on purpose.
+`series` marks one column's value in the row, and names a column the chart draws. With any other name the mark covers the whole row. Leave `series` out to mark the row on purpose. On a gantt, `series` names a value of the column that groups the bars instead.
 
 ::incorrect
 ```md

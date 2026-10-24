@@ -36,10 +36,33 @@ x values in the form `2026`, `2026-04`, `2026-04-15`, or an ISO date and time si
 | `dumbbell` | Before and after for several metrics. | Metric names, then two or more columns, such as `before` and `after`. |
 | `waterfall` | How changes add up to a total. | The starting total, then each change, negative for a drop, then the end total, all in one column. |
 | `pie` | Shares of one whole. | Names, then one column of numbers that aren't negative. |
+| `gantt` | Steps or tasks over time, such as a build, a deploy, or a plan. | One row per bar: its name, then where it starts and where it ends, as numbers or dates. See [Gantts](#gantts). |
 
 Bars turn sideways when their labels are long or there are many of them, so file paths and test names stay whole.
 
 In a waterfall, the first row is a total, and so is the last when it equals the running sum. The other rows are changes, green up and red down.
+
+## Gantts
+
+```md
+::chart{type="gantt" title="nuxt build, before and after the worker (s)"}
+| step | run | start | end |
+| --- | --- | --: | --: |
+| compile client | before | 0 | 3.7 |
+| compile server | before | 3.7 | 7.8 |
+| compile client | after | 0 | 3.7 |
+| compile server | after | 0.2 | 4.6 |
+| ready | after | 4.6 | 4.6 |
+::
+```
+
+A gantt draws one bar per row, top to bottom in table order. The first column names the bar, and two columns of numbers or of dates say where it starts and where it ends. When the table has other numbers too, such as a duration, name the two with `y`, as in `y="start, end"`.
+
+A column of names, such as a phase, an owner, or a run, colors the bars, one color per name, with a legend over the chart. A task may then repeat in another group, like the same step in two runs. A column of numbers reads as times, so write numbered groups as names, like `shard 1`.
+
+A row that ends where it starts is a milestone, and draws as a diamond. Every other bar prints how long it lasts past its end. For numbers that's the difference, and for dates it's a span in the table's unit, such as `3y`, `2mo`, `7d`, or `1.5h`.
+
+Dates take the forms x does: `2026`, `2026-04`, `2026-04-15`, or an ISO date and time. A time without a zone is UTC, and the axis shows UTC, so the chart reads the same wherever it's drawn.
 
 ::examples
 :::example{label="Sideways bars"}
@@ -171,7 +194,7 @@ Bought in bulk after the Tuesday incident.
 | Prop | What it does |
 | --- | --- |
 | `at` | Required. The x value of the row to mark, copied from the table. |
-| `series` | The column to mark in that row. Without it, the mark covers every series in the row. |
+| `series` | The column to mark in that row. Without it, the mark covers every series in the row. On a gantt, it names the group of the bar instead, for a task that repeats across groups. |
 | `mark`, `color`, `side` | As on a [screenshot](/annotate/components/annotation/): `box`, `circle`, `underline`, `highlight`, `cross`, `check`, or `none`; a named or hex color; and `left`, `right`, or `top` for a side note with an arrow. |
 
 The renderer finds the shape it draws for that value, such as a bar, a point, a slice, or a step, and draws the mark around it. Marks stay on their data when the numbers change.

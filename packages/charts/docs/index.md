@@ -91,6 +91,20 @@ The playground opens the editor right away, so it stays slow.
 ```
 :::
 
+:::example{label="Gantt"}
+```md
+::chart{type="gantt" title="A Friday deploy, minutes after 16:55"}
+| step | start | end |
+| --- | --: | --: |
+| tests | 0 | 6 |
+| build | 6 | 11 |
+| deploy | 11 | 13 |
+| it's live | 13 | 13 |
+| rollback | 21 | 24 |
+::
+```
+:::
+
 :::example{label="Waterfall"}
 ```md
 ::chart{type="waterfall" title="Rubber ducks in the office this quarter"}

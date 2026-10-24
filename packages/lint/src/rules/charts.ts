@@ -98,4 +98,16 @@ export default {
     code: "COMARK0427",
     title: "Write a Vega-Lite spec that Vega-Lite can draw",
   },
+  "comark/charts/start-and-end": {
+    code: "COMARK0428",
+    title: "Give every row of a gantt a start and an end",
+  },
+  "comark/charts/end-before-start": {
+    code: "COMARK0429",
+    title: "End every bar of a gantt after it starts",
+  },
+  "comark/charts/too-many-groups": {
+    code: "COMARK0430",
+    title: "Color a gantt by one column of names",
+  },
 } satisfies Record<`comark/charts/${string}`, RuleInfo>;
