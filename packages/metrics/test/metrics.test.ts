@@ -104,7 +104,7 @@ describe("comark-metrics", () => {
     const markdown =
       "::stats{tiles}\n| Metric | Before | After |\n| --- | --- | --- |\n| Good | 10 | 8 |\n| Missing | 7 |\n::";
     const html = await render(markdown);
-    expect(html).toContain("<table>");
+    expect(html).toContain('<table class="cmt-stats">');
     expect(html).toContain("<td>Missing</td>");
     expect(html).toContain("<td>7</td>");
     expect(html).not.toContain("cmt-tiles");
