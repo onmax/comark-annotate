@@ -1,6 +1,7 @@
 ---
 title: comark-metrics
 description: Before and after numbers, progress, and tables of metrics, written in Markdown.
+keywords: KPI, stats, statistics, numbers, delta, change, percent, progress bar, performance, benchmark, bundle size, comparison table
 tagline: Write two numbers and get the arrow, the percent change, and whether it's better or worse. Wrap a table of befores and afters and get its change column.
 install: pnpm add comark @comark/html comark-metrics
 group: Review blocks

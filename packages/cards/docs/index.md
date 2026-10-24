@@ -1,6 +1,7 @@
 ---
 title: comark-cards
 description: Cards, link cards, and columns, written in Markdown.
+keywords: card grid, grid, layout, tiles, see also, next steps
 tagline: Point readers to the next page with link cards, and set blocks side by side in columns. Nuxt UI's syntax, with no script.
 install: pnpm add comark @comark/html comark-cards
 group: Docs blocks

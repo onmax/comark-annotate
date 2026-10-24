@@ -1,6 +1,7 @@
 ---
 title: comark-cjk
 description: Bold and italics that work next to Chinese, Japanese, and Korean punctuation.
+keywords: Chinese, Japanese, Korean, East Asian, emphasis, bold, italic, punctuation, CommonMark
 tagline: Bold and italics that end in 。 or 」 right before the next word, where CommonMark leaves the asterisks on the page.
 install: pnpm add comark comark-cjk
 group: Markdown syntax

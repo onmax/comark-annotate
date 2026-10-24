@@ -1,6 +1,7 @@
 ---
 title: comark-github
 description: GitHub's alerts, references, and raw HTML, rendered as on GitHub.
+keywords: callout, alert, admonition, note, tip, important, warning, caution, GFM, GitHub Flavored Markdown, issue links, mentions, raw HTML, sanitize, blockquote
 tagline: Write > [!NOTE], @user, #123, and <sub> as on GitHub, and get the same page anywhere.
 install: pnpm add comark @comark/html comark-github
 group: Review blocks
