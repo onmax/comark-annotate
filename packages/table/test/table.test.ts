@@ -113,7 +113,7 @@ describe("comark-table", () => {
     const invalidCell = await render(
       "| a | b |\n| - | - |\n| [row]{tone=success} | [bad]{tone=red} |",
     );
-    expect(invalidCell).not.toContain("background-color:color-mix");
+    expect(invalidCell).toContain("<td>bad</td>");
   });
 
   it("reads files through `read`, relative to `base`", async () => {
