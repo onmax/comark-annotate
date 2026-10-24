@@ -5,10 +5,11 @@ import { iconHtml, iconStyles } from "comark-icon/html";
 import { external, rel } from "./client.ts";
 import { css } from "./styles.ts";
 
-export { colors, default } from "./index.ts";
+export { colors, default, variants } from "./index.ts";
 export type {
   CardAttributes,
   CardColor,
+  CardVariant,
   CardsMeta,
   CardsOptions,
   ColumnsAttributes,
@@ -42,7 +43,7 @@ const card: NodeHandler = async (node, state) => {
     ? `<svg class="ccr-external" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${external}"></path></svg>`
     : "";
   return (
-    `${styles(state)}${attrs.icon ? iconStyles(state) : ""}<div class="ccr" data-color="${attr(attrs.color ?? "primary")}">` +
+    `${styles(state)}${attrs.icon ? iconStyles(state) : ""}<div class="ccr" data-color="${attr(attrs.color ?? "primary")}"${attrs.variant ? ` data-variant="${attr(attrs.variant)}"` : ""}>` +
     `${link}${icon}${arrow}${await state.flow(node, state)}</div>`
   );
 };
