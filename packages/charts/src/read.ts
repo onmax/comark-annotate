@@ -434,19 +434,12 @@ function readMarks(
 
 const dated = (cell: string) => KINDS.some(([, pattern]) => pattern.test(cell));
 
-function validDateParts(cell: string) {
-  const match = /^(\d{4})(?:-(\d{2})(?:-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?(?:Z|[+-]\d{2}:?\d{2})?)?)?)?$/.exec(cell);
-  if (!match) return false;
-  const [, year, month, day, hour, minute, second] = match;
-  if (month === undefined) return true;
-  const max = new Date(Date.UTC(Number(year), Number(month), 0)).getUTCDate();
-  if (Number(month) < 1 || Number(month) > 12 || (day !== undefined && (Number(day) < 1 || Number(day) > max))) return false;
-  return hour === undefined || (Number(hour) < 24 && Number(minute) < 60 && (second === undefined || Number(second) < 60));
-}
-
 /** Milliseconds since 1970 for a date as a table writes it, in UTC, so a chart reads the same wherever it's drawn. */
 function readDate(cell: string) {
-  if (!dated(cell) || !validDateParts(cell)) return;
+  if (!dated(cell)) return;
+  // Date.parse moves a day the month doesn't have, such as `2026-02-31`, into the next month.
+  const [year, month, day] = cell.slice(0, 10).split("-").map(Number);
+  if (day !== undefined && new Date(Date.UTC(year!, month! - 1, day)).getUTCDate() !== day) return;
   // A time with no zone would read in the zone of the machine drawing the chart.
   const iso = cell.replace(" ", "T");
   const time = Date.parse(
@@ -479,29 +472,20 @@ function readGantt(
     );
   };
   const others = columns.filter((column) => column !== x && !named?.includes(column));
-  const inferred = others.filter(times);
-  const span = named ?? (inferred.length > 2
-    ? (() => {
-        const starts = inferred.find((column) => /^(start|begin|from)$/i.test(column));
-        const ends = inferred.find((column) => /^(end|finish|to)$/i.test(column));
-        return starts && ends ? [starts, ends] : inferred.slice(-2);
-      })()
-    : inferred);
+  const span = named ?? others.filter(times);
   if (span.length !== 2) {
     issues.push({
       rule: "comark/charts/start-and-end",
       message: named
         ? `${name}: \`y\` names a gantt's start and end columns, and it names ${span.length === 1 ? "one" : span.length}, ${list(span.map(code))}. Name two, as in \`y="start, end"\`.`
-        : `${name}: a gantt draws each row from its start to its end, two columns of numbers or dates, and its table has ${span.length ? `${span.length === 1 ? "one" : span.length}, ${list(span.map(code))}` : "none"}. ${span.length > 2 ? 'Name the two with `y`, as in `y="start, end"`.' : "Add a column for where each row starts and one for where it ends."}`,
+        : `${name}: a gantt draws each row from its start to its end, two columns of numbers or dates, and its table has ${span.length ? `${span.length === 1 ? "one" : span.length}, ${list(span.map(code))}` : "none"}. ${span.length > 2 ? 'Name the two with `y`, as in `y="start, end"`. To color the bars by one of the others, such as a shard, write it as names, like `shard 1`.' : "Add a column for where each row starts and one for where it ends."}`,
     });
     return;
   }
   // SAFETY: span holds exactly two columns, since every other length returned above.
   const [startColumn, endColumn] = span as [string, string];
   // Numbers and dates left out of `y`, such as a duration, are left out of the chart too.
-  // Any extra inferred time column is a grouping column too; this keeps numeric names such as run IDs distinct
-  // from the two endpoint columns selected above.
-  const names = others.filter((column) => !span.includes(column) && (!times(column) || inferred.includes(column)));
+  const names = others.filter((column) => !span.includes(column) && !times(column));
   if (names.length > 1)
     issues.push({
       rule: "comark/charts/too-many-groups",
@@ -547,14 +531,16 @@ function readGantt(
         message: `${name}: row ${index + 1} has no ${list(missing.map(code), "or")}, so its bar isn't drawn. Fill ${missing.length > 1 ? "them" : "it"} in; for a milestone, give it the same ${code(endColumn)} as its ${code(startColumn)}.`,
       });
     const [start, end] = values;
-    if (start !== undefined && end !== undefined && end < start)
+    const reversed = start !== undefined && end !== undefined && end < start;
+    if (reversed)
       issues.push({
         rule: "comark/charts/end-before-start",
         message: `${name}: row ${index + 1} ends at ${code(row[columns.indexOf(endColumn)]!)}, before it starts at ${code(row[columns.indexOf(startColumn)]!)}. Swap them, or fix the ${code(endColumn)}.`,
       });
     return {
       x: xValue,
-      values,
+      // A bar that ends before it starts isn't drawn, as one with no end isn't.
+      values: reversed ? [undefined, undefined] : values,
       blank,
       ...(group !== undefined && { group: row[columns.indexOf(group)] ?? "" }),
     };
@@ -576,6 +562,12 @@ function readGantt(
     }
   }
   const groups = [...new Set(points.map((row) => row.group ?? ""))];
+  const marks = readMarks(name, x, annotations, points, span, issues, {
+    column: group,
+    names: group === undefined ? [] : groups,
+  });
+  // With no bar to draw, the table shows as it is, as for any chart that can't be drawn.
+  if (!points.some(({ values: [start, end] }) => start !== undefined && end !== undefined)) return;
   return {
     type: "gantt",
     title: text(attrs.title),
@@ -587,10 +579,7 @@ function readGantt(
       values,
       ...(group !== undefined && { group }),
     })),
-    marks: readMarks(name, x, annotations, points, span, issues, {
-      column: group,
-      names: group === undefined ? [] : groups,
-    }),
+    marks,
     scale,
     ...(group !== undefined && { group }),
   };

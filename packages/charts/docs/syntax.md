@@ -58,7 +58,7 @@ In a waterfall, the first row is a total, and so is the last when it equals the 
 
 A gantt draws one bar per row, top to bottom in table order. The first column names the bar, and two columns of numbers or of dates say where it starts and where it ends. When the table has other numbers too, such as a duration, name the two with `y`, as in `y="start, end"`.
 
-A column of names, such as a phase, an owner, or a run, colors the bars, one color per name, with a legend over the chart. A task may then repeat in another group, like the same step in two runs.
+A column of names, such as a phase, an owner, or a run, colors the bars, one color per name, with a legend over the chart. A task may then repeat in another group, like the same step in two runs. A column of numbers reads as times, so write numbered groups as names, like `shard 1`.
 
 A row that ends where it starts is a milestone, and draws as a diamond. Every other bar prints how long it lasts past its end. For numbers that's the difference, and for dates it's a span in the table's unit, such as `3y`, `2mo`, `7d`, or `1.5h`.
 

@@ -648,8 +648,10 @@ function timeTicks(low: number, high: number, width: number, kind: XKind) {
     if (labels) return { values, labels };
   }
   const values = [low, high];
-  const fallbackUnit: Unit = kind === "year" ? "year" : kind === "month" ? "month" : "day";
-  return { values, labels: values.map((value, index) => label(value, values[index - 1], fallbackUnit)) };
+  // Too narrow for any step: the ends alone, still in the table's unit.
+  const unit: Unit =
+    kind === "year" ? "year" : kind === "month" ? "month" : kind === "time" ? "minute" : "day";
+  return { values, labels: values.map((value, index) => label(value, values[index - 1], unit)) };
 }
 
 /**
@@ -664,7 +666,7 @@ function gantt(chart: Chart, spec: TopLevelSpec) {
   if (!x || !y || !("field" in x) || !("field" in y)) return;
   const number = chart.scale === "number";
   const spans = chart.rows.flatMap(({ values: [start, end] }) =>
-    start === undefined || end === undefined || end < start ? [] : [{ start, end }],
+    start === undefined || end === undefined ? [] : [{ start, end }],
   );
   if (!spans.length) return;
   const width = Number(spec.config?.view?.continuousWidth) || layout(chart).width;

@@ -552,6 +552,14 @@ ${sizes.trim()}
     const year = await render(years);
     expect(durations(year)).toEqual(["3y", "3y"]);
     expect(axes(year).ticks).toEqual(["2024", "2025", "2026", "2027", "2028"]);
+    // Too short a span for three ticks keeps its ends in the table's unit.
+    const short = await render(
+      chart(
+        `| version | release | end of life |\n| --- | --- | --- |\n| Node 25 | 2025 | 2026 |`,
+        '{type="gantt"}',
+      ),
+    );
+    expect(axes(short).ticks).toEqual(["2025", "2026"]);
     // A time with no zone is UTC, whichever zone draws it.
     const zone = process.env.TZ;
     process.env.TZ = "Pacific/Kiritimati";
@@ -614,20 +622,33 @@ No such run.
 | build | before | ci | 1 | 2 |`,
         '{type="gantt"}',
       ),
+      chart(
+        `| step | start | end |\n| --- | --- | --- |\n| plan | 2026-02-30 | 2026-03-02 |\n| ship | 2026-03-02 | 2026-03-09 |`,
+        '{type="gantt"}',
+      ),
+      chart(
+        `| step | start | end |\n| --- | --- | --- |\n| deploy | 2026-10-24 | 2026-10-20 |`,
+        '{type="gantt"}',
+      ),
     ].join("\n\n");
     expect(await issues(markdown)).toEqual([
       "`::chart` 1: a gantt draws each row from its start to its end, two columns of numbers or dates, and its table has one, `took`. Add a column for where each row starts and one for where it ends.",
-      '`::chart` 2: a gantt draws each row from its start to its end, two columns of numbers or dates, and its table has 3, `start`, `end` and `took`. Name the two with `y`, as in `y="start, end"`.',
+      '`::chart` 2: a gantt draws each row from its start to its end, two columns of numbers or dates, and its table has 3, `start`, `end` and `took`. Name the two with `y`, as in `y="start, end"`. To color the bars by one of the others, such as a shard, write it as names, like `shard 1`.',
       '`::chart` 3: `y` names a gantt\'s start and end columns, and it names one, `end`. Name two, as in `y="start, end"`.',
       "`::chart` 4: a gantt colors its bars by one column of names, and its table has `run` and `owner`. Keep `run`, and move the others out of the table.",
       "`::chart` 4: row 2 has `soon` in `end`, which isn't a number like the other starts and ends. Write every start and end as a number, such as `1.5` or `1,200`, or every one as a date, such as `2026-04-15` or `2026-04-15T09:30`.",
       "`::chart` 4: row 3 has no `end`, so its bar isn't drawn. Fill it in; for a milestone, give it the same `end` as its `start`.",
       "`::chart` 4: row 4 ends at `6`, before it starts at `9`. Swap them, or fix the `end`.",
       "`::chart` 4: rows 1 and 5 both have `build` in `step` and `before` in `run`. Give each row its own `step` within a `run`.",
+      // Date.parse alone would read February 30 as March 2.
+      "`::chart` 5: row 1 has `2026-02-30` in `start`, which isn't a date like the other starts and ends. Write every start and end as a number, such as `1.5` or `1,200`, or every one as a date, such as `2026-04-15` or `2026-04-15T09:30`.",
+      "`::chart` 6: row 1 ends at `2026-10-20`, before it starts at `2026-10-24`. Swap them, or fix the `end`.",
     ]);
-    // Without a start and an end there's nothing to draw, and the rest still draw.
+    // Without a start and an end there's nothing to draw, and the rest still draw. A bar that ends before it starts
+    // isn't drawn either, so a chart of only that one shows its table.
     const html = await render(markdown);
-    expect(html.match(/<svg role="img"/g)).toHaveLength(1);
+    expect(html.match(/<svg role="img"/g)).toHaveLength(2);
+    expect(html).toContain("<td>deploy</td>");
     expect(
       await issues(
         chart(
