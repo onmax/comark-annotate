@@ -110,6 +110,10 @@ describe("comark-table", () => {
     const html = await render("| a |\n| - |\n| [3]{tone=red} |");
     expect(html).not.toContain("background-color");
     expect(html).toContain("3");
+    const invalidCell = await render(
+      '| a | b |\n| - | - |\n| [row]{tone=success} | [bad]{tone=red} |',
+    );
+    expect(invalidCell).not.toContain("background-color:color-mix");
   });
 
   it("reads files through `read`, relative to `base`", async () => {

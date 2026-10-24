@@ -266,24 +266,27 @@ function color(table: ElementNode, name: string, issues: Issue[]) {
         const [only] = content;
         const filling = content.length === 1 && only && isTone(only) ? only : undefined;
         let found: Tone | undefined;
+        let invalid = false;
         for (const span of takeTones(cell)) {
           const tone = text(span[1].tone);
-          if (span !== filling)
+          if (span !== filling) {
+            invalid = true;
             issues.push({
               rule: "comark/table/partial-tone",
               message: `${where}: the \`tone\` span "[${textOf(span)}]" doesn't fill its cell, so the cell isn't colored. Put the whole cell in the brackets, as \`[${textOf(cell)}]{tone="${tone}"}\`, or drop \`{tone}\`.`,
             });
-          else if (!isKnownTone(tone))
+          } else if (!isKnownTone(tone)) {
+            invalid = true;
             issues.push({
               rule: "comark/table/unknown-tone",
               message: `${where}: "${tone}" isn't a tone, so the cell isn't colored. Use \`success\`, \`warning\`, \`error\`, or \`info\`.`,
             });
-          else found = tone;
+          } else found = tone;
         }
-        return found;
+        return invalid ? null : found;
       });
       cells.forEach((cell, column) => {
-        const tone = tones[column] ?? tones[0];
+        const tone = tones[column] === undefined ? tones[0] : tones[column];
         if (!tone) return;
         const tint = `background-color:color-mix(in srgb,${TONES[tone]} 20%,transparent)`;
         cell[1] = { ...cell[1], style: [text(cell[1].style), tint].filter(Boolean).join(";") };
