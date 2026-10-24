@@ -59,6 +59,7 @@ const packages = [
   ],
   ["comark-diff/html", () => import("comark-diff/html"), []],
   ["comark-icon/html", () => import("comark-icon/html"), []],
+  ["comark-properties/html", () => import("comark-properties/html"), []],
   [
     "comark-links/html",
     // Neither of its plugins makes blocks, so either one will do.

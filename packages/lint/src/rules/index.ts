@@ -19,6 +19,7 @@ import include from "./include.ts";
 import media from "./media.ts";
 import outline from "./outline.ts";
 import qr from "./qr.ts";
+import properties from "./properties.ts";
 import steps from "./steps.ts";
 import tabs from "./tabs.ts";
 import type { RuleInfo } from "./types.ts";
@@ -50,4 +51,5 @@ export const catalog = {
   ...fileTree,
   ...details,
   ...critic,
+  ...properties,
 } satisfies Record<string, RuleInfo>;

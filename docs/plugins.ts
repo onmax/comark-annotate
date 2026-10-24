@@ -21,6 +21,7 @@ import icon, { components as iconComponents } from "../packages/icon/src/html.ts
 import mark from "../packages/mark/src/index.ts";
 import { anchors, components as linksComponents, external } from "../packages/links/src/html.ts";
 import media, { components as mediaComponents } from "../packages/media/src/html.ts";
+import properties, { components as propertiesComponents } from "../packages/properties/src/html.ts";
 import steps, { components as stepsComponents } from "../packages/steps/src/html.ts";
 import cards, { components as cardsComponents } from "../packages/cards/src/html.ts";
 import badge, { components as badgeComponents } from "../packages/badge/src/html.ts";
@@ -57,6 +58,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   anchors(config["comark-links"]?.anchors),
   fileTree(),
   fields(),
+  properties(),
   badge(),
   media(),
   cards(),
@@ -85,6 +87,7 @@ export const components = {
   ...linksComponents,
   ...fileTreeComponents,
   ...fieldsComponents,
+  ...propertiesComponents,
   ...badgeComponents,
   ...mediaComponents,
   ...cardsComponents,

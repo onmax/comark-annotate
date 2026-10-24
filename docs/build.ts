@@ -86,6 +86,7 @@ const packageOrder = [
   "embed",
   "media",
   "github",
+  "properties",
   "icon",
   "qr",
   "links",
