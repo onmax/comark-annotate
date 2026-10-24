@@ -110,6 +110,7 @@ const packageOrder = [
   "code-notes",
   "cards",
   "steps",
+  "quiz",
   "cjk",
   "figure",
   "mark",
