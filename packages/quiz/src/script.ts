@@ -431,8 +431,9 @@ export function script(config: ScriptConfig): void {
       kind === "poll"
         ? !!el.querySelector(":scope>.cqz-options") && !!el.querySelector(":scope>.cqz-footer")
         : kind === "recall"
-          ? !!el.querySelector(":scope>.cqz-actions") && !!el.querySelector(":scope>.cqz-disclosure .cqz-answer")
-          : !!el.querySelector(":scope>.cqz-options");
+          ? !!el.querySelector(":scope>.cqz-actions") &&
+            !!el.querySelector(":scope>.cqz-disclosure .cqz-answer")
+          : !!el.querySelector(":scope>.cqz-options") && !!el.querySelector(":scope>.cqz-actions");
     if (!el.querySelector(":scope>template.cqz-end") && !complete) return;
     let written: unknown;
     try {
@@ -485,8 +486,7 @@ export function script(config: ScriptConfig): void {
   }
 
   const scan = (node: ParentNode) => {
-    if (node instanceof HTMLElement && node.matches(".cqz[data-quiz-id]"))
-      setup(node);
+    if (node instanceof HTMLElement && node.matches(".cqz[data-quiz-id]")) setup(node);
     for (const el of $$(node, ".cqz[data-quiz-id]")) setup(el);
   };
   scan(document);
