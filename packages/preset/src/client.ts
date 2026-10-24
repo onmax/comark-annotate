@@ -15,11 +15,11 @@ const series = [
 /**
  * comark-pele's diagrams on the shared `--comark-*` tokens, on a card like comark-diagrams'. Pele paints with its
  * `--pele-*` variables, so setting them on the wrapper themes every diagram, light and dark, without drawing it
- * again. The rules sit in the `comark` layer, so any unlayered rule of the host's wins, `--pele-*` ones included.
+ * again. The rules sit in the `comark` layer, so host `--pele-*` values are preserved and win over these fallbacks.
  */
 export const mermaidCss = `@layer comark{${[
   theme(".pele-diagram"),
-  `:where(.pele-diagram){--pele-bg:var(--_comark-background);--pele-fg:var(--_comark-foreground);--pele-muted:var(--_comark-muted);--pele-line:var(--_comark-muted);--pele-surface:var(--_comark-accent);--pele-surface-alt:color-mix(in srgb,var(--_comark-accent),var(--_comark-foreground) 6%);--pele-border:var(--_comark-ring);--pele-accent:var(--ui-primary,var(--primary,var(--_comark-foreground)));--pele-critical:var(--ui-error,var(--destructive,#dc2626));--pele-error:var(--ui-error,var(--destructive,#dc2626));--pele-font:var(--_comark-font);--pele-radius:calc(var(--_comark-radius) - 4px);${series.map((hex, index) => `--pele-series-${index + 1}:var(--comark-chart-${index + 1},var(--chart-${index + 1},${hex}))`).join(";")}}`,
+  `:where(.pele-diagram){--pele-bg:var(--pele-bg,var(--_comark-background));--pele-fg:var(--pele-fg,var(--_comark-foreground));--pele-muted:var(--pele-muted,var(--_comark-muted));--pele-line:var(--pele-line,var(--_comark-muted));--pele-surface:var(--pele-surface,var(--_comark-accent));--pele-surface-alt:var(--pele-surface-alt,color-mix(in srgb,var(--_comark-accent),var(--_comark-foreground) 6%));--pele-border:var(--pele-border,var(--_comark-border));--pele-accent:var(--pele-accent,var(--ui-primary,var(--primary,var(--_comark-foreground))));--pele-critical:var(--pele-critical,var(--ui-error,var(--destructive,#dc2626)));--pele-error:var(--pele-error,var(--ui-error,var(--destructive,#dc2626)));--pele-font:var(--pele-font,var(--_comark-font));--pele-radius:var(--pele-radius,calc(var(--_comark-radius) - 4px));${series.map((hex, index) => `--pele-series-${index + 1}:var(--pele-series-${index + 1},var(--comark-chart-${index + 1},var(--chart-${index + 1},${hex})))`).join(";")}}`,
   ".pele-diagram{margin:1.5rem 0;padding:1rem;overflow-x:auto;border:1px solid var(--_comark-border);border-radius:var(--_comark-radius);background:var(--_comark-background);color:var(--_comark-foreground);text-align:center}",
   ".pele-source{margin:0;color:var(--_comark-muted);text-align:left}",
   "@media print{.pele-diagram{break-inside:avoid}}",

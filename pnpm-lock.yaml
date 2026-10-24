@@ -1077,6 +1077,9 @@ importers:
       comark-outline:
         specifier: workspace:*
         version: link:../outline
+      comark-pele:
+        specifier: 'catalog:'
+        version: 1.1.0(comark@0.8.1(shiki@4.5.0))(react@19.3.1)(svelte@5.57.2(@typescript-eslint/types@8.71.1))(vue@3.5.44(typescript@6.0.3))
       comark-properties:
         specifier: workspace:*
         version: link:../properties
