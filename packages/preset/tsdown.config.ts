@@ -6,6 +6,6 @@ export default definePackage({
   // own agents bundles the one that matches the plugins it installed.
   copy: [
     { from: "src/svelte", to: "dist" },
-    { from: "../../skills/comark-plugins", to: "dist/skills" },
+    { from: "../../skills/comark-ui", to: "dist/skills" },
   ],
 });

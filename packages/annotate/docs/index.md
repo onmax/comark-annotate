@@ -1,6 +1,7 @@
 ---
 title: comark-annotate
 description: Hand-drawn marks, numbered notes, and arrows on screenshots, written in Markdown.
+keywords: image annotation, markup, highlight, circle, underline, box, pin, before and after, side by side, compare, PR evidence, visual review, bug report, design review, AnnotationKit
 tagline: Mark up screenshots in Markdown with hand-drawn marks, numbered notes, arrows, and before/after comparisons.
 install: pnpm add comark @comark/html comark-annotate
 group: Review blocks

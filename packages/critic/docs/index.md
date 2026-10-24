@@ -1,6 +1,7 @@
 ---
 title: comark-critic
 description: CriticMarkup in Markdown, shown as native ins, del, and mark, or accepted or rejected.
+keywords: track changes, suggestions, suggest edits, redline, insertions, deletions, comments, proofreading
 tagline: Suggest an edit right in the text, comment on a phrase, and render the page with the changes shown, accepted, or rejected.
 install: pnpm add comark comark-critic
 group: Markdown syntax

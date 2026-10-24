@@ -24,20 +24,20 @@ const attrsOf = async (markdown: string) => {
 describe("comark-qr", () => {
   it("draws a QR code as an inline SVG path, and inlines the styles once", async () => {
     const html = await render(
-      'Scan :qr{value="https://comark.onmax.me"} or :qr{value="https://example.com/a&b"}',
+      'Scan :qr{value="https://comark-ui.onmax.me"} or :qr{value="https://example.com/a&b"}',
     );
     expect(html.match(/<style data-comark-qr>/g)).toHaveLength(1);
     expect(html.replace(/<style[^>]*>.*?<\/style>/, "")).toMatch(
-      /Scan <span class="cqr" role="img" aria-label="QR code: https:\/\/comark\.onmax\.me"><svg viewBox="0 0 (\d+) \1" width="128" height="128" aria-hidden="true"><path d="M[\d hHvMz]+" fill="currentColor"><\/path><\/svg><\/span>/,
+      /Scan <span class="cqr" role="img" aria-label="QR code: https:\/\/comark-ui\.onmax\.me"><svg viewBox="0 0 (\d+) \1" width="128" height="128" aria-hidden="true"><path d="M[\d hHvMz]+" fill="currentColor"><\/path><\/svg><\/span>/,
     );
     expect(html).toContain('aria-label="QR code: https://example.com/a&amp;b"');
   });
 
   it("encodes the same modules as uqr, with a two-module quiet zone", async () => {
-    const attrs = await attrsOf(':qr{value="https://comark.onmax.me"}');
+    const attrs = await attrsOf(':qr{value="https://comark-ui.onmax.me"}');
     // uqr draws each dark module as its own 10-unit square; the plugin joins each row's runs into one.
     const squares = [
-      ...renderSVG("https://comark.onmax.me", { border: 2, ecc: "M" }).matchAll(
+      ...renderSVG("https://comark-ui.onmax.me", { border: 2, ecc: "M" }).matchAll(
         /M(\d+),(\d+)h10v10h-10z/g,
       ),
     ];
@@ -47,7 +47,7 @@ describe("comark-qr", () => {
       for (let n = 0; n < Number(length); n++) drawn.add(`${Number(x) + n},${y}`);
     expect(dark.size).toBeGreaterThan(100);
     expect(drawn).toEqual(dark);
-    expect(attrs).toMatchObject({ value: "https://comark.onmax.me", size: 29 });
+    expect(attrs).toMatchObject({ value: "https://comark-ui.onmax.me", size: 29 });
   });
 
   it("reports each problem, naming the block and the fix, and renders nothing for it", async () => {

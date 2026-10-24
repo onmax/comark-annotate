@@ -1,6 +1,7 @@
 ---
 title: comark-chips
 description: Links and @mentions as chips with the site's favicon or the person's avatar, written in Markdown.
+keywords: mention, avatar, favicon, link preview, user, GitHub user, pill, inline link, unavatar
 tagline: Write a link or an @user as usual and get a chip with its favicon or avatar, downloaded while parsing so readers ask no one.
 install: pnpm add comark @comark/html comark-chips
 group: Review blocks

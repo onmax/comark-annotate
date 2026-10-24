@@ -1,6 +1,7 @@
 ---
 title: "@onmax/comark"
-description: Every comark-plugins package in one install.
+description: Every comark-ui package in one install.
+keywords: all plugins, every plugin, bundle, kit, starter, one import
 tagline: onmax's preset, like @antfu/eslint-config for Comark. One import registers every plugin in the order they need, and each release brings their latest defaults.
 install: pnpm add comark @comark/html @onmax/comark
 group: Comark plugins
@@ -80,7 +81,7 @@ Pele adds about 260 KB gzipped to a bundle, so turn it off when a bundle size li
 
 ## Agents
 
-The package ships the comark-plugins agent skill. [Agents](/guide/agents/) shows how to install it, or bundle it in an app so it always matches the plugins the app installed.
+The package ships the comark-ui agent skill. [Agents](/guide/agents/) shows how to install it, or bundle it in an app so it always matches the plugins the app installed.
 
 ## Versions
 

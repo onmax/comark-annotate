@@ -357,6 +357,23 @@ kbd {
   font-size: 0.75rem;
 }
 
+.search-results p {
+  display: -webkit-box;
+  margin: 0.125rem 0 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.search-results mark {
+  background: none;
+  color: var(--fg);
+  font-weight: 600;
+}
+
 /* Phones have no Escape key, so they get a Cancel button in its place. */
 .search-close {
   display: none;
@@ -870,7 +887,8 @@ kbd {
     .cdt,
     .cdt-accordion,
     .ctr,
-    .cfm
+    .cfm,
+    .cqz
   ):only-child {
   margin: 0;
   padding: 0;
@@ -3305,6 +3323,7 @@ dl:not([class]) > dd > :last-child {
     .cdt-accordion,
     .ctr,
     .cfm,
+    .cqz,
     .cm-video,
     video.cm,
     .cn-notes
@@ -3339,6 +3358,7 @@ dl:not([class]) > dd > :last-child {
       .cdt-accordion,
       .ctr,
       .cfm,
+      .cqz,
       .cm-video,
       video.cm,
       .cn-notes
@@ -3373,6 +3393,7 @@ dl:not([class]) > dd > :last-child {
         .cdt-accordion,
         .ctr,
         .cfm,
+        .cqz,
         .cm-video,
         video.cm,
         .cn-notes
@@ -3404,6 +3425,7 @@ dl:not([class]) > dd > :last-child {
       .cdt-accordion,
       .ctr,
       .cfm,
+      .cqz,
       .cm-video,
       video.cm,
       .cn-notes
@@ -3430,6 +3452,7 @@ dl:not([class]) > dd > :last-child {
       .cdt-accordion,
       .ctr,
       .cfm,
+      .cqz,
       .cm-video,
       video.cm,
       .cn-notes

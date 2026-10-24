@@ -41,8 +41,8 @@ describe.each(folders)("packages/%s", (folder) => {
       license: "MIT",
       author: "onmax",
       type: "module",
-      homepage: `https://comark.onmax.me/${folder}`,
-      bugs: "https://github.com/onmax/comark-plugins/issues",
+      homepage: `https://comark-ui.onmax.me/${folder}`,
+      bugs: "https://github.com/onmax/comark-ui/issues",
       repository: { directory: `packages/${folder}` },
       engines: { node: ">=22.12.0" },
     });
@@ -77,7 +77,7 @@ describe.each(folders)("packages/%s", (folder) => {
   // Agents write most documents, and they learn a package from the skill rather than the site. Hosts whose agents only
   // write Markdown, such as Drop, cut each reference at its Register section, so it comes last.
   it("has a reference in the agent skill, linked from SKILL.md, that ends with Register", () => {
-    const skill = "skills/comark-plugins/";
+    const skill = "skills/comark-ui/";
     expect(existsSync(new URL(`${skill}references/${folder}.md`, repo))).toBe(true);
     expect(read(`${skill}SKILL.md`)).toContain(`](references/${folder}.md)`);
     const reference = read(`${skill}references/${folder}.md`);

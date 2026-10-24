@@ -1,6 +1,7 @@
 ---
 title: comark-charts
 description: Charts from a Markdown table, drawn to SVG with no script.
+keywords: graph, plot, bar chart, line chart, pie chart, scatter plot, area chart, gantt, timeline, roadmap, schedule, benchmark, data visualization, dataviz, Vega
 tagline: Write a table and get a chart drawn to SVG, with no script. The table stays under it, so people see the chart and agents read the numbers.
 install: pnpm add comark @comark/html comark-charts
 group: Review blocks

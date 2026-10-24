@@ -1,6 +1,7 @@
 ---
 title: comark-embed
 description: Videos, audio, and live code from a link, written in Markdown.
+keywords: YouTube, Vimeo, Loom, Spotify, CodePen, StackBlitz, Figma, video, iframe, player, oEmbed, live code
 tagline: Paste a YouTube, Vimeo, Loom, Spotify, CodePen, StackBlitz, or Figma link and get its player, with the link under it. Nothing is fetched.
 install: pnpm add comark @comark/html comark-embed
 group: Review blocks

@@ -1,6 +1,7 @@
 ---
 title: comark-reading-time
 description: How long a document takes to read, counted while parsing.
+keywords: read time, minutes to read, word count, reading speed, estimated time
 tagline: Get a document's word count and reading time in its meta, with code blocks left out and Chinese, Japanese, and Korean counted by character.
 install: pnpm add comark comark-reading-time
 group: Authoring tools

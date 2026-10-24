@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://comark.onmax.me/og/readme-banner.png" alt="comark plugins: review documents, written in Markdown" width="100%">
+  <img src="https://comark-ui.onmax.me/og/readme-banner.png" alt="comark ui: review documents, written in Markdown" width="100%">
 </p>
 
-# comark-plugins
+# comark-ui
 
 Plugins for review documents, built on [Comark](https://comark.dev). This is an independent project by [@onmax](https://github.com/onmax), not made by the Comark team. Each package is published on its own and all of them share one version.
 
@@ -43,6 +43,7 @@ Plugins for review documents, built on [Comark](https://comark.dev). This is an 
 | [`comark-table`](./packages/table) | Tables from CSV, TSV, and JSON files or fences, read while parsing, with copy buttons and headers that sort. |
 | [`comark-steps`](./packages/steps) | Numbered steps from the headings of a tutorial or a numbered list, in Nuxt UI's `::steps` syntax, with no script. |
 | [`comark-qr`](./packages/qr) | QR codes drawn as inline SVG while parsing, for opening a preview link on a phone. |
+| [`comark-quiz`](./packages/quiz) | Questions, polls, and recall cards for lessons: check an answer and see why each option is right or wrong, vote, or test yourself. They read without a script, and a host can save answers and show everyone's. |
 | [`comark-reading-time`](./packages/reading-time) | A document's word count and reading time in `meta.readingTime`, with code blocks left out and CJK counted by character. |
 | [`comark-tabs`](./packages/tabs) | Tabs and code groups that switch together across the page, and read without a script. |
 | [`comark-outline`](./packages/outline) | A table of contents in the body of a page: `::toc` becomes a nested list of links to its headings. |
@@ -51,11 +52,11 @@ Plugins for review documents, built on [Comark](https://comark.dev). This is an 
 | [`comark-zoom`](./packages/zoom) | Zoom images and any block like medium-zoom, with Escape, Back, and click-outside to close. |
 | [`@onmax/comark`](./packages/preset) | onmax's preset: every package above in one install, like `@antfu/eslint-config`. |
 
-Docs and live demos: [comark.onmax.me](https://comark.onmax.me).
+Docs and live demos: [comark-ui.onmax.me](https://comark-ui.onmax.me).
 
 ## Agents
 
-[`skills/comark-plugins`](./skills/comark-plugins) teaches an agent every package, with a reference per package. Install it with `npx skills add onmax/comark-plugins`, or bundle it in an app from `@onmax/comark/skills/comark-plugins/`.
+[`skills/comark-ui`](./skills/comark-ui) teaches an agent every package, with a reference per package. Install it with `npx skills add onmax/comark-ui`, or bundle it in an app from `@onmax/comark/skills/comark-ui/`.
 
 ## Develop
 

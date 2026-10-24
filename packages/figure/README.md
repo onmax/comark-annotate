@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-figure)](https://npmx.dev/package/comark-figure)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-figure)](https://npmx.dev/package/comark-figure)
 [![license](https://npmx.dev/api/registry/badge/license/comark-figure)](https://npmx.dev/package/comark-figure)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/figure/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/figure/)
 
 Image captions in [Comark](https://comark.dev): an image alone in its paragraph with a title, `![alt](src "Caption")`, becomes a native `<figure>` with the title as its `<figcaption>`. A parse plugin with no components and no styles, so it works in any renderer.
 
@@ -36,7 +36,7 @@ The caption comes from the title only, so the alt text stays on the image for sc
 
 Images in list items, blockquotes, and definitions become figures too. When a `::component` holds nothing but the image, Comark's tree can't be told apart from an inline component's, so that image is left alone.
 
-With [comark-zoom](https://comark.onmax.me/zoom/), the image inside a figure still zooms, in either plugin order.
+With [comark-zoom](https://comark-ui.onmax.me/zoom/), the image inside a figure still zooms, in either plugin order.
 
 ## Options
 

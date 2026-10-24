@@ -1,6 +1,7 @@
 ---
 title: comark-qr
 description: QR codes drawn while parsing, written in Markdown.
+keywords: QR code, qrcode, barcode, phone, mobile preview, scan
 tagline: Put a QR code next to a preview link so a reviewer can open it on their phone. It's an SVG drawn while parsing, with no script and no image to fetch.
 install: pnpm add comark @comark/html comark-qr
 group: Review blocks
@@ -12,7 +13,7 @@ credits: 'Encoded with <a href="https://antfu.me">Anthony Fu</a>''s <a href="htt
 ::examples
 :::example{label="Preview link"}
 ```md
-Open the preview on your phone: :qr{value="https://comark.onmax.me/qr/"}
+Open the preview on your phone: :qr{value="https://comark-ui.onmax.me/qr/"}
 ```
 :::
 ::

@@ -8,7 +8,7 @@ comark-github renders three parts of GitHub's Markdown as GitHub does: `> [!NOTE
 > [!WARNING] Breaking change
 > `render(markdown)` is gone. Create a renderer once with `createHtmlRenderer()` and reuse it.
 
-Thanks @onmax: this fixes #51, and onmax/comark-plugins#73 builds on it.
+Thanks @onmax: this fixes #51, and onmax/comark-ui#73 builds on it.
 
 <details>
 <summary>Test output</summary>

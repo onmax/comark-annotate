@@ -24,6 +24,7 @@ import * as metrics from "comark-metrics/html";
 import * as outline from "comark-outline/html";
 import * as properties from "comark-properties/html";
 import * as qr from "comark-qr/html";
+import * as quiz from "comark-quiz/html";
 import * as sources from "comark-sources/html";
 import * as steps from "comark-steps/html";
 import * as table from "comark-table/html";
@@ -81,6 +82,7 @@ export default (options?: PresetOptions): Preset<NodeHandler> =>
       outline,
       properties,
       qr,
+      quiz,
       sources,
       steps,
       table,

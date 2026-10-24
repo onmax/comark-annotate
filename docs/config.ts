@@ -24,7 +24,7 @@ const defaults: Required<PlayConfig> = {
         caution: "Caution",
       },
     },
-    references: { repo: "onmax/comark-plugins" },
+    references: { repo: "onmax/comark-ui" },
   },
   "comark-links": {
     external: { target: false, rel: [], hosts: [] },
