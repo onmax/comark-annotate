@@ -511,6 +511,7 @@ export function script(config: ScriptConfig): void {
     for (const record of records)
       for (const node of record.addedNodes) {
         if (!(node instanceof Element)) continue;
+        // SAFETY: the selector branches return the quiz root element or null.
         const root = (
           node.matches(".cqz[data-quiz-id]")
             ? node
