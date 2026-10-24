@@ -49,6 +49,7 @@ Plugins for review documents, built on [Comark](https://comark.dev). This is an 
 | [`comark-tests`](./packages/tests) | Test results from a JUnit XML report: pass, fail, and skip counts, the duration, and each failure with its stack. |
 | [`comark-xref`](./packages/xref) | Numbered figures and tables, and `:ref{#fig-x}` references that read "Figure 1". |
 | [`comark-zoom`](./packages/zoom) | Zoom images and any block like medium-zoom, with Escape, Back, and click-outside to close. |
+| [`@onmax/comark`](./packages/preset) | onmax's preset: every package above in one install, like `@antfu/eslint-config`. |
 
 Docs and live demos: [comark.onmax.me](https://comark.onmax.me).
 
