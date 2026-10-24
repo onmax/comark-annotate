@@ -257,13 +257,15 @@ function stats(node: ElementNode, name: string, data: Data, issues: Issue[]): No
   }
   const needs = columns === 3 ? "3: a name, a before, and an after value" : "2: a name and a value";
   const grid: Node[] = [];
+  let malformedRow = false;
   if (!tiles) header?.push(["th", {}, "Change"]);
   for (const row of body ? elements(body, "tr") : []) {
     const cells = elements(row, "td");
     if (cells.length !== columns) {
+      malformedRow = true;
       issues.push({
         rule: "comark/metrics/column-count",
-        message: `${name}: row has ${cells.length} columns, but needs ${needs}. ${tiles ? "Fix the row, since it's left out of the tiles." : "Fix the row so no authored cells are lost."}`,
+        message: `${name}: row has ${cells.length} columns, but needs ${needs}. ${tiles ? "Fix the row, since the table is shown instead of tiles." : "Fix the row so no authored cells are lost."}`,
       });
       continue;
     }
@@ -300,7 +302,7 @@ function stats(node: ElementNode, name: string, data: Data, issues: Issue[]): No
     if (cell.change) tile.push(["dd", {}, ["delta", { ...cell }]]);
     grid.push(tile);
   }
-  if (tiles) return [STATS_TILES_TAG, {}, ...grid];
+  if (tiles) return malformedRow ? table : [STATS_TILES_TAG, {}, ...grid];
   table[1] = { ...table[1], class: "cmt-stats" };
   return table;
 }

@@ -100,6 +100,19 @@ describe("comark-metrics", () => {
     ]);
   });
 
+  it("keeps malformed tile rows visible in the table fallback", async () => {
+    const markdown =
+      "::stats{tiles}\n| Metric | Before | After |\n| --- | --- | --- |\n| Good | 10 | 8 |\n| Missing | 7 |\n::";
+    const html = await render(markdown);
+    expect(html).toContain('<table>');
+    expect(html).toContain("<td>Missing</td>");
+    expect(html).toContain("<td>7</td>");
+    expect(html).not.toContain("cmt-tiles");
+    expect(await issues(markdown)).toEqual([
+      "`::stats` 1: row has 2 columns, but needs 3: a name, a before, and an after value. Fix the row, since the table is shown instead of tiles.",
+    ]);
+  });
+
   it("reports what it can't read", async () => {
     expect(await issues(':delta{from="big" to=3}')).toEqual([
       '`:delta` 1: `from="big"` isn\'t a number. Write the number alone and the unit in `unit`, such as `from=412 unit="kB"`.',
