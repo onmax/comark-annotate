@@ -266,6 +266,11 @@ describe("issues", () => {
       "`::poll` 2 (`#p`) has the same id as `::poll` 1 (`#p`)",
     ],
     [
+      "duplicate-id",
+      "::poll\nPick.\n\n- [ ] A\n- [ ] B\n::\n\n::poll\nPick.\n\n- [ ] A\n- [ ] B\n::",
+      "`::poll` 2 has the same id as `::poll` 1",
+    ],
+    [
       "longest-correct",
       "::question{#q}\nWhat does `await` do?\n\n- [x] It pauses the async function until the promise settles, then resumes it with the value\n- [ ] It blocks\n  > No.\n- [ ] It throws\n  > No.\n::",
       "`::question` 1 (`#q`): the right option",

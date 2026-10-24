@@ -344,7 +344,7 @@ function quiz(node: ElementNode, kind: Kind, walk: Walk): string {
   // Hosts keep answers by id across versions of a document, so an id never depends on where the block sits, even
   // when two blocks share one.
   const first = walk.ids.get(id);
-  if (first && written)
+  if (first)
     walk.issues.push({
       rule: "comark/quiz/duplicate-id",
       message: `${name} has the same id as ${first}, so their answers mix. Give each block its own id.`,

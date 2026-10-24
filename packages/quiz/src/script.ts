@@ -204,15 +204,18 @@ export function script(config: ScriptConfig): void {
       );
       const message =
         result === "correct"
-          ? `${icons.yes}<span>${labels.correct}</span>`
-          : result === "incorrect"
-            ? `${icons.no}<span>${labels.notQuite}</span>`
+          ? `${icons.yes}<span class="cqz-status-label"></span>`
+        : result === "incorrect"
+            ? `${icons.no}<span class="cqz-status-label"></span>`
             : result === "revealed"
               ? `<span class="cqz-sr"></span>`
               : "";
-      if (status.dataset.message !== message + texts.join()) {
-        status.dataset.message = message + texts.join();
+      const label = result === "correct" ? labels.correct : result === "incorrect" ? labels.notQuite : "";
+      if (status.dataset.message !== message + label + texts.join()) {
+        status.dataset.message = message + label + texts.join();
         status.innerHTML = message;
+        const statusLabel = $(status, ".cqz-status-label");
+        if (statusLabel) statusLabel.textContent = label;
         const hidden = $(status, ".cqz-sr");
         if (hidden) hidden.textContent = `${labels.correctAnswer}: ${texts.join("; ")}`;
       }

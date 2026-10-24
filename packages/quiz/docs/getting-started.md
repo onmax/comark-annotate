@@ -8,12 +8,21 @@ install: pnpm add comark @comark/html comark-quiz
 
 Register the plugin and pass the renderer's `components`:
 
+::usage
+```ts
+import { createHtmlRenderer } from "@comark/html";
+import onmax from "@onmax/comark/html";
+
+const render = createHtmlRenderer(onmax());
+```
+
 ```ts
 import { createHtmlRenderer } from "@comark/html";
 import quiz, { components } from "comark-quiz/html";
 
 const render = createHtmlRenderer({ plugins: [quiz()], components });
 ```
+::
 
 The renderer inlines the styles and a small script once per document. Only the HTML renderer exists: the blocks need the script to check answers, so Vue, React, and Svelte versions would each carry it again. [Renderers](/guide/renderers/) covers using it with other plugins.
 
