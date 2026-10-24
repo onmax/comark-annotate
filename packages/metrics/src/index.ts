@@ -229,6 +229,11 @@ function stats(node: ElementNode, name: string, data: Data, issues: Issue[]): No
     });
     return ["div", {}];
   }
+  const tableFallback = (): ElementNode => [
+    table[0],
+    { ...table[1], class: "cmt-stats" },
+    ...table.slice(2),
+  ];
   if (content.length > 1)
     issues.push({
       rule: "comark/metrics/content-dropped",
@@ -253,8 +258,7 @@ function stats(node: ElementNode, name: string, data: Data, issues: Issue[]): No
             : "Add the missing columns."
       }`,
     });
-    table[1] = { ...table[1], class: "cmt-stats" };
-    return table;
+    return tableFallback();
   }
   const needs = columns === 3 ? "3: a name, a before, and an after value" : "2: a name and a value";
   const grid: Node[] = [];
@@ -305,13 +309,11 @@ function stats(node: ElementNode, name: string, data: Data, issues: Issue[]): No
   }
   if (tiles) {
     if (malformedRow) {
-      table[1] = { ...table[1], class: "cmt-stats" };
-      return table;
+      return tableFallback();
     }
     return [STATS_TILES_TAG, {}, ...grid];
   }
-  table[1] = { ...table[1], class: "cmt-stats" };
-  return table;
+  return tableFallback();
 }
 
 /**
