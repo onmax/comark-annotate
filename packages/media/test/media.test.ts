@@ -12,6 +12,16 @@ const attachment =
   "https://github.com/user-attachments/assets/2f3c0e3e-1c4b-4c3a-9a6b-0b1e2f3a4b5c";
 
 describe("comark-media", () => {
+  it("names each issue's rule in meta.issueRules", async () => {
+    const { meta } = await parseMarkdown('![](demo.mp4)\n\n![Roof](roof.mp3){poster="roof.png"}', {
+      plugins: [media()],
+    });
+    expect(Object.values(meta.issueRules)).toEqual([
+      "comark/media/missing-label",
+      "comark/media/poster-on-audio",
+    ]);
+  });
+
   it("plays a video with its alt as the label, and inlines the styles once", async () => {
     const html = await render(
       "![Signing in with a passkey](./login.mp4)\n\n![Checkout](https://cdn.test/a.webm?v=2)",

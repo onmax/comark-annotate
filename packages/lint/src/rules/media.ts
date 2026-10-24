@@ -1,10 +1,19 @@
 import type { RuleInfo } from "./types.ts";
 
-// comark-media's issues, COMARK1501 on.
+// comark-media's issues, COMARK3901 on.
 export default {
-  "comark/media/invalid-src": { code: "COMARK1501", title: "Use a playable media file extension" },
-  "comark/media/missing-label": { code: "COMARK1502", title: "Describe every media file" },
-  "comark/media/audio-poster": { code: "COMARK1503", title: "Remove `poster` from audio" },
-  "comark/media/autoplay-unmuted": { code: "COMARK1504", title: "Mute media that autoplays" },
-  "comark/media/unknown-prop": { code: "COMARK1505", title: "Use only media options" },
+  "comark/media/unplayable-src": {
+    code: "COMARK3901",
+    title: "Link a video or audio file a browser plays",
+  },
+  "comark/media/missing-label": {
+    code: "COMARK3902",
+    title: "Describe every video and audio file",
+  },
+  "comark/media/poster-on-audio": { code: "COMARK3903", title: "Keep `poster` off audio" },
+  "comark/media/autoplay-without-muted": {
+    code: "COMARK3904",
+    title: "Mute a file that plays by itself",
+  },
+  "comark/media/unknown-prop": { code: "COMARK3905", title: "Use only a media file's options" },
 } satisfies Record<`comark/media/${string}`, RuleInfo>;
