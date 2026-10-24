@@ -26,6 +26,7 @@
     "comark-zoom": "workspace:*",
     "geist": "catalog:",
     "nuxt": "^4.6.2",
+    "nuxt-agent-discovery": "catalog:",
     "shiki": "catalog:",
     "vue": "catalog:"
   },

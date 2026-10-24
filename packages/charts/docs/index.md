@@ -139,6 +139,7 @@ Put one table between `::chart` and `::`, with a header row, then one row per ba
 | `x` | The column along the x axis. Default the first. |
 | `y` | The columns to draw, separated by commas. Default every column but `x`. |
 | `title` | The chart's caption, and its name for screen readers. |
+| `labels` | Writes each value on its bar. See [Values on the bars](#values-on-the-bars). |
 
 Cells hold plain numbers, with commas between thousands if you like, such as `1,200`. Put units in the header or the title, such as `size (kB)`.
 
@@ -161,6 +162,23 @@ x values in the form `2026`, `2026-04`, `2026-04-15`, or an ISO date and time si
 Bars turn sideways when their labels are long or there are many of them, so file paths and test names stay whole.
 
 In a waterfall, the first row is a total, and so is the last when it equals the running sum. The other rows are changes, green up and red down.
+
+### Values on the bars
+
+```md
+::chart{type="stacked" labels title="Standup by topic (min)"}
+| day | work | weekend | pigeons |
+| --- | --: | --: | --: |
+| Monday | 4 | 11 | 2 |
+| Friday | 2 | 14 | 7 |
+::
+```
+
+Without `labels`, bars print their values past their ends when there's room, and crowded bars, stacked bars, and bars with negative numbers print none. With `labels`, every bar and segment writes its value inside itself, in white. A bar too short or too thin for its value writes it just past its end instead. The value axis goes, since every value is on the chart.
+
+A stack has one end, so its first series, drawn at the end, is the only part that writes its value past it. A thinner part elsewhere in the stack, or a value that would cover another bar's, leaves its value to the **Data** table.
+
+`labels` applies to `bar` and `stacked` charts. Other types have no bars to write on, or print their numbers already: a dumbbell its ends, a waterfall each step, and a gantt each duration. The plugin reports it there.
 
 ### Gantts
 
@@ -212,12 +230,27 @@ Dates take the forms x does: `2026`, `2026-04`, `2026-04-15`, or an ISO date and
 
 :::example{label="Stacked bars"}
 ```md
-::chart{type="stacked" title="Standup by topic (min)"}
+::chart{type="stacked" labels title="Standup by topic (min)"}
 | day | work | weekend | pigeons |
 | --- | --: | --: | --: |
 | Monday | 4 | 11 | 2 |
 | Wednesday | 6 | 1 | 3 |
 | Friday | 2 | 14 | 7 |
+::
+```
+:::
+
+:::example{label="Target line"}
+```md
+::chart{labels title="Minutes to the first review comment"}
+| team | minutes |
+| --- | --: |
+| frontend | 38 |
+| backend | 64 |
+| design | 12 |
+:::annotation{mark="line" value="45" color="red" side="right"}
+Team goal: 45 min.
+:::
 ::
 ```
 :::
@@ -313,13 +346,35 @@ Bought in bulk after the Tuesday incident.
 
 | Prop | What it does |
 | --- | --- |
-| `at` | Required. The x value of the row to mark, copied from the table. |
+| `at` | The x value of the row to mark, copied from the table. Required, except on a line. |
 | `series` | The column to mark in that row. Without it, the mark covers every series in the row. On a gantt, it names the group of the bar instead, for a task that repeats across groups. |
-| `mark`, `color`, `side` | As on a [screenshot](/annotate/components/annotation/): `box`, `circle`, `underline`, `highlight`, `cross`, `check`, or `none`; a named or hex color; and `left`, `right`, or `top` for a side note with an arrow. |
+| `value` | With `mark="line"`, the number on the value axis the line crosses at. See [Lines](#lines). |
+| `mark`, `color`, `side` | As on a [screenshot](/annotate/components/annotation/): `box`, `circle`, `underline`, `line`, `highlight`, `bracket`, `cross`, `check`, or `none`; a named or hex color; and `left`, `right`, or `top` for a side note with an arrow. |
 
 The renderer finds the shape it draws for that value, such as a bar, a point, a slice, or a step, and draws the mark around it. Marks stay on their data when the numbers change.
 
 Notes are numbered under the chart, as under a screenshot, and a marked chart zooms like a screenshot. comark-annotate comes with comark-charts, and checks the marks the same way.
+
+### Lines
+
+Draw a target, a budget, or a limit as a line across the plot: an `::annotation` with `mark="line"`, and `value`, the number on the value axis where it crosses, written as the table writes its numbers.
+
+```md
+::chart{title="p95 per endpoint (ms)"}
+| endpoint | p95 |
+| --- | --: |
+| /search | 410 |
+| /login | 61 |
+| /feed | 140 |
+:::annotation{mark="line" value="200" color="red" side="right"}
+The 200 ms budget.
+:::
+::
+```
+
+The line runs across an upright chart and down a sideways one, wherever its values run. The value axis grows to reach a value past the data, so a target nobody has met yet still shows. Its note is numbered under the chart, or sits in the margin with `side`, like any other mark's.
+
+A line crosses every row and series, so it takes no `at` or `series`. Pies and gantts have no value axis, so the plugin reports a line on them. On a [screenshot](/annotate/components/annotation/), `line` draws a straight stroke through the middle of its box, along its longer side.
 
 ## Examples
 
@@ -352,7 +407,7 @@ It reports:
 - Data that doesn't fit the type, such as a line or an area of one row, a scatter without numbers on x, a dumbbell with one column, a pie or a waterfall with several, and a pie with a negative number or nothing but zeros.
 - A gantt without one start and one end column, a row missing either, a bar that ends before it starts, and two columns of names to color by.
 
-Annotations are checked too: a missing or unknown `at`, a `series` the chart doesn't draw, a mark on an empty cell, and the mark, color, and side, as comark-annotate checks them on screenshots.
+Annotations are checked too: a missing or unknown `at`, a `series` the chart doesn't draw, a mark on an empty cell, a line without a number in `value` or on a chart without a value axis, and the mark, color, and side, as comark-annotate checks them on screenshots.
 
 Rendering never throws. A chart with a problem draws what it can:
 
@@ -411,7 +466,7 @@ const render = createHtmlRenderer({ plugins: [charts()], components });
 
 [Flint](https://github.com/microsoft/flint-chart) and [Vega](https://vega.github.io) draw each chart while parsing, on the server or at build time, so the browser runs no chart code. The package installs both. Vue, React, and Svelte have renderers too, as [Renderers](#renderers) shows.
 
-The package ships an agent skill with the table shape for each chart type and how to check the result. Agents install it with `npx skills add https://comark.onmax.me --skill comark-charts`. Agents read charts without the skill: in the Markdown and in the page, each chart's data is a table.
+The comark-plugins agent skill knows the table shape for each chart type and how to check the result. Agents install it with `npx skills add onmax/comark-plugins`. Agents read charts without the skill: in the Markdown and in the page, each chart's data is a table.
 
 ## Theme
 

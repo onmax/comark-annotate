@@ -22,8 +22,7 @@
     "directory": "packages/charts"
   },
   "files": [
-    "dist",
-    "skills"
+    "dist"
   ],
   "type": "module",
   "main": "./dist/index.mjs",
@@ -41,8 +40,7 @@
       "default": "./dist/svelte/index.js"
     },
     "./vue": "./dist/vue.mjs",
-    "./package.json": "./package.json",
-    "./skills/*": "./skills/*"
+    "./package.json": "./package.json"
   },
   "publishConfig": {
     "access": "public",

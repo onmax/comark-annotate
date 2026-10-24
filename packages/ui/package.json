@@ -34,7 +34,8 @@
       "default": "./dist/svelte/index.js"
     },
     "./vue": "./dist/vue.mjs",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./skills/*": "./dist/skills/*"
   },
   "publishConfig": {
     "access": "public",

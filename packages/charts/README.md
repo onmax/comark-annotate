@@ -58,4 +58,4 @@ The page holds a `figure.cch` with the title, the SVG, and the table folded into
 
 Only `@comark/html` has a renderer: Vega draws on the server, and a framework component would ship it to the browser.
 
-The package ships an agent skill in `skills/comark-charts`; install it with `npx skills add https://comark.onmax.me`, or bundle it in your own app from `comark-charts/skills/comark-charts/SKILL.md`.
+The comark-plugins agent skill covers charts; install it with `npx skills add onmax/comark-plugins`, or bundle it in your own app from `comark-ui/skills/comark-plugins/`.

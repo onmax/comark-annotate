@@ -308,7 +308,7 @@ No such column.
 :::
 ::`;
     expect(await issues(markdown)).toEqual([
-      "`::chart` 1, annotation 1: `x` isn't a prop of an annotation in a chart. Point at a row with `at`, and a column with `series`.",
+      '`::chart` 1, annotation 1: `x` isn\'t a prop of an annotation in a chart. Point at a row with `at`, and a column with `series`, or cross the plot with `mark="line"` at a number with `value`.',
       '`::chart` 1, annotation 1: `at="2026-13"` isn\'t a `month` in the table. Copy it from the table, such as `2026-04`, `2026-05`, `2026-06`.',
       '`::chart` 1, annotation 2: `series="during"` isn\'t a column the chart draws. Use `before` or `after`, or leave it out to mark the whole row.',
       "`::chart` 1, annotation 3: write a note explaining what the mark points at.",
@@ -397,7 +397,7 @@ ${sizes.trim()}
       chart(months, '{type="waterfall"}'),
     ].join("\n\n");
     expect(await issues(markdown)).toEqual([
-      "`::chart` 1: `colour` isn't a prop of `::chart`. Valid props: type, x, y, title.",
+      "`::chart` 1: `colour` isn't a prop of `::chart`. Valid props: type, x, y, title, labels.",
       '`::chart` 1: `type="donut"` isn\'t a chart type. Use `bar`, `stacked`, `line`, `area`, `scatter`, `dumbbell`, `waterfall`, `pie` or `gantt`.',
       '`::chart` 2: `y` names column `befor`, but its table has `month`, `before` and `after`. Separate several with commas, as in `y="before, after"`.',
       "`::chart` 3: row 1 has `41 kB` in `size`, which isn't a number. Write the number alone, such as `1200` or `1,200`, and put the unit in the header, such as `size (ms)`.",
@@ -657,6 +657,141 @@ No such run.
         ),
       ),
     ).toEqual([]);
+  });
+
+  it("writes each value inside its bar with `labels`, or past the bar's end where it doesn't fit", async () => {
+    const value = (html: string, text: string) =>
+      new RegExp(`<text [^>]*font-weight="500" fill="(#[0-9a-f]+)">${text}</text>`).exec(html)?.[1];
+    const bars = await render(
+      chart(
+        `
+| team | ducks |
+| --- | --: |
+| backend | 41 |
+| frontend | 18 |
+| ops | 2 |`,
+        "{labels}",
+      ),
+    );
+    expect(value(bars, "41")).toBe("#ffffff");
+    expect(value(bars, "18")).toBe("#ffffff");
+    expect(value(bars, "2")).toBe("#0a0a0a");
+    const stacked = await render(
+      chart(
+        `
+| day | work | weekend | pigeons |
+| --- | --: | --: | --: |
+| Monday | 1 | 110 | 40 |
+| Friday | 20 | 140 | 2 |`,
+        '{type="stacked" labels}',
+      ),
+    );
+    expect(value(stacked, "110")).toBe("#ffffff");
+    expect(value(stacked, "40")).toBe("#ffffff");
+    // The first series stacks on top. A thin segment at the end of its stack goes past it; one at the bottom has
+    // nowhere to go.
+    expect(value(stacked, "1")).toBe("#0a0a0a");
+    expect(value(stacked, "2")).toBeUndefined();
+    const sideways = await render(
+      chart(
+        `
+| first comment | minutes |
+| --- | --: |
+| nit: this file uses tabs and the rest of the repo uses spaces | 1,284 |
+| why does the deploy script check for pigeons | 3 |`,
+        "{labels}",
+      ),
+    );
+    expect(value(sideways, "1,284")).toBe("#ffffff");
+    expect(value(sideways, "3")).toBe("#0a0a0a");
+    expect(await issues(chart(sizes, '{type="stacked" labels}'))).toEqual([]);
+  });
+
+  it("reports `labels` on a chart with no bars to write on", async () => {
+    expect(
+      await issues(
+        [
+          chart(months, "{labels}"),
+          chart(months, '{type="waterfall" y="after" labels}'),
+          chart(sizes, '{labels="inside"}'),
+          chart(
+            `| step | start | end |\n| --- | --: | --: |\n| build | 0 | 4 |`,
+            '{type="gantt" labels}',
+          ),
+          chart(sizes, '{labels="false"}'),
+        ].join("\n\n"),
+      ),
+    ).toEqual([
+      '`::chart` 1: `labels` writes each value on its bar, and a line has no bars. Remove it, or use `type="bar"`.',
+      "`::chart` 2: a waterfall prints its numbers itself, so `labels` changes nothing. Remove it.",
+      '`::chart` 3: `labels` takes no value. Write `labels` alone, as in `::chart{type="stacked" labels}`.',
+      "`::chart` 4: a gantt prints its numbers itself, so `labels` changes nothing. Remove it.",
+    ]);
+  });
+
+  it("crosses the plot with a line at a value, growing the axis to reach it", async () => {
+    const marked = (annotation: string, table = sizes, props = "") =>
+      `${chart(table, props).slice(0, -2)}${annotation}\n::`;
+    const both = [charts(), annotate()];
+    const draw = createHtmlRenderer({
+      plugins: both,
+      components: { ...annotateComponents, ...components },
+    });
+    const box = (html: string) =>
+      /class="ca-mark ca-line"[^>]*left:([\d.]+)%;top:([\d.]+)%;width:([\d.]+)%;height:([\d.]+)%/
+        .exec(html)!
+        .slice(1)
+        .map(Number);
+    const line = (value: string, props = "") =>
+      marked(
+        `:::annotation{mark="line" value="${value}" side="right"}\nBudget.\n:::`,
+        sizes,
+        props,
+      );
+    for (const value of ["30", "90"])
+      expect((await parseMarkdown(line(value), { plugins: both })).meta.issues).toEqual([]);
+    // Across an upright chart, and higher up for a bigger value, even one past every bar.
+    const [left, low, width, height] = box(await draw(line("30")));
+    expect(width).toBeGreaterThan(80);
+    expect(height).toBeLessThan(5);
+    expect(left).toBeLessThan(10);
+    const [, high] = box(await draw(line("90")));
+    expect(high).toBeLessThan(low!);
+    expect(high).toBeGreaterThanOrEqual(0);
+    expect(await draw(line("90"))).toContain('class="ca-callout ca-callout-right"');
+    // Down a sideways one, whose values run across.
+    const [, , across, down] = box(
+      await draw(
+        marked(
+          ':::annotation{mark="line" value="50"}\nSLA.\n:::',
+          `| first comment | minutes |\n| --- | --: |\n| nit: this file uses tabs and the rest of the repo uses spaces | 84 |\n| why does the deploy script check for pigeons | 47 |`,
+        ),
+      ),
+    );
+    expect(across).toBeLessThan(5);
+    expect(down).toBeGreaterThan(50);
+  });
+
+  it("reports a line it can't place, naming the annotation and the fix", async () => {
+    const marked = (annotation: string, table = sizes, props = "") =>
+      `${chart(table, props).slice(0, -2)}${annotation}\n::`;
+    expect(
+      await issues(
+        [
+          marked(':::annotation{mark="line"}\nBudget.\n:::'),
+          marked(':::annotation{mark="line" value="200ms"}\nBudget.\n:::'),
+          marked(':::annotation{mark="line" value="30" at="zoom"}\nBudget.\n:::'),
+          marked(':::annotation{at="zoom" value="30"}\nBudget.\n:::'),
+          marked(':::annotation{mark="line" value="30"}\nBudget.\n:::', sizes, '{type="pie"}'),
+        ].join("\n\n"),
+      ),
+    ).toEqual([
+      '`::chart` 1, annotation 1: `mark="line"` needs `value`, the number on the value axis it crosses at, such as `value="200"`.',
+      "`::chart` 2, annotation 1: `value=\"200ms\"` isn't a number. Write the number alone, such as `200` or `1,200`, in the unit of the chart's numbers.",
+      "`::chart` 3, annotation 1: a line crosses the whole plot at its `value`, so `at` doesn't apply. Remove it.",
+      '`::chart` 4, annotation 1: `value` places a line across the plot. Add `mark="line"`, or remove `value` and mark a row with `at`.',
+      '`::chart` 5, annotation 1: `mark="line"` crosses the plot at a number on its value axis, and a pie has none. Mark a slice with `at` and another mark, such as `box`.',
+    ]);
   });
 
   it("renders the content as it is when there's nothing to draw", async () => {

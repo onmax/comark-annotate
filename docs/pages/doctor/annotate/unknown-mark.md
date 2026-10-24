@@ -1,4 +1,4 @@
-`mark` is what the annotation draws: `box`, `circle`, `underline`, `highlight`, `cross`, `check`, or `none`. Any other name draws a box.
+`mark` is what the annotation draws: `box`, `circle`, `underline`, `line`, `highlight`, `bracket`, `cross`, `check`, or `none`. Any other name draws a box.
 
 ::incorrect
 ```md

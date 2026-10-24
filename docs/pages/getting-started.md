@@ -68,6 +68,10 @@ The icon resolver from `icon`'s options also draws the icons of cards, details, 
 
 Every block is also its own package, and comark-ui only registers them. To install fewer, each block's page ends with its package: what to install and how to register it alone. [Renderers](/guide/renderers/) shows several of them in one renderer.
 
+## Agents
+
+comark-ui ships the comark-plugins agent skill. [Agents](/guide/agents/) shows how to install it, or bundle it in an app so it always matches the plugins the app installed.
+
 ## Versions
 
 comark-ui ships in lockstep with the blocks, so `comark-ui@X` holds every block at version `X`. [comark-linter](/lint/) finds comark-ui when it's installed and checks documents with its plugins.

@@ -1,5 +1,4 @@
 // Renders docs/pages and each package's docs/ with the plugins themselves into docs/dist, a static site served by Cloudflare at comark.onmax.me.
-import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -800,7 +799,7 @@ const botIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="tr
 const copyIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
 const resetIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`;
 const checkIcon = `<svg class="check" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5"/></svg>`;
-// Humans install the packages with their package manager; agents install the skills from this site.
+// Humans install the packages with their package manager; agents install the comark-plugins skill.
 function installerFor(install: string) {
   const packages = install.replace(/^pnpm add /, "");
   const commands = {
@@ -808,7 +807,7 @@ function installerFor(install: string) {
     npm: `npm install ${packages}`,
     yarn: `yarn add ${packages}`,
     bun: `bun add ${packages}`,
-    agents: `npx skills add ${site}`,
+    agents: "npx skills add onmax/comark-plugins",
   };
   return `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
 <div class="installer-bar"><div class="seg" role="group" aria-label="Audience"><button type="button" data-audience="humans" aria-pressed="true">${userIcon}For humans</button><button type="button" data-audience="agents" aria-pressed="false">${botIcon}For agents</button></div>
@@ -885,8 +884,8 @@ const menuIcon = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="t
 // A block, so the docs app can run it again for each page it navigates to.
 const script = `{
 const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-// One indicator per tab row or switch slides to the chosen item. A hidden row measures zero, so it's placed again,
-// without sliding, whenever its size changes.
+// One indicator per tab row or switch slides to the chosen item, however it gets chosen. A hidden row measures zero,
+// so it's placed again, without sliding, whenever its size changes.
 const indicate = (group, selector) => {
   const bar = group.appendChild(Object.assign(document.createElement("span"), { className: "indicator" }));
   bar.setAttribute("aria-hidden", "true");
@@ -895,23 +894,20 @@ const indicate = (group, selector) => {
     bar.dataset.still = ""; place(); requestAnimationFrame(() => delete bar.dataset.still);
     group.toggleAttribute("data-overflow", group.scrollWidth > group.clientWidth + 1);
   }).observe(group);
+  new MutationObserver(place).observe(group, { subtree: true, attributeFilter: ["aria-pressed", "aria-selected"] });
   group.dataset.indicator = "";
-  return place;
 };
 const reveal = el => { if (!reduce.matches) el.animate({ opacity: [0, 1] }, { duration: 200, easing: "ease-out" }) };
 for (const t of document.querySelectorAll(".examples")) {
-  const row = t.querySelector(".tablist"), place = indicate(row, "[aria-selected=true]");
+  const row = t.querySelector(".tablist");
+  indicate(row, "[aria-selected=true]");
   row.addEventListener("click", e => {
     const b = e.target.closest("[role=tab]"); if (!b || b.getAttribute("aria-selected") === "true") return;
     for (const x of t.querySelectorAll(":scope > .tablist > [role=tab]")) x.setAttribute("aria-selected", x === b);
     for (const p of t.querySelectorAll(":scope > [role=tabpanel]")) { p.hidden = p.dataset.tab !== b.dataset.tab; if (!p.hidden) reveal(p) }
-    place();
   });
 }
-for (const seg of document.querySelectorAll(".seg")) {
-  const place = indicate(seg, "[aria-pressed=true]");
-  seg.addEventListener("click", () => requestAnimationFrame(place));
-}
+for (const seg of document.querySelectorAll(".seg")) indicate(seg, "[aria-pressed=true]");
 for (const ex of document.querySelectorAll(".example")) ex.querySelector(".seg").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b || b.getAttribute("aria-pressed") === "true") return;
   for (const x of ex.querySelectorAll(".seg button")) x.setAttribute("aria-pressed", x === b);
@@ -1226,43 +1222,6 @@ await build({
     lib: { entry: fileURLToPath(new URL("play.ts", root)), formats: ["es"], fileName: "play" },
   },
 });
-
-// The packages' agent skills, served for Agent Skills Discovery: v0.2 with a digest, and v0.1, which `npx skills add` reads.
-const skills = await Promise.all(
-  ["annotate/skills/comark-annotate", "charts/skills/comark-charts"].map(async (folder) => {
-    const text = await readFile(new URL(`../packages/${folder}/SKILL.md`, root), "utf8");
-    const meta = (await parseMarkdown(text)).frontmatter;
-    return { text, name: str(meta.name), description: str(meta.description) };
-  }),
-);
-for (const skill of skills)
-  for (const base of ["agent-skills", "skills"]) {
-    await mkdir(new URL(`.well-known/${base}/${skill.name}/`, dist), { recursive: true });
-    await writeFile(new URL(`.well-known/${base}/${skill.name}/SKILL.md`, dist), skill.text);
-  }
-await writeFile(
-  new URL(".well-known/agent-skills/index.json", dist),
-  JSON.stringify({
-    $schema: "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
-    skills: skills.map((skill) => ({
-      name: skill.name,
-      type: "skill-md",
-      description: skill.description,
-      url: `/.well-known/agent-skills/${skill.name}/SKILL.md`,
-      digest: `sha256:${createHash("sha256").update(skill.text).digest("hex")}`,
-    })),
-  }),
-);
-await writeFile(
-  new URL(".well-known/skills/index.json", dist),
-  JSON.stringify({
-    skills: skills.map((skill) => ({
-      name: skill.name,
-      description: skill.description,
-      files: ["SKILL.md"],
-    })),
-  }),
-);
 
 // The page around the content: header, rail, the section's column, and a menu that holds both on narrow screens. The
 // landing page has no sidebar, so its header links to the docs and the playground instead.

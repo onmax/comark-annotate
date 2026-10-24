@@ -61,6 +61,10 @@ Each block is also published on its own, and all of them share one version.
 
 Docs and live demos: [comark.onmax.me](https://comark.onmax.me).
 
+## Agents
+
+[`skills/comark-plugins`](./skills/comark-plugins) teaches an agent every package, with a reference per package. Install it with `npx skills add onmax/comark-plugins`, or bundle it in an app from `comark-ui/skills/comark-plugins/`.
+
 ## Develop
 
 ```sh
