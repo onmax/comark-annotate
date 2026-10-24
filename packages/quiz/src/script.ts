@@ -425,7 +425,14 @@ export function script(config: ScriptConfig): void {
     if (models.has(el) || !id || (kind !== "question" && kind !== "poll" && kind !== "recall"))
       return;
     // While the page loads, the parser may have added the block but not all of its parts; its end marker comes last.
-    if (!allowIncomplete && !el.querySelector(":scope>template.cqz-end")) return;
+    // Renderers that do not emit the end marker can still append a complete root in one operation.
+    // Streamed roots remain deferred until their marker (or until all interactive parts are present).
+    const complete =
+      !!el.querySelector(":scope>.cqz-actions") &&
+      (kind === "recall"
+        ? !!el.querySelector(":scope>.cqz-reveal, :scope>.cqz-answer")
+        : !!el.querySelector(":scope>.cqz-options"));
+    if (!allowIncomplete && !el.querySelector(":scope>template.cqz-end") && !complete) return;
     let written: unknown;
     try {
       written = JSON.parse(el.dataset.labels ?? "{}");
@@ -488,7 +495,7 @@ export function script(config: ScriptConfig): void {
       for (const node of record.addedNodes) {
         if (!(node instanceof Element)) continue;
         if (node.matches("template.cqz-end") && node.parentElement) scan(node.parentElement);
-        else scan(node);
+        else scan(node.parentElement ?? node);
       }
   }).observe(html, { childList: true, subtree: true });
   const ready = () => {
