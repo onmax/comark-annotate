@@ -1,6 +1,7 @@
 ---
 title: comark-diagrams
 description: PlantUML, Graphviz, D2, DBML, and ASCII diagrams in Markdown, drawn as SVG.
+keywords: PlantUML, Graphviz, dot, D2, DBML, goat, svgbob, Kroki, flowchart, sequence diagram, UML, ER diagram, ERD, architecture diagram
 tagline: Write a diagram in a fenced block and get it as SVG in the page, drawn while parsing by a Kroki server, with no script.
 install: pnpm add comark @comark/html comark-diagrams
 group: Review blocks

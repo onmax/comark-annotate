@@ -28,7 +28,7 @@ r now counts the office cat.
 | Prop | |
 | --- | --- |
 | `x` `y` `w` `h` | The marked area, as percentages of the image: numbers from 0 to 100, without `%`. All four are required. |
-| `mark` | `box` (default), `circle`, `underline`, `highlight`, `cross`, or `check`. `none` draws no mark and lets a side note's arrow point, so it needs a `side`. |
+| `mark` | `box` (default), `circle`, `underline`, `line`, `highlight`, `bracket`, `cross`, or `check`. A `line` runs straight through the middle of the box, along its longer side. `none` draws no mark and lets a side note's arrow point, so it needs a `side`. |
 | `side` | `left`, `right`, or `top` puts the note beside or above the image, with an arrow. |
 | `color` | `blue` (default) points something out, `red` flags a problem, `amber` a warning, `green` a fix, and `gray` anything neutral. A 3- or 6-digit hex color like `#e11d48` works too. |
 

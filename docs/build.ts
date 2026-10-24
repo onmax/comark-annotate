@@ -1,5 +1,4 @@
 // Renders docs/pages and each package's docs/ with the plugins themselves into docs/dist, a static site served by Cloudflare at comark.onmax.me.
-import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -506,6 +505,8 @@ async function parsePage(slug: string, section: Section) {
     usage,
     headline,
     skill,
+    // Words that find the page in search that it doesn't say itself, such as other tools' names for its blocks.
+    keywords: [document.frontmatter.keywords].flat().map(str).filter(Boolean).join(", "),
     label: rule?.name ?? (slug === section.slug ? "Overview" : title),
     toc: toc(document),
   };
@@ -630,8 +631,8 @@ const ruleTable: NodeHandler = () =>
         `<tr><td><code>${entry.code}</code></td><td><a href="${href(entry.slug)}"><code>${escapeHtml(entry.rule)}</code></a></td><td>${inlineCode(entry.title)}</td><td>${entry.severity ?? "warning"}</td></tr>`,
     )
     .join("")}</tbody></table></div>`;
-// A Getting started page's code that registers its plugins: through the preset, then alone. Its switch picks the
-// install command above too, in place of the installer's own.
+// A Getting started page's code that registers its plugins: through the preset, then alone. It shows the one the
+// installer's switch picks, and has the same switch, so picking in either place switches both.
 const usageBlock =
   (page: Page): NodeHandler =>
   async ([, , ...children], state) => {
@@ -806,7 +807,7 @@ const checkIcon = `<svg class="check" viewBox="0 0 24 24" width="15" height="15"
 // page with ::usage, the switch over that code picks the command instead, so the page shows the choice once, beside
 // the code each side needs.
 const everyPlugin = "comark @comark/html @onmax/comark";
-// The installer draws it, or a page's ::usage when it has one; the script keeps every copy on one choice.
+// The installer and a page's ::usage both draw it, and the script keeps them on one choice.
 const scopeSwitch = (own: string[]) =>
   `<div class="seg" role="group" aria-label="Packages"><button type="button" data-scope="all" aria-pressed="true">Every plugin</button><button type="button" data-scope="one" aria-pressed="false">Only ${own.length === 1 ? escapeHtml(own[0]!) : "these"}</button></div>`;
 function installerFor(install: string, skill: string, usage = false) {
@@ -821,13 +822,13 @@ function installerFor(install: string, skill: string, usage = false) {
   const commands = {
     all: managers(own.length ? everyPlugin : packages),
     one: managers(packages),
-    agents: `npx skills add ${site}${skill ? ` --skill ${skill}` : ""}`,
+    agents: "npx skills add onmax/comark-plugins",
   };
+  const note = usage
+    ? ""
+    : `<p data-scope-panel="all">Render with <code>onmax()</code> from <a href="/preset/">@onmax/comark/html</a>, which registers every plugin in order.</p>`;
   const scope =
-    own.length && !usage
-      ? `<div class="installer-scope">${scopeSwitch(own)}` +
-        `<p data-scope-panel="all">Render with <code>onmax()</code> from <a href="/preset/">@onmax/comark/html</a>, which registers every plugin in order.</p></div>`
-      : "";
+    own.length && !usage ? `<div class="installer-scope">${scopeSwitch(own)}${note}</div>` : "";
   return `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
 <div class="installer-bar"><div class="seg" role="group" aria-label="Audience"><button type="button" data-audience="humans" aria-pressed="true">${userIcon}For humans</button><button type="button" data-audience="agents" aria-pressed="false">${botIcon}For agents</button></div>
 <div class="seg installer-pm" role="group" aria-label="Package manager">${["pnpm", "npm", "yarn", "bun"].map((pm, i) => `<button type="button" data-pm="${pm}" aria-pressed="${i === 0}">${pm}</button>`).join("")}</div></div>
@@ -908,8 +909,8 @@ const menuIcon = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="t
 // A block, so the docs app can run it again for each page it navigates to.
 const script = `{
 const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-// One indicator per tab row or switch slides to the chosen item. A hidden row measures zero, so it's placed again,
-// without sliding, whenever its size changes.
+// One indicator per tab row or switch slides to the chosen item, however it gets chosen. A hidden row measures zero,
+// so it's placed again, without sliding, whenever its size changes.
 const indicate = (group, selector) => {
   const bar = group.appendChild(Object.assign(document.createElement("span"), { className: "indicator" }));
   bar.setAttribute("aria-hidden", "true");
@@ -918,30 +919,26 @@ const indicate = (group, selector) => {
     bar.dataset.still = ""; place(); requestAnimationFrame(() => delete bar.dataset.still);
     group.toggleAttribute("data-overflow", group.scrollWidth > group.clientWidth + 1);
   }).observe(group);
+  new MutationObserver(place).observe(group, { subtree: true, attributeFilter: ["aria-pressed", "aria-selected"] });
   group.dataset.indicator = "";
-  return place;
 };
 const reveal = el => { if (!reduce.matches) el.animate({ opacity: [0, 1] }, { duration: 200, easing: "ease-out" }) };
 for (const t of document.querySelectorAll(".examples")) {
-  const row = t.querySelector(".tablist"), place = indicate(row, "[aria-selected=true]");
+  const row = t.querySelector(".tablist");
+  indicate(row, "[aria-selected=true]");
   row.addEventListener("click", e => {
     const b = e.target.closest("[role=tab]"); if (!b || b.getAttribute("aria-selected") === "true") return;
     for (const x of t.querySelectorAll(":scope > .tablist > [role=tab]")) x.setAttribute("aria-selected", x === b);
     for (const p of t.querySelectorAll(":scope > [role=tabpanel]")) { p.hidden = p.dataset.tab !== b.dataset.tab; if (!p.hidden) reveal(p) }
-    place();
   });
 }
-for (const seg of document.querySelectorAll(".seg")) {
-  const place = indicate(seg, "[aria-pressed=true]");
-  seg.addEventListener("click", () => requestAnimationFrame(place));
-}
+for (const seg of document.querySelectorAll(".seg")) indicate(seg, "[aria-pressed=true]");
 for (const ex of document.querySelectorAll(".example")) ex.querySelector(".seg").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b || b.getAttribute("aria-pressed") === "true") return;
   for (const x of ex.querySelectorAll(".seg button")) x.setAttribute("aria-pressed", x === b);
   for (const view of ["preview", "code"]) { const p = ex.querySelector(".example-" + view); p.hidden = b.dataset.view !== view; if (!p.hidden) reveal(p) }
 });
-// Every plugin or the page's own packages, picked in the installer or over a page's usage code. The choice sets the
-// install command and the code.
+// Every plugin or the page's own packages, picked in the installer or over a page's usage code, and shown in both.
 let scope = "all";
 const onScope = [];
 for (const button of document.querySelectorAll("[data-scope]")) button.addEventListener("click", () => {
@@ -1154,8 +1151,105 @@ window.comarkSearch = true;
 // On <html>, which the docs app leaves alone when it takes over the header.
 document.documentElement.dataset.search = "";
 if (/Mac|iP(hone|ad)/.test(navigator.platform)) document.documentElement.dataset.mac = "";
-let entries, results = [], active = 0, restoreMenuFocus = false;
-const load = () => entries ??= fetch("/search.json").then(r => r.json());
+let index, results = [], active = 0, restoreMenuFocus = false;
+// Words in lowercase, without accents or a plural s, so "Gantts" finds "gantt".
+const wordRe = /[\\p{L}\\p{M}\\p{N}]+/gu;
+const norm = w => { w = w.normalize("NFD").replace(/\\p{M}/gu, "").toLowerCase(); return w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w };
+const words = text => text?.match(wordRe)?.map(norm) ?? [];
+// Words too common to narrow a search: left out of one unless they're all there is, and matched only as they are.
+const common = new Set(["a", "an", "and", "are", "be", "by", "can", "do", "does", "for", "from", "how", "i", "if", "in", "is", "it", "its", "my", "of", "on", "or", "so", "than", "that", "the", "their", "them", "then", "there", "these", "they", "this", "to", "what", "when", "with", "you", "your"]);
+// What a word found in each field counts: the title, the page's keywords, where it sits, its description, and its text.
+const fields = [["t", 10], ["w", 6], ["p", 3], ["d", 3], ["x", 1]];
+// Each word in the index, with the entries and fields it's in.
+const load = () => index ??= fetch("/search.json").then(r => r.json()).then(all => {
+  const postings = new Map();
+  all.forEach((e, i) => fields.forEach(([key], f) => { for (const w of new Set(words(e[key]))) { if (!postings.has(w)) postings.set(w, []); postings.get(w).push(i, f) } }));
+  return { all, postings, titles: all.map(e => words(e.t)) };
+});
+// Edits between two words, a swap of neighbours counting as one, given up past max.
+const distance = (a, b, max) => {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let before = [], prev = [...Array(b.length + 1).keys()];
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j++) {
+      row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) row[j] = Math.min(row[j], before[j - 2] + 1);
+    }
+    if (Math.min(...row) > max) return max + 1;
+    before = prev; prev = row;
+  }
+  return prev[b.length];
+};
+// Endings that leave a word the same word, so "theme" finds "Theming" and "sorting" finds "sort".
+const endings = new Set(["", "e", "ed", "er", "es", "ing", "ion", "ation", "ly"]);
+// How well a typed word matches one in the index: the same word, the start of one, the same word with another ending,
+// or one a typo or two away. A short word gets no typos, and neither does a first letter, since allowing them matches
+// nearly everything.
+const close = (q, w) => {
+  if (w === q) return 1;
+  if (common.has(q)) return 0;
+  if (common.has(w)) return 0;
+  if (w.startsWith(q)) return 0.6 + 0.3 * q.length / w.length;
+  let same = 0;
+  while (same < q.length && q[same] === w[same]) same++;
+  if (same >= 4 && endings.has(q.slice(same)) && endings.has(w.slice(same))) return 0.7;
+  const typos = q.length < 4 ? 0 : q.length < 8 ? 1 : 2;
+  if (!typos || w[0] !== q[0]) return 0;
+  if (distance(q, w, typos) <= typos) return 0.5;
+  // A word still being typed, with a typo in it.
+  return w.length > q.length && distance(q, w.slice(0, q.length), typos) <= typos ? 0.3 : 0;
+};
+const found = new Map();
+const matches = (q, postings) => {
+  if (!found.has(q)) {
+    const m = new Map();
+    for (const w of postings.keys()) { const c = close(q, w); if (c) m.set(w, c) }
+    // A word the index has, or starts one, isn't a typo, so "video" doesn't find "Vimeo".
+    if ([...m.values()].some(c => c >= 0.6)) for (const [w, c] of m) if (c < 0.6) m.delete(w);
+    found.set(q, m);
+  }
+  return found.get(q);
+};
+// Each entry scores its best match for each word, by field, and more when the words make up most of its title. A rule
+// page scores less than the page about its block. The entries that match the most words are kept, so one word nothing
+// has doesn't empty the list.
+const search = ({ all, postings, titles }, qs) => {
+  const rows = new Map();
+  qs.forEach((q, n) => {
+    for (const [w, c] of matches(q, postings)) {
+      const list = postings.get(w);
+      for (let j = 0; j < list.length; j += 2) {
+        if (!rows.has(list[j])) rows.set(list[j], qs.map(() => 0));
+        const row = rows.get(list[j]), s = c * fields[list[j + 1]][1];
+        if (s > row[n]) row[n] = s;
+      }
+    }
+  });
+  const ranked = [...rows].map(([i, row]) => {
+    const title = titles[i], named = title.filter(w => qs.some(q => matches(q, postings).has(w))).length;
+    const score = row.reduce((a, b) => a + b, 0) + (title.length ? 4 * named / title.length : 0) + (all[i].k === "page" ? 0.5 : 0);
+    return { i, score: all[i].k === "rule" ? score * 0.6 : score, covered: row.filter(Boolean).length };
+  });
+  const most = Math.max(0, ...ranked.map(r => r.covered));
+  return ranked.filter(r => r.covered === most).sort((a, b) => b.score - a.score || a.i - b.i).map(r => all[r.i]);
+};
+// A text as nodes, with the words that matched in <mark>.
+const marked = (text, hit) => {
+  const out = []; let at = 0;
+  for (const m of text.matchAll(wordRe)) if (hit(m[0])) {
+    out.push(text.slice(at, m.index), Object.assign(document.createElement("mark"), { textContent: m[0] }));
+    at = m.index + m[0].length;
+  }
+  return [...out, text.slice(at)];
+};
+// The part of a text from just before its first match.
+const excerpt = (text, hit) => {
+  for (const m of text?.matchAll(wordRe) ?? []) if (hit(m[0])) {
+    const start = m.index < 60 ? 0 : Math.min(m.index, text.indexOf(" ", m.index - 50) + 1);
+    return (start ? "…" : "") + text.slice(start, start + 200);
+  }
+};
 const parts = () => { const dialog = document.querySelector("dialog.search"); return { dialog, input: dialog.querySelector("input"), list: dialog.querySelector("[role=listbox]"), empty: dialog.querySelector(".search-empty") } };
 const select = i => {
   const { input, list } = parts();
@@ -1165,15 +1259,22 @@ const select = i => {
   if (a) { input.setAttribute("aria-activedescendant", a.id); a.scrollIntoView({ block: "nearest" }) } else input.removeAttribute("aria-activedescendant");
 };
 const update = async () => {
-  const all = await load(), { dialog, input, list, empty } = parts(), q = input.value.trim().toLowerCase(), words = q.split(/\\s+/).filter(Boolean);
-  const rank = e => [e.t.toLowerCase().startsWith(q) ? 0 : e.t.toLowerCase().includes(q) ? 1 : 2, e.k === "page" ? 0 : 1];
-  results = (q ? all.filter(e => words.every(w => (e.t + " " + e.p + " " + (e.d ?? "")).toLowerCase().includes(w)))
-    .map((e, i) => [...rank(e), i, e]).sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]).map(x => x[3])
-    : all.filter(e => e.k === "page")).slice(0, 12);
+  const idx = await load(), { dialog, input, list, empty } = parts();
+  const typed = input.value.toLowerCase().match(wordRe) ?? [], kept = typed.filter(w => !common.has(w));
+  const qs = [...new Set((kept.length ? kept : typed).map(norm))];
+  const hit = w => qs.some(q => matches(q, idx.postings).has(norm(w)));
+  results = (qs.length ? search(idx, qs) : idx.all.filter(e => e.k === "page")).slice(0, 20);
   list.replaceChildren(...results.map((e, i) => {
-    const a = Object.assign(document.createElement("a"), { id: "search-" + i, href: e.h, tabIndex: -1 });
+    const a = Object.assign(document.createElement("a"), { id: "search-" + i, href: e.h, tabIndex: -1 }), title = document.createElement("span");
     a.setAttribute("role", "option");
-    a.append(Object.assign(document.createElement("small"), { textContent: e.p }), Object.assign(document.createElement("span"), { textContent: e.t }));
+    title.append(...marked(e.t, hit));
+    a.append(Object.assign(document.createElement("small"), { textContent: e.p }), title);
+    // When the title doesn't hold every word, the text that does says why it's here.
+    const named = words(e.t);
+    if (qs.some(q => !named.some(w => matches(q, idx.postings).has(w)))) {
+      const said = excerpt(e.x, hit) ?? excerpt(e.d, hit) ?? e.d;
+      if (said) { const p = document.createElement("p"); p.append(...marked(said, hit)); a.append(p) }
+    }
     return a;
   }));
   empty.hidden = results.length > 0;
@@ -1210,40 +1311,83 @@ document.addEventListener("keydown", e => {
 });
 }
 `;
-// One entry per page and per heading: its title, where it sits, and its link.
+// What a page or a heading says, in one line, so search finds it by its words and not only its title. Code blocks
+// are left out: an example's Markdown is made-up data, and the prose names what it shows.
+const inlineTags = new Set([
+  "a",
+  "code",
+  "del",
+  "em",
+  "ins",
+  "kbd",
+  "mark",
+  "s",
+  "span",
+  "strong",
+  "sub",
+  "sup",
+]);
+const prose = (nodes: Node[]): string =>
+  nodes
+    .map((node) => {
+      if (typeof node === "string") return node;
+      if (!isElement(node) || node[0] === "pre") return " ";
+      const [tag, , ...children] = node;
+      return inlineTags.has(tag) ? prose(children) : ` ${prose(children)} `;
+    })
+    .join("")
+    .replace(/\s+/g, " ")
+    .trim();
+// A page's nodes cut at each h2 and h3: what comes before the first, then each heading with what follows it.
+const sectionsOf = (nodes: Node[]) => {
+  const parts: { heading?: ElementNode; nodes: Node[] }[] = [{ nodes: [] }];
+  for (const node of nodes)
+    if (isElement(node) && (node[0] === "h2" || node[0] === "h3"))
+      parts.push({ heading: node, nodes: [] });
+    else parts.at(-1)!.nodes.push(node);
+  return parts;
+};
+// One entry per page and per heading: its title, where it sits, its link, and the words that find it. The rule pages
+// go last, so a package's own pages come before the rules about its blocks.
 const searchIndex = [
-  ...[landing, ...parsed].flatMap((page) => {
-    const where =
-      page.section.slug === page.slug
-        ? page.section.label
-        : `${page.section.label} › ${page.label}`;
-    const title =
-      page.section.npm && page.slug === page.section.slug ? page.section.npm : page.title;
-    return [
-      {
-        k: "page",
-        t: title,
-        p: page.section.npm ? page.section.label : "Docs",
-        h: href(page.slug),
-        d: page.description,
-      },
-      ...page.document.nodes
-        .filter(isElement)
-        .filter(([tag]) => tag === "h2" || tag === "h3")
-        .map((heading) => ({
+  ...[landing, ...parsed]
+    .toSorted((a, b) => Number(Boolean(a.rule)) - Number(Boolean(b.rule)))
+    .flatMap((page) => {
+      const where =
+        page.section.slug === page.slug
+          ? page.section.label
+          : `${page.section.label} › ${page.label}`;
+      const title =
+        page.section.npm && page.slug === page.section.slug ? page.section.npm : page.title;
+      const [intro, ...headed] = sectionsOf(page.document.nodes);
+      return [
+        {
+          k: page.rule ? "rule" : "page",
+          t: title,
+          p: page.section.label,
+          h: href(page.slug),
+          d: page.description,
+          w: page.keywords || undefined,
+          x:
+            `${page.tagline === page.description ? "" : page.tagline} ${prose(intro!.nodes)}`.trim() ||
+            undefined,
+        },
+        ...headed.map(({ heading, nodes }) => ({
           k: "heading",
-          t: textContent(heading),
+          t: textContent(heading!),
           p: where,
-          h: `${href(page.slug)}#${str(heading[1].id)}`,
+          h: `${href(page.slug)}#${str(heading![1].id)}`,
+          x: prose(nodes) || undefined,
         })),
-    ];
-  }),
+      ];
+    }),
   {
     k: "page",
     t: "Playground",
     p: "Docs",
     h: "/play/",
     d: "Edit any example with every plugin and share a link to it.",
+    w: "editor, sandbox, repl, try it, live preview",
   },
 ];
 
@@ -1266,43 +1410,6 @@ await build({
     lib: { entry: fileURLToPath(new URL("play.ts", root)), formats: ["es"], fileName: "play" },
   },
 });
-
-// The packages' agent skills, served for Agent Skills Discovery: v0.2 with a digest, and v0.1, which `npx skills add` reads.
-const skills = await Promise.all(
-  ["annotate/skills/comark-annotate", "charts/skills/comark-charts"].map(async (folder) => {
-    const text = await readFile(new URL(`../packages/${folder}/SKILL.md`, root), "utf8");
-    const meta = (await parseMarkdown(text)).frontmatter;
-    return { text, name: str(meta.name), description: str(meta.description) };
-  }),
-);
-for (const skill of skills)
-  for (const base of ["agent-skills", "skills"]) {
-    await mkdir(new URL(`.well-known/${base}/${skill.name}/`, dist), { recursive: true });
-    await writeFile(new URL(`.well-known/${base}/${skill.name}/SKILL.md`, dist), skill.text);
-  }
-await writeFile(
-  new URL(".well-known/agent-skills/index.json", dist),
-  JSON.stringify({
-    $schema: "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
-    skills: skills.map((skill) => ({
-      name: skill.name,
-      type: "skill-md",
-      description: skill.description,
-      url: `/.well-known/agent-skills/${skill.name}/SKILL.md`,
-      digest: `sha256:${createHash("sha256").update(skill.text).digest("hex")}`,
-    })),
-  }),
-);
-await writeFile(
-  new URL(".well-known/skills/index.json", dist),
-  JSON.stringify({
-    skills: skills.map((skill) => ({
-      name: skill.name,
-      description: skill.description,
-      files: ["SKILL.md"],
-    })),
-  }),
-);
 
 // The page around the content: header, rail, the section's column, and a menu that holds both on narrow screens. The
 // landing page has no sidebar, so its header links to the docs and the playground instead.
@@ -1387,7 +1494,7 @@ await writeFile(
     description: landing.tagline,
     body: `<div class="landing">
 <div class="landing-hero enter"><div><h1>${escapeHtml(landing.headline)}</h1><p>${escapeHtml(landing.tagline)}</p></div>
-<div>${installerFor(landing.install, "")}<div class="actions"><a class="button primary" href="/play/">${siteIcon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the docs${siteIcon("arrow-right", 15)}</a></div></div></div>
+<div>${installerFor(landing.install, landing.skill, landing.usage)}<div class="actions"><a class="button primary" href="/play/">${siteIcon("flask-conical", 15)}Open the playground</a><a class="button" href="/guide/renderers/">Read the docs${siteIcon("arrow-right", 15)}</a></div></div></div>
 <main class="enter" style="--i:1">${await renderHtmlFromDocument(landing.document, { components: { ...components, packages: packageGrid, drop, hero } })}</main>
 ${footer()}
 </div>

@@ -1,6 +1,7 @@
 ---
 title: comark-properties
 description: A document's frontmatter as a box of properties, written in Markdown.
+keywords: frontmatter, front matter, metadata, YAML, header, status, author, date, tags, document properties, Obsidian properties
 tagline: Keep a review document's status, pull request, author, date, and tags in its frontmatter, and readers see them in a box at the top.
 install: pnpm add comark @comark/html comark-properties
 group: Review blocks

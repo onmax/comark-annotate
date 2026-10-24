@@ -1,6 +1,7 @@
 ---
 title: Sharing a review
 description: Put a review document where reviewers comment on it, or on a page you host.
+keywords: Drop, publish, host, comments, feedback, deploy
 tagline: Get a review document in front of reviewers. Publish it to Drop, where reviewers comment on the exact spot and your agent answers with the next version, or render it to a page of your own.
 ---
 

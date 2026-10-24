@@ -58,6 +58,27 @@ describe("comark-cards", () => {
     expect(body(await render("::columns\nA\n::"))).toContain('data-cols="2"');
   });
 
+  it("washes a `soft` or `subtle` card in its color, and keeps an `outline` one plain", async () => {
+    const rendered = await render(
+      '::card{title="Failing" color="error" variant="soft"}\n::\n\n::card{title="Passing" color="success" variant="subtle"}\n::\n\n::card{title="Plain" variant="outline"}\n::',
+    );
+    const html = body(rendered);
+    expect(html).toBe(
+      '<div class="ccr" data-color="error" data-variant="soft"><p class="ccr-title">Failing</p></div>' +
+        '<div class="ccr" data-color="success" data-variant="subtle"><p class="ccr-title">Passing</p></div>' +
+        '<div class="ccr" data-color="primary"><p class="ccr-title">Plain</p></div>',
+    );
+    expect(rendered).toContain(
+      ".ccr[data-variant='soft']:has(>.ccr-link):hover{border-color:transparent}",
+    );
+    expect(rendered).toContain(
+      ".ccr[data-variant='subtle']:has(>.ccr-link):hover{border-color:color-mix(in srgb,var(--ccr) 30%,var(--_comark-background))}",
+    );
+    expect(rendered).toContain(
+      ".ccr[data-variant='soft'],.ccr[data-variant='subtle']{background:color-mix(in srgb,var(--ccr) 10%,var(--_comark-background))}",
+    );
+  });
+
   it("links a card written with `href`, and says to write `to`", async () => {
     const markdown = '::card{title="Docs" href="/guide"}\n::';
     expect(body(await render(markdown))).toContain('<a class="ccr-link" href="/guide"');
@@ -66,12 +87,13 @@ describe("comark-cards", () => {
     ]);
   });
 
-  it("reports an unknown color, a script link, bad columns, and an icon it can't draw", async () => {
+  it("reports an unknown color or variant, a script link, bad columns, and an icon it can't draw", async () => {
     const markdown =
-      '::card{title="A" color="pink"}\n::\n\n::card{to="javascript:alert(1)"}\n::\n\n::columns{cols="9"}\nA\n::\n\n::columns\n::\n\n::card{icon="lucide:nope"}\n::';
+      '::card{title="A" color="pink" variant="ghost"}\n::\n\n::card{to="javascript:alert(1)"}\n::\n\n::columns{cols="9"}\nA\n::\n\n::columns\n::\n\n::card{icon="lucide:nope"}\n::';
     expect(body(await render(markdown))).not.toContain("javascript:");
     expect(await issues(markdown)).toEqual([
       '`::card` 1 ("A"): `color` is "pink", so it shows as primary. Write one of primary, secondary, success, info, warning, error, neutral.',
+      '`::card` 1 ("A"): `variant` is "ghost", so it shows as outline. Write one of outline, soft, subtle.',
       "`::card` 2: `to` must be a page or a web address, so it isn't a link.",
       '`::columns` 1: `cols` is "9", so it shows 2 columns. Write a number from 1 to 6.',
       "`::columns` 2 is empty. Put a block inside for each column, or remove it.",
@@ -81,18 +103,19 @@ describe("comark-cards", () => {
 
   it("names each issue's rule in meta.issueRules, with comark-icon's for icons", async () => {
     const { meta } = await parseMarkdown(
-      '::card{title="A" color="pink" link="/a"}\n::\n\n::card{href="/b"}\n::\n\n::columns{columns="3"}\nA\n::\n\n::card{icon="lucide:nope"}\n::',
+      '::card{title="A" color="pink" variant="solid" link="/a"}\n::\n\n::card{href="/b"}\n::\n\n::columns{columns="3"}\nA\n::\n\n::card{icon="lucide:nope"}\n::',
       { plugins: [plugin()] },
     );
     expect(meta.issues.map((issue: string) => meta.issueRules[issue])).toEqual([
       "comark/cards/unknown-prop",
       "comark/cards/invalid-color",
+      "comark/cards/invalid-variant",
       "comark/cards/href-instead-of-to",
       "comark/cards/unknown-prop",
       "comark/icon/unknown-icon",
     ]);
     expect(meta.issues[0]).toBe(
-      "`::card` 1 (\"A\"): `link` isn't a prop of `::card`, so it's ignored. Use `title`, `description`, `icon`, `to`, `target`, or `color`.",
+      "`::card` 1 (\"A\"): `link` isn't a prop of `::card`, so it's ignored. Use `title`, `description`, `icon`, `to`, `target`, `color`, or `variant`.",
     );
   });
 

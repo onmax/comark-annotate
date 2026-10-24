@@ -1,6 +1,7 @@
 ---
 title: comark-code-notes
 description: Numbered notes on lines of code, written as comments and a list.
+keywords: code annotations, annotated code, callouts, conums, line notes, code comments, AsciiDoc callouts
 tagline: End a line of code with a numbered comment like `// <1>`, write the notes as a numbered list under the fence, and each marker links to its note and back.
 install: pnpm add comark @comark/html comark-code-notes
 group: Review blocks

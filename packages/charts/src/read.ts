@@ -32,6 +32,8 @@ export interface Chart {
    */
   rows: { x: string; values: (number | undefined)[]; group?: string }[];
   marks: ChartMark[];
+  /** Whether each bar or segment prints its value, from `labels`. Only bar and stacked bar charts take it. */
+  labels?: boolean;
   /** How a gantt's starts and ends read: numbers, or dates kept as milliseconds since 1970 in UTC. */
   scale?: Exclude<XKind, "name">;
   /** The column of names a gantt colors its bars by. */
@@ -39,12 +41,13 @@ export interface Chart {
 }
 
 /**
- * A comark-annotate annotation that points at data: the row whose x it names, and the series when it names one. The
- * renderer finds the box from the drawn chart.
+ * A comark-annotate annotation that points at data: the row whose x it names, and the series when it names one, or
+ * for a `line`, the number on the value axis it crosses at. The renderer finds the box from the drawn chart.
  */
 export interface ChartMark extends Omit<Annotation, "x" | "y" | "w" | "h"> {
-  row: number;
+  row?: number;
   series?: string;
+  value?: number;
 }
 
 /** A chart drawn from a Vega-Lite spec over the table: any chart Vega-Lite draws, with the table as its data. */
@@ -77,8 +80,20 @@ export const TYPES: readonly ChartType[] = [
   "pie",
   "gantt",
 ];
-const PROPS = new Set(["type", "x", "y", "title", "class", "id"]);
-const MARK_PROPS = new Set(["at", "series", "mark", "color", "side", "class", "id"]);
+// A bare `{labels}` arrives as `:labels="true"`, Comark's spelling of a prop with no value.
+const PROPS = new Set(["type", "x", "y", "title", "labels", ":labels", "class", "id"]);
+const MARK_PROPS = new Set(["at", "series", "value", "mark", "color", "side", "class", "id"]);
+const A: Record<ChartType, string> = {
+  bar: "a bar chart",
+  stacked: "a stacked bar chart",
+  line: "a line",
+  area: "an area",
+  scatter: "a scatter plot",
+  dumbbell: "a dumbbell",
+  waterfall: "a waterfall",
+  pie: "a pie",
+  gantt: "a gantt",
+};
 
 const KINDS: [XKind, RegExp][] = [
   ["year", /^\d{4}$/],
@@ -133,7 +148,7 @@ export function readChart(
     if (!spec && !PROPS.has(key))
       issues.push({
         rule: "comark/charts/unknown-prop",
-        message: `${name}: ${code(key)} isn't a prop of \`::chart\`. Valid props: type, x, y, title.`,
+        message: `${name}: ${code(key)} isn't a prop of \`::chart\`. Valid props: type, x, y, title, labels.`,
       });
 
   const content = childrenOf(node).filter(isContent);
@@ -228,8 +243,10 @@ export function readChart(
     });
     return;
   }
-  if (text(attrs.type) === "gantt")
+  if (text(attrs.type) === "gantt") {
+    readLabels(name, "gantt", attrs, issues);
     return readGantt(name, attrs, columns, cells, x, y ? named : undefined, annotations, issues);
+  }
 
   const rows = cells.map((row, index) => {
     const xValue = row[xIndex] ?? "";
@@ -329,8 +346,34 @@ export function readChart(
     xKind,
     series,
     rows: points.map((row) => ({ x: row.x, values: row.values.slice(0, series.length) })),
-    marks: readMarks(name, x, annotations, points, series, issues),
+    marks: readMarks(name, type, x, annotations, points, series, issues),
+    ...(readLabels(name, type, attrs, issues) && { labels: true }),
   };
+}
+
+/** Reads `labels`, which writes each value on its bar: true when it's on and the chart has bars to write on. */
+function readLabels(name: string, type: ChartType, attrs: ElementNode[1], issues: Issue[]) {
+  const raw = attrs.labels ?? attrs[":labels"];
+  if (raw === undefined) return false;
+  const value = text(raw);
+  if (value === "false") return false;
+  if (value !== "" && value !== "true")
+    issues.push({
+      rule: "comark/charts/invalid-labels",
+      message: `${name}: \`labels\` takes no value. Write \`labels\` alone, as in \`::chart{type="stacked" labels}\`.`,
+    });
+  else if (type === "dumbbell" || type === "waterfall" || type === "gantt")
+    issues.push({
+      rule: "comark/charts/invalid-labels",
+      message: `${name}: ${A[type]} prints its numbers itself, so \`labels\` changes nothing. Remove it.`,
+    });
+  else if (type !== "bar" && type !== "stacked")
+    issues.push({
+      rule: "comark/charts/invalid-labels",
+      message: `${name}: \`labels\` writes each value on its bar, and ${A[type]} has no bars. Remove it, or use \`type="bar"\`.`,
+    });
+  else return true;
+  return false;
 }
 
 /**
@@ -339,6 +382,7 @@ export function readChart(
  */
 function readMarks(
   name: string,
+  type: ChartType,
   x: string,
   annotations: ElementNode[],
   points: { x: string; blank: boolean[]; group?: string }[],
@@ -356,13 +400,50 @@ function readMarks(
       if (!MARK_PROPS.has(key))
         found.push({
           rule: "comark/charts/unknown-prop",
-          message: `${code(key)} isn't a prop of an annotation in a chart. Point at a row with \`at\`, and ${groups ? "its group" : "a column"} with \`series\`.`,
+          message: `${code(key)} isn't a prop of an annotation in a chart. Point at a row with \`at\`, and ${groups ? "its group" : "a column"} with \`series\`${groups ? "" : ', or cross the plot with `mark="line"` at a number with `value`'}.`,
         });
     const markProblems: Parameters<typeof readMark>[2] = [];
     const mark = readMark(child, markAttrs, markProblems);
     found.push(...markProblems);
     const at = text(markAttrs.at);
     const seriesName = text(markAttrs.series);
+    const valueText = text(markAttrs.value);
+    if (mark.mark === "line") {
+      const value = readNumber(valueText);
+      const axis = type !== "pie" && type !== "gantt";
+      if (!axis)
+        found.push({
+          rule: "comark/charts/invalid-line",
+          message: `\`mark="line"\` crosses the plot at a number on its value axis, and ${A[type]} has none. Mark a ${type === "pie" ? "slice" : "bar"} with \`at\` and another mark, such as \`box\`.`,
+        });
+      else if (!valueText)
+        found.push({
+          rule: "comark/charts/invalid-line",
+          message: `\`mark="line"\` needs \`value\`, the number on the value axis it crosses at, such as \`value="200"\`.`,
+        });
+      else if (value === undefined)
+        found.push({
+          rule: "comark/charts/invalid-line",
+          message: `\`value="${valueText}"\` isn't a number. Write the number alone, such as \`200\` or \`1,200\`, in the unit of the chart's numbers.`,
+        });
+      const extra = [at && "`at`", seriesName && "`series`"].filter(Boolean).join(" and ");
+      if (axis && extra)
+        found.push({
+          rule: "comark/charts/invalid-line",
+          message: `a line crosses the whole plot at its \`value\`, so ${extra} ${at && seriesName ? "don't" : "doesn't"} apply. Remove ${at && seriesName ? "them" : "it"}.`,
+        });
+      issues.push(
+        ...found.map((problem) => ({ ...problem, message: `${where}: ${problem.message}` })),
+      );
+      if (axis && value !== undefined)
+        marks.push({ ...mark, n: index + 1, number: mark.side ? undefined : stamp++, value });
+      continue;
+    }
+    if (valueText)
+      found.push({
+        rule: "comark/charts/invalid-line",
+        message: `\`value\` places a line across the plot. Add \`mark="line"\`, or remove \`value\` and mark a row with \`at\`.`,
+      });
     const group = groups?.names.includes(seriesName) ? seriesName : undefined;
     const among = points.flatMap((point, row) =>
       group === undefined || point.group === group ? [{ ...point, row }] : [],
@@ -562,7 +643,7 @@ function readGantt(
     }
   }
   const groups = [...new Set(points.map((row) => row.group ?? ""))];
-  const marks = readMarks(name, x, annotations, points, span, issues, {
+  const marks = readMarks(name, "gantt", x, annotations, points, span, issues, {
     column: group,
     names: group === undefined ? [] : groups,
   });

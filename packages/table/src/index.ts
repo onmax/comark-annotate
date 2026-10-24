@@ -64,6 +64,25 @@ const isBlock = (node: ElementNode) =>
   (!isMarkdownTable(node) ||
     Object.keys(node[1]).some((key) => PROPS.includes(key.replace(/^:/, ""))));
 
+// The colors comark-badge uses, as tints, so a cell's text keeps its color and reads in light and dark themes.
+const TONES = {
+  success: "var(--ui-success,#16a34a)",
+  warning: "var(--ui-warning,#ca8a04)",
+  error: "var(--ui-error,var(--destructive,#dc2626))",
+  info: "var(--ui-info,#2563eb)",
+};
+type Tone = keyof typeof TONES;
+const isKnownTone = (tone: string): tone is Tone => Object.hasOwn(TONES, tone);
+// A data cell can't hold Markdown, so a whole cell written as a tone span is read here.
+const TONED = /^\[(.*)\]\{\s*tone=(?:"([^"]*)"|'([^']*)'|([^\s}]*))\s*\}$/;
+const isTone = (node: Node): node is ElementNode =>
+  isElement(node) && node[0] === "span" && Object.hasOwn(node[1], "tone");
+const cellNode = (cell: string): Node => {
+  const toned = TONED.exec(cell);
+  return toned ? ["span", { tone: toned[2] ?? toned[3] ?? toned[4] }, toned[1] ?? ""] : cell;
+};
+const cellText = (cell: string) => TONED.exec(cell)?.[1] ?? cell;
+
 /** RFC 4180: quoted cells may hold the separator, line breaks, and `""` for a quote. */
 function delimited(source: string, separator: string): string[][] | undefined {
   const rows: string[][] = [];
@@ -179,10 +198,10 @@ function build(
     });
   // Numbers line up on the right, as a spreadsheet shows them.
   const numeric = header.map((_, column) =>
-    body.every((row) => !row[column] || NUMBER.test(row[column])),
+    body.every((row) => !row[column] || NUMBER.test(cellText(row[column]))),
   );
   const style = (column: number) => (numeric[column] ? { style: "text-align:right" } : {});
-  return [
+  const table: ElementNode = [
     "table",
     {},
     [
@@ -191,11 +210,7 @@ function build(
       [
         "tr",
         {},
-        ...header.map((label, column): ElementNode => [
-          "th",
-          style(column),
-          ...(sort ? [sortButton(label)] : [label]),
-        ]),
+        ...header.map((label, column): ElementNode => ["th", style(column), cellNode(label)]),
       ],
     ],
     [
@@ -204,17 +219,81 @@ function build(
       ...body.map((row): ElementNode => [
         "tr",
         {},
-        ...header.map((_, column): ElementNode => ["td", style(column), row[column] ?? ""]),
+        ...header.map((_, column): ElementNode => [
+          "td",
+          style(column),
+          cellNode(row[column] ?? ""),
+        ]),
       ]),
     ],
   ];
+  color(table, name, issues);
+  if (sort) sortable(table);
+  return table;
 }
 
-const sortButton = (...children: Node[]): ElementNode => [
-  "button",
-  { type: "button", class: "ctb-sort" },
-  ...children,
-];
+/** Takes `tone` off every span under `node`, unwrapping a span it leaves bare, and returns those spans. */
+function takeTones(node: ElementNode): ElementNode[] {
+  const spans: ElementNode[] = [];
+  const children = childrenOf(node).flatMap((child): Node[] => {
+    if (!isElement(child)) return [child];
+    spans.push(...takeTones(child));
+    if (!isTone(child)) return [child];
+    spans.push(child);
+    const { tone: _, ...rest } = child[1];
+    return Object.keys(rest).length ? [[child[0], rest, ...childrenOf(child)]] : childrenOf(child);
+  });
+  node.splice(2, node.length - 2, ...children);
+  return spans;
+}
+
+/**
+ * Tints each cell that is one `[text]{tone="error"}` span, and each row whose first cell is, so the span itself never
+ * renders. The tint goes on every cell rather than the row, since a page's striped rows paint their cells.
+ */
+function color(table: ElementNode, name: string, issues: Issue[]) {
+  let index = 0;
+  for (const section of childrenOf(table)) {
+    if (!isElement(section) || (section[0] !== "thead" && section[0] !== "tbody")) continue;
+    for (const row of childrenOf(section)) {
+      if (!isElement(row) || row[0] !== "tr") continue;
+      const where = section[0] === "thead" ? `${name}, header row` : `${name}, row ${++index}`;
+      const cells = childrenOf(row).filter(
+        (cell): cell is ElementNode => isElement(cell) && (cell[0] === "td" || cell[0] === "th"),
+      );
+      const tones = cells.map((cell) => {
+        const content = childrenOf(cell).filter(isContent);
+        const [only] = content;
+        const filling = content.length === 1 && only && isTone(only) ? only : undefined;
+        let found: Tone | undefined;
+        let invalid = false;
+        for (const span of takeTones(cell)) {
+          const tone = text(span[1].tone);
+          if (span !== filling) {
+            invalid = true;
+            issues.push({
+              rule: "comark/table/partial-tone",
+              message: `${where}: the \`tone\` span "[${textOf(span)}]" doesn't fill its cell, so the cell isn't colored. Put the whole cell in the brackets, as \`[${textOf(cell)}]{tone="${tone}"}\`, or drop \`{tone}\`.`,
+            });
+          } else if (!isKnownTone(tone)) {
+            invalid = true;
+            issues.push({
+              rule: "comark/table/unknown-tone",
+              message: `${where}: "${tone}" isn't a tone, so the cell isn't colored. Use \`success\`, \`warning\`, \`error\`, or \`info\`.`,
+            });
+          } else found = tone;
+        }
+        return invalid ? null : found;
+      });
+      cells.forEach((cell, column) => {
+        const tone = tones[column] === undefined ? tones[0] : tones[column];
+        if (!tone) return;
+        const tint = `background-color:color-mix(in srgb,${TONES[tone]} 20%,transparent)`;
+        cell[1] = { ...cell[1], style: [text(cell[1].style), tint].filter(Boolean).join(";") };
+      });
+    }
+  }
+}
 
 /** Makes a Markdown table's headers sort buttons. */
 function sortable(table: ElementNode) {
@@ -391,6 +470,15 @@ export default defineComarkPlugin<TableOptions | undefined, TableMeta>((options 
         rule: "comark/table/base-outside-root",
         message: `table: \`base\` "${options.base ?? ""}" leaves the root. Set it to the document's folder under \`root\`.`,
       });
+    let tables = 0;
+    const tint = (nodes: Node[]) => {
+      for (const node of nodes) {
+        if (!isElement(node) || node[0] === "pre" || node[0] === "code") continue;
+        if (isMarkdownTable(node)) color(node, `Markdown table ${++tables}`, run.issues);
+        else tint(childrenOf(node));
+      }
+    };
+    tint(tree.nodes);
     const count = { block: 0, fence: 0 };
     const walk = async (nodes: Node[], start: number) => {
       for (let index = start; index < nodes.length; index++) {

@@ -1,6 +1,7 @@
 ---
 title: Validation
 description: Every plugin reports problems to meta.issues, one sentence each that names the block and the fix.
+keywords: errors, issues, warnings, meta.issues, problems, diagnostics, debugging
 tagline: Check a document before you publish it. Each problem is one sentence that names the block and says how to fix it, and rendering never throws.
 ---
 

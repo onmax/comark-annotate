@@ -1,6 +1,7 @@
 ---
 title: "@onmax/comark"
 description: Every comark-plugins package in one install.
+keywords: all plugins, every plugin, bundle, kit, starter, one import
 tagline: onmax's preset, like @antfu/eslint-config for Comark. One import registers every plugin in the order they need, and each release brings their latest defaults.
 install: pnpm add comark @comark/html @onmax/comark
 group: Comark plugins
@@ -66,6 +67,10 @@ The keys are the packages' names without `comark-`, in camelCase: `fileTree`, `c
 The icon resolver from `icon`'s options also draws the icons of cards, details, file trees, tabs, and code actions, so its `collections` and `fetch` apply to all of them. When you parse in a browser, pass `chips: { download: false }`, since a browser may not download another site's images.
 
 [critic](/critic/) has no component to add its styles, so put `criticCss`, exported by every entry, in the page.
+
+## Agents
+
+The package ships the comark-plugins agent skill. [Agents](/guide/agents/) shows how to install it, or bundle it in an app so it always matches the plugins the app installed.
 
 ## Versions
 

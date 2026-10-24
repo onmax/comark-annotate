@@ -265,11 +265,17 @@ function stats(node: ElementNode, name: string, data: Data, issues: Issue[]): No
   if (!tiles) header?.push(["th", {}, "Change"]);
   for (const row of body ? elements(body, "tr") : []) {
     const cells = elements(row, "td");
-    if (cells.length !== columns) {
+    // Markdown tables pad short rows with empty cells. In tile mode, an empty
+    // trailing value is still a malformed two-column row, so keep the table
+    // visible instead of drawing an incomplete tile.
+    const trailingValueMissing =
+      tiles && columns === 3 && !textOf(cells.at(-1) ?? []).trim();
+    const rowColumns = trailingValueMissing ? columns - 1 : cells.length;
+    if (rowColumns !== columns) {
       malformedRow = true;
       issues.push({
         rule: "comark/metrics/column-count",
-        message: `${name}: row has ${cells.length} columns, but needs ${needs}. ${tiles ? "Fix the row, since the table is shown instead of tiles." : "Fix the row so no authored cells are lost."}`,
+        message: `${name}: row has ${rowColumns} columns, but needs ${needs}. ${tiles ? "Fix the row, since the table is shown instead of tiles." : "Fix the row so no authored cells are lost."}`,
       });
       continue;
     }

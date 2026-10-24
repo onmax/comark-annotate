@@ -42,12 +42,12 @@ describe("comark-cards renderers", () => {
       icons: { book: { body: '<path stroke="currentColor" d="M1 1"/>' } },
     };
     const value = await parseMarkdown(
-      '::card-group{#cards .wide}\n:::card{title="Docs" to="/guide" icon="lucide:book" color="info"}\nRead **it**.\n:::\n\n:::card{to="https://x.com" title="X"}\n:::\n::\n\n::columns{cols="2"}\nOne.\n\n:::column\nTwo.\n:::\n::',
+      '::card-group{#cards .wide}\n:::card{title="Docs" to="/guide" icon="lucide:book" color="info" variant="soft"}\nRead **it**.\n:::\n\n:::card{to="https://x.com" title="X"}\n:::\n::\n\n::columns{cols="2"}\nOne.\n\n:::column\nTwo.\n:::\n::',
       { plugins: [cards({ iconResolver: createIcons({ collections: { lucide } }) })] },
     );
     const expected = normalize(await renderers.html(value));
     expect(expected).toContain(
-      '<a class="ccr-link" href="/guide" aria-label="Docs"></a><span class="ci"',
+      '<div class="ccr" data-color="info" data-variant="soft"><a class="ccr-link" href="/guide" aria-label="Docs"></a><span class="ci"',
     );
     for (const name of ["vue", "react"] as const) {
       const html = normalize(await renderers[name](value));

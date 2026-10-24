@@ -31,8 +31,9 @@ It reports:
 - Content besides the table and its annotations.
 - Data that doesn't fit the type, such as a line or an area of one row, a scatter without numbers on x, a dumbbell with one column, a pie or a waterfall with several, and a pie with a negative number or nothing but zeros.
 - A gantt without one start and one end column, a row missing either, a bar that ends before it starts, and two columns of names to color by.
+- `labels` on a chart without bars to write on, or with a value.
 
-Annotations are checked too: a missing or unknown `at`, a `series` the chart doesn't draw, a mark on an empty cell, and the mark, color, and side, as comark-annotate checks them on screenshots.
+Annotations are checked too: a missing or unknown `at`, a `series` the chart doesn't draw, a mark on an empty cell, a line without a number in `value` or on a chart without a value axis, and the mark, color, and side, as comark-annotate checks them on screenshots.
 
 Rendering never throws. A chart with a problem draws what it can:
 
@@ -48,7 +49,7 @@ Rendering never throws. A chart with a problem draws what it can:
 
 A chart keeps the size its text was set for instead of stretching to the column, so labels read the same in every chart. It's sized to fit its card, with room for its labels.
 
-- Values sit on the marks when they fit. On crowded or stacked bars, or with negative numbers, you read them off the value axis instead.
+- Values sit on the marks when they fit. On crowded or stacked bars, or with negative numbers, you read them off the value axis instead, unless the chart has `labels`.
 - Lines name their series at their ends. When the ends sit close together, a legend names them.
 - No row is ever dropped. A long sideways chart grows taller.
 - A narrower column scrolls the chart sideways, and print shrinks it to the page. A chart with marks shrinks to fit instead, since its marks sit at percentages of the chart.

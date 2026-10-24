@@ -1,6 +1,7 @@
 ---
 title: comark-keys
 description: Keyboard shortcuts in Markdown, rendered as kbd keys.
+keywords: keyboard, keyboard shortcut, kbd, hotkey, key combination, shortcut, keystroke, Mac keys
 tagline: Write ++ctrl+shift+k++ and get each key in its own kbd, named the way people read them, with no component.
 install: pnpm add comark comark-keys
 group: Markdown syntax

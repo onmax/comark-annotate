@@ -1,10 +1,11 @@
 import type { Component, Snippet } from "svelte";
 import type { IconData } from "comark-icon";
 
-export { colors, default } from "comark-cards";
+export { colors, default, variants } from "comark-cards";
 export type {
   CardAttributes,
   CardColor,
+  CardVariant,
   CardsMeta,
   CardsOptions,
   ColumnsAttributes,
@@ -12,6 +13,7 @@ export type {
 
 export declare const Card: Component<{
   color?: string;
+  variant?: string;
   to?: string;
   target?: string;
   external?: string | boolean;

@@ -1,6 +1,7 @@
 ---
 title: comark-links
 description: External links with the target and rel you choose, and a link beside each heading.
+keywords: external links, target blank, new tab, noopener, noreferrer, nofollow, rel, heading anchors, anchor links, permalink, deep link
 tagline: Say which links open a new tab and warn before they do, and give every section a link to itself.
 install: pnpm add comark @comark/html comark-links
 group: Page behavior
