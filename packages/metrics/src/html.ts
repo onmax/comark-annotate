@@ -2,7 +2,7 @@ import type { NodeHandler, State } from "comark";
 import { escapeHtml } from "comark/utils";
 import { css } from "./styles.ts";
 
-export { default, PROGRESS_TAG } from "./index.ts";
+export { default, PROGRESS_TAG, STATS_TILES_TAG } from "./index.ts";
 export type { DeltaAttributes, MetricsMeta, ProgressAttributes } from "./index.ts";
 
 // Each render gets a fresh `state.context`, so a document carries the styles once.
@@ -43,8 +43,12 @@ const progress: NodeHandler = ([, attrs], state) => {
   );
 };
 
+const tiles: NodeHandler = async (node, state) =>
+  `${styles(state)}<dl class="cmt-tiles">${await state.flow(node, state)}</dl>`;
+
 /** The HTML renderer for `:delta`, `:progress`, and `::stats`. Pass it as `components`; it inlines the styles once per document. */
-export const components: Record<"delta" | "progress-bar", NodeHandler> = {
+export const components: Record<"delta" | "progress-bar" | "stat-tiles", NodeHandler> = {
   delta,
   "progress-bar": progress,
+  "stat-tiles": tiles,
 };
