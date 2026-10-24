@@ -898,6 +898,15 @@ importers:
         specifier: 'catalog:'
         version: 0.8.1(shiki@4.5.0)
 
+  packages/keys:
+    devDependencies:
+      '@comark/html':
+        specifier: 'catalog:'
+        version: 0.8.1(shiki@4.5.0)
+      comark:
+        specifier: 'catalog:'
+        version: 0.8.1(shiki@4.5.0)
+
   packages/links:
     devDependencies:
       '@comark/html':
@@ -1005,6 +1014,9 @@ importers:
       comark-icon:
         specifier: workspace:*
         version: link:../icon
+      comark-keys:
+        specifier: workspace:*
+        version: link:../keys
       comark-links:
         specifier: workspace:*
         version: link:../links

@@ -113,6 +113,7 @@ const packageOrder = [
   "critic",
   "deflist",
   "footnotes",
+  "keys",
   "include",
   "outline",
   "reading-time",

@@ -30,6 +30,7 @@ Plugins for review documents, built on [Comark](https://comark.dev). This is an 
 | [`comark-fields`](./packages/fields) | Props, options, and parameters in Nuxt UI's `::field` syntax, with their types, defaults, and an object's properties nested under it. |
 | [`comark-github`](./packages/github) | GitHub's `> [!NOTE]` alerts as callouts, `@user` and `#123` as links, and raw HTML limited to what GitHub allows. |
 | [`comark-icon`](./packages/icon) | Iconify icons in Markdown as `:icon{name="lucide:apple"}`, drawn as CSS with no script, and the resolver other plugins draw icons with. |
+| [`comark-keys`](./packages/keys) | Keyboard shortcuts: `++ctrl+shift+k++` renders each key as a `<kbd>`, with pymdownx.keys' names and aliases. |
 | [`comark-links`](./packages/links) | A `#` link beside each heading, and external links with the `target` and `rel` you choose and a warning before a new tab. |
 | [`comark-media`](./packages/media) | Videos and audio written as images, and GitHub attachment links that play, with no script. |
 | [`comark-metrics`](./packages/metrics) | Before → after numbers with the percent change, progress bars, and tables of metrics with a change column. |

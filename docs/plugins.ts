@@ -24,6 +24,7 @@ import {
 import icon, { components as iconComponents } from "../packages/icon/src/html.ts";
 import mark from "../packages/mark/src/index.ts";
 import { anchors, components as linksComponents, external } from "../packages/links/src/html.ts";
+import keys from "../packages/keys/src/index.ts";
 import media, { components as mediaComponents } from "../packages/media/src/html.ts";
 import properties, { components as propertiesComponents } from "../packages/properties/src/html.ts";
 import sources, { components as sourcesComponents } from "../packages/sources/src/html.ts";
@@ -69,6 +70,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   fileTree(),
   fields(),
   properties(),
+  keys(),
   badge(),
   media(),
   metrics(),
