@@ -318,6 +318,14 @@ describe("comark/duplicate-id", () => {
   it("passes headings Comark numbers itself", async () => {
     expect(await check(`## Setup\n\n## Setup`)).toEqual([]);
   });
+
+  it("places repeated HTML ids on the duplicate attribute", async () => {
+    expect(
+      (await check(`<div id="panel">one</div>\n\n<div id="panel">two</div>`)).map(
+        ({ line }) => line,
+      ),
+    ).toEqual([3]);
+  });
 });
 
 describe("comark/missing-alt", () => {
@@ -332,6 +340,12 @@ describe("comark/missing-alt", () => {
       },
     ]);
   });
+
+  it("locates a repeated source after a valid image and raw HTML images", async () => {
+    expect(await check(`![Ducks](pond.png)\n\n<img src="pond.png">`)).toEqual([
+      expect.objectContaining({ rule: "comark/missing-alt", line: 3 }),
+    ]);
+  });
 });
 
 describe("comark/empty-link", () => {
@@ -342,6 +356,20 @@ describe("comark/empty-link", () => {
         line,
       })),
     ).toEqual([{ rule: "comark/empty-link", line: 1 }]);
+  });
+
+  it("passes a link an aria-label names", async () => {
+    expect(await check(`See [](/census/){aria-label="The census"}.`)).toEqual([]);
+  });
+
+  it("locates a repeated source after a valid link and raw HTML links", async () => {
+    expect(await check(`[the pond](/pond/)\n\n<a href="/pond/"></a>`)).toEqual([
+      expect.objectContaining({ rule: "comark/empty-link", line: 3 }),
+    ]);
+  });
+
+  it("leaves a raw HTML link with an aria-label alone", async () => {
+    expect(await check(`See <a href="/census/" aria-label="The census"></a>.`)).toEqual([]);
   });
 });
 

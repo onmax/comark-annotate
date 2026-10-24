@@ -23,7 +23,9 @@ const packages = [
   ],
   ["comark-annotate/html", () => import("comark-annotate/html"), []],
   ["comark-carousel/html", () => import("comark-carousel/html"), []],
+  ["comark-cast/html", () => import("comark-cast/html"), []],
   ["comark-code/html", () => import("comark-code/html"), []],
+  ["comark-code-notes/html", () => import("comark-code-notes/html"), []],
   [
     "comark-charts/html",
     // Linting reads no drawings, so it loads no Vega.
@@ -35,6 +37,11 @@ const packages = [
     [],
   ],
   ["comark-embed/html", () => import("comark-embed/html"), []],
+  [
+    "comark-footnotes",
+    () => import("comark-footnotes").then((module) => ({ ...module, components: {} })),
+    [],
+  ],
   [
     "comark-github/html",
     // Of its plugins only callouts make blocks; references and raw HTML have nothing to lint.
@@ -51,6 +58,23 @@ const packages = [
       })),
     [],
   ],
+  ["comark-cjk", () => import("comark-cjk").then((module) => ({ ...module, components: {} })), []],
+  [
+    "comark-diagrams/html",
+    // Linting reads no drawings, so it sends no diagram to Kroki.
+    () =>
+      import("comark-diagrams/html").then((module) => ({
+        ...module,
+        default: () => module.default({ draw: false }),
+      })),
+    [],
+  ],
+  [
+    "comark-critic",
+    () => import("comark-critic").then((module) => ({ ...module, components: {} })),
+    [],
+  ],
+  ["comark-colors/html", () => import("comark-colors/html"), []],
   // Syntax plugins have no components, and are loaded so their syntax isn't read as something else.
   [
     "comark-deflist",
@@ -65,12 +89,32 @@ const packages = [
   ["comark-diff/html", () => import("comark-diff/html"), []],
   ["comark-icon/html", () => import("comark-icon/html"), []],
   [
+    "comark-keys",
+    () => import("comark-keys").then((module) => ({ ...module, components: {} })),
+    [],
+  ],
+  ["comark-sources/html", () => import("comark-sources/html"), []],
+  ["comark-properties/html", () => import("comark-properties/html"), []],
+  [
+    "comark-links/html",
+    // Neither of its plugins makes blocks, so either one will do.
+    () => import("comark-links/html").then((module) => ({ ...module, default: module.anchors })),
+    [],
+  ],
+  [
     "comark-mark",
     () => import("comark-mark").then((module) => ({ ...module, components: {} })),
     [],
   ],
   ["comark-media/html", () => import("comark-media/html"), []],
+  ["comark-metrics/html", () => import("comark-metrics/html"), ["stats"]],
   ["comark-steps/html", () => import("comark-steps/html"), []],
+  [
+    "comark-table/html",
+    // `::table` shares its name with Markdown tables, which no component draws.
+    () => import("comark-table/html"),
+    ["table"],
+  ],
   ["comark-cards/html", () => import("comark-cards/html"), []],
   ["comark-badge/html", () => import("comark-badge/html"), []],
   ["comark-qr/html", () => import("comark-qr/html"), []],
@@ -88,6 +132,13 @@ const packages = [
   ],
   ["comark-file-tree/html", () => import("comark-file-tree/html"), []],
   ["comark-tabs/html", () => import("comark-tabs/html"), ["code-group", "tabs-item"]],
+  ["comark-tests/html", () => import("comark-tests/html"), []],
+  [
+    "comark-xref",
+    // It draws with plain elements, so it has no components; `:ref` is replaced while parsing.
+    () => import("comark-xref").then((module) => ({ ...module, components: {} })),
+    ["ref"],
+  ],
   ["comark-outline/html", () => import("comark-outline/html"), []],
   ["comark-zoom/html", () => import("comark-zoom/html"), []],
 ] as const;

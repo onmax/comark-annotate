@@ -167,7 +167,7 @@ test("hovering the rail shows every section's name over the pages, without movin
 
 test("a package's card links to its docs without a copy control", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "List" }).click();
+  await page.getByRole("button", { name: "List", exact: true }).click();
   const card = page.locator(".grid a", { has: page.getByText("github", { exact: true }) });
   await expect(card).toHaveAttribute("href", "/github/");
   await expect(page.getByRole("button", { name: "Copy pnpm add comark-github" })).toHaveCount(0);

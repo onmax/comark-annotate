@@ -12,7 +12,7 @@ import {
   type Pending,
 } from "./links.ts";
 import { catalog } from "./rules/index.ts";
-import { find, read, type Source } from "./source.ts";
+import { find, findAny, read, type Source } from "./source.ts";
 import { closest, decode, listIds } from "./words.ts";
 
 export { defineConfig, resolveConfig, type Config } from "./config.ts";
@@ -246,7 +246,7 @@ function checkDocument({ source, found, parsed }: Document, options: LintOptions
       );
     check("comark/broken-anchor", () => brokenAnchors(document.nodes, source));
     check("comark/unsafe-url", () => unsafeUrls(document.nodes, source));
-    check("comark/duplicate-id", () => duplicateIds(document.nodes, source));
+    check("comark/duplicate-id", () => duplicateIds(document.nodes, source, options.headingIds));
     check("comark/missing-alt", () => missingAlts(document.nodes, source));
     check("comark/empty-link", () => emptyLinks(document.nodes, source));
     check("comark/plugin-issue", () => pluginIssues(document.meta, source, blocks()));
@@ -678,24 +678,74 @@ function unsafeUrls(nodes: Node[], source: Source): Diagnostic[] {
   return found;
 }
 
-function duplicateIds(nodes: Node[], source: Source): Diagnostic[] {
+function duplicateIds(nodes: Node[], source: Source, headingIds?: HeadingIdsOption): Diagnostic[] {
   const tagged = [...elements(nodes)].flatMap(([tag, attributes]) => {
     const id = text(attributes.id);
     return id ? [{ tag, id }] : [];
   });
-  const total = new Map<string, number>();
-  for (const { id } of tagged) total.set(id, (total.get(id) ?? 0) + 1);
   const seen = new Map<string, number>();
   const found: Diagnostic[] = [];
+  const locations = (id: string): { line: number; column: number }[] => {
+    const matches: { line: number; column: number }[] = [];
+    const explicit = [
+      `{#${id}`,
+      `{id="${id}"}`,
+      `{id='${id}'}`,
+      `{id=${id}}`,
+      `id="${id}"`,
+      `id='${id}'`,
+      `id=${id}`,
+    ];
+    let ancestors: { level: number; text: string }[] = [];
+    const slug = (value: string) => {
+      const clean = value
+        .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+        .replace(/`([^`]*)`/g, "$1")
+        .replace(/[*_~]/g, "")
+        .replace(/[^\p{L}\p{M}\p{N}\s-]/gu, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .toLowerCase();
+      return /^\d/.test(clean) ? `_${clean}` : clean;
+    };
+    for (let line = source.body; line < source.prose.length; line++) {
+      const value = source.prose[line]!;
+      for (const needle of explicit) {
+        const at = value.indexOf(needle);
+        if (at !== -1) matches.push({ line: line + 1, column: at + 1 });
+      }
+      const heading = /^( {0,3})(#{1,6})\s+(.+?)\s*$/.exec(value);
+      if (!heading) continue;
+      const level = heading[2]!.length;
+      const explicitId = /\s+\{#([^}]+)\}\s*$/.exec(heading[3]!)?.[1];
+      const content = heading[3]!.replace(/\s+\{#[^}]+\}\s*$/, "");
+      while (ancestors.at(-1) && ancestors.at(-1)!.level >= level) ancestors.pop();
+      let headingText = content;
+      if (headingIds === "nested" && level >= 3) {
+        const parts: string[] = [];
+        for (const item of ancestors) {
+          if (item.level >= 2) parts.push(item.text);
+        }
+        parts.push(content);
+        headingText = parts.join(" ");
+      }
+      const generated = slug(headingText);
+      // An explicit heading label is the parser's sole source for this ID when it
+      // matches the generated slug; do not count that heading twice.
+      if (generated === id && explicitId !== id)
+        matches.push({ line: line + 1, column: heading[0].indexOf(heading[3]!) + 1 });
+      ancestors.push({ level, text: content });
+    }
+    return matches.sort((a, b) => a.line - b.line || a.column - b.column);
+  };
+  const byId = new Map<string, { line: number; column: number }[]>();
   for (const { tag, id } of tagged) {
     const index = seen.get(id) ?? 0;
     seen.set(id, index + 1);
     if (!index) continue;
-    // Comark numbers a heading whose id is taken, so the repeats are the ids written as `{#id}`, after the heading's.
-    let writtenIds = 0;
-    while (find(source, `{#${id}`, { nth: writtenIds, from: source.body })) writtenIds++;
-    const nth = index - (total.get(id)! - writtenIds);
-    const at = nth >= 0 ? find(source, `{#${id}`, { nth, from: source.body }) : undefined;
+    // IDs may come from heading labels, Comark attributes, or raw HTML. Keep all forms in
+    // source order so a mixed document points at the duplicate element itself.
+    const at = (byId.get(id) ?? (byId.set(id, locations(id)), byId.get(id)!))[index];
     const { line, column } = at ?? { line: source.body + 1, column: undefined };
     found.push({
       rule: "comark/duplicate-id",
@@ -711,11 +761,15 @@ function duplicateIds(nodes: Node[], source: Source): Diagnostic[] {
 function missingAlts(nodes: Node[], source: Source): Diagnostic[] {
   const locate = locator(source);
   const found: Diagnostic[] = [];
+  const occurrences = new Map<string, number>();
   for (const [tag, attributes] of elements(nodes)) {
     const src = text(attributes.src);
+    const nth = occurrences.get(src) ?? 0;
+    if (src) occurrences.set(src, nth + 1);
     // An empty `alt`, written `{alt=""}` or in HTML, marks an image as decoration on purpose.
     if (tag !== "img" || !src || attributes.alt !== undefined) continue;
-    const { line, column } = locate(`](${src}`, src);
+    const at = findAny(source, [`](${src}`, `src="${src}"`, `src='${src}'`, `src=${src}`], { nth });
+    const { line, column } = at ?? locate(`](${src}`, src);
     found.push({
       rule: "comark/missing-alt",
       line,
@@ -730,10 +784,18 @@ function missingAlts(nodes: Node[], source: Source): Diagnostic[] {
 function emptyLinks(nodes: Node[], source: Source): Diagnostic[] {
   const locate = locator(source);
   const found: Diagnostic[] = [];
+  const occurrences = new Map<string, number>();
   for (const [tag, attributes, ...children] of elements(nodes)) {
     const href = text(attributes.href);
-    if (tag !== "a" || !href || children.some((child) => isElement(child) || text(child))) continue;
-    const { line, column } = locate(`](${href}`, href);
+    const nth = occurrences.get(href) ?? 0;
+    if (href) occurrences.set(href, nth + 1);
+    const named = text(attributes["aria-label"]);
+    if (tag !== "a" || !href || named || children.some((child) => isElement(child) || text(child)))
+      continue;
+    const at = findAny(source, [`](${href}`, `href="${href}"`, `href='${href}'`, `href=${href}`], {
+      nth,
+    });
+    const { line, column } = at ?? locate(`](${href}`, href);
     found.push({
       rule: "comark/empty-link",
       line,

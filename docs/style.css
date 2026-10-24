@@ -2919,6 +2919,29 @@ h3 {
   font: 500 0.875rem/1.5 var(--mono);
 }
 
+/* comark-links puts each heading in a flex row with its # link, so the row takes the heading's rule and spacing. */
+:where(.cl-heading):has(> h2) {
+  margin: 3.5rem 0 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+:where(.cl-heading):has(> h3) {
+  margin: 2.25rem 0 0.5rem;
+}
+
+.cl-heading > :is(h2, h3),
+.landing .cl-heading {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* The row's rule sits above the heading now, so a jump to it stops that much higher. */
+.cl-heading > h2 {
+  scroll-margin-top: 5.75rem;
+}
+
 code {
   color: var(--fg);
   font: 0.8125rem/1.6 var(--mono);

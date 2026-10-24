@@ -7,11 +7,16 @@ import { parseMarkdown } from "comark";
 import { textContent } from "comark/utils";
 import { icons as lucide } from "@iconify-json/lucide";
 import cards from "../packages/cards/src/index.ts";
+import critic, { type CriticOptions } from "../packages/critic/src/index.ts";
+import diagrams from "../packages/diagrams/src/index.ts";
+import cast from "../packages/cast/src/index.ts";
 import icon, { createIcons } from "../packages/icon/src/index.ts";
 import include from "../packages/include/src/index.ts";
 import { lint, type Diagnostic, type Rule } from "../packages/lint/src/index.ts";
 import { catalog, type RuleInfo } from "../packages/lint/src/rules/index.ts";
+import table from "../packages/table/src/index.ts";
 import tabs from "../packages/tabs/src/index.ts";
+import tests from "../packages/tests/src/index.ts";
 import { browserPlugins, components } from "./plugins.ts";
 
 const repo = new URL("../", import.meta.url);
@@ -27,25 +32,34 @@ export const doctorRules = Object.entries(catalog as Record<string, RuleInfo>).m
 
 export const doctorRule = (slug: string) => doctorRules.find((entry) => entry.slug === slug);
 
-// Icons come from lucide alone, so an example's icon problem doesn't depend on the network. The include examples read
-// files from docs/doctor-include/, outside the pages so none is linted or built as one.
+// Icons come from lucide alone, so an example's icon problem doesn't depend on the network, and no diagram goes to
+// Kroki. The include, cast, table, and tests examples read files from docs/doctor-include/, outside the pages so none
+// is linted or built as one.
 const icons = createIcons({ collections: { lucide }, fetch: false });
+const files = fileURLToPath(new URL("docs/doctor-include/", repo));
 const offline: Record<string, ReturnType<typeof browserPlugins>[number]> = {
   "comark-icon": icon(icons),
   "comark-tabs": tabs({ iconResolver: icons }),
   "comark-cards": cards({ iconResolver: icons }),
+  "comark-diagrams": diagrams({ draw: false }),
+  "comark-cast": cast({ root: files }),
+  "comark-table": table({ root: files }),
+  "comark-tests": tests({ root: files }),
 };
 const plugins = () => [
   ...browserPlugins({}, { download: false }).map((plugin) => offline[plugin.name] ?? plugin),
-  include({ root: fileURLToPath(new URL("docs/doctor-include/", repo)) }),
+  include({ root: files }),
 ];
-// comark-tabs turns `::code-group` into `::tabs`, comark-include replaces `:include`, and comark-details turns its
-// items and collapsibles into `disclosure` while parsing, so no renderer has them.
+// comark-tabs turns `::code-group` into `::tabs`, comark-metrics `::stats` into a table, comark-include and comark-xref
+// replace `:include` and `:ref`, and comark-details turns its items and collapsibles into `disclosure` while parsing,
+// so no renderer has them.
 const known = [
   ...Object.keys(components),
   "code-group",
   "tabs-item",
   "include",
+  "ref",
+  "stats",
   "accordion-item",
   "collapsible",
 ];
@@ -56,8 +70,18 @@ const fileOf: Partial<Record<Rule, string>> = {
   "comark/broken-link": fileURLToPath(new URL("docs/doctor-include/page.md", repo)),
 };
 
-export const lintExample = (source: string, rule?: Rule) =>
-  lint(source, { plugins: plugins(), components: known, file: rule && fileOf[rule] });
+export const lintExample = (
+  source: string,
+  rule?: Rule,
+  criticMode?: "view" | "accept" | "reject" | "merge",
+) => {
+  const configured = plugins();
+  if (criticMode) {
+    const index = configured.findIndex((plugin) => plugin.name === "comark-critic");
+    if (index >= 0) configured[index] = critic({ mode: criticMode as CriticOptions["mode"] });
+  }
+  return lint(source, { plugins: configured, components: known, file: rule && fileOf[rule] });
+};
 
 const isElement = (node: Node): node is ElementNode => Array.isArray(node) && node[0] !== null;
 
@@ -90,7 +114,11 @@ export async function checkExample(
   kind: "incorrect" | "correct",
   source: string,
 ): Promise<{ found: Diagnostic[]; problem?: string }> {
-  const found = await lintExample(source, rule);
+  const found = await lintExample(
+    source,
+    rule,
+    rule === "comark/critic/invalid-mode" && kind === "incorrect" ? "merge" : undefined,
+  );
   const other = found.filter((diagnostic) => diagnostic.rule !== rule);
   const list = (diagnostics: Diagnostic[]) =>
     diagnostics.map((d) => `\n  ${d.rule}: ${d.message} ${d.fix}`).join("");

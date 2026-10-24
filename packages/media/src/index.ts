@@ -5,6 +5,7 @@ import { resolveAttributes } from "comark/render";
 export type MediaMeta = {
   /** One readable sentence per problem with a video or audio file. Empty when the document has none. Other plugins add theirs too. */
   issues: string[];
+  /** The comark-linter rule of each issue, by its sentence, so the linter reports it under its own code. */
   issueRules: Record<string, string>;
 };
 
@@ -107,8 +108,8 @@ function read(
     attrs.alt === undefined ? `The ${kind || "media"} link ${src}` : `\`![${alt}](${src})\``;
   if (kind !== "video" && kind !== "audio") {
     issues.push({
+      rule: "comark/media/unplayable-src",
       message: `${name}: \`src\` must end in .mp4, .webm, .mov, .m4v, .mp3, .wav, .ogg, or .m4a to play.`,
-      rule: "comark/media/invalid-src",
     });
     return {};
   }
@@ -116,28 +117,28 @@ function read(
   if (alt) result.label = alt;
   else if (attrs.alt !== undefined)
     issues.push({
-      message: `${name} has no label. Describe the ${kind} in the brackets, like \`![Signing in with a passkey](${src})\`.`,
       rule: "comark/media/missing-label",
+      message: `${name} has no label. Describe the ${kind} in the brackets, like \`![Signing in with a passkey](${src})\`.`,
     });
   for (const flag of FLAGS) if (on(attrs[flag])) result[flag] = true;
   const poster = text(attrs.poster);
   if (poster && kind === "audio")
     issues.push({
+      rule: "comark/media/poster-on-audio",
       message: `${name}: audio has no picture, so \`poster\` was dropped. Remove it.`,
-      rule: "comark/media/audio-poster",
     });
   else if (poster) result.poster = poster;
   if (options.controls === "native") result.native = true;
   if (result.autoplay && !result.muted)
     issues.push({
+      rule: "comark/media/autoplay-without-muted",
       message: `${name}: browsers only start ${kind === "video" ? "a video" : "audio"} by itself when it's muted. Add \`muted\`, or remove \`autoplay\`.`,
-      rule: "comark/media/autoplay-unmuted",
     });
   const unknown = Object.keys(attrs).filter((key) => !KNOWN.has(key));
   if (unknown.length)
     issues.push({
-      message: `${name}: ${unknown.map((key) => `\`${key}\``).join(", ")} ${unknown.length === 1 ? `isn't ${kind === "audio" ? "an" : "a"}` : "aren't"} ${kind} option${unknown.length === 1 ? "" : "s"}, so ${unknown.length === 1 ? "it was" : "they were"} dropped. Use autoplay, loop, ${kind === "video" ? "muted, or poster" : "or muted"}.`,
       rule: "comark/media/unknown-prop",
+      message: `${name}: ${unknown.map((key) => `\`${key}\``).join(", ")} ${unknown.length === 1 ? `isn't ${kind === "audio" ? "an" : "a"}` : "aren't"} ${kind} option${unknown.length === 1 ? "" : "s"}, so ${unknown.length === 1 ? "it was" : "they were"} dropped. Use ${kind === "video" ? "autoplay, loop, muted, or poster" : "autoplay, loop, or muted"}.`,
     });
   return result;
 }
