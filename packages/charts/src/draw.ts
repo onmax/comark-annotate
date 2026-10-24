@@ -264,6 +264,9 @@ function input(chart: Chart): ChartAssemblyInput {
       ...((crowded || (legend && type === "area")) && {
         dataLabels: { ...theme.dataLabels, show: "never" },
       }),
+      // With `labels` every bar prints its value, so Flint hides the value axis and leaves room past the bars. The
+      // labels are the plugin's own, placed once the bars are drawn.
+      ...(chart.labels && { dataLabels: { ...theme.dataLabels, show: "always" } }),
       // The New York Times theme dots a line's ends, and on a dumbbell, which is all ends, that layer repaints some dots
       // in the first series' color.
       ...(type === "dumbbell" && { annotation: { ...theme.annotation, pointEmphasis: "never" } }),
@@ -387,44 +390,65 @@ interface SceneItem {
   x?: number;
   y?: number;
   bounds?: { x1: number; y1: number; x2: number; y2: number };
-  datum?: { row?: unknown; series?: unknown };
+  datum?: { row?: unknown; series?: unknown; y?: unknown };
   mark?: { marktype?: string };
   items?: SceneItem[];
 }
+
+/** Calls `visit` on every item of a drawn chart with its offset from the root group, the frame its layers draw in. */
+function walk(view: vega.View, visit: (item: SceneItem, dx: number, dy: number) => void) {
+  // Vega types its scenegraph as a bare Scene, but at runtime it holds the root group, whose items carry the fields
+  // SceneItem names.
+  const scene: SceneItem = Reflect.get(view.scenegraph(), "root");
+  const root = scene.items?.[0];
+  const step = (item: SceneItem, dx: number, dy: number) => {
+    visit(item, dx, dy);
+    const group = item.mark?.marktype === "group";
+    for (const child of item.items ?? [])
+      step(child, dx + (group ? (item.x ?? 0) : 0), dy + (group ? (item.y ?? 0) : 0));
+  };
+  step(scene, -(root?.x ?? 0), -(root?.y ?? 0));
+}
+
+// The axis a chart's numbers run along: across when its bars or rows run sideways. Pies and gantts take no line.
+const valueAxis = (chart: Chart) => (layout(chart).flip ? "x" : "y");
+// A line's box reaches this far to each side of it, so its stamp and its arrow sit on the line.
+const LINE = 4;
 
 function boxes(chart: Chart, view: vega.View, width: number, height: number): Map<number, Box> {
   const found = new Map<number, Box>();
   // Vega draws the scene at its origin plus its padding, and origin() leaves the padding out.
   const [x0, y0] = view.origin();
   const [left, top] = [x0 + PADDING.left, y0 + PADDING.top];
-  // Vega types its scenegraph as a bare Scene, but at runtime it holds the root group, whose items carry the fields
-  // SceneItem names.
-  const scene: SceneItem = Reflect.get(view.scenegraph(), "root");
-  const walk = (
-    item: SceneItem,
-    dx: number,
-    dy: number,
-    visit: (item: SceneItem, dx: number, dy: number) => void,
-  ) => {
-    visit(item, dx, dy);
-    const group = item.mark?.marktype === "group";
-    for (const child of item.items ?? [])
-      walk(child, dx + (group ? (item.x ?? 0) : 0), dy + (group ? (item.y ?? 0) : 0), visit);
-  };
   for (const mark of chart.marks) {
     let [x1, y1, x2, y2] = [Infinity, Infinity, -Infinity, -Infinity];
-    walk(scene, left, top, (item, dx, dy) => {
-      const { datum, bounds } = item;
-      if (!bounds || !datum || !SHAPES.has(item.mark?.marktype ?? "")) return;
-      if (datum.row !== mark.row || (mark.series && datum.series !== mark.series)) return;
-      x1 = Math.min(x1, bounds.x1 + dx);
-      y1 = Math.min(y1, bounds.y1 + dy);
-      x2 = Math.max(x2, bounds.x2 + dx);
-      y2 = Math.max(y2, bounds.y2 + dy);
-    });
+    if (mark.value !== undefined) {
+      // A line runs across the whole plot at its value.
+      const at = Number(view.scale(valueAxis(chart))?.(mark.value));
+      if (!Number.isFinite(at)) continue;
+      [x1, y1, x2, y2] =
+        valueAxis(chart) === "y"
+          ? [left, top + at, left + view.width(), top + at]
+          : [left + at, top, left + at, top + view.height()];
+    } else
+      walk(view, (item, dx, dy) => {
+        const { datum, bounds } = item;
+        if (!bounds || !datum || !SHAPES.has(item.mark?.marktype ?? "")) return;
+        if (datum.row !== mark.row || (mark.series && datum.series !== mark.series)) return;
+        x1 = Math.min(x1, bounds.x1 + dx + left);
+        y1 = Math.min(y1, bounds.y1 + dy + top);
+        x2 = Math.max(x2, bounds.x2 + dx + left);
+        y2 = Math.max(y2, bounds.y2 + dy + top);
+      });
     if (x1 === Infinity) continue;
     const grow = (from: number, to: number) =>
-      mark.mark === "none" ? BARE : Math.max(0, (SMALLEST - (to - from)) / 2) + PAD;
+      mark.value !== undefined
+        ? to === from
+          ? LINE
+          : 0
+        : mark.mark === "none"
+          ? BARE
+          : Math.max(0, (SMALLEST - (to - from)) / 2) + PAD;
     const [gx, gy] = [grow(x1, x2), grow(y1, y2)];
     const box = {
       x: Math.max(0, x1 - gx),
@@ -444,6 +468,126 @@ function boxes(chart: Chart, view: vega.View, width: number, height: number): Ma
 }
 
 const format = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 12 });
+
+interface Label {
+  x: number;
+  y: number;
+  text: string;
+  fill: string;
+}
+
+/**
+ * Where each bar's value goes, in the root group's frame: inside its bar or segment where it fits, else just past the
+ * bar's end. A segment in the middle of a stack has no end to sit past, so one too thin for its value leaves it to the
+ * data table, as does a value that would cover another bar or label.
+ */
+function valueLabels(chart: Chart, view: vega.View): Label[] {
+  const { flip } = layout(chart);
+  const stacked = chart.type === "stacked" && chart.series.length > 1;
+  const bars: { row: unknown; value: number; x1: number; y1: number; x2: number; y2: number }[] =
+    [];
+  walk(view, (item, dx, dy) => {
+    const { datum, bounds } = item;
+    const value = Number(datum?.y ?? Number.NaN);
+    if (item.mark?.marktype !== "rect" || !bounds || !Number.isFinite(value)) return;
+    bars.push({
+      row: datum?.row,
+      value,
+      x1: bounds.x1 + dx,
+      y1: bounds.y1 + dy,
+      x2: bounds.x2 + dx,
+      y2: bounds.y2 + dy,
+    });
+  });
+  const HEIGHT = 12;
+  const GAP = 6;
+  const taken: Box[] = [];
+  const labels: Label[] = [];
+  for (const bar of bars) {
+    const text = format(bar.value);
+    const width = guess(text, 12);
+    const up = bar.value >= 0;
+    const [long, thick] = flip
+      ? [bar.x2 - bar.x1, bar.y2 - bar.y1]
+      : [bar.y2 - bar.y1, bar.x2 - bar.x1];
+    const fits = flip
+      ? long >= width + 2 * GAP && thick >= HEIGHT + 4
+      : long >= HEIGHT + 2 * GAP && thick >= width + 8;
+    const beyond = (other: typeof bar) =>
+      flip
+        ? up
+          ? other.x2 > bar.x2
+          : other.x1 < bar.x1
+        : up
+          ? other.y1 < bar.y1
+          : other.y2 > bar.y2;
+    const last =
+      !stacked ||
+      !bars.some((other) => other.row === bar.row && other.value >= 0 === up && beyond(other));
+    if (!fits && !last) continue;
+    const [cx, cy] = [(bar.x1 + bar.x2) / 2, (bar.y1 + bar.y2) / 2];
+    // Inside, a bar's value sits at its end, and a segment's in its middle. Past the end it's a gap beyond it.
+    const middle = fits && stacked;
+    const out = (fits ? -1 : 1) * (up ? 1 : -1);
+    const x = !flip || middle ? cx : (up ? bar.x2 : bar.x1) + out * (GAP + width / 2);
+    const y = flip || middle ? cy : (up ? bar.y1 : bar.y2) - out * (GAP + HEIGHT / 2);
+    const box = { x: x - width / 2, y: y - HEIGHT / 2, w: width, h: HEIGHT };
+    const covers = (other: Box) =>
+      box.x < other.x + other.w &&
+      other.x < box.x + box.w &&
+      box.y < other.y + other.h &&
+      other.y < box.y + box.h;
+    if (
+      taken.some(covers) ||
+      (!fits &&
+        bars.some(
+          (other) =>
+            other !== bar &&
+            covers({ x: other.x1, y: other.y1, w: other.x2 - other.x1, h: other.y2 - other.y1 }),
+        ))
+    )
+      continue;
+    taken.push(box);
+    labels.push({ x, y, text, fill: fits ? INK.background : INK.foreground });
+  }
+  return labels;
+}
+
+// The labels draw as one text mark over the chart, in the type Flint sets its own values in.
+const LABELS: vega.Mark = {
+  type: "text",
+  from: { data: "cch_labels" },
+  aria: false,
+  encode: {
+    enter: {
+      x: { field: "x" },
+      y: { field: "y" },
+      text: { field: "text" },
+      fill: { field: "fill" },
+      align: { value: "center" },
+      baseline: { value: "middle" },
+      font: { value: "sans-serif" },
+      fontSize: { value: 12 },
+      fontWeight: { value: 500 },
+    },
+  },
+};
+
+/** Grows the value axis to reach every line, so a target past the data still crosses the plot. */
+function widen(chart: Chart, compiled: vega.Spec, view: vega.View) {
+  const values = chart.marks.flatMap((mark) => (mark.value === undefined ? [] : [mark.value]));
+  const axis = valueAxis(chart);
+  const scale = compiled.scales?.find((scale) => scale.name === axis);
+  if (!values.length || !scale) return false;
+  const domain: unknown = view.scale(axis).domain();
+  if (!Array.isArray(domain)) return false;
+  const [low, high] = domain.map(Number);
+  const [least, most] = [Math.min(...values), Math.max(...values)];
+  if (least >= low! && most <= high!) return false;
+  if (least < low!) Reflect.set(scale, "domainMin", least);
+  if (most > high!) Reflect.set(scale, "domainMax", most);
+  return true;
+}
 
 /** Ticks from a round step that end at the first one past the data, among as many as fit `width`. */
 function ticks(low: number, high: number, width: number) {
@@ -1029,7 +1173,22 @@ export async function draw(chart: Chart): Promise<{ svg: string; boxes: Map<numb
   }
   if (chart.type === "dumbbell") dumbbell(chart, spec);
   if (chart.type === "gantt") gantt(chart, spec);
-  const { view, svg } = await render(compile(spec, { logger: quiet }).spec);
+  if (chart.labels && "layer" in spec)
+    spec.layer = spec.layer.filter((layer) => !("__themeSynthetic" in layer));
+  // Lines and labels are placed from the drawn chart, so a chart with them is drawn again with them in place.
+  const compiled = compile(spec, { logger: quiet }).spec;
+  let { view, svg } = await render(compiled);
+  if (widen(chart, compiled, view)) {
+    view.finalize();
+    ({ view, svg } = await render(compiled));
+  }
+  const labels = chart.labels ? valueLabels(chart, view) : [];
+  if (labels.length) {
+    compiled.data = [...(compiled.data ?? []), { name: "cch_labels", values: labels }];
+    compiled.marks = [...(compiled.marks ?? []), LABELS];
+    view.finalize();
+    ({ view, svg } = await render(compiled));
+  }
   const [, width = "0", height = "0"] = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg) ?? [];
   const found = boxes(chart, view, Number(width), Number(height));
   view.finalize();
