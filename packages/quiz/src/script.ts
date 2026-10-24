@@ -419,7 +419,7 @@ export function script(config: ScriptConfig): void {
     queueMicrotask(flush);
   };
 
-  function setup(el: HTMLElement, allowIncomplete = false) {
+  function setup(el: HTMLElement) {
     const kind = el.dataset.quizKind;
     const id = el.dataset.quizId;
     if (models.has(el) || !id || (kind !== "question" && kind !== "poll" && kind !== "recall"))
@@ -428,11 +428,12 @@ export function script(config: ScriptConfig): void {
     // Renderers that do not emit the end marker can still append a complete root in one operation.
     // Streamed roots remain deferred until their marker (or until all interactive parts are present).
     const complete =
-      !!el.querySelector(":scope>.cqz-actions") &&
-      (kind === "recall"
-        ? !!el.querySelector(":scope>.cqz-reveal, :scope>.cqz-answer")
-        : !!el.querySelector(":scope>.cqz-options"));
-    if (!allowIncomplete && !el.querySelector(":scope>template.cqz-end") && !complete) return;
+      kind === "poll"
+        ? !!el.querySelector(":scope>.cqz-options") && !!el.querySelector(":scope>.cqz-footer")
+        : kind === "recall"
+          ? !!el.querySelector(":scope>.cqz-actions") && !!el.querySelector(":scope>.cqz-disclosure .cqz-answer")
+          : !!el.querySelector(":scope>.cqz-options");
+    if (!el.querySelector(":scope>template.cqz-end") && !complete) return;
     let written: unknown;
     try {
       written = JSON.parse(el.dataset.labels ?? "{}");
@@ -483,12 +484,12 @@ export function script(config: ScriptConfig): void {
     later();
   }
 
-  const scan = (node: ParentNode, allowIncomplete = false) => {
+  const scan = (node: ParentNode) => {
     if (node instanceof HTMLElement && node.matches(".cqz[data-quiz-id]"))
-      setup(node, allowIncomplete);
-    for (const el of $$(node, ".cqz[data-quiz-id]")) setup(el, allowIncomplete);
+      setup(node);
+    for (const el of $$(node, ".cqz[data-quiz-id]")) setup(el);
   };
-  scan(document, document.readyState !== "loading");
+  scan(document);
   // The renderer inlines the script after the first block, so the page's later blocks arrive after it.
   new MutationObserver((records) => {
     for (const record of records)
@@ -500,7 +501,7 @@ export function script(config: ScriptConfig): void {
   }).observe(html, { childList: true, subtree: true });
   const ready = () => {
     // Blocks from a renderer without the end marker wait until here.
-    scan(document, true);
+    scan(document);
     announced = true;
     flush();
   };
