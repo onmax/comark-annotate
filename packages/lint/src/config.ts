@@ -12,6 +12,7 @@ export const defineConfig = (config: Config): Config => config;
 const packages = [
   ["comark-annotate/html", () => import("comark-annotate/html"), []],
   ["comark-carousel/html", () => import("comark-carousel/html"), []],
+  ["comark-cast/html", () => import("comark-cast/html"), []],
   ["comark-code/html", () => import("comark-code/html"), []],
   [
     "comark-charts/html",

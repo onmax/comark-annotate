@@ -2,6 +2,7 @@
 // reads files and comark-linter is a checker, so they're left out.
 import annotate, { components as annotateComponents } from "../packages/annotate/src/html.ts";
 import carousel, { components as carouselComponents } from "../packages/carousel/src/html.ts";
+import cast, { components as castComponents } from "../packages/cast/src/html.ts";
 import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
 import chips, { components as chipsComponents } from "../packages/chips/src/html.ts";
 import colors, { components as colorsComponents } from "../packages/colors/src/html.ts";
@@ -40,7 +41,6 @@ import zoom, { components as zoomComponents } from "../packages/zoom/src/html.ts
 import type { PlayConfig } from "./config.ts";
 
 // `download` is off in a browser, which may not download another site's images, so the reader's loads them as links.
-// comark-code comes last, so a highlighter can go just before it and draw the lines it marks.
 export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}) => [
   annotate(),
   carousel(),
@@ -48,6 +48,8 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
   deflist(),
   figure(),
   critic(),
+  // The site's casts are written inline, and a browser has no files to read.
+  cast({ read: () => undefined }),
   charts(),
   chips({ download }),
   colors(),
@@ -83,6 +85,7 @@ export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}
 export const components = {
   ...annotateComponents,
   ...carouselComponents,
+  ...castComponents,
   ...codeComponents,
   ...chartsComponents,
   ...chipsComponents,

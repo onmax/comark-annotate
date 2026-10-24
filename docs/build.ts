@@ -38,12 +38,14 @@ const contentPlugins = () => [
   ...sitePlugins(),
 ];
 // The site's own links stay plain; chips show in the examples and the playground.
-// Shiki goes before comark-code, the last plugin, which marks the lines Shiki drew.
-const highlighted = (list: ReturnType<typeof contentPlugins>) => [
-  ...list.slice(0, -1),
-  shiki({ themes: { light, dark } }),
-  ...list.slice(-1),
-];
+// Shiki goes before comark-code, which marks the lines Shiki drew. Keep this
+// tied to the plugin name so adding a renderer-only plugin after code doesn't
+// change the ordering required by code's line-marker validation.
+const highlighted = (list: ReturnType<typeof contentPlugins>) => {
+  const code = list.findIndex((plugin) => plugin.name === "comark-code");
+  if (code < 0) return list;
+  return [...list.slice(0, code), shiki({ themes: { light, dark } }), ...list.slice(code)];
+};
 const plugins = highlighted(contentPlugins().filter((plugin) => plugin.name !== "comark-chips"));
 
 // The site's own icons, drawn the way `:icon` draws them: Lucide's, and annotate's, a hand-drawn loop like its marks.
@@ -79,6 +81,7 @@ const inlineCode = (text: string) => escapeHtml(text).replace(/`([^`]+)`/g, "<co
 // left out.
 const packageOrder = [
   "annotate",
+  "cast",
   "charts",
   "diagrams",
   "chips",

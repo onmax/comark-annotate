@@ -2,6 +2,7 @@ import annotate from "./annotate.ts";
 import badge from "./badge.ts";
 import cards from "./cards.ts";
 import carousel from "./carousel.ts";
+import cast from "./cast.ts";
 import charts from "./charts.ts";
 import chips from "./chips.ts";
 import code from "./code.ts";
@@ -51,6 +52,7 @@ export const catalog = {
   ...qr,
   ...colors,
   ...diagrams,
+  ...cast,
   ...fields,
   ...metrics,
   ...fileTree,

@@ -9,6 +9,7 @@ import { icons as lucide } from "@iconify-json/lucide";
 import cards from "../packages/cards/src/index.ts";
 import critic, { type CriticOptions } from "../packages/critic/src/index.ts";
 import diagrams from "../packages/diagrams/src/index.ts";
+import cast from "../packages/cast/src/index.ts";
 import icon, { createIcons } from "../packages/icon/src/index.ts";
 import include from "../packages/include/src/index.ts";
 import { lint, type Diagnostic, type Rule } from "../packages/lint/src/index.ts";
@@ -30,17 +31,20 @@ export const doctorRules = Object.entries(catalog as Record<string, RuleInfo>).m
 export const doctorRule = (slug: string) => doctorRules.find((entry) => entry.slug === slug);
 
 // Icons come from lucide alone, so an example's icon problem doesn't depend on the network, and no diagram goes to
-// Kroki. The include examples read files from docs/doctor-include/, outside the pages so none is linted or built as one.
+// Kroki. The include and cast examples read files from docs/doctor-include/, outside the pages so none is linted or
+// built as one.
 const icons = createIcons({ collections: { lucide }, fetch: false });
+const files = fileURLToPath(new URL("docs/doctor-include/", repo));
 const offline: Record<string, ReturnType<typeof browserPlugins>[number]> = {
   "comark-icon": icon(icons),
   "comark-tabs": tabs({ iconResolver: icons }),
   "comark-cards": cards({ iconResolver: icons }),
   "comark-diagrams": diagrams({ draw: false }),
+  "comark-cast": cast({ root: files }),
 };
 const plugins = () => [
   ...browserPlugins({}, { download: false }).map((plugin) => offline[plugin.name] ?? plugin),
-  include({ root: fileURLToPath(new URL("docs/doctor-include/", repo)) }),
+  include({ root: files }),
 ];
 // comark-tabs turns `::code-group` into `::tabs`, comark-metrics `::stats` into a table, comark-include replaces
 // `:include`, and comark-details turns its items and collapsibles into `disclosure` while parsing, so no renderer has
