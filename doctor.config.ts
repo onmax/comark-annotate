@@ -4,7 +4,7 @@ import { defineDoctorConfig } from "vite-doctor/config";
 
 const repo = new URL("./", import.meta.url);
 
-// The packages run their own Doctor configs; this one only lints the docs pages with comark-linter.
+// The packages run their own Doctor configs; this one only lints the docs pages and the agent skill with comark-linter.
 export default defineDoctorConfig({
   extends: ["comark/recommended"],
   extensions: [
