@@ -5,6 +5,7 @@ import carousel, { components as carouselComponents } from "../packages/carousel
 import charts, { components as chartsComponents } from "../packages/charts/src/html.ts";
 import chips, { components as chipsComponents } from "../packages/chips/src/html.ts";
 import colors, { components as colorsComponents } from "../packages/colors/src/html.ts";
+import cjk from "../packages/cjk/src/index.ts";
 import code, { components as codeComponents } from "../packages/code/src/html.ts";
 import deflist from "../packages/deflist/src/index.ts";
 import figure from "../packages/figure/src/index.ts";
@@ -43,6 +44,7 @@ import type { PlayConfig } from "./config.ts";
 export const browserPlugins = (config: PlayConfig = {}, { download = true } = {}) => [
   annotate(),
   carousel(),
+  cjk(),
   deflist(),
   figure(),
   critic(),

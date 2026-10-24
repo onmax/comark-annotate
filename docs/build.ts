@@ -103,6 +103,7 @@ const packageOrder = [
   "badge",
   "cards",
   "steps",
+  "cjk",
   "deflist",
   "figure",
   "mark",
