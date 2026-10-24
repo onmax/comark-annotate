@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-diagrams)](https://npmx.dev/package/comark-diagrams)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-diagrams)](https://npmx.dev/package/comark-diagrams)
 [![license](https://npmx.dev/api/registry/badge/license/comark-diagrams)](https://npmx.dev/package/comark-diagrams)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/diagrams/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/diagrams/)
 
 PlantUML, Graphviz, D2, DBML, GoAT, and Svgbob diagrams drawn as inline SVG while parsing, through a [Kroki](https://kroki.io) server, with no script. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 

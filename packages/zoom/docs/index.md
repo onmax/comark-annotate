@@ -1,6 +1,7 @@
 ---
 title: Zoom
 description: Zoom images and any block like medium-zoom, written in Markdown.
+keywords: lightbox, medium-zoom, image zoom, enlarge, fullscreen, gallery, popup, modal, magnify
 tagline: Click an image or any block to zoom it out of its place. Escape, Back, or a click around it closes it.
 group: Page behavior
 icon: zoom-in

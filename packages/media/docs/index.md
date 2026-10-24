@@ -1,6 +1,7 @@
 ---
 title: Media
 description: Videos and audio in Markdown, written as images.
+keywords: video, audio, mp4, webm, mp3, ogg, player, HTML5 video, GitHub attachments
 tagline: Point an image at an .mp4 or an .mp3 and get a player labeled with the alt text. GitHub attachment links play too.
 group: Review blocks
 icon: film

@@ -1,6 +1,7 @@
 ---
 title: Outline
 description: A table of contents in the body of a page, written in Markdown.
+keywords: TOC, table of contents, contents, headings list, navigation
 tagline: Put a contents block where the list should go and get a nested list of links to the page's headings, kept in step with them on every render.
 group: Page behavior
 icon: list-tree

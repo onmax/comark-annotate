@@ -1,6 +1,7 @@
 ---
 title: Cast
 description: Terminal recordings from asciinema casts, as colored text written in Markdown.
+keywords: asciinema, terminal, shell, console, command output, CLI output, recording, screencast, ANSI colors, tty
 tagline: Record a command with asciinema and show what it printed, colors and all, as text a reader can select. No player, no script.
 group: Review blocks
 icon: square-terminal

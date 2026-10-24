@@ -1,6 +1,7 @@
 ---
 title: GitHub
 description: GitHub's alerts, references, and raw HTML, rendered as on GitHub.
+keywords: callout, alert, admonition, note, tip, important, warning, caution, GFM, GitHub Flavored Markdown, issue links, mentions, raw HTML, sanitize, blockquote
 tagline: Write > [!NOTE], @user, #123, and <sub> as on GitHub, and get the same page anywhere.
 group: Review blocks
 icon: github
@@ -51,7 +52,7 @@ credits: 'Syntax from <a href="https://docs.github.com/en/get-started/writing-on
 
 :::example{label="References"}
 ```md
-Thanks @onmax: this fixes #51, and onmax/comark-plugins#73 builds on it.
+Thanks @onmax: this fixes #51, and onmax/comark-ui#73 builds on it.
 ```
 :::
 
@@ -118,7 +119,7 @@ Markdown between an HTML tag and its closing tag, after a blank line, renders af
 
 ### Options
 
-Options go under `github` in `comarkUi()`, by plugin, such as `comarkUi({ github: { references: { repo: "onmax/comark-plugins" } } })`, or to each plugin function when you use it alone. `false` in place of a plugin's options turns that plugin off, and `github: false` turns off all three.
+Options go under `github` in `comarkUi()`, by plugin, such as `comarkUi({ github: { references: { repo: "onmax/comark-ui" } } })`, or to each plugin function when you use it alone. `false` in place of a plugin's options turns that plugin off, and `github: false` turns off all three.
 
 `callouts({ titles: { note: "Nota", warning: "Aviso" } })` changes the default titles, for a site in another language.
 
@@ -139,7 +140,7 @@ import { createHtmlRenderer } from "@comark/html";
 import { callouts, components, html, references } from "comark-github/html";
 
 const render = createHtmlRenderer({
-  plugins: [callouts(), references({ repo: "onmax/comark-plugins" }), html()],
+  plugins: [callouts(), references({ repo: "onmax/comark-ui" }), html()],
   components,
 });
 ```

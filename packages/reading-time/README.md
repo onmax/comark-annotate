@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-reading-time)](https://npmx.dev/package/comark-reading-time)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-reading-time)](https://npmx.dev/package/comark-reading-time)
 [![license](https://npmx.dev/api/registry/badge/license/comark-reading-time)](https://npmx.dev/package/comark-reading-time)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/reading-time/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/reading-time/)
 
 A document's word count and reading time, written to `meta.readingTime` while parsing. A [Comark](https://comark.dev) plugin for any renderer.
 

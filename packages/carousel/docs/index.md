@@ -1,6 +1,7 @@
 ---
 title: Carousel
 description: A carousel of any Markdown content, written in Markdown.
+keywords: slider, slideshow, slides, gallery, swiper, walkthrough, scroll snap
 tagline: Slides of images, code, or anything else that scroll and snap, with arrows, a counter, keys, and zoom.
 group: Page behavior
 icon: gallery-horizontal-end

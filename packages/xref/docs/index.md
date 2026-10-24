@@ -1,6 +1,7 @@
 ---
 title: Cross-references
 description: Numbered figures and tables, and references to them, written in Markdown.
+keywords: cross reference, cross-reference, figure numbers, table numbers, numbering, references, caption, label, ref
 tagline: Label an image or a table with an id and it gets a number. Write a reference to it and the reference reads "Figure 2", and stays right when figures move.
 group: Page behavior
 icon: hash

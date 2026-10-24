@@ -1,6 +1,7 @@
 ---
 title: File tree
 description: A project's folders and files, written in Markdown.
+keywords: folder, directory, tree, project structure, files, file explorer, tree command
 tagline: Indent the paths, or paste what `tree` prints, and get a tree of folders and files with what changed marked and a note on any line.
 group: Docs blocks
 icon: folder-tree

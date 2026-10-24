@@ -1,6 +1,7 @@
 ---
 title: Renderers
 description: Which renderer each package supports, and how to use several in one document.
+keywords: HTML, Vue, React, Svelte, Nuxt, frameworks, components, SSR, setup
 tagline: Register every plugin at once with comark-ui, or the ones you pick in one renderer. The same markup comes out of HTML, Vue, React, and Svelte, and each package's docs page lists the props.
 ---
 

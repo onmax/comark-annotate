@@ -1,6 +1,7 @@
 ---
 title: Properties
 description: A document's frontmatter as a box of properties, written in Markdown.
+keywords: frontmatter, front matter, metadata, YAML, header, status, author, date, tags, document properties, Obsidian properties
 tagline: Keep a review document's status, pull request, author, date, and tags in its frontmatter, and readers see them in a box at the top.
 group: Review blocks
 icon: list-collapse
@@ -13,7 +14,7 @@ credits: 'After <a href="https://docs.gitlab.com/user/markdown/#front-matter">Gi
 ```md
 ---
 status: Ready for review
-pr: https://github.com/onmax/comark-plugins/pull/111
+pr: https://github.com/onmax/comark-ui/pull/111
 author: onmax
 date: 2026-10-23
 tags: [colors, docs]
@@ -73,7 +74,7 @@ Agents that write review documents can keep the facts a reviewer scans for in th
 ```md
 ---
 status: Changes requested
-pr: https://github.com/onmax/comark-plugins/pull/111
+pr: https://github.com/onmax/comark-ui/pull/111
 author: claude
 date: 2026-10-23
 tags: [colors, docs]

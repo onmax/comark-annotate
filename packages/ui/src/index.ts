@@ -19,6 +19,7 @@ import type { AnchorsOptions, ExternalOptions } from "comark-links";
 import mark from "comark-mark";
 import type { MediaOptions } from "comark-media";
 import type { PropertiesOptions } from "comark-properties";
+import type { QuizOptions } from "comark-quiz";
 import readingTime, { type ReadingTimeOptions } from "comark-reading-time";
 import type { TableOptions } from "comark-table";
 import type { TabsOptions } from "comark-tabs";
@@ -70,6 +71,8 @@ export type PresetOptions = {
   fileTree?: FileTreeOptions | boolean;
   fields?: boolean;
   properties?: PropertiesOptions | boolean;
+  /** HTML only: Vue, React, and Svelte have no quiz components. */
+  quiz?: QuizOptions | boolean;
   keys?: KeysOptions | boolean;
   badge?: boolean;
   media?: MediaOptions | boolean;
@@ -123,6 +126,7 @@ export type Renderer<C> = {
   fileTree: Part<C, FileTreeOptions>;
   fields: Part<C>;
   properties: Part<C, PropertiesOptions>;
+  quiz?: Part<C, QuizOptions>;
   badge: Part<C>;
   media: Part<C, MediaOptions>;
   metrics: Part<C>;
@@ -215,6 +219,7 @@ export function preset<C>(renderer: Renderer<C>, options: PresetOptions = {}): P
   add(renderer.qr, options.qr);
   add(renderer.sources, options.sources);
   add(renderer.steps, options.steps);
+  add(renderer.quiz, options.quiz);
   parse(readingTime, options.readingTime);
   add(renderer.tabs, options.tabs, { iconResolver: icons, ...optionsOf(options.tabs) });
   add(renderer.outline, options.outline);

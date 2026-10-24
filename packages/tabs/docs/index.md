@@ -1,6 +1,7 @@
 ---
 title: Tabs
 description: Tabs and code groups, written in Markdown.
+keywords: tab, code group, code-group, package manager, npm, pnpm, yarn, bun, switcher, language tabs
 tagline: Tabs of any content, code blocks grouped by package manager or language, and npm commands in every package manager, that switch together across the page.
 group: Page behavior
 icon: panels-top-left

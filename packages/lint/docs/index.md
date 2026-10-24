@@ -1,6 +1,7 @@
 ---
 title: comark-linter
 description: Finds unclosed blocks, unknown components, broken links and anchors, local URLs, and plugin issues in Comark documents.
+keywords: linter, lint, ESLint, check, validate, validation, CI, Vite Doctor, markdownlint, errors, diagnostics, broken links, CLI
 tagline: Check Comark documents before they publish, from a script, the command line, or Vite Doctor. Every message names the block and says how to fix it.
 install: pnpm add -D comark-linter
 group: Linter
@@ -35,7 +36,7 @@ Every problem is reported under a rule, and [Doctor](/doctor/) has a page for ea
 | [`comark/blocked-url`](/doctor/blocked-url/) | A localhost, private, tunnel, or deploy preview URL |
 | [`comark/dead-url`](/doctor/dead-url/) | An external URL that answers 404 or 410, or whose host is gone, with `--check-urls` |
 
-Each comark-plugins package adds a rule for every kind of problem its plugin reports, such as [`comark/embed/insecure-url`](/doctor/embed/insecure-url/). A problem from a plugin of your own is [`comark/plugin-issue`](/doctor/plugin-issue/), unless the plugin names its rule in `meta.issueRules`.
+Each comark-ui package adds a rule for every kind of problem its plugin reports, such as [`comark/embed/insecure-url`](/doctor/embed/insecure-url/). A problem from a plugin of your own is [`comark/plugin-issue`](/doctor/plugin-issue/), unless the plugin names its rule in `meta.issueRules`.
 
 ## Positions
 

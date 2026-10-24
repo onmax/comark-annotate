@@ -1,6 +1,7 @@
 ---
 title: Code
 description: Copy and wrap buttons on code blocks.
+keywords: copy button, copy to clipboard, clipboard, line wrap, word wrap, code block, run button, actions, Shiki
 tagline: Copy and Wrap on every code block, and buttons of your own, such as Run, that hand the code to your app.
 group: Page behavior
 icon: square-code

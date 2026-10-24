@@ -1,6 +1,7 @@
 ---
 title: Fields
 description: Props, options, and parameters, written in Markdown.
+keywords: props, API reference, options, parameters, arguments, attributes, types, defaults, required, prop table
 tagline: List a component's props or a function's options with their types, defaults, and whether they're required, with an object's properties nested under it. Nuxt UI's syntax, with no script.
 group: Docs blocks
 icon: list-tree

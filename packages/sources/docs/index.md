@@ -1,6 +1,7 @@
 ---
 title: Sources
 description: Numbered citations and the list of sources they point at, written in Markdown.
+keywords: citation, cite, references, bibliography, footnote, works cited
 tagline: Cite a source inline with a number, list the sources at the end, and each citation links to its source and back.
 group: Review blocks
 icon: quote

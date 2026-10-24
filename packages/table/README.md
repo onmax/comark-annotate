@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-table)](https://npmx.dev/package/comark-table)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-table)](https://npmx.dev/package/comark-table)
 [![license](https://npmx.dev/api/registry/badge/license/comark-table)](https://npmx.dev/package/comark-table)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/table/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/table/)
 
 Tables from CSV, TSV, and JSON files or fences, read while parsing, with Copy CSV and Copy Markdown buttons and headers that sort. A [Comark](https://comark.dev) plugin for HTML, Vue, React, and Svelte.
 

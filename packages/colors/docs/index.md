@@ -1,6 +1,7 @@
 ---
 title: Colors
 description: Color swatches next to inline code and palettes of named colors, written in Markdown.
+keywords: color swatch, swatch, hex, rgb, hsl, oklch, palette, design tokens, color preview
 tagline: Write a color in inline code and readers see it, as GitLab shows it. Put named colors in a palette and get a grid of swatches.
 group: Review blocks
 icon: palette

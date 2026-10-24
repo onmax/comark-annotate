@@ -19,7 +19,7 @@ export { defineConfig, resolveConfig, type Config } from "./config.ts";
 export type { LinkOptions, Pattern, Routes } from "./links.ts";
 export type { UrlOptions } from "./urls.ts";
 
-/** Every rule: the core ones, then one per kind of issue each comark-plugins package reports. */
+/** Every rule: the core ones, then one per kind of issue each comark-ui package reports. */
 export type Rule = keyof typeof catalog;
 
 /** Every rule, with what it checks. */
@@ -316,7 +316,7 @@ const crashed = (rule: Rule, error: unknown): Diagnostic => ({
   rule,
   line: 1,
   message: `lint-comark crashed while checking \`${rule}\`: ${error instanceof Error ? error.message : String(error)}.`,
-  fix: "The other rules still ran. Report this with the document at https://github.com/onmax/comark-plugins/issues.",
+  fix: "The other rules still ran. Report this with the document at https://github.com/onmax/comark-ui/issues.",
 });
 
 // Comark reads code, comments, and `<pre>`, `<script>`, `<style>`, and `<textarea>` blocks as text, so a `::` or `{`

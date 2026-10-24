@@ -10,7 +10,7 @@ comark-cards draws cards, link cards, and card groups, and lays blocks out in co
 Render with HTML, Vue, React, or Svelte.
 :::
 
-:::card{title="Source on GitHub" icon="lucide:github" to="https://github.com/onmax/comark-plugins" color="neutral"}
+:::card{title="Source on GitHub" icon="lucide:github" to="https://github.com/onmax/comark-ui" color="neutral"}
 Read the code, or open an issue.
 :::
 ::

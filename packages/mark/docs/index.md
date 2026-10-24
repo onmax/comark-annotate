@@ -1,6 +1,7 @@
 ---
 title: Mark
 description: Highlighted text and superscripts in Markdown, rendered as native mark and sup.
+keywords: highlighter, marker, ==text==, x^2^, sup
 tagline: Write ==this== to highlight it and x^2^ for a superscript, with no component and no styles.
 group: Markdown syntax
 icon: highlighter

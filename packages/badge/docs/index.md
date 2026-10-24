@@ -1,6 +1,7 @@
 ---
 title: Badge
 description: Badges for versions and statuses, written in Markdown.
+keywords: label, tag, pill, status, version, deprecated, new, beta, shield, shields.io
 tagline: Mark an API deprecated, a feature new, or a release by its version, in one of Nuxt UI's seven colors.
 group: Docs blocks
 icon: tag

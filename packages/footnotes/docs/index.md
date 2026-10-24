@@ -1,6 +1,7 @@
 ---
 title: Footnotes
 description: Footnotes in Markdown, with notes that hold any Markdown, in place of Comark's own plugin.
+keywords: footnote, notes, endnotes, references, [^1]
 tagline: 'Write [^1] where a note applies and [^1]: anywhere below, or the note itself as ^[text], and get numbered notes at the end of the page.'
 group: Markdown syntax
 icon: footprints

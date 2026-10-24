@@ -1,6 +1,7 @@
 ---
 title: Icon
 description: Iconify icons in Markdown, drawn as CSS in every renderer.
+keywords: Iconify, Lucide, SVG icons, Heroicons, Material icons, Tabler, Phosphor, Simple Icons, Nuxt UI icons
 tagline: Write :icon{name="lucide:apple"} with any of Iconify's 200,000 icons, and get it on the page with no script.
 group: Review blocks
 icon: shapes

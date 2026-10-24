@@ -1,6 +1,7 @@
 ---
 title: Tests
 description: Test results in Markdown, read from a JUnit report.
+keywords: JUnit, test report, test results, Vitest, Jest, Playwright, pytest, CI, XML, failures, stack trace
 tagline: Point a block at the JUnit XML your test runner writes and get how many tests passed, failed, and were skipped, how long they took, and every failure with its stack.
 group: Review blocks
 icon: test-tube-diagonal

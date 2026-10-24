@@ -1,7 +1,7 @@
 {
   "name": "comark-ui",
   "version": "0.4.1",
-  "description": "Every comark-plugins block in one install: annotated screenshots, charts, diffs, tabs, zoom, and more, registered in the order they need with shared icons. Turn any of them off or pass its options.",
+  "description": "Every comark-ui block in one install: annotated screenshots, charts, diffs, tabs, zoom, and more, registered in the order they need with shared icons. Turn any of them off or pass its options.",
   "keywords": [
     "comark",
     "components",
@@ -10,13 +10,13 @@
     "preset",
     "ui"
   ],
-  "homepage": "https://comark.onmax.me",
-  "bugs": "https://github.com/onmax/comark-plugins/issues",
+  "homepage": "https://comark-ui.onmax.me",
+  "bugs": "https://github.com/onmax/comark-ui/issues",
   "license": "MIT",
   "author": "onmax",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/onmax/comark-plugins.git",
+    "url": "git+https://github.com/onmax/comark-ui.git",
     "directory": "packages/ui"
   },
   "files": [
@@ -80,6 +80,7 @@
     "comark-outline": "workspace:^",
     "comark-properties": "workspace:^",
     "comark-qr": "workspace:^",
+    "comark-quiz": "workspace:^",
     "comark-reading-time": "workspace:^",
     "comark-sources": "workspace:^",
     "comark-steps": "workspace:^",

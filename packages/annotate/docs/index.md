@@ -1,6 +1,7 @@
 ---
 title: Annotate
 description: Hand-drawn marks, numbered notes, and arrows on screenshots, written in Markdown.
+keywords: image annotation, markup, highlight, circle, underline, box, pin, before and after, side by side, compare, PR evidence, visual review, bug report, design review, AnnotationKit
 tagline: Mark up screenshots in Markdown with hand-drawn marks, numbered notes, arrows, and before/after comparisons.
 group: Review blocks
 icon: scribble-loop
@@ -330,7 +331,7 @@ const html = await render(markdown);
 
 The renderer inlines its styles and script once per document. Annotate renders only to HTML; [Renderers](/guide/renderers/) covers using it with other plugins, a strict Content Security Policy, and untrusted notes.
 
-The comark-plugins agent skill knows the syntax, how to measure marks from the page, and how to check the result. Agents install it with `npx skills add onmax/comark-plugins`, and [Agents](/guide/agents/) covers the rest.
+The comark-ui agent skill knows the syntax, how to measure marks from the page, and how to check the result. Agents install it with `npx skills add onmax/comark-ui`, and [Agents](/guide/agents/) covers the rest.
 
 ## Theme
 

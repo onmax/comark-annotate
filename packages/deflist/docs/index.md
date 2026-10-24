@@ -1,6 +1,7 @@
 ---
 title: Definition lists
 description: Definition lists in Markdown, rendered as native dl, dt, and dd.
+keywords: definition list, description list, glossary, terms, dictionary, dl, dt, dd
 tagline: Write a term, then its definition on a line that starts with a colon, and get a glossary with no component and no styles.
 group: Markdown syntax
 icon: book-a

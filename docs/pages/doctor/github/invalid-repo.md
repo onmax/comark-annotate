@@ -5,6 +5,6 @@ The repository is a plugin option, not part of the document:
 ```ts
 import { references } from "comark-github";
 
-// Not "https://github.com/onmax/comark-plugins".
-const plugins = [references({ repo: "onmax/comark-plugins" })];
+// Not "https://github.com/onmax/comark-ui".
+const plugins = [references({ repo: "onmax/comark-ui" })];
 ```

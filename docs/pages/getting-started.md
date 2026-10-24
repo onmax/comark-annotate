@@ -1,6 +1,7 @@
 ---
 title: Getting started
 description: Install comark-ui and render every block with one import.
+keywords: all plugins, every plugin, bundle, kit, starter, one import
 tagline: comark-ui registers every block on this site in the order they need, with one icon resolver shared by all of them. Install it once, then turn off what you don't use.
 install: pnpm add comark @comark/html comark-ui
 ---
@@ -70,7 +71,7 @@ Every block is also its own package, and comark-ui only registers them. To insta
 
 ## Agents
 
-comark-ui ships the comark-plugins agent skill. [Agents](/guide/agents/) shows how to install it, or bundle it in an app so it always matches the plugins the app installed.
+comark-ui ships the comark-ui agent skill. [Agents](/guide/agents/) shows how to install it, or bundle it in an app so it always matches the plugins the app installed.
 
 ## Versions
 

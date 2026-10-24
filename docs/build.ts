@@ -1,4 +1,4 @@
-// Renders docs/pages and each package's docs/ with the plugins themselves into docs/dist, a static site served by Cloudflare at comark.onmax.me.
+// Renders docs/pages and each package's docs/ with the plugins themselves into docs/dist, a static site served by Cloudflare at comark-ui.onmax.me.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -27,10 +27,10 @@ import { previewDocument } from "./preview.ts";
 const root = new URL("./", import.meta.url);
 const dist = new URL("dist/", root);
 const fonts = new URL("../node_modules/geist/dist/fonts/", root);
-const site = "https://comark.onmax.me";
+const site = "https://comark-ui.onmax.me";
 // `#123` on the site links to this repository's issues.
 const sitePlugins = () =>
-  browserPlugins({ "comark-github": { references: { repo: "onmax/comark-plugins" } } });
+  browserPlugins({ "comark-github": { references: { repo: "onmax/comark-ui" } } });
 // Only comark-include's examples include files, so includes resolve from its docs, where their partials sit.
 const contentPlugins = () => [
   include({ root: fileURLToPath(new URL("../packages/include/docs/", root)) }),
@@ -110,6 +110,7 @@ const packageOrder = [
   "code-notes",
   "cards",
   "steps",
+  "quiz",
   "cjk",
   "figure",
   "mark",
@@ -527,6 +528,8 @@ async function parsePage(slug: string, section: Section) {
     install,
     headline,
     pkg,
+    // Words that find the page in search that it doesn't say itself, such as other tools' names for its blocks.
+    keywords: [document.frontmatter.keywords].flat().map(str).filter(Boolean).join(", "),
     label: rule?.name ?? (label || title),
     toc: toc(document),
   };
@@ -780,7 +783,7 @@ const drop: NodeHandler = async ([, , ...children], state) => {
 const github = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>`;
 const starIcon = `<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>`;
 // The repository's stars, read once per build. Offline or rate-limited, the button just says GitHub.
-const stars = await fetch("https://api.github.com/repos/onmax/comark-plugins", {
+const stars = await fetch("https://api.github.com/repos/onmax/comark-ui", {
   headers: { accept: "application/vnd.github+json" },
   signal: AbortSignal.timeout(5000),
 })
@@ -793,13 +796,13 @@ const stars = await fetch("https://api.github.com/repos/onmax/comark-plugins", {
   .then((repo) => repo?.stargazers_count)
   .catch(() => undefined);
 // GitHub, as on drop.vitehub.dev, with the stars after a divider.
-const githubLink = `<a class="github" href="https://github.com/onmax/comark-plugins" aria-label="comark-plugins on GitHub${stars === undefined ? "" : `, ${stars} stars`}">${github}<span class="github-label">GitHub</span>${stars === undefined ? "" : `<span class="github-stars">${starIcon}${new Intl.NumberFormat("en", { notation: "compact" }).format(stars)}</span>`}</a>`;
+const githubLink = `<a class="github" href="https://github.com/onmax/comark-ui" aria-label="comark-ui on GitHub${stars === undefined ? "" : `, ${stars} stars`}">${github}<span class="github-label">GitHub</span>${stars === undefined ? "" : `<span class="github-stars">${starIcon}${new Intl.NumberFormat("en", { notation: "compact" }).format(stars)}</span>`}</a>`;
 const userIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg>`;
 const botIcon = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 8V4H8M4 8h16v12H4zM2 14h2M20 14h2M15 13v2M9 13v2"/></svg>`;
 const copyIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
 const resetIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`;
 const checkIcon = `<svg class="check" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5"/></svg>`;
-// Humans install the packages with their package manager; agents install the comark-plugins skill.
+// Humans install the packages with their package manager; agents install the comark-ui skill.
 function installerFor(install: string) {
   const packages = install.replace(/^pnpm add /, "");
   const commands = {
@@ -807,7 +810,7 @@ function installerFor(install: string) {
     npm: `npm install ${packages}`,
     yarn: `yarn add ${packages}`,
     bun: `bun add ${packages}`,
-    agents: "npx skills add onmax/comark-plugins",
+    agents: "npx skills add onmax/comark-ui",
   };
   return `<div class="installer" data-commands='${escapeHtml(JSON.stringify(commands))}'>
 <div class="installer-bar"><div class="seg" role="group" aria-label="Audience"><button type="button" data-audience="humans" aria-pressed="true">${userIcon}For humans</button><button type="button" data-audience="agents" aria-pressed="false">${botIcon}For agents</button></div>
@@ -827,7 +830,7 @@ const rail = (current: Section) =>
     )
     .join(
       "",
-    )}<a class="rail-drop" href="https://drop.vitehub.dev/?utm_source=comark-plugins&amp;utm_medium=sidebar"><img src="/drop.svg" alt="" width="18" height="18"><span class="rail-label"><strong>Review on Drop</strong><span>Comment on the exact spot</span></span></a></nav>`;
+    )}<a class="rail-drop" href="https://drop.vitehub.dev/?utm_source=comark-ui&amp;utm_medium=sidebar"><img src="/drop.svg" alt="" width="18" height="18"><span class="rail-label"><strong>Review on Drop</strong><span>Comment on the exact spot</span></span></a></nav>`;
 // The second column: the current section's pages, or the playground's presets.
 const column = (section: Section, current: string) => {
   const presetCard = (preset: (typeof presets)[number], href: string) =>
@@ -1115,8 +1118,105 @@ window.comarkSearch = true;
 // On <html>, which the docs app leaves alone when it takes over the header.
 document.documentElement.dataset.search = "";
 if (/Mac|iP(hone|ad)/.test(navigator.platform)) document.documentElement.dataset.mac = "";
-let entries, results = [], active = 0, restoreMenuFocus = false;
-const load = () => entries ??= fetch("/search.json").then(r => r.json());
+let index, results = [], active = 0, restoreMenuFocus = false;
+// Words in lowercase, without accents or a plural s, so "Gantts" finds "gantt".
+const wordRe = /[\\p{L}\\p{M}\\p{N}]+/gu;
+const norm = w => { w = w.normalize("NFD").replace(/\\p{M}/gu, "").toLowerCase(); return w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w };
+const words = text => text?.match(wordRe)?.map(norm) ?? [];
+// Words too common to narrow a search: left out of one unless they're all there is, and matched only as they are.
+const common = new Set(["a", "an", "and", "are", "be", "by", "can", "do", "does", "for", "from", "how", "i", "if", "in", "is", "it", "its", "my", "of", "on", "or", "so", "than", "that", "the", "their", "them", "then", "there", "these", "they", "this", "to", "what", "when", "with", "you", "your"]);
+// What a word found in each field counts: the title, the page's keywords, where it sits, its description, and its text.
+const fields = [["t", 10], ["w", 6], ["p", 3], ["d", 3], ["x", 1]];
+// Each word in the index, with the entries and fields it's in.
+const load = () => index ??= fetch("/search.json").then(r => r.json()).then(all => {
+  const postings = new Map();
+  all.forEach((e, i) => fields.forEach(([key], f) => { for (const w of new Set(words(e[key]))) { if (!postings.has(w)) postings.set(w, []); postings.get(w).push(i, f) } }));
+  return { all, postings, titles: all.map(e => words(e.t)) };
+});
+// Edits between two words, a swap of neighbours counting as one, given up past max.
+const distance = (a, b, max) => {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let before = [], prev = [...Array(b.length + 1).keys()];
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j++) {
+      row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) row[j] = Math.min(row[j], before[j - 2] + 1);
+    }
+    if (Math.min(...row) > max) return max + 1;
+    before = prev; prev = row;
+  }
+  return prev[b.length];
+};
+// Endings that leave a word the same word, so "theme" finds "Theming" and "sorting" finds "sort".
+const endings = new Set(["", "e", "ed", "er", "es", "ing", "ion", "ation", "ly"]);
+// How well a typed word matches one in the index: the same word, the start of one, the same word with another ending,
+// or one a typo or two away. A short word gets no typos, and neither does a first letter, since allowing them matches
+// nearly everything.
+const close = (q, w) => {
+  if (w === q) return 1;
+  if (common.has(q)) return 0;
+  if (common.has(w)) return 0;
+  if (w.startsWith(q)) return 0.6 + 0.3 * q.length / w.length;
+  let same = 0;
+  while (same < q.length && q[same] === w[same]) same++;
+  if (same >= 4 && endings.has(q.slice(same)) && endings.has(w.slice(same))) return 0.7;
+  const typos = q.length < 4 ? 0 : q.length < 8 ? 1 : 2;
+  if (!typos || w[0] !== q[0]) return 0;
+  if (distance(q, w, typos) <= typos) return 0.5;
+  // A word still being typed, with a typo in it.
+  return w.length > q.length && distance(q, w.slice(0, q.length), typos) <= typos ? 0.3 : 0;
+};
+const found = new Map();
+const matches = (q, postings) => {
+  if (!found.has(q)) {
+    const m = new Map();
+    for (const w of postings.keys()) { const c = close(q, w); if (c) m.set(w, c) }
+    // A word the index has, or starts one, isn't a typo, so "video" doesn't find "Vimeo".
+    if ([...m.values()].some(c => c >= 0.6)) for (const [w, c] of m) if (c < 0.6) m.delete(w);
+    found.set(q, m);
+  }
+  return found.get(q);
+};
+// Each entry scores its best match for each word, by field, and more when the words make up most of its title. A rule
+// page scores less than the page about its block. The entries that match the most words are kept, so one word nothing
+// has doesn't empty the list.
+const search = ({ all, postings, titles }, qs) => {
+  const rows = new Map();
+  qs.forEach((q, n) => {
+    for (const [w, c] of matches(q, postings)) {
+      const list = postings.get(w);
+      for (let j = 0; j < list.length; j += 2) {
+        if (!rows.has(list[j])) rows.set(list[j], qs.map(() => 0));
+        const row = rows.get(list[j]), s = c * fields[list[j + 1]][1];
+        if (s > row[n]) row[n] = s;
+      }
+    }
+  });
+  const ranked = [...rows].map(([i, row]) => {
+    const title = titles[i], named = title.filter(w => qs.some(q => matches(q, postings).has(w))).length;
+    const score = row.reduce((a, b) => a + b, 0) + (title.length ? 4 * named / title.length : 0) + (all[i].k === "page" ? 0.5 : 0);
+    return { i, score: all[i].k === "rule" ? score * 0.6 : score, covered: row.filter(Boolean).length };
+  });
+  const most = Math.max(0, ...ranked.map(r => r.covered));
+  return ranked.filter(r => r.covered === most).sort((a, b) => b.score - a.score || a.i - b.i).map(r => all[r.i]);
+};
+// A text as nodes, with the words that matched in <mark>.
+const marked = (text, hit) => {
+  const out = []; let at = 0;
+  for (const m of text.matchAll(wordRe)) if (hit(m[0])) {
+    out.push(text.slice(at, m.index), Object.assign(document.createElement("mark"), { textContent: m[0] }));
+    at = m.index + m[0].length;
+  }
+  return [...out, text.slice(at)];
+};
+// The part of a text from just before its first match.
+const excerpt = (text, hit) => {
+  for (const m of text?.matchAll(wordRe) ?? []) if (hit(m[0])) {
+    const start = m.index < 60 ? 0 : Math.min(m.index, text.indexOf(" ", m.index - 50) + 1);
+    return (start ? "…" : "") + text.slice(start, start + 200);
+  }
+};
 const parts = () => { const dialog = document.querySelector("dialog.search"); return { dialog, input: dialog.querySelector("input"), list: dialog.querySelector("[role=listbox]"), empty: dialog.querySelector(".search-empty") } };
 const select = i => {
   const { input, list } = parts();
@@ -1126,15 +1226,22 @@ const select = i => {
   if (a) { input.setAttribute("aria-activedescendant", a.id); a.scrollIntoView({ block: "nearest" }) } else input.removeAttribute("aria-activedescendant");
 };
 const update = async () => {
-  const all = await load(), { dialog, input, list, empty } = parts(), q = input.value.trim().toLowerCase(), words = q.split(/\\s+/).filter(Boolean);
-  const rank = e => [e.t.toLowerCase().startsWith(q) ? 0 : e.t.toLowerCase().includes(q) ? 1 : 2, e.k === "page" ? 0 : 1];
-  results = (q ? all.filter(e => words.every(w => (e.t + " " + e.p + " " + (e.d ?? "")).toLowerCase().includes(w)))
-    .map((e, i) => [...rank(e), i, e]).sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]).map(x => x[3])
-    : all.filter(e => e.k === "page")).slice(0, 12);
+  const idx = await load(), { dialog, input, list, empty } = parts();
+  const typed = input.value.toLowerCase().match(wordRe) ?? [], kept = typed.filter(w => !common.has(w));
+  const qs = [...new Set((kept.length ? kept : typed).map(norm))];
+  const hit = w => qs.some(q => matches(q, idx.postings).has(norm(w)));
+  results = (qs.length ? search(idx, qs) : idx.all.filter(e => e.k === "page")).slice(0, 20);
   list.replaceChildren(...results.map((e, i) => {
-    const a = Object.assign(document.createElement("a"), { id: "search-" + i, href: e.h, tabIndex: -1 });
+    const a = Object.assign(document.createElement("a"), { id: "search-" + i, href: e.h, tabIndex: -1 }), title = document.createElement("span");
     a.setAttribute("role", "option");
-    a.append(Object.assign(document.createElement("small"), { textContent: e.p }), Object.assign(document.createElement("span"), { textContent: e.t }));
+    title.append(...marked(e.t, hit));
+    a.append(Object.assign(document.createElement("small"), { textContent: e.p }), title);
+    // When the title doesn't hold every word, the text that does says why it's here.
+    const named = words(e.t);
+    if (qs.some(q => !named.some(w => matches(q, idx.postings).has(w)))) {
+      const said = excerpt(e.x, hit) ?? excerpt(e.d, hit) ?? e.d;
+      if (said) { const p = document.createElement("p"); p.append(...marked(said, hit)); a.append(p) }
+    }
     return a;
   }));
   empty.hidden = results.length > 0;
@@ -1171,35 +1278,78 @@ document.addEventListener("keydown", e => {
 });
 }
 `;
-// One entry per page and per heading: its title, where it sits, and its link.
+// What a page or a heading says, in one line, so search finds it by its words and not only its title. Code blocks
+// are left out: an example's Markdown is made-up data, and the prose names what it shows.
+const inlineTags = new Set([
+  "a",
+  "code",
+  "del",
+  "em",
+  "ins",
+  "kbd",
+  "mark",
+  "s",
+  "span",
+  "strong",
+  "sub",
+  "sup",
+]);
+const prose = (nodes: Node[]): string =>
+  nodes
+    .map((node) => {
+      if (typeof node === "string") return node;
+      if (!isElement(node) || node[0] === "pre") return " ";
+      const [tag, , ...children] = node;
+      return inlineTags.has(tag) ? prose(children) : ` ${prose(children)} `;
+    })
+    .join("")
+    .replace(/\s+/g, " ")
+    .trim();
+// A page's nodes cut at each h2 and h3: what comes before the first, then each heading with what follows it.
+const sectionsOf = (nodes: Node[]) => {
+  const parts: { heading?: ElementNode; nodes: Node[] }[] = [{ nodes: [] }];
+  for (const node of nodes)
+    if (isElement(node) && (node[0] === "h2" || node[0] === "h3"))
+      parts.push({ heading: node, nodes: [] });
+    else parts.at(-1)!.nodes.push(node);
+  return parts;
+};
+// One entry per page and per heading: its title, where it sits, its link, and the words that find it. The rule pages
+// go last, so a package's own pages come before the rules about its blocks.
 const searchIndex = [
-  ...[landing, ...parsed].flatMap((page) => {
-    const where = page.slug ? `${page.section.label} › ${page.label}` : page.section.label;
-    return [
-      {
-        k: "page",
-        t: page.title,
-        p: page.section.label,
-        h: href(page.slug),
-        d: page.description,
-      },
-      ...page.document.nodes
-        .filter(isElement)
-        .filter(([tag]) => tag === "h2" || tag === "h3")
-        .map((heading) => ({
+  ...[landing, ...parsed]
+    .toSorted((a, b) => Number(Boolean(a.rule)) - Number(Boolean(b.rule)))
+    .flatMap((page) => {
+      const where = page.slug ? `${page.section.label} › ${page.label}` : page.section.label;
+      const [intro, ...headed] = sectionsOf(page.document.nodes);
+      return [
+        {
+          k: page.rule ? "rule" : "page",
+          t: page.title,
+          p: page.section.label,
+          h: href(page.slug),
+          d: page.description,
+          w: page.keywords || undefined,
+          x:
+            `${page.tagline === page.description ? "" : page.tagline} ${prose(intro!.nodes)}`.trim() ||
+            undefined,
+        },
+        ...headed.map(({ heading, nodes }) => ({
           k: "heading",
-          t: textContent(heading),
+          t: textContent(heading!),
           p: where,
-          h: `${href(page.slug)}#${str(heading[1].id)}`,
+          h: `${href(page.slug)}#${str(heading![1].id)}`,
+          x: prose(nodes) || undefined,
         })),
-    ];
-  }),
+      ];
+    }),
   {
     k: "page",
     t: "Playground",
     p: "Docs",
     h: "/play/",
     d: "Edit any example with every plugin and share a link to it.",
+    w: "editor, sandbox, repl, try it, live preview",
   },
 ];
 
@@ -1247,7 +1397,7 @@ function shell(options: {
   const { npm } = options;
   const pageHead = options.head ?? "";
   const nav = rail(section) + column(section, slug);
-  const header = `<div class="top-start"><a class="name" href="/">${logo}comark plugins</a>${options.landing ? `<nav class="top-links" aria-label="Site"><a href="/guide/renderers/">Docs</a><a href="/play/">Playground</a><a href="https://drop.vitehub.dev">Drop</a></nav>` : ""}</div>
+  const header = `<div class="top-start"><a class="name" href="/">${logo}comark ui</a>${options.landing ? `<nav class="top-links" aria-label="Site"><a href="/guide/renderers/">Docs</a><a href="/play/">Playground</a><a href="https://drop.vitehub.dev">Drop</a></nav>` : ""}</div>
 <button type="button" class="search-open" aria-haspopup="dialog">${siteIcon("search", 15)}<span class="search-label">Search docs</span><kbd><span class="kbd-mac">⌘K</span><span class="kbd-other">Ctrl K</span></kbd></button>
 <div class="top-end">
 <nav>${npmxLink(npm)}${githubLink}</nav>
@@ -1272,11 +1422,11 @@ ${options.landing ? options.body : `<div class="layout">\n<aside class="sidebar"
 <meta property="og:description" content="${escapeHtml(options.description)}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${site}${href(slug)}">
-<meta property="og:site_name" content="comark plugins">
+<meta property="og:site_name" content="comark ui">
 <meta property="og:image" content="${site}/og/home.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Review documents, written in Markdown: comark plugins">
+<meta property="og:image:alt" content="Review documents, written in Markdown: comark ui">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="${site}/og/home.png">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">

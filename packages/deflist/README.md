@@ -4,7 +4,7 @@
 [![npm downloads](https://npmx.dev/api/registry/badge/downloads-month/comark-deflist)](https://npmx.dev/package/comark-deflist)
 [![install size](https://npmx.dev/api/registry/badge/size/comark-deflist)](https://npmx.dev/package/comark-deflist)
 [![license](https://npmx.dev/api/registry/badge/license/comark-deflist)](https://npmx.dev/package/comark-deflist)
-[![docs](https://img.shields.io/badge/docs-comark.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark.onmax.me/deflist/)
+[![docs](https://img.shields.io/badge/docs-comark--ui.onmax.me-14b8a6?labelColor=0a0a0a)](https://comark-ui.onmax.me/deflist/)
 
 Definition lists in [Comark](https://comark.dev): a term, then `: definition` lines, rendered as native `<dl>`, `<dt>`, and `<dd>`. A parse plugin with no components and no styles, so it works in any renderer.
 

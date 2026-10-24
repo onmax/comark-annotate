@@ -1,6 +1,7 @@
 ---
 title: Table
 description: Tables from CSV, TSV, and JSON, read while parsing, that copy and sort.
+keywords: CSV, TSV, JSON, data table, sortable table, sort, spreadsheet, Excel, copy table, datagrid
 tagline: Point a table at a CSV file, or paste the CSV into a fence, and get a table with Copy CSV and Copy Markdown buttons and, if you like, headers that sort.
 group: Review blocks
 icon: table

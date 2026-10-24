@@ -1,6 +1,7 @@
 ---
 title: Figure
 description: Image captions in Markdown, from the title, rendered as native figure and figcaption.
+keywords: caption, figcaption, image caption, image title, alt text
 tagline: Give an image a title and get a figure with a caption, while its alt text stays alt text.
 group: Markdown syntax
 icon: image

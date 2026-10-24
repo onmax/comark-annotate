@@ -1,6 +1,7 @@
 ---
 title: Details
 description: Details, accordions, and collapsibles, written in Markdown.
+keywords: accordion, collapsible, collapse, expand, fold, spoiler, toggle, summary, disclosure, FAQ
 tagline: Fold away the answer, the long log, or the optional props behind a summary that opens with no script. Nuxt UI's syntax, drawn as native details.
 group: Docs blocks
 icon: list-collapse
