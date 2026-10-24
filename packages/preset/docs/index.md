@@ -30,6 +30,16 @@ Pass `onmax()` to the renderer.
 ::
 ````
 :::
+:::example{label="Mermaid"}
+````md
+```mermaid
+sequenceDiagram
+  Agent->>Reviewer: Opens a PR with evidence
+  Reviewer-->>Agent: Asks for a change
+  Agent->>Reviewer: Pushes the fix
+```
+````
+:::
 ::
 
 This site renders every page through the preset.
@@ -59,13 +69,24 @@ onmax({
 });
 ```
 
-The keys are the packages' names without `comark-`, in camelCase: `fileTree`, `codeNotes`, `readingTime`. `github` takes its three plugins by name, `callouts`, `references`, and `html`, and `links` takes `external` and `anchors`.
+The keys are the packages' names without `comark-`, in camelCase: `fileTree`, `codeNotes`, `readingTime`. `mermaid` turns on comark-pele. `github` takes its three plugins by name, `callouts`, `references`, and `html`, and `links` takes `external` and `anchors`.
 
 [cast](/cast/), [table](/table/), and [tests](/tests/) read files from disk on their own, so the preset gives them a reader that finds none: inline casts, CSV fences, and pasted reports still render. Pass `{ root }` to read files under a folder, or `{ read }` to read them yourself. [diagrams](/diagrams/) sends each diagram's source to `https://kroki.io` unless you pass your own `server`.
 
 The icon resolver from `icon`'s options also draws the icons of cards, details, file trees, tabs, and code actions, so its `collections` and `fetch` apply to all of them. When you parse in a browser, pass `chips: { download: false }`, since a browser may not download another site's images.
 
 [critic](/critic/) has no component to add its styles, so put `criticCss`, exported by every entry, in the page.
+
+## Mermaid
+
+The preset draws `mermaid` fences with [comark-pele](https://github.com/farnabaz/comark-pele), which renders them with [Pele](https://pele.run) to SVG on the server, with no browser and no network, so it works in Node and in a Cloudflare Worker. Flowcharts, sequence, class, state, ER, gantt, pie, mindmap, timeline, git graphs, and most other Mermaid types render. Each diagram sits on a card with the shared `--comark-*` tokens, so it follows the page's light and dark theme like the other blocks; set Pele's `--pele-*` variables to change a color. A diagram Pele can't draw shows its source.
+
+```ts
+onmax({ mermaid: { languages: ["mermaid"] } }); // only `mermaid` fences, not `pele` ones
+onmax({ mermaid: false }); // leave `mermaid` fences as code
+```
+
+The HTML entry inlines static SVG. The Vue, React, and Svelte entries switch to Pele's `mount()` in the browser, which fits each diagram to its container and adds zoom. Pele adds about 260 KB gzipped to a bundle, so turn it off when a bundle size limit matters more than diagrams. If you register Comark's built-in `mermaid` plugin instead, pass `mermaid: false`, since both read `mermaid` fences.
 
 ## Versions
 

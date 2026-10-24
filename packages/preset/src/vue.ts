@@ -17,6 +17,7 @@ import * as github from "comark-github/vue";
 import * as icon from "comark-icon/vue";
 import * as links from "comark-links/vue";
 import * as media from "comark-media/vue";
+import pele, { createPeleComponent } from "comark-pele/vue";
 import * as metrics from "comark-metrics/vue";
 import * as outline from "comark-outline/vue";
 import * as properties from "comark-properties/vue";
@@ -27,10 +28,17 @@ import * as table from "comark-table/vue";
 import * as tabs from "comark-tabs/vue";
 import * as tests from "comark-tests/vue";
 import * as zoom from "comark-zoom/vue";
+import { addMermaidStyles } from "./client.ts";
 import { type Preset, type PresetOptions, preset } from "./index.ts";
 
 export { criticCss } from "./index.ts";
 export type { PresetOptions } from "./index.ts";
+
+// Pele calls `onRender` only in the browser, after it draws, so the styles arrive like the other components' do.
+const mermaid = {
+  default: pele,
+  components: { pele: createPeleComponent({ onRender: addMermaidStyles }) },
+};
 
 /** Every plugin with components for `@comark/vue`, which leaves out annotate and diff. */
 export default (options?: PresetOptions): Preset<Component> =>
@@ -54,6 +62,7 @@ export default (options?: PresetOptions): Preset<Component> =>
       icon,
       links,
       media,
+      mermaid,
       metrics,
       outline,
       properties,
