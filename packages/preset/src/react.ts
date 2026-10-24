@@ -21,6 +21,8 @@ import readingTimePlugin from "comark-reading-time";
 import * as zoom from "comark-zoom/react";
 const deflist = { default: deflistPlugin, components: {} };
 const readingTime = { default: readingTimePlugin, components: {} };
+// Narrow the renderer entry to the parse plugin and component map.
+const mediaPart = { default: () => media.default(), components: media.components };
 import { type Preset, type PresetOptions, preset } from "./index.ts";
 
 export type { PresetOptions } from "./index.ts";
@@ -45,7 +47,7 @@ export default (options?: PresetOptions): Preset<AnyComponent> =>
       fields,
       github,
       icon,
-      media,
+      media: mediaPart,
       outline,
       readingTime,
       qr,
